@@ -1,7 +1,5 @@
 import { Dialog } from 'native-dialog';
-import React, {
-  memo, type TeactNode, useEffect, useMemo, useState,
-} from '../../lib/teact/teact';
+import React, { memo, type TeactNode, useEffect, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiStakingState, ApiTokenWithPrice } from '../../api/types';
@@ -11,10 +9,9 @@ import { StakingState } from '../../global/types';
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX,
+  ETHENA_HELP_CENTER_URL,
   JVAULT_URL,
-  NOMINATORS_STAKING_MIN_AMOUNT,
   SHORT_FRACTION_DIGITS,
-  STAKING_MIN_AMOUNT,
   TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
@@ -33,9 +30,12 @@ import { stopEvent } from '../../util/domEvents';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency } from '../../util/formatNumber';
 import { vibrate } from '../../util/haptics';
+import { openUrl } from '../../util/openUrl';
 import { throttle } from '../../util/schedulers';
+import { getStakingMinAmount, getStakingTitle } from '../../util/staking';
 import { buildUserToken, getIsNativeToken, getNativeToken } from '../../util/tokens';
 import calcJettonStakingApr from '../../util/ton/calcJettonStakingApr';
+import { getHostnameFromUrl } from '../../util/url';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -142,7 +142,7 @@ function StakingInitial({
   const nativeBalance = nativeToken?.amount ?? 0n;
 
   const hasAmountError = Boolean(isInsufficientBalance || apiError);
-  const minAmount = stakingType === 'nominators' ? NOMINATORS_STAKING_MIN_AMOUNT : STAKING_MIN_AMOUNT;
+  const minAmount = getStakingMinAmount(stakingType);
 
   const { gas: networkFee, real: realFee } = getTonStakingFees(stakingState?.type).stake;
 
@@ -156,6 +156,8 @@ function StakingInitial({
     }
     return bigintMax(0n, value);
   })();
+
+  const title = getStakingTitle();
 
   const validateAndSetAmount = useLastCallback((newAmount: bigint | undefined, noReset = false) => {
     if (!noReset) {
@@ -195,11 +197,14 @@ function StakingInitial({
     return buildStakingDropdownItems({ tokenBySlug, states, shouldUseNominators });
   }, [tokenBySlug, states, shouldUseNominators]);
 
+  const handleHelpCenterClick = useLastCallback(() => {
+    const url = ETHENA_HELP_CENTER_URL[lang.code as never] ?? ETHENA_HELP_CENTER_URL.en;
+    void openUrl(url, { title: lang('Help Center'), subtitle: getHostnameFromUrl(url) });
+  });
+
   useEffect(() => {
     if (shouldUseAllBalance && maxAmount) {
-      const newAmount = maxAmount;
-
-      validateAndSetAmount(newAmount, true);
+      validateAndSetAmount(maxAmount, true);
     } else {
       validateAndSetAmount(amount, true);
     }
@@ -221,25 +226,53 @@ function StakingInitial({
     if (!IS_DELEGATED_BOTTOM_SHEET) return;
 
     if (isSafeInfoModalOpen) {
-      const text = stakingState && stakingState.type === 'jetton'
-        ? [
-          // We use `replace` instead of `lang` argument to avoid JSX output
-          `${lang('$safe_staking_description_jetton1').replace('%jvault_link%', 'JVault')}`,
-          `${lang('$safe_staking_description_jetton2')}`,
-        ]
-        : [
-          `1. ${lang('$safe_staking_description1')}`,
-          `2. ${lang('$safe_staking_description2')}`,
-          `3. ${lang('$safe_staking_description3')}`,
-        ];
+      let text: string[];
+      switch (stakingState?.type) {
+        case 'jetton':
+          text = [
+            // We use `replace` instead of `lang` argument to avoid JSX output
+            `${lang('$safe_staking_description_jetton1').replace('%jvault_link%', 'JVault')}`,
+            `${lang('$safe_staking_description_jetton2')}`,
+          ];
+          break;
+        case 'ethena':
+          text = [
+            `1. ${lang('$safe_staking_ethena_description1')}`,
+            `2. ${lang('$safe_staking_ethena_description2')}`,
+            `3. ${lang('$safe_staking_ethena_description3')}`,
+          ];
+          break;
+        default:
+          text = [
+            `1. ${lang('$safe_staking_description1')}`,
+            `2. ${lang('$safe_staking_description2')}`,
+            `3. ${lang('$safe_staking_description3')}`,
+          ];
+      }
 
-      void Dialog.alert({
-        title: lang('Why is staking safe?'),
-        message: text.join('\n\n').replace(/\*\*/g, ''),
-      })
-        .then(closeSafeInfoModal);
+      if (stakingState?.type === 'ethena') {
+        void Dialog.confirm({
+          title: lang(title),
+          message: text.join('\n\n').replace(/\*\*/g, ''),
+          okButtonTitle: lang('Close'),
+          cancelButtonTitle: lang('Help Center'),
+        })
+          .then((result) => {
+            closeSafeInfoModal();
+
+            if (!result.value) {
+              handleHelpCenterClick();
+            }
+          });
+      } else {
+        void Dialog.alert({
+          title: lang(title),
+          message: text.join('\n\n').replace(/\*\*/g, ''),
+        })
+          .then(closeSafeInfoModal);
+      }
     }
-  }, [isSafeInfoModalOpen, lang, stakingState]);
+  }, [isSafeInfoModalOpen, lang, stakingState, title]);
 
   const handleMaxAmountClick = useLastCallback(() => {
     if (!maxAmount) {
@@ -289,7 +322,7 @@ function StakingInitial({
       return lang('$min_value', {
         value: (
           <span className={styles.minAmountValue}>
-            {formatCurrency(toDecimal(minAmount), symbol ?? '')}
+            {formatCurrency(toDecimal(minAmount, decimals), symbol ?? '')}
           </span>
         ),
       });
@@ -377,6 +410,35 @@ function StakingInitial({
     );
   }
 
+  function renderEthenaDescription() {
+    return (
+      <>
+        <p className={modalStyles.text}>
+          {renderText(lang('$safe_staking_ethena_description1'))}
+        </p>
+        <p className={modalStyles.text}>
+          {renderText(lang('$safe_staking_ethena_description2'))}
+        </p>
+        <p className={modalStyles.text}>
+          {renderText(lang('$safe_staking_ethena_description3'))}
+        </p>
+      </>
+    );
+  }
+
+  function renderSafeDescription() {
+    switch (stakingState!.type) {
+      case 'jetton':
+        return renderJettonDescription();
+
+      case 'ethena':
+        return renderEthenaDescription();
+
+      default:
+        return renderTonDescription();
+    }
+  }
+
   function renderSafeInfoModal() {
     if (IS_DELEGATED_BOTTOM_SHEET) return undefined;
 
@@ -384,12 +446,17 @@ function StakingInitial({
       <Modal
         isCompact
         isOpen={isSafeInfoModalOpen}
-        title={lang('Why is staking safe?')}
+        title={lang(title)}
         onClose={closeSafeInfoModal}
         dialogClassName={styles.stakingSafeDialog}
       >
-        {stakingState && stakingState.type === 'jetton' ? renderJettonDescription() : renderTonDescription()}
+        {!!stakingState && renderSafeDescription()}
         <div className={modalStyles.buttons}>
+          {stakingState!.type === 'ethena' && (
+            <Button onClick={handleHelpCenterClick}>
+              {lang('Help Center')}
+            </Button>
+          )}
           <Button onClick={closeSafeInfoModal}>{lang('Close')}</Button>
         </div>
       </Modal>
@@ -398,7 +465,7 @@ function StakingInitial({
 
   function renderStakingResult() {
     const balanceResult = amount
-      ? toBig(amount).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString()
+      ? toBig(amount, decimals).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString()
       : '0';
 
     return (
@@ -440,7 +507,7 @@ function StakingInitial({
           <div>{lang('Earn from your tokens while holding them', { symbol })}</div>
           <div className={styles.stakingApy}>{lang('Est. %annual_yield%', { annual_yield: `${annualYield}%` })}</div>
           <Button isText className={styles.textButton} onClick={openSafeInfoModal}>
-            {lang('Why this is safe')}
+            {lang(getStakingTitle(stakingType))}
           </Button>
         </div>
       </div>
@@ -450,7 +517,7 @@ function StakingInitial({
         key="staking_amount"
         id="staking_amount"
         hasError={isIncorrectAmount || isInsufficientBalance}
-        value={amount === undefined ? undefined : toDecimal(amount)}
+        value={amount === undefined ? undefined : toDecimal(amount, decimals)}
         labelText={lang('Amount')}
         onChange={handleAmountChange}
         onPressEnter={handleSubmit}

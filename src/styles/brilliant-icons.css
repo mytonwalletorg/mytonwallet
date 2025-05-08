@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?d2a16ed084806704656b292d6eb409c1") format("woff"),
-url("./brilliant-icons.woff2?d2a16ed084806704656b292d6eb409c1") format("woff2");
+    src: url("./brilliant-icons.woff?4864b28d5849079975693b13202b1e09") format("woff"),
+url("./brilliant-icons.woff2?4864b28d5849079975693b13202b1e09") format("woff2");
     font-weight: normal;
     font-style: normal;
     font-display: block;
@@ -267,57 +267,60 @@ url("./brilliant-icons.woff2?d2a16ed084806704656b292d6eb409c1") format("woff2");
 .icon-check::before {
     content: "\f154";
 }
-.icon-changelly::before {
+.icon-check-alt::before {
     content: "\f155";
 }
-.icon-chain-tron::before {
+.icon-changelly::before {
     content: "\f156";
 }
-.icon-chain-ton::before {
+.icon-chain-tron::before {
     content: "\f157";
 }
-.icon-caret-down::before {
+.icon-chain-ton::before {
     content: "\f158";
 }
-.icon-card::before {
+.icon-caret-down::before {
     content: "\f159";
 }
-.icon-can-out::before {
+.icon-card::before {
     content: "\f15a";
 }
-.icon-can-in::before {
+.icon-can-out::before {
     content: "\f15b";
 }
-.icon-backspace::before {
+.icon-can-in::before {
     content: "\f15c";
 }
-.icon-auction::before {
+.icon-backspace::before {
     content: "\f15d";
 }
-.icon-auction-alt::before {
+.icon-auction::before {
     content: "\f15e";
 }
-.icon-arrow-up::before {
+.icon-auction-alt::before {
     content: "\f15f";
 }
-.icon-arrow-up-swap::before {
+.icon-arrow-up::before {
     content: "\f160";
 }
-.icon-arrow-down::before {
+.icon-arrow-up-swap::before {
     content: "\f161";
 }
-.icon-action-swap::before {
+.icon-arrow-down::before {
     content: "\f162";
 }
-.icon-action-send::before {
+.icon-action-swap::before {
     content: "\f163";
 }
-.icon-action-earn::before {
+.icon-action-send::before {
     content: "\f164";
 }
-.icon-action-add::before {
+.icon-action-earn::before {
     content: "\f165";
 }
-.icon-accept::before {
+.icon-action-add::before {
     content: "\f166";
+}
+.icon-accept::before {
+    content: "\f167";
 }

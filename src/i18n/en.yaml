@@ -834,3 +834,12 @@ Preview: Preview
 $preview_not_guaranteed: Preview result **is not guaranteed **and **can be forged **by the service.
 Exit all wallets: Exit all wallets
 Can't confirm?: Can't confirm?
+$safe_staking_ethena_description1: Staking is fully decentralized and operated by **Ethena’s official** audited liquid staking **smart contracts**.
+$safe_staking_ethena_description2: The deposited USDe stake is used in Ethena’s **trading and investment strategies** to yield rewards automatically and transparently.
+$safe_staking_ethena_description3: You can **withdraw** your stake with rewards at any time, and it will be returned to your account **within 7 days**, according to Ethena’s standard withdrawal period.
+Unstake %amount%: Unstake %amount%
+Request Unstaking: Request Unstaking
+$unstaking_when_receive_ethena: You will be able to receive your unstaked deposit in **7 days**.
+Coins have been unstaked!: Coins have been unstaked!
+Confirm Upgrading: Confirm Upgrading
+How does it work?: How does it work?

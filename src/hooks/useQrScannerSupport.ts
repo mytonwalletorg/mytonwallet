@@ -1,11 +1,11 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
 import { IS_CAPACITOR } from '../config';
-import { getIsMobileTelegramApp, IS_IOS } from '../util/windowEnvironment';
+import { getIsMobileTelegramApp } from '../util/windowEnvironment';
 import useEffectOnce from './useEffectOnce';
 import useForceUpdate from './useForceUpdate';
 
-let isQrScannerSupported = !IS_IOS && getIsMobileTelegramApp();
+let isQrScannerSupported = getIsMobileTelegramApp();
 
 export default function useQrScannerSupport() {
   const forceUpdate = useForceUpdate();

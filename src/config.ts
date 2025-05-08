@@ -144,7 +144,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-187';
+export const LANG_CACHE_NAME = 'mtw-lang-190';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -291,10 +291,8 @@ export const STAKED_MYCOIN_SLUG = 'ton-eqcbzvsfwq';
 export const TRX_SWAP_COUNT_FEE_ADDRESS = 'TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw';
 export const MYCOIN_STAKING_POOL = 'EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTVL5o5';
 
-export const ALL_STAKING_POOLS = [
-  LIQUID_POOL,
-  MYCOIN_STAKING_POOL,
-];
+export const ETHENA_STAKING_VAULT = 'EQChGuD1u0e7KUWHH5FaYh_ygcLXhsdG2nSHPXHW8qqnpZXW';
+export const ETHENA_STAKING_MIN_AMOUNT = 1_000_000; // 1 USDe
 
 // In cross-chain swaps, only a few TON/TRON tokens are available.
 // It’s not optimal to request swap history for all the others.
@@ -325,6 +323,33 @@ const TON_USDT = {
   tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
 } as const;
 
+export const TON_USDE = {
+  name: 'Ethena USDe',
+  symbol: 'USDe',
+  chain: 'ton',
+  tokenAddress: 'EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f',
+  slug: 'ton-eqaib6kmdf',
+  decimals: 6,
+  image: 'https://metadata.layerzero-api.com/assets/USDe.png',
+} as const;
+
+export const TON_TSUSDE = {
+  name: 'Ethena tsUSDe',
+  symbol: 'tsUSDe',
+  chain: 'ton',
+  tokenAddress: 'EQDQ5UUyPHrLcQJlPAczd_fjxn8SLrlNQwolBznxCdSlfQwr',
+  slug: 'ton-eqdq5uuyph',
+  decimals: 6,
+  image: 'https://metadata.layerzero-api.com/assets/tsUSDe.png',
+} as const;
+
+export const ALL_STAKING_POOLS = [
+  LIQUID_POOL,
+  MYCOIN_STAKING_POOL,
+  ETHENA_STAKING_VAULT,
+  TON_TSUSDE.tokenAddress,
+];
+
 export const DEFAULT_ENABLED_TOKEN_SLUGS = [
   TONCOIN.slug, TON_USDT_SLUG, TRX.slug, TRC20_USDT_TESTNET_SLUG, TRC20_USDT_MAINNET_SLUG,
 ] as string[];
@@ -336,6 +361,13 @@ export const PRIORITY_TOKEN_SLUGS = [
   TONCOIN.slug, TON_USDT_SLUG, TRX.slug,
 ] as string[];
 
+const COMMON_TOKEN = {
+  isFromBackend: true,
+  price: 0,
+  priceUsd: 0,
+  percentChange24h: 0,
+};
+
 export const TOKEN_INFO: Record<string, ApiTokenWithPrice> = {
   toncoin: {
     ...TONCOIN,
@@ -346,47 +378,40 @@ export const TOKEN_INFO: Record<string, ApiTokenWithPrice> = {
   },
   trx: {
     ...TRX,
-    isFromBackend: true,
-    price: 0,
-    priceUsd: 0,
-    percentChange24h: 0,
+    ...COMMON_TOKEN,
   },
   [TRC20_USDT_MAINNET_SLUG]: { // mainnet
     ...TRC20_USDT,
     slug: TRC20_USDT_MAINNET_SLUG,
     tokenAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-    isFromBackend: true,
-    price: 0,
-    priceUsd: 0,
-    percentChange24h: 0,
+    ...COMMON_TOKEN,
   },
   [TRC20_USDT_TESTNET_SLUG]: { // testnet
     ...TRC20_USDT,
     slug: TRC20_USDT_TESTNET_SLUG,
     tokenAddress: 'TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs',
-    isFromBackend: true,
-    price: 0,
-    priceUsd: 0,
-    percentChange24h: 0,
+    ...COMMON_TOKEN,
   },
   [TON_USDT_SLUG]: {
     ...TON_USDT,
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
     slug: TON_USDT_SLUG,
-    isFromBackend: true,
-    price: 0,
-    priceUsd: 0,
-    percentChange24h: 0,
+    ...COMMON_TOKEN,
   },
   [MYCOIN.slug]: {
     ...MYCOIN,
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/Qy038wCBKISofJ0hYMlj6COWma330cx3Ju1ZSPM2LRU/rs:fill:200:200:1/g:no/aHR0cHM6Ly9teXRvbndhbGxldC5pby9sb2dvLTI1Ni1ibHVlLnBuZw.webp',
-    isFromBackend: true,
-    price: 0,
-    priceUsd: 0,
-    percentChange24h: 0,
+    ...COMMON_TOKEN,
+  },
+  [TON_USDE.slug]: {
+    ...TON_USDE,
+    ...COMMON_TOKEN,
+  },
+  [TON_TSUSDE.slug]: {
+    ...TON_TSUSDE,
+    ...COMMON_TOKEN,
   },
 };
 
@@ -565,11 +590,13 @@ export const PRICELESS_TOKEN_HASHES = new Set([
   '02250f83fbb8624d859c2c045ac70ee2b3b959688c3d843aec773be9b36dbfc3', // FIVA PT eUSDT EQBzVrYkYPHx8D_HPfQacm1xONa4XSRxl826vHkx_laP2HOe
   'dba3adb2c917db80fd71a6a68c1fc9e12976491a8309d5910f9722efc084ce4d', // FIVA YT eUSDT EQCwUSc2qrY5rn9BfFBG9ARAHePTUvITDl97UD0zOreWzLru
   '7da9223b90984d6a144e71611a8d7c65a6298cad734faed79438dc0f7a8e53d1', // FIVA LP eUSDT EQBNlIZxIbQGQ78cXgG3VRcyl8A0kLn_6BM9kabiHHhWC4qY
+  'ddf80de336d580ab3c11d194f189c362e2ca1225cae224ea921deeaba7eca818', // tsUSDe EQDQ5UUyPHrLcQJlPAczd_fjxn8SLrlNQwolBznxCdSlfQwr
 ]);
 
 export const STAKED_TOKEN_SLUGS = new Set([
   STAKED_TON_SLUG,
   STAKED_MYCOIN_SLUG,
+  TON_TSUSDE.slug,
 ]);
 
 export const DEFAULT_OUR_SWAP_FEE = 0.875;
@@ -601,8 +628,14 @@ export const DEFAULT_NOMINATORS_STAKING_STATE: ApiNominatorsStakingState = {
 };
 
 export const SWAP_API_VERSION = 2;
+export const TONCENTER_ACTIONS_VERSION = 'v1';
 
 export const JVAULT_URL = 'https://jvault.xyz';
+// eslint-disable-next-line max-len
+export const ETHENA_HELP_CENTER_URL = {
+  en: 'https://help.mytonwallet.io/intro/staking/what-is-usde-how-does-usde-staking-work',
+  ru: 'https://help.mytonwallet.io/ru/baza-znanii/steiking/chto-takoe-usde-kak-rabotaet-steiking-usde',
+};
 
 const ALL_TON_DNS_ZONES = [
   {

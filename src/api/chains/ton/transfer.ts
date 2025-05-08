@@ -6,7 +6,6 @@ import type { CheckTransactionDraftOptions } from '../../methods/types';
 import type {
   ApiAccountWithMnemonic,
   ApiAnyDisplayError,
-  ApiEmulationResult,
   ApiNetwork,
   ApiSignedTransfer,
   ApiToken,
@@ -15,6 +14,7 @@ import type {
   AnyPayload,
   ApiCheckMultiTransactionDraftResult,
   ApiCheckTransactionDraftResult,
+  ApiEmulationWithFallbackResult,
   ApiFetchEstimateDieselResult,
   ApiSubmitMultiTransferResult,
   ApiSubmitTransferOptions,
@@ -33,7 +33,6 @@ import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { getDieselTokenAmount, isDieselAvailable } from '../../../util/fee/transferFee';
 import { omit, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
-import { safeExecAsync } from '../../../util/safeExec';
 import { pause } from '../../../util/schedulers';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { sendExternal } from './util/sendExternal';
@@ -61,7 +60,7 @@ import { checkHasTransaction, fetchNewestActionId } from './activities';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import { ATTEMPTS, FEE_FACTOR, TRANSFER_TIMEOUT_SEC } from './constants';
-import { emulateTrace, parseEmulation } from './emulation';
+import { emulateTransaction } from './emulation';
 import {
   buildTokenTransfer,
   calculateTokenBalanceWithMintless,
@@ -171,9 +170,9 @@ export async function checkTransactionDraft(
       data = commentToBytes(data);
     }
 
+    let toncoinAmount: bigint;
     const toncoinBalance = await getWalletBalance(network, wallet);
     let balance: bigint;
-    let toncoinAmount: bigint;
     let fee: bigint;
     let realFee: bigint;
 
@@ -221,10 +220,12 @@ export async function checkTransactionDraft(
       isFullBalance: isFullTonTransfer,
       shouldEncrypt,
     });
-    const blockchainFee = await calculateFee(network, wallet, transaction, isWalletInitialized);
-    const safeBlockchainFee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
-    fee += safeBlockchainFee;
-    realFee += safeBlockchainFee;
+    // todo: Use `received` from the emulation to calculate the real fee. Check what happens when the receiver is the same wallet.
+    const { networkFee } = applyFeeFactorToEmulationResult(
+      await emulateTransactionWithFallback(network, wallet, transaction, isWalletInitialized),
+    );
+    fee += networkFee;
+    realFee += networkFee;
     result.fee = fee;
     result.realFee = realFee;
     result.diesel = DIESEL_NOT_AVAILABLE;
@@ -232,9 +233,7 @@ export async function checkTransactionDraft(
     let isEnoughBalance: boolean;
 
     if (!tokenAddress) {
-      isEnoughBalance = isFullTonTransfer
-        ? toncoinBalance > blockchainFee
-        : toncoinBalance >= fee + amount;
+      isEnoughBalance = toncoinBalance >= fee + (isFullTonTransfer ? 0n : amount);
     } else {
       const canTransferGasfully = toncoinBalance >= fee;
 
@@ -392,11 +391,11 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       shouldEncrypt,
     });
 
-    const blockchainFee = await calculateFee(network, wallet!, transaction, isInitialized);
+    const { networkFee } = await emulateTransaction(network, wallet!, transaction, isInitialized);
 
     const isEnoughBalance = isFullTonTransfer
-      ? toncoinBalance > blockchainFee
-      : toncoinBalance >= toncoinAmount + blockchainFee;
+      ? toncoinBalance > networkFee
+      : toncoinBalance >= toncoinAmount + networkFee;
 
     if (!isEnoughBalance) {
       return { error: ApiTransactionError.InsufficientBalance };
@@ -408,7 +407,13 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
     return {
-      amount, seqno, encryptedComment, toAddress, msgHash, msgHashNormalized,
+      amount,
+      seqno,
+      encryptedComment,
+      toAddress,
+      msgHash,
+      msgHashNormalized,
+      toncoinAmount,
     };
   } catch (err: any) {
     logDebugError('submitTransfer', err);
@@ -626,27 +631,24 @@ export async function checkMultiTransactionDraft(
   accountId: string,
   messages: TonTransferParams[],
   withDiesel?: boolean,
-  // If true and the emulation is successful, the result `fee` property will miss
-  withEmulation?: boolean,
 ): Promise<ApiCheckMultiTransactionDraftResult> {
-  const result: { fee?: bigint; emulation?: ApiEmulationResult } = {};
   let totalAmount: bigint = 0n;
 
   const { network } = parseAccountId(accountId);
   const tonWallet = await fetchStoredTonWallet(accountId);
-  const { isInitialized, version, address } = tonWallet;
+  const { isInitialized, version } = tonWallet;
 
   try {
     for (const { toAddress, amount } of messages) {
       if (amount < 0n) {
-        return { ...result, error: ApiTransactionDraftError.InvalidAmount };
+        return { error: ApiTransactionDraftError.InvalidAmount };
       }
 
       const isMainnet = network === 'mainnet';
       const { isValid, isTestOnly } = parseAddress(toAddress);
 
       if (!isValid || (isMainnet && isTestOnly)) {
-        return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
+        return { error: ApiTransactionDraftError.InvalidToAddress };
       }
       totalAmount += amount;
     }
@@ -654,26 +656,14 @@ export async function checkMultiTransactionDraft(
     const wallet = await getTonWallet(accountId, tonWallet);
     const { balance } = await getWalletInfo(network, wallet);
 
-    const { transaction } = await signMultiTransaction({
-      network, wallet, messages, version,
-    });
+    const { transaction } = await signMultiTransaction({ network, wallet, messages, version });
+    const emulation = applyFeeFactorToEmulationResult(
+      await emulateTransactionWithFallback(network, wallet, transaction, isInitialized),
+    );
+    const result = { emulation };
 
-    if (withEmulation) {
-      result.emulation = await safeExecAsync(async () => {
-        const emulation = await emulateTrace(network, wallet, transaction, isInitialized);
-        const parsedEmulation = await parseEmulation(network, address, emulation);
-        return applyFeeFactorToEmulationResult(parsedEmulation);
-      });
-    }
-
-    if (!result.emulation) {
-      const blockchainFee = await calculateFee(network, wallet, transaction, isInitialized);
-      result.fee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
-    }
-
-    const fee = result.emulation?.networkFee ?? result.fee ?? 0n;
     // TODO Should `totalAmount` be `0` for `withDiesel`?
-    if (!withDiesel && balance < totalAmount + fee) {
+    if (!withDiesel && balance < totalAmount + result.emulation.networkFee) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
 
@@ -721,8 +711,8 @@ export async function submitMultiTransfer({
     });
 
     if (!isGasless) {
-      const fee = await calculateFee(network, wallet!, transaction, isInitialized);
-      if (balance < totalAmount + fee) {
+      const { networkFee } = await emulateTransaction(network, wallet!, transaction, isInitialized);
+      if (balance < totalAmount + networkFee) {
         return { error: ApiTransactionError.InsufficientBalance };
       }
     }
@@ -907,18 +897,31 @@ async function retrySendBoc(
   pendingTransfer?.resolve();
 }
 
-async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell, isInitialized?: boolean) {
+async function emulateTransactionWithFallback(
+  network: ApiNetwork,
+  wallet: TonWallet,
+  transaction: Cell,
+  isInitialized?: boolean,
+): Promise<ApiEmulationWithFallbackResult> {
+  try {
+    const emulation = await emulateTransaction(network, wallet, transaction, isInitialized);
+    return { isFallback: false, ...emulation };
+  } catch (err) {
+    logDebugError('Failed to emulate a transaction', err);
+  }
+
+  // Falling back to the legacy fee estimation method just in case.
+  // It doesn't support estimating more than 20 transactions (inside `transaction`) at once.
   // eslint-disable-next-line no-null/no-null
   const { code = null, data = null } = !isInitialized ? wallet.init : {};
-
   const { source_fees: fees } = await getTonClient(network).estimateExternalMessageFee(wallet.address, {
     body: transaction,
     initCode: code,
     initData: data,
     ignoreSignature: true,
   });
-
-  return BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
+  const networkFee = BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
+  return { isFallback: true, networkFee };
 }
 
 export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer, pendingTransferId?: string) {
@@ -1104,13 +1107,18 @@ function getDieselToncoinFee(token: ApiToken) {
   return { amount, realFee, isStars };
 }
 
-function applyFeeFactorToEmulationResult(emulation: ApiEmulationResult): ApiEmulationResult {
-  return {
-    ...emulation,
-    networkFee: bigintMultiplyToNumber(emulation.networkFee, FEE_FACTOR),
-    byTransactionIndex: emulation.byTransactionIndex.map((transaction) => ({
+function applyFeeFactorToEmulationResult(estimation: ApiEmulationWithFallbackResult): ApiEmulationWithFallbackResult {
+  estimation = {
+    ...estimation,
+    networkFee: bigintMultiplyToNumber(estimation.networkFee, FEE_FACTOR),
+  };
+
+  if ('byTransactionIndex' in estimation) {
+    estimation.byTransactionIndex = estimation.byTransactionIndex.map((transaction) => ({
       ...transaction,
       networkFee: bigintMultiplyToNumber(transaction.networkFee, FEE_FACTOR),
-    })),
-  };
+    }));
+  }
+
+  return estimation;
 }

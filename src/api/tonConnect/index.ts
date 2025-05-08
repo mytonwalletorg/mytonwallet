@@ -16,7 +16,7 @@ import type {
 import { CHAIN } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
-import type { ApiCheckMultiTransactionDraftResult, TonTransferParams } from '../chains/ton/types';
+import type { ApiEmulationWithFallbackResult, TonTransferParams } from '../chains/ton/types';
 import type {
   ApiAccountWithMnemonic,
   ApiAccountWithTon,
@@ -346,7 +346,7 @@ export async function sendTransaction(
     }
 
     const dapp = (await getDappsByOrigin(accountId))[origin];
-    const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult);
+    const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult.emulation);
 
     const { promiseId, promise } = createDappPromise();
 
@@ -356,7 +356,7 @@ export async function sendTransaction(
       accountId,
       dapp,
       transactions: transactionsForRequest,
-      emulation: checkResult.emulation && pick(checkResult.emulation, ['activities', 'realFee']),
+      emulation: checkResult.emulation.isFallback ? undefined : pick(checkResult.emulation, ['activities', 'realFee']),
       vestingAddress,
     });
 
@@ -405,7 +405,7 @@ export async function sendTransaction(
       throw new errors.UnknownError(error);
     }
 
-    transactionsForRequest.forEach(({ amount, normalizedAddress, payload }, index) => {
+    transactionsForRequest.forEach(({ amount, normalizedAddress, payload, networkFee }, index) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
       createLocalTransaction(accountId, 'ton', {
         txId: msgHashNormalized!,
@@ -413,7 +413,7 @@ export async function sendTransaction(
         fromAddress: address,
         toAddress: normalizedAddress,
         comment,
-        fee: checkResult.fee!,
+        fee: networkFee,
         slug: TONCOIN.slug,
         externalMsgHash: msgHash,
       }, index);
@@ -508,7 +508,7 @@ async function checkTransactionMessages(
     };
   });
 
-  const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages, false, true);
+  const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages);
 
   return {
     preparedMessages,
@@ -519,12 +519,8 @@ async function checkTransactionMessages(
 function prepareTransactionForRequest(
   network: ApiNetwork,
   messages: TransactionPayloadMessage[],
-  checkResult: ApiCheckMultiTransactionDraftResult,
+  emulation: ApiEmulationWithFallbackResult,
 ) {
-  if (!checkResult.emulation && checkResult.fee === undefined) {
-    throw new Error('Both `emulation` and `fee` miss in the check result');
-  }
-
   return Promise.all(messages.map(
     async ({
       address,
@@ -538,7 +534,7 @@ function prepareTransactionForRequest(
       const normalizedAddress = toBase64Address(address, undefined, network);
       const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
       const { isScam } = getKnownAddressInfo(normalizedAddress) || {};
-      const emulationResult = checkResult.emulation?.byTransactionIndex[index];
+      const transferEmulation = emulation.isFallback ? undefined : emulation.byTransactionIndex[index];
 
       return {
         toAddress,
@@ -550,7 +546,7 @@ function prepareTransactionForRequest(
         isScam,
         isDangerous: isTransferPayloadDangerous(payload),
         displayedToAddress: getTransferActualToAddress(toAddress, payload),
-        networkFee: emulationResult?.networkFee ?? bigintDivideToNumber(checkResult.fee!, messages.length),
+        networkFee: transferEmulation?.networkFee ?? bigintDivideToNumber(emulation.networkFee, messages.length),
       };
     },
   ));

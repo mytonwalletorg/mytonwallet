@@ -7,6 +7,7 @@ import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import { shortenAddress } from '../../util/shortenAddress';
 
+import { useCachedImage } from '../../hooks/useCachedImage';
 import useCardCustomization from '../../hooks/useCardCustomization';
 
 import { ACCOUNT_ADDRESS_SHIFT, ACCOUNT_WITH_ICON_ADDRESS_SHIFT } from '../main/sections/Card/AccountButton';
@@ -45,14 +46,15 @@ function AccountButton({
     withTextGradient,
     classNames: mtwCardClassNames,
   } = useCardCustomization(cardBackgroundNft);
+  const { imageUrl } = useCachedImage(backgroundImageUrl);
 
   const isHardware = accountType === 'hardware';
   const isViewMode = accountType === 'view';
   const fullClassName = buildClassName(
     className,
     styles.account,
-    backgroundImageUrl && styles.customCard,
-    mtwCardClassNames,
+    imageUrl && styles.customCard,
+    imageUrl && mtwCardClassNames,
     isActive && !withCheckbox && styles.account_current,
     isLoading && styles.account_disabled,
     !onClick && styles.account_inactive,
@@ -63,7 +65,7 @@ function AccountButton({
       key={accountId}
       className={fullClassName}
       onClick={onClick}
-      style={buildStyle(backgroundImageUrl && `--bg: url(${backgroundImageUrl})`)}
+      style={buildStyle(imageUrl && `--bg: url(${imageUrl})`)}
       aria-label={ariaLabel}
     >
       {title && <span className={buildClassName(styles.accountName, withTextGradient && 'gradientText')}>{title}</span>}

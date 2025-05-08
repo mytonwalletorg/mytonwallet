@@ -194,7 +194,9 @@ async function getLogsString(
         ...mainLogs.map((log) => ({ ...log, context: 'main' })),
         ...bottomSheetLogs.map((log) => ({ ...log, context: 'bottomSheet' })),
         ...apiLogs.map((log) => ({ ...log, context: 'api' })),
-      ].sort((a, b) => a.time.getTime() - b.time.getTime()),
+      ]
+        .sort((a, b) => a.time - b.time)
+        .map((log) => ({ ...log, time: new Date(log.time).toISOString() })),
     },
     undefined,
     2,

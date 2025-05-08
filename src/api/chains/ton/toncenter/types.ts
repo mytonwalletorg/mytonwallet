@@ -60,6 +60,9 @@ type BaseAction = {
   end_utime: number;
   transactions: string[];
   success: boolean;
+  trace_end_lt: string;
+  trace_end_utime: number;
+  trace_mc_seqno_end: number;
   trace_external_hash: string;
 };
 

@@ -155,6 +155,7 @@ function StakeModal({
             color="purple"
             playAnimation={isActive}
             amount={renderedStakingAmount}
+            decimals={token?.decimals}
             tokenSymbol={token?.symbol}
             noSign
             firstButtonText={lang('View')}

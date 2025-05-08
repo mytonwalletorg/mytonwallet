@@ -48,15 +48,15 @@ export function formatRelativeHumanDateTime(
 
   if (days > 0) {
     const [daysPlural, daysValue] = rtf.formatToParts(days, 'day').reverse();
-    result.push(`${daysValue.value}${daysPlural.value}`);
+    result.push(`${daysValue.value}${daysPlural.value}`.replace(' ', '\u00A0'));
   }
   if (hours > 0) {
     const [hoursPlural, hoursValue] = rtf.formatToParts(hours, 'hour').reverse();
-    result.push(`${hoursValue.value}${hoursPlural.value}`);
+    result.push(`${hoursValue.value}${hoursPlural.value}`.replace(' ', '\u00A0'));
   }
   if (minutes > 0) {
     const [minutesPlural, minutesValue] = rtf.formatToParts(minutes, 'minute').reverse();
-    result.push(`${minutesValue.value}${minutesPlural.value}`);
+    result.push(`${minutesValue.value}${minutesPlural.value}`.replace(' ', '\u00A0'));
   }
 
   return result.join(' ');

@@ -339,9 +339,16 @@
 
   &.withBackground {
     background: var(--color-background-purple-2);
+    border-top-left-radius: var(--border-radius-default);
+    border-top-right-radius: var(--border-radius-default);
 
     @include respond-above(xs) {
       border-radius: var(--border-radius-default);
+    }
+
+    :global(.is-telegram-app) &,
+    :global(.is-android) & {
+      border-radius: 0;
     }
   }
 
@@ -377,6 +384,15 @@
 
   &_withMargin {
     margin-bottom: 2rem;
+  }
+  &_adaptiveWidth {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: repeat(auto-fit, minmax(max-content, 1fr));
+    & .stakingInfoButton {
+      min-width: 4rem !important;
+      padding: 0.5rem !important;
+    }
   }
 }
 

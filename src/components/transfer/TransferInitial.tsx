@@ -37,7 +37,7 @@ import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { trimStringByMaxBytes } from '../../util/text';
 import { getChainBySlug, getNativeToken } from '../../util/tokens';
-import { IS_ANDROID, IS_CLIPBOARDS_SUPPORTED } from '../../util/windowEnvironment';
+import { getIsMobileTelegramApp, IS_ANDROID, IS_CLIPBOARDS_SUPPORTED, IS_IOS } from '../../util/windowEnvironment';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
@@ -310,6 +310,7 @@ function TransferInitial({
       showDialog({
         title: lang('Warning!'),
         message: lang('$service_token_transfer_warning'),
+        noBackdropClose: true,
       });
     }
   }, [tokenType, tokenSlug, codeHash, lang]);
@@ -382,6 +383,12 @@ function TransferInitial({
   });
 
   const handleQrScanClick = useLastCallback(() => {
+    if (IS_IOS && getIsMobileTelegramApp()) {
+      // eslint-disable-next-line no-alert
+      alert('Scanning is temporarily not available');
+      return;
+    }
+
     requestOpenQrScanner();
     cancelTransfer();
   });

@@ -35,10 +35,14 @@ export function buildStakingDropdownItems({
   return res;
 }
 
-export type StakingStateStatus = 'inactive' | 'active' | 'unstakeRequested';
+export type StakingStateStatus = 'inactive' | 'active' | 'unstakeRequested' | 'readyToClaim';
 
 export function getStakingStateStatus(state: ApiStakingState): StakingStateStatus {
-  if (state.isUnstakeRequested) {
+  if (state.unstakeRequestAmount) {
+    if (state.type === 'ethena' && state.unlockTime && state.unlockTime <= Date.now()) {
+      return 'readyToClaim';
+    }
+
     return 'unstakeRequested';
   }
   if (getIsActiveStakingState(state)) {
@@ -50,7 +54,39 @@ export function getStakingStateStatus(state: ApiStakingState): StakingStateStatu
 export function getIsActiveStakingState(state: ApiStakingState) {
   return Boolean(
     state.balance
-    || state.isUnstakeRequested
+    || state.unstakeRequestAmount
     || ('unclaimedRewards' in state && state.unclaimedRewards > MIN_ACTIVE_STAKING_REWARDS),
   );
+}
+
+export function getIsLongUnstake(state: ApiStakingState, amount?: bigint): boolean | undefined {
+  switch (state.type) {
+    case 'nominators': {
+      return true;
+    }
+    case 'liquid': {
+      return amount === undefined ? false : amount > state.instantAvailable;
+    }
+    case 'jetton': {
+      return false;
+    }
+    case 'ethena': {
+      return true;
+    }
+  }
+
+  return undefined;
+}
+
+export function getFullStakingBalance(state: ApiStakingState): bigint {
+  switch (state.type) {
+    case 'jetton': {
+      return state.balance + state.unclaimedRewards;
+    }
+    case 'ethena': {
+      return state.balance + state.unstakeRequestAmount;
+    }
+  }
+
+  return state.balance;
 }

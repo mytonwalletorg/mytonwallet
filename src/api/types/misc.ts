@@ -126,7 +126,8 @@ export interface ApiNft {
 
 export type ApiHistoryList = Array<[number, number]>;
 
-export type ApiStakingType = 'nominators' | 'liquid' | 'jetton';
+export type ApiStakingType = ApiStakingState['type'];
+export type ApiBackendStakingType = 'nominators' | 'liquid';
 
 type BaseStakingState = {
   id: string;
@@ -135,7 +136,7 @@ type BaseStakingState = {
   yieldType: ApiYieldType;
   balance: bigint;
   pool: string;
-  isUnstakeRequested?: boolean;
+  unstakeRequestAmount?: bigint;
 };
 
 export type ApiNominatorsStakingState = BaseStakingState & {
@@ -148,7 +149,6 @@ export type ApiNominatorsStakingState = BaseStakingState & {
 export type ApiLiquidStakingState = BaseStakingState & {
   type: 'liquid';
   tokenBalance: bigint;
-  unstakeRequestAmount: bigint;
   instantAvailable: bigint;
 };
 
@@ -164,8 +164,20 @@ export type ApiJettonStakingState = BaseStakingState & {
   poolWallets?: string[];
 };
 
+export type ApiEthenaStakingState = BaseStakingState & {
+  type: 'ethena';
+  tokenBalance: bigint;
+  tsUsdeWalletAddress: string;
+  lockedBalance: bigint;
+  unstakeRequestAmount: bigint;
+  unlockTime?: number;
+};
+
 export type ApiYieldType = 'APY' | 'APR';
-export type ApiStakingState = ApiNominatorsStakingState | ApiLiquidStakingState | ApiJettonStakingState;
+export type ApiStakingState = ApiNominatorsStakingState
+| ApiLiquidStakingState
+| ApiJettonStakingState
+| ApiEthenaStakingState;
 export type ApiToncoinStakingState = ApiNominatorsStakingState | ApiLiquidStakingState;
 
 export interface ApiNominatorsPool {
@@ -178,7 +190,7 @@ export interface ApiNominatorsPool {
 export interface ApiBackendStakingState {
   balance: bigint;
   totalProfit: bigint;
-  type?: ApiStakingType;
+  type?: ApiBackendStakingType;
   nominatorsPool: ApiNominatorsPool;
   loyaltyType?: ApiLoyaltyType;
   shouldUseNominators?: boolean;
@@ -237,6 +249,7 @@ export type ApiLocalTransactionParams = Omit<
 ApiTransactionActivity, 'id' | 'timestamp' | 'isIncoming' | 'normalizedAddress' | 'kind' | 'shouldLoadDetails'
 > & {
   normalizedAddress?: string;
+  isIncoming?: boolean;
 };
 
 export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';

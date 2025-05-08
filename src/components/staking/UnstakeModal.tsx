@@ -8,6 +8,7 @@ import type { ApiBaseCurrency, ApiStakingState } from '../../api/types';
 import type {
   GlobalState, HardwareConnectState, Theme, UserToken,
 } from '../../global/types';
+import { ApiTransactionDraftError } from '../../api/types';
 import { StakingState } from '../../global/types';
 
 import {
@@ -17,6 +18,8 @@ import {
   TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
+import renderText from '../../global/helpers/renderText';
+import { getIsLongUnstake } from '../../global/helpers/staking';
 import {
   selectAccountStakingState,
   selectCurrentAccountTokens,
@@ -30,6 +33,7 @@ import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
+import { getUnstakeTime } from '../../util/staking';
 import { getIsMobileTelegramApp } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
@@ -126,9 +130,7 @@ function UnstakeModal({
     balance: stakingBalance,
   } = stakingState ?? {};
 
-  const endOfStakingCycle = stakingState?.type === 'nominators'
-    ? stakingState.end
-    : stakingInfo?.round?.end;
+  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
@@ -148,7 +150,7 @@ function UnstakeModal({
 
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
 
-  const [isLongUnstake, setIsLongUnstake] = useState(false);
+  const isLongUnstake = stakingState ? getIsLongUnstake(stakingState, amount) : undefined;
 
   const [isInsufficientBalance, setIsInsufficientBalance] = useState(false);
 
@@ -157,30 +159,7 @@ function UnstakeModal({
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  useEffect(() => {
-    if (!stakingState) return;
-
-    let isInstantUnstake = true;
-
-    switch (stakingState.type) {
-      case 'nominators': {
-        isInstantUnstake = false;
-        break;
-      }
-      case 'liquid': {
-        isInstantUnstake = amount ? amount < instantAvailable : true;
-        break;
-      }
-      case 'jetton': {
-        isInstantUnstake = true;
-        break;
-      }
-    }
-
-    setIsLongUnstake(!isInstantUnstake);
-  }, [instantAvailable, amount, stakingState]);
-
-  const [unstakeDate, setUnstakeDate] = useState<number>(endOfStakingCycle ?? Date.now() + STAKING_CYCLE_DURATION_MS);
+  const [unstakeDate, setUnstakeDate] = useState<number>(unstakeTime ?? Date.now() + STAKING_CYCLE_DURATION_MS);
   const forceUpdate = useForceUpdate();
   const appTheme = useAppTheme(theme);
 
@@ -209,10 +188,16 @@ function UnstakeModal({
   }, [isOpen, fetchStakingHistory, isNominators, stakingBalance]);
 
   useSyncEffect(() => {
-    if (endOfStakingCycle) {
-      setUnstakeDate(endOfStakingCycle);
+    if (unstakeTime) {
+      setUnstakeDate(unstakeTime);
     }
-  }, [endOfStakingCycle]);
+  }, [unstakeTime]);
+
+  useEffect(() => {
+    if (error === ApiTransactionDraftError.InsufficientBalance) {
+      setIsInsufficientBalance(true);
+    }
+  }, [error]);
 
   const refreshUnstakeDate = useLastCallback(() => {
     if (unstakeDate < Date.now()) {
@@ -230,6 +215,7 @@ function UnstakeModal({
   });
 
   const handleStartUnstakeClick = useLastCallback(() => {
+    setIsInsufficientBalance(false);
     submitStakingInitial({ isUnstaking: true, amount: unstakeAmount });
   });
 
@@ -359,6 +345,14 @@ function UnstakeModal({
   }
 
   function renderUnstakeTimer() {
+    const unstakeDateText = stakingType === 'ethena'
+      ? renderText(lang('$unstaking_when_receive_ethena'))
+      : lang('$unstaking_when_receive', {
+        time: (
+          <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>
+        ),
+      });
+
     return (
       <div className={buildClassName(styles.unstakeTime)}>
         <AnimatedIconWithPreview
@@ -370,15 +364,7 @@ function UnstakeModal({
           tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGray}
           previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGray}
         />
-        <div>
-          {lang('$unstaking_when_receive', {
-            time: (
-              <strong>
-                {formatRelativeHumanDateTime(lang.code, unstakeDate)}
-              </strong>
-            ),
-          })}
-        </div>
+        <div>{unstakeDateText}</div>
       </div>
     );
   }
@@ -481,16 +467,21 @@ function UnstakeModal({
     return (
       <>
         <ModalHeader
-          title={getIsMobileTelegramApp() ? lang('Request is sent!') : lang('Request for unstaking is sent!')}
+          title={getIsMobileTelegramApp()
+            ? lang('Request is sent!')
+            : stakingType === 'ethena'
+              ? lang('Request for unstaking is sent!')
+              : lang('Coins have been unstaked!')}
           onClose={cancelStaking}
         />
 
         <div className={modalStyles.transitionContent}>
           <TransferResult
-            color="green"
+            color={stakingType !== 'ethena' ? 'green' : undefined}
             playAnimation={isActive}
             amount={successUnstakeAmount}
             tokenSymbol={token?.symbol}
+            decimals={token?.decimals}
             noSign
           />
 

@@ -147,15 +147,13 @@ addActionHandler('afterSignOut', (global, actions, payload) => {
 });
 
 addActionHandler('showDialog', (global, actions, payload) => {
-  const { message, title } = payload;
-
   const newDialogs = [...global.dialogs];
-  const existingMessageIndex = newDialogs.findIndex((dialog) => dialog.message === message);
+  const existingMessageIndex = newDialogs.findIndex((dialog) => dialog.message === payload.message);
   if (existingMessageIndex !== -1) {
     newDialogs.splice(existingMessageIndex, 1);
   }
 
-  newDialogs.push({ message, title });
+  newDialogs.push(payload);
 
   return {
     ...global,

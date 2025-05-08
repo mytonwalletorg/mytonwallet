@@ -840,3 +840,12 @@ Preview: Podgląd
 $preview_not_guaranteed: Wynik podglądu **nie jest gwarantowany **i **może zostać sfałszowany **przez usługę.
 Exit all wallets: Wyjdź ze wszystkich portfeli
 Can't confirm?: Nie możesz się zalogować?
+$safe_staking_ethena_description1: Staking jest w pełni zdecentralizowany i obsługiwany przez **oficjalne**, audytowane **inteligentne kontrakty** Etheny do stakingu płynnego.
+$safe_staking_ethena_description2: Zdeponowany USDe jest wykorzystywany w **strategiach handlowych i inwestycyjnych** Etheny w celu automatycznego i przejrzystego generowania nagród.
+$safe_staking_ethena_description3: Możesz **wypłacić** swój stake z nagrodami w dowolnym momencie, a zostanie on zwrócony na Twoje konto **w ciągu 7 dni**, zgodnie ze standardowym okresem wypłat Etheny.
+Unstake %amount%: Wycofać %amount%
+Request Unstaking: Żądaj odblokowania
+$unstaking_when_receive_ethena: Będziesz mógł otrzymać swój wycofany depozyt za **7 dni**.
+Coins have been unstaked!: Monety wycofane!
+Confirm Upgrading: Potwierdź ulepszenie
+How does it work?: Jak to działa?

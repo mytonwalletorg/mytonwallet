@@ -212,7 +212,7 @@ Light: Светлая
 Dark: Тёмная
 System: Системная
 $stake_asset: Застейкать %symbol%
-Earn from your tokens while holding them: Получайте пассивный доход от хранения %symbol% на надёжном официальном смарт-контракте
+Earn from your tokens while holding them: Получайте пассивный доход от хранения %symbol%
 Est. %annual_yield%: Доходность %annual_yield%
 Why this is safe: Почему это безопасно
 Why is staking safe?: Это точно безопасно?
@@ -522,7 +522,7 @@ Explore: Обзор
 No partners yet: Ещё нет партнеров
 Clear: Очистить
 Get TON: Получить TON
-Biometric confirmation failed: Биометрическое подтверждение не удалось
+Biometric confirmation failed: Ошибка авторизации
 $unstake_up_to_information: Мгновенно – до %value%
 $all_balance: "Все: %balance%"
 $unstaking_not_enough_balance: Вам необходимо иметь %value% на вашем основном балансе, чтобы продолжить вывод.
@@ -753,7 +753,7 @@ Hide Sensitive Data: Скрыть конфиденциальные данные
 Copy Address: Скопировать адрес
 Copy Transaction ID: Скопировать ID транзакции
 Requesting Unstake: Запрос вывода стейка
-Unstake Requested: Вывод стейка запрошен
+Unstake Requested: Запрошен вывод стейка
 $request_unstake_action: Запрос вывода стейка
 Calling Contract: Вызов контракта
 Contract Called: Вызван контракт
@@ -836,3 +836,12 @@ Preview: Предпросмотр
 $preview_not_guaranteed: Предпросмотр **не гарантирует **результат и **может быть подделан **сервисом.
 Exit all wallets: Выйти из всех кошельков
 Can't confirm?: Не удаётся войти?
+$safe_staking_ethena_description1: Стейкинг полностью **децентрализован** и управляется официальными, прошедшими аудит **смарт-контрактами от Ethena**.
+$safe_staking_ethena_description2: Ваш депозит в USDe используется в **торговых и инвестиционных стратегиях** Ethena, автоматически и прозрачно принося доход.
+$safe_staking_ethena_description3: Вы можете **вывести депозит** вместе с начисленными процентами в любой момент — средства вернутся на ваш основной счёт в течение **7 дней**, согласно стандартному периоду вывода Ethena.
+Unstake %amount%: Вывести %amount%
+Request Unstaking: Запросить вывод
+$unstaking_when_receive_ethena: Вы сможете получить свой депозит через **7 дней**.
+Coins have been unstaked!: Монеты выведены!
+Confirm Upgrading: Подтвердить улучшение
+How does it work?: Как это работает?

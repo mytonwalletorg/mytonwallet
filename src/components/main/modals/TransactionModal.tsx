@@ -188,8 +188,6 @@ function TransactionModal({
 
   const transactionUrl = chain ? getExplorerTransactionUrl(chain, transactionHash, isTestnet) : undefined;
 
-  const [withUnstakeTimer, setWithUnstakeTimer] = useState(false);
-
   const {
     shouldRender: shouldRenderTransactionId,
     transitionClassNames: transactionIdClassNames,
@@ -205,20 +203,15 @@ function TransactionModal({
   const startOfStakingCycle = state?.type === 'nominators' ? state.start : stakingInfo?.round?.start;
   const endOfStakingCycle = state?.type === 'nominators' ? state.end : stakingInfo?.round?.end;
 
-  useEffect(() => {
-    if (transaction?.type !== 'unstakeRequest' || !startOfStakingCycle) {
-      return;
-    }
-
-    const shouldDisplayTimer = Boolean(stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
-      && transaction.timestamp >= startOfStakingCycle;
-    setWithUnstakeTimer(shouldDisplayTimer);
-  }, [stakingStatus, startOfStakingCycle, transaction, isLongUnstakeRequested]);
-
   const {
     shouldRender: shouldRenderUnstakeTimer,
     transitionClassNames: unstakeTimerClassNames,
-  } = useShowTransition(withUnstakeTimer);
+  } = useShowTransition(
+    transaction?.type === 'unstakeRequest'
+    && startOfStakingCycle !== undefined
+    && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
+    && transaction.timestamp >= startOfStakingCycle,
+  );
 
   useSyncEffect(() => {
     if (renderedTransaction) {

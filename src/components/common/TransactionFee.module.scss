@@ -7,11 +7,12 @@
 }
 
 .field {
-  $textHeight: 1.25rem;
+  $textHeight: 1.125rem;
 
   overflow: hidden;
 
-  padding: 1rem 0.75rem;
+  // Follows the InteractiveTextField style
+  padding: calc(1rem - 1px) calc(0.75rem - 1px);
 
   font-size: 1rem;
   font-weight: 600;

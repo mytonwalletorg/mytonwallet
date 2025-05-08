@@ -18,9 +18,10 @@ interface OwnProps {
   type: ApiMtwCardType;
   price?: number;
   balance?: bigint;
+  isAvailable?: boolean;
 }
 
-function CardPros({ type, price, balance }: OwnProps) {
+function CardPros({ type, price, balance, isAvailable }: OwnProps) {
   const { startCardMinting, showDialog } = getActions();
 
   const lang = useLang();
@@ -66,6 +67,7 @@ function CardPros({ type, price, balance }: OwnProps) {
       {!!price && (
         <Button
           isPrimary
+          isDisabled={!isAvailable}
           className={styles.button}
           onClick={handleSubmit}
         >

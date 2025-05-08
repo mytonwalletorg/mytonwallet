@@ -832,3 +832,12 @@ Preview: Önizleme
 $preview_not_guaranteed: Önizleme sonucu **garanti edilmez **ve hizmet tarafından **sahte olabilir**.
 Exit all wallets: Tüm cüzdanlardan çık
 Can't confirm?: Giriş yapılamıyor mu?
+$safe_staking_ethena_description1: Stake işlemi tamamen merkeziyetsizdir ve **Ethena'nın resmi** denetlenmiş likit stake **akıllı sözleşmeleri** tarafından yürütülür.
+$safe_staking_ethena_description2: Yatırılan USDe stake'i, Ethena'nın **ticaret ve yatırım stratejilerinde** otomatik ve şeffaf bir şekilde ödül kazanmak için kullanılır.
+$safe_staking_ethena_description3: Stake'inizi ödüllerle birlikte **istediğiniz zaman çekebilirsiniz** ve Ethena'nın standart çekim süresine göre **7 gün içinde** hesabınıza iade edilir.
+Unstake %amount%: "%amount% unstake et"
+Request Unstaking: Stake Çekme Talebi
+$unstaking_when_receive_ethena: Stake'ten çıkan bakiyenizi **7 gün** içinde alabileceksiniz.
+Coins have been unstaked!: Coin’ler çıkarıldı!
+Confirm Upgrading: Yükseltmeyi Onayla
+How does it work?: Nasıl çalışır?

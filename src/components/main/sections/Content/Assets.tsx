@@ -11,7 +11,11 @@ import type { Theme, UserToken } from '../../../../global/types';
 import { SettingsState } from '../../../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CORE_WALLET } from '../../../../config';
-import { getIsActiveStakingState, getStakingStateStatus } from '../../../../global/helpers/staking';
+import {
+  getFullStakingBalance,
+  getIsActiveStakingState,
+  getStakingStateStatus,
+} from '../../../../global/helpers/staking';
 import {
   selectAccountStakingStates,
   selectCurrentAccountState,
@@ -193,10 +197,9 @@ function Assets({
 
   function renderStakedTokens() {
     return Object.values(stakedTokens).map(({ state, token }) => {
-      const {
-        annualYield, yieldType, balance: stakingBalance, id,
-      } = state;
+      const { id, annualYield, yieldType } = state;
       const stakingStatus = getStakingStateStatus(state);
+      const stakingBalance = getFullStakingBalance(state);
 
       return (
         <Token

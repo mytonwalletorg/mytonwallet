@@ -10,6 +10,7 @@ import { stopEvent } from '../../../../util/domEvents';
 import { isKeyCountGreater } from '../../../../util/isEmptyObject';
 import { shortenAddress } from '../../../../util/shortenAddress';
 
+import { useCachedImage } from '../../../../hooks/useCachedImage';
 import useCardCustomization from '../../../../hooks/useCardCustomization';
 import useLang from '../../../../hooks/useLang';
 
@@ -59,11 +60,12 @@ function AccountButton({
     withTextGradient,
     classNames: mtwCardClassNames,
   } = useCardCustomization(cardBackgroundNft);
+  const { imageUrl } = useCachedImage(backgroundImageUrl);
   const fullClassName = buildClassName(
     styles.button,
     isActive && styles.button_current,
-    backgroundImageUrl && styles.customCard,
-    mtwCardClassNames,
+    imageUrl && styles.customCard,
+    imageUrl && mtwCardClassNames,
   );
 
   const handleEditClick = (e: React.MouseEvent) => {
@@ -77,7 +79,7 @@ function AccountButton({
       className={fullClassName}
       aria-label={lang('Switch Account')}
       onClick={isActive ? undefined : () => onClick(accountId)}
-      style={buildStyle(backgroundImageUrl && `--bg: url(${backgroundImageUrl})`)}
+      style={buildStyle(imageUrl && `--bg: url(${imageUrl})`)}
     >
       {title && <span className={buildClassName(styles.accountName, withTextGradient && 'gradientText')}>{title}</span>}
       <div className={buildClassName(styles.accountAddressBlock, withTextGradient && 'gradientText')}>

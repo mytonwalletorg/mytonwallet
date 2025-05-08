@@ -30,6 +30,7 @@ import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
+import Skeleton from '../ui/Skeleton';
 import Transition from '../ui/Transition';
 import DappInfo from './DappInfo';
 import DappPassword from './DappPassword';
@@ -212,10 +213,10 @@ function DappConnectModal({
     return (
       <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
         <div className={buildClassName(styles.dappInfoSkeleton, styles.dapp_first)}>
-          <div className={styles.dappInfoIconSkeleton} />
+          <Skeleton className={styles.dappInfoIconSkeleton} />
           <div className={styles.dappInfoTextSkeleton}>
-            <div className={styles.nameSkeleton} />
-            <div className={styles.descSkeleton} />
+            <Skeleton className={styles.nameSkeleton} />
+            <Skeleton className={styles.descSkeleton} />
           </div>
         </div>
         <div className={styles.accountWrapperSkeleton}>

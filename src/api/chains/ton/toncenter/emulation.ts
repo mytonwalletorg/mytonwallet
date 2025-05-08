@@ -3,6 +3,7 @@ import type { AccountState, AddressBook, AnyAction, MetadataMap, TraceDetail, Tr
 
 import { TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config';
 import { fetchWithRetry } from '../../../../util/fetch';
+import { getToncenterHeaders } from './other';
 
 export type EmulationResponse = {
   mc_block_seqno: number;
@@ -21,6 +22,7 @@ export async function fetchEmulateTrace(network: ApiNetwork, boc: string): Promi
   const response = await fetchWithRetry(`${baseUrl}/api/emulate/v1/emulateTrace`, {
     method: 'POST',
     headers: {
+      ...getToncenterHeaders(network),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

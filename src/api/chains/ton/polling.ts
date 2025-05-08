@@ -24,6 +24,7 @@ import {
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs } from '../../../util/activities';
 import { areDeepEqual } from '../../../util/areDeepEqual';
+import Deferred from '../../../util/Deferred';
 import { compact, pick } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';
@@ -72,7 +73,13 @@ const VESTING_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL = 30 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 
-const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
+let activeAccountCache: {
+  accountId: string;
+  balances: ApiBalanceBySlug;
+  deferred: Deferred;
+} | undefined;
+
+let inactiveAccountsCache: Record<string, ApiBalanceBySlug> = {};
 
 export function setupPolling(
   accountId: string,
@@ -98,7 +105,13 @@ async function setupBalanceBasedPolling(
   onUpdatingStatusChange: OnUpdatingStatusChange,
   newestActivityTimestamp?: number,
 ) {
-  delete lastBalanceCache[accountId];
+  const cache: ApiBalanceBySlug = {};
+
+  activeAccountCache = {
+    accountId,
+    balances: cache,
+    deferred: new Deferred(),
+  };
 
   const { network } = parseAccountId(accountId);
   let wallet = await fetchStoredTonWallet(accountId);
@@ -109,7 +122,7 @@ async function setupBalanceBasedPolling(
   let doubleCheckTokensTime: number | undefined;
   let forceCheckActivitiesTime = 0;
 
-  async function updateBalance(cache: ApiBalanceBySlug, newBalances: ApiBalanceBySlug, changedSlugs: string[]) {
+  async function updateBalance(newBalances: ApiBalanceBySlug, changedSlugs: string[]) {
     const { balance, lastTxId } = await getWalletInfo(network, wallet.address);
     const isToncoinBalanceChanged = balance !== undefined && balance !== cache[TONCOIN.slug];
 
@@ -150,7 +163,6 @@ async function setupBalanceBasedPolling(
 
   async function updateTokenBalances(
     isToncoinBalanceChanged: boolean,
-    cache: ApiBalanceBySlug,
     newBalances: ApiBalanceBySlug,
     changedSlugs: string[],
   ) {
@@ -210,15 +222,15 @@ async function setupBalanceBasedPolling(
 
       const newBalances: ApiBalanceBySlug = {};
       const changedSlugs: string[] = [];
-      const cache = lastBalanceCache[accountId] ?? {};
 
-      const { isToncoinBalanceChanged } = await updateBalance(cache, newBalances, changedSlugs);
-
+      const { isToncoinBalanceChanged } = await updateBalance(newBalances, changedSlugs);
       throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
-      await updateTokenBalances(isToncoinBalanceChanged, cache, newBalances, changedSlugs);
+      await updateTokenBalances(isToncoinBalanceChanged, newBalances, changedSlugs);
+      throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
-      lastBalanceCache[accountId] = newBalances;
+      Object.assign(cache, newBalances);
+      activeAccountCache.deferred.resolve();
 
       if (changedSlugs.length) {
         onUpdate({
@@ -235,6 +247,7 @@ async function setupBalanceBasedPolling(
         updateActivities(isToncoinBalanceChanged, newBalances),
         updateNfts(isToncoinBalanceChanged),
       ]);
+      throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
       onUpdatingStatusChange('activities', false);
 
@@ -273,9 +286,11 @@ async function setupStakingPolling(accountId: string, onUpdate: OnApiUpdate) {
   while (isAlive(onUpdate, accountId)) {
     try {
       const common = getStakingCommonCache();
+      const balances = await getBalancesFromCache(accountId);
       const backendState = await getBackendStakingState(accountId);
+      const states = await getStakingStates(accountId, common, backendState, balances);
+
       const { shouldUseNominators, totalProfit } = backendState;
-      const states = await getStakingStates(accountId, common, backendState);
 
       if (!isAlive(onUpdate, accountId)) return;
 
@@ -296,6 +311,15 @@ async function setupStakingPolling(accountId: string, onUpdate: OnApiUpdate) {
 
     await pauseOrFocus(STAKING_INTERVAL, STAKING_INTERVAL_WHEN_NOT_FOCUSED);
   }
+}
+
+async function getBalancesFromCache(accountId: string) {
+  if (!activeAccountCache || activeAccountCache.accountId !== accountId) {
+    throw new Error('Invalid balances cache');
+  }
+
+  await activeAccountCache.deferred.promise;
+  return activeAccountCache.balances;
 }
 
 async function loadNewActivities(accountId: string, newestActivityTimestamp: number, onUpdate: OnApiUpdate) {
@@ -456,6 +480,7 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
     network: ApiNetwork;
     address: string;
   }
+
   let addressToAccountsMap: { [address: string]: BalancePollingAccount[] } = {};
   let activeAccountId: string | undefined;
 
@@ -543,7 +568,7 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
       await updateAddressToAccountsMap();
       for (const address of Object.keys(addressToAccountsMap)) {
         const account = addressToAccountsMap[address][0];
-        const cache = lastBalanceCache[account.id] ?? {};
+        const cache = inactiveAccountsCache[account.id] ?? {};
         const newBalances: ApiBalanceBySlug = {};
         const changedSlugs: string[] = [];
 
@@ -552,7 +577,7 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
         if (isUpdaterAlive(localOnUpdate) && isToncoinBalanceChanged) {
           await updateTokenBalances(account, cache, newBalances, changedSlugs);
 
-          lastBalanceCache[account.id] = newBalances;
+          inactiveAccountsCache[account.id] = newBalances;
 
           if (changedSlugs.length) {
             // Notify all accounts with the same address
@@ -607,4 +632,20 @@ async function checkWalletInitialization(accountId: string, wallet: ApiTonWallet
     await updateStoredTonWallet(accountId, walletUpdate);
   }
   return wallet;
+}
+
+export function clearAccountsCache() {
+  inactiveAccountsCache = {};
+}
+
+export function clearAccountsCacheByNetwork(network: ApiNetwork) {
+  for (const accountId of Object.keys(inactiveAccountsCache)) {
+    if (parseAccountId(accountId).network === network) {
+      clearAccountCache(accountId);
+    }
+  }
+}
+
+export function clearAccountCache(accountId: string) {
+  delete inactiveAccountsCache[accountId];
 }

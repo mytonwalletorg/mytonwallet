@@ -1,4 +1,4 @@
-import type { ApiJettonStakingState, ApiTransactionError } from '../../../api/types';
+import type { ApiEthenaStakingState, ApiJettonStakingState, ApiTransactionError } from '../../../api/types';
 import { ApiCommonError } from '../../../api/types';
 import { StakingState } from '../../types';
 
@@ -6,9 +6,9 @@ import { getDoesUsePinPad } from '../../../util/biometrics';
 import { getTonStakingFees } from '../../../util/fee/getTonOperationFees';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { logDebugError } from '../../../util/logs';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
 import { closeAllOverlays } from '../../helpers/misc';
@@ -207,6 +207,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
     setGlobal(global);
 
     if (!result) {
+      void vibrateOnError();
       actions.showDialog({
         message: 'Unstaking was unsuccessful. Try again later.',
       });
@@ -216,6 +217,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
         global = clearIsPinAccepted(global);
       }
     } else {
+      void vibrateOnSuccess();
       global = getGlobal();
       global = updateCurrentStaking(global, { state: StakingState.UnstakeComplete });
     }
@@ -234,6 +236,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
     setGlobal(global);
 
     if (!result) {
+      void vibrateOnError();
       actions.showDialog({
         message: 'Staking was unsuccessful. Try again later.',
       });
@@ -243,6 +246,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
         global = clearIsPinAccepted(global);
       }
     } else {
+      void vibrateOnSuccess();
       global = getGlobal();
       global = updateCurrentStaking(global, { state: StakingState.StakeComplete });
     }
@@ -325,14 +329,17 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
   setGlobal(global);
 
   if (!result) {
+    void vibrateOnError();
     actions.showDialog({
       message: isUnstaking
         ? 'Unstaking was unsuccessful. Try again later.'
         : 'Staking was unsuccessful. Try again later.',
     });
   } else if (typeof result !== 'string' && 'error' in result) {
+    void vibrateOnError();
     actions.showError({ error: result.error });
   } else {
+    void vibrateOnSuccess();
     global = getGlobal();
     global = updateCurrentStaking(global, {
       state: isUnstaking ? StakingState.UnstakeComplete : StakingState.StakeComplete,
@@ -468,10 +475,11 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
 
   global = getGlobal();
 
-  const stakingState = selectAccountStakingState(global, accountId)! as ApiJettonStakingState;
+  const stakingState = selectAccountStakingState(global, accountId)! as ApiEthenaStakingState | ApiJettonStakingState;
+  const isEthenaStaking = stakingState.type === 'ethena';
 
   const result = await callApi(
-    'submitStakingClaim',
+    'submitStakingClaimOrUnlock',
     accountId,
     password,
     stakingState,
@@ -497,9 +505,15 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
 
   global = getGlobal();
   global = updateCurrentStaking(global, {
-    state: StakingState.None,
+    state: isEthenaStaking ? StakingState.ClaimComplete : StakingState.None,
   });
   setGlobal(global);
+
+  if (IS_DELEGATING_BOTTOM_SHEET) {
+    callActionInNative('setStakingScreen', {
+      state: isEthenaStaking ? StakingState.ClaimComplete : StakingState.None,
+    });
+  }
 });
 
 addActionHandler('submitStakingClaimHardware', async (global, actions) => {
@@ -514,12 +528,13 @@ addActionHandler('submitStakingClaimHardware', async (global, actions) => {
   global = getGlobal();
 
   const accountId = global.currentAccountId!;
-  const stakingState = selectAccountStakingState(global, accountId)! as ApiJettonStakingState;
+  const stakingState = selectAccountStakingState(global, accountId)! as ApiJettonStakingState | ApiEthenaStakingState;
+  const isEthenaStaking = stakingState.type === 'ethena';
 
   let result: string | { error: ApiTransactionError } | undefined;
 
   try {
-    result = await ledgerApi.submitLedgerStakingClaim(
+    result = await ledgerApi.submitLedgerStakingClaimOrUnlock(
       accountId,
       stakingState,
       getTonStakingFees(stakingState.type).claim?.real,
@@ -552,7 +567,7 @@ addActionHandler('submitStakingClaimHardware', async (global, actions) => {
   } else {
     global = getGlobal();
     global = updateCurrentStaking(global, {
-      state: StakingState.None,
+      state: isEthenaStaking ? StakingState.ClaimComplete : StakingState.None,
     });
     setGlobal(global);
   }

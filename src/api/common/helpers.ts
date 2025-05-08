@@ -46,14 +46,14 @@ export function buildLocalTransaction(
   const txId = buildLocalTxId(params.txId ?? params.externalMsgHash!, subId);
 
   return updateActivityMetadata({
-    ...restParams,
     id: txId,
     kind: 'transaction',
-    txId,
     timestamp: Date.now(),
     isIncoming: false,
     amount: -amount,
     normalizedAddress,
+    ...restParams,
+    txId,
   });
 }
 

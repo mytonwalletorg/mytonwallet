@@ -40,10 +40,18 @@ export function getTonStakingFees(type?: ApiStakingType): {
         claim: getTonOperationFees('claimJettons'),
       };
     }
+    case 'ethena': {
+      return {
+        stake: getTonOperationFees('stakeEthena'),
+        unstake: getTonOperationFees('unstakeEthena'),
+        claim: getTonOperationFees('unstakeEthenaLocked'),
+      };
+    }
   }
 
   return {
     stake: { gas: 0n, real: 0n },
     unstake: { gas: 0n, real: 0n },
+    claim: { gas: 0n, real: 0n },
   };
 }

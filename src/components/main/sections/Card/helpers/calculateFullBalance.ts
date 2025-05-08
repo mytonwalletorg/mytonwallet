@@ -1,7 +1,9 @@
 import type { ApiStakingState } from '../../../../../api/types';
 import type { UserToken } from '../../../../../global/types';
 
+import { STAKED_TOKEN_SLUGS } from '../../../../../config';
 import { Big } from '../../../../../lib/big.js';
+import { getFullStakingBalance } from '../../../../../global/helpers/staking';
 import { calcBigChangeValue } from '../../../../../util/calcChangeValue';
 import { toBig } from '../../../../../util/decimals';
 import { formatNumber } from '../../../../../util/formatNumber';
@@ -14,13 +16,15 @@ export function calculateFullBalance(tokens: UserToken[], stakingStates?: ApiSta
   const stakingStateBySlug = buildCollectionByKey(stakingStates ?? [], 'tokenSlug');
 
   const primaryValue = tokens.reduce((acc, token) => {
+    if (STAKED_TOKEN_SLUGS.has(token.slug)) {
+      // Cost of staked tokens is already taken into account
+      return acc;
+    }
+
     const stakingState = stakingStateBySlug[token.slug];
 
     if (stakingState) {
-      let stakingAmount = toBig(stakingState.balance, token.decimals);
-      if (stakingState.type === 'jetton') {
-        stakingAmount = stakingAmount.plus(toBig(stakingState.unclaimedRewards, token.decimals));
-      }
+      const stakingAmount = toBig(getFullStakingBalance(stakingState), token.decimals);
       acc = acc.plus(stakingAmount.mul(token.price));
     }
 

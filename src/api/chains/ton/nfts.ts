@@ -143,16 +143,17 @@ export async function checkNftTransferDraft(options: {
     .slice(0, NFT_BATCH_SIZE) // We only need to check the first batch of a multi-transaction
     .map((nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment));
 
-  const transactionResult = await checkMultiTransactionDraft(accountId, messages);
+  const checkResult = await checkMultiTransactionDraft(accountId, messages);
 
-  if (transactionResult.fee !== undefined) {
-    const batchFee = transactionResult.fee;
+  if (checkResult.emulation) {
+    // todo: Use `received` from the emulation to calculate the real fee. Check what happens when the receiver is the same wallet.
+    const batchFee = checkResult.emulation.networkFee;
     result.fee = calculateNftTransferFee(nfts.length, messages.length, batchFee, NFT_TRANSFER_AMOUNT);
     result.realFee = calculateNftTransferFee(nfts.length, messages.length, batchFee, NFT_TRANSFER_REAL_AMOUNT);
   }
 
-  if ('error' in transactionResult) {
-    result.error = transactionResult.error;
+  if ('error' in checkResult) {
+    result.error = checkResult.error;
   }
 
   return result;

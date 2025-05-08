@@ -34,6 +34,12 @@ export const TON_GAS = {
   unstakeJettons: JettonStakingGas.UNSTAKE_JETTONS,
   claimJettons: JettonStakingGas.JETTON_TRANSFER + JettonStakingGas.SIMPLE_UPDATE_REQUEST,
   changeDns: 50_000_000n, // 0.05 TON
+  stakeEthena: TOKEN_TRANSFER_AMOUNT + 100_000_000n, // 0.15 TON
+  stakeEthenaForward: 100_000_000n, // 0.1 TON
+  unstakeEthena: TOKEN_TRANSFER_AMOUNT + 100_000_000n, // 0.15 TON
+  unstakeEthenaForward: 100_000_000n, // 0.1 TON
+  unstakeEthenaLocked: 150_000_000n, // 0.15 TON
+  unstakeEthenaLockedForward: 70_000_000n, // 0.07 TON
 } as const;
 
 export const TON_GAS_REAL = {
@@ -44,6 +50,9 @@ export const TON_GAS_REAL = {
   stakeJettons: 74_879_996n,
   unstakeJettons: 59_971_662n,
   claimJettons: 57_053_859n,
+  stakeEthena: 116_690_790n,
+  unstakeEthena: 113_210_330n,
+  unstakeEthenaLocked: 37_612_000n,
 };
 
 export const STAKE_COMMENT = 'd';

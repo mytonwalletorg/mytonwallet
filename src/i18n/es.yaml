@@ -832,3 +832,12 @@ Preview: Vista previa
 $preview_not_guaranteed: El resultado de la vista previa **no está garantizado **y **puede ser falsificado **por el servicio.
 Exit all wallets: Cerrar todas las billeteras
 Can't confirm?: ¿No puedes acceder?
+$safe_staking_ethena_description1: El staking es completamente descentralizado y operado por **smart contracts oficiales** auditados de staking líquido de **Ethena**.
+$safe_staking_ethena_description2: El USDe en staking se utiliza en las **estrategias comerciales y de inversión** de Ethena para generar recompensas de forma automática y transparente.
+$safe_staking_ethena_description3: Puedes **retirar** tu stake con recompensas en cualquier momento, y se devolverá a tu cuenta **en un plazo de 7 días**, según el período de retiro estándar de Ethena.
+Unstake %amount%: Retirar %amount%
+Request Unstaking: Solicitar desestacado
+$unstaking_when_receive_ethena: Podrás recibir tu depósito retirado en **7 días**.
+Coins have been unstaked!: ¡Monedas retiradas!
+Confirm Upgrading: Confirmar actualización
+How does it work?: ¿Cómo funciona?

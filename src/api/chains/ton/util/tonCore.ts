@@ -15,13 +15,7 @@ import { WalletContractV5R1 } from '@ton/ton/dist/wallets/WalletContractV5R1';
 import type { ApiNetwork } from '../../../types';
 import type { ApiTonWalletVersion, TokenTransferBodyParams } from '../types';
 
-import {
-  DEFAULT_TIMEOUT,
-  TONCENTER_MAINNET_KEY,
-  TONCENTER_MAINNET_URL,
-  TONCENTER_TESTNET_KEY,
-  TONCENTER_TESTNET_URL,
-} from '../../../../config';
+import { DEFAULT_TIMEOUT, TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config';
 import { getDnsZoneByCollection } from '../../../../util/dns';
 import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
@@ -83,18 +77,20 @@ export const walletClassMap: Record<ApiTonWalletVersion, TonWalletType> = {
 
 export function getTonClient(network: ApiNetwork = 'mainnet') {
   if (!clientByNetwork) {
+    const { apiHeaders, toncenterMainnetKey, toncenterTestnetKey } = getEnvironment();
+
     clientByNetwork = {
       mainnet: new TonClient({
         endpoint: `${TONCENTER_MAINNET_URL}/api/v2/jsonRPC`,
         timeout: DEFAULT_TIMEOUT,
-        apiKey: TONCENTER_MAINNET_KEY,
-        headers: getEnvironment().apiHeaders,
+        apiKey: toncenterMainnetKey,
+        headers: apiHeaders,
       }),
       testnet: new TonClient({
         endpoint: `${TONCENTER_TESTNET_URL}/api/v2/jsonRPC`,
         timeout: DEFAULT_TIMEOUT,
-        apiKey: TONCENTER_TESTNET_KEY,
-        headers: getEnvironment().apiHeaders,
+        apiKey: toncenterTestnetKey,
+        headers: apiHeaders,
       }),
     };
   }

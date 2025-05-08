@@ -18,11 +18,12 @@ export type CheckTransactionDraftOptions = {
    * - Errors will happen in edge cases such as 0 and greater than the balance.
    */
   amount?: bigint;
-  tokenAddress?: string;
   data?: string | Uint8Array | Cell;
   stateInit?: string;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
+  // For transfer token
+  tokenAddress?: string;
   forwardAmount?: bigint;
   allowGasless?: boolean;
 };

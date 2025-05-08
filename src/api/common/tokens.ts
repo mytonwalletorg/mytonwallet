@@ -73,8 +73,8 @@ function mergeTokenWithCache(
   if (cachedToken) {
     // Metadata from backend takes priority (e.g., image)
     return {
-      ...omitUndefined(token.isFromBackend ? token : cachedToken),
       ...omitUndefined(token.isFromBackend ? cachedToken : token),
+      ...omitUndefined(token.isFromBackend ? token : cachedToken),
       price: token.price || cachedToken.price,
       priceUsd: token.priceUsd || cachedToken.priceUsd,
       percentChange24h: token.percentChange24h || cachedToken.percentChange24h,

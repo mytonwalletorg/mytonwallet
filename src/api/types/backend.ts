@@ -204,6 +204,11 @@ export type ApiStakingCommonData = {
     unlock: number;
   };
   jettonPools: ApiStakingJettonPool[];
+  ethena: {
+    apy: number;
+    rate: number;
+    isDisabled?: boolean;
+  };
 };
 
 export type ApiSite = {

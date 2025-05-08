@@ -1,7 +1,7 @@
 import type { Cell } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
-import type { ApiAnyDisplayError, ApiEmulationResult, ApiTransaction } from '../../types';
+import type { ApiAnyDisplayError, ApiEmulationResult, ApiLocalTransactionParams, ApiTransaction } from '../../types';
 import type { ContractType } from './constants';
 import type { AddressBook, AnyAction, TraceDetail } from './toncenter/types';
 
@@ -90,7 +90,9 @@ export type ApiSubmitTransferTonResult = {
   seqno: number;
   msgHash: string;
   msgHashNormalized: string;
+  toncoinAmount: bigint;
   encryptedComment?: string;
+  localActivityParams?: Partial<ApiLocalTransactionParams>;
 } | {
   error: string;
 };
@@ -177,19 +179,25 @@ export type ApiSubmitTransferOptions = {
   toAddress: string;
   amount: bigint;
   data?: AnyPayload;
-  tokenAddress?: string;
   stateInit?: Cell;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
+  // For token transfer
+  tokenAddress?: string;
   forwardAmount?: bigint;
 };
 
-export type ApiCheckMultiTransactionDraftResult = {
-  /** The total network fee */
-  fee?: bigint;
-  /** Gives the same information as `fee`, and some more */
-  emulation?: ApiEmulationResult;
-} & ({ error: ApiAnyDisplayError } | {});
+export type ApiEmulationWithFallbackResult = (
+  { isFallback: false } & ApiEmulationResult |
+  // Emulation is expected to work in 100% cases. The legacy method is kept as a fallback while the emulation is tested.
+  // The legacy method should be completely removed eventually.
+  { isFallback: true; networkFee: bigint }
+);
+
+export type ApiCheckMultiTransactionDraftResult = (
+  { emulation?: ApiEmulationWithFallbackResult; error: ApiAnyDisplayError } |
+  { emulation: ApiEmulationWithFallbackResult }
+);
 
 export type ApiTransactionExtended = ApiTransaction & {
   hash: string;

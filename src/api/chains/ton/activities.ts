@@ -224,6 +224,10 @@ function setTransactionDetails(options: {
   let excess = received;
 
   switch (action.type) {
+    case 'ton_transfer': {
+      sentForFee = 0n;
+      break;
+    }
     case 'nft_transfer': {
       if (action.details.is_purchase) {
         sentForFee -= BigInt(action.details.price!);

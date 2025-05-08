@@ -114,6 +114,7 @@
   --color-separator: rgba(44, 51, 62, 0.12);
   --color-separator-input-stroke: rgba(32, 51, 62, 0.12);
   --color-linear-effect-1: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
+  --color-skeleton-shimmer: rgba(255, 255, 255, 0.62);
 
   --color-interactive-item-hover: #FAFAFA;
   --color-interactive-tab-hover: rgba(44, 51, 62, 0.08);
@@ -132,6 +133,7 @@
   --color-card-second-text: rgba(255, 255, 255, 0.6);
   --color-card-button: rgba(255, 255, 255, 0.2);
   --color-card-button-hover: rgba(255, 255, 255, 0.3);
+  --color-card-button-shimmer: rgba(255, 255, 255, 0.4);
   --color-card-toggle: rgba(255, 255, 255, 0.3);
   --color-card-green-text: #54F293;
   --color-card-green-background: rgba(44, 211, 111, 0.25);
@@ -268,7 +270,7 @@
     --color-background-first: #1C1C1E;
     --color-background-first-disabled: #141415;
     --color-background-second: #000000;
-    --color-background-window: #131314;
+    --color-background-window: #0E0E0F;
     --color-background-drop-down: #222224;
     --color-background-tab-bar: #1C1C1EE5;
     --color-background-lock: rgba(28, 28, 30, 0.8);
@@ -345,6 +347,7 @@
     --color-separator: rgba(246, 247, 248, 0.12);
     --color-separator-input-stroke: rgba(246, 247, 248, 0.12);
     --color-linear-effect-1: linear-gradient(90deg, rgba(28, 28, 30, 0) 0%, #1C1C1E 100%);
+    --color-skeleton-shimmer: rgba(255, 255, 255, 0.052);
 
     --color-interactive-item-hover: #222224;
     --color-interactive-tab-hover: rgba(246, 247, 248, 0.08);

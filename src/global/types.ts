@@ -61,6 +61,7 @@ export type NotificationType = {
 export type DialogType = {
   title?: string;
   message: string;
+  noBackdropClose?: boolean;
 };
 
 export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de' | 'th' | 'uk' | 'pl';
@@ -223,6 +224,7 @@ export enum StakingState {
   ClaimPassword,
   ClaimConnectHardware,
   ClaimConfirmHardware,
+  ClaimComplete,
 }
 
 export enum VestingUnfreezeState {
@@ -839,7 +841,7 @@ export interface ActionPayloads {
   submitTransferHardware: undefined;
   clearTransferError: undefined;
   cancelTransfer: { shouldReset?: boolean } | undefined;
-  showDialog: { title?: string; message: string };
+  showDialog: DialogType;
   dismissDialog: undefined;
   showError: { error?: ApiAnyDisplayError | string };
   showNotification: { message: string; icon?: string };

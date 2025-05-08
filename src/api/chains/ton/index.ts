@@ -50,11 +50,12 @@ export {
 export {
   checkStakeDraft,
   checkUnstakeDraft,
-  submitStakingClaim,
+  submitTokenStakingClaim,
   submitStake,
   submitUnstake,
   getStakingStates,
   getBackendStakingState,
+  submitUnstakeEthenaLocked,
 } from './staking';
 export {
   packPayloadToBoc,
@@ -81,7 +82,13 @@ export {
   validateDexSwapTransfers,
 } from './swap';
 export { Workchain } from './constants';
-export { setupPolling, setupInactiveAccountsBalancePolling } from './polling';
+export {
+  setupPolling,
+  setupInactiveAccountsBalancePolling,
+  clearAccountsCache,
+  clearAccountCache,
+  clearAccountsCacheByNetwork,
+} from './polling';
 export {
   fetchActivityDetails,
   fetchActivitySlice,

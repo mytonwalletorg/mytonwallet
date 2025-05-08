@@ -141,6 +141,15 @@ function Token({
       );
     }
 
+    if (stakingStatus === 'readyToClaim') {
+      return (
+        <i
+          className={buildClassName('icon-check-alt', styles.readyToClaim)}
+          aria-hidden
+        />
+      );
+    }
+
     return (
       <AnimatedIconWithPreview
         play

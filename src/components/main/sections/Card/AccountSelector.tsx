@@ -14,7 +14,7 @@ import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { vibrate } from '../../../../util/haptics';
 import { getTelegramApp } from '../../../../util/telegram';
 import trapFocus from '../../../../util/trapFocus';
-import { getIsMobileTelegramApp } from '../../../../util/windowEnvironment';
+import { getIsMobileTelegramApp, IS_IOS } from '../../../../util/windowEnvironment';
 
 import useEffectWithPrevDeps from '../../../../hooks/useEffectWithPrevDeps';
 import useFlag from '../../../../hooks/useFlag';
@@ -181,6 +181,12 @@ function AccountSelector({
   });
 
   const handleQrScanClick = useLastCallback(() => {
+    if (IS_IOS && getIsMobileTelegramApp()) {
+      // eslint-disable-next-line no-alert
+      alert('Scanning is temporarily not available');
+      return;
+    }
+
     requestOpenQrScanner();
     closeAccountSelector();
   });

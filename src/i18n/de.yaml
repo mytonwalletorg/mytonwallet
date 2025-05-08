@@ -235,7 +235,7 @@ $unstake_information_with_time: |
   Ihre aktuelle Einzahlung wird vollständig in %time% an Ihre Wallet zurückgesendet.
   Dies wird Ihre Verdienste stoppen.
 Amount to unstake: Betrag zum unstaken
-Confirm Unstaking: Unstaking bestätigen
+Confirm Unstaking: Entstaken bestätigen
 Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
 $unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
 $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
@@ -835,3 +835,12 @@ Preview: Vorschau
 $preview_not_guaranteed: Das Vorschauergebnis ist **nicht garantiert **und kann **vom Dienst manipuliert **werden.
 Exit all wallets: Alle Wallets schließen
 Can't confirm?: Anmeldung nicht möglich?
+$safe_staking_ethena_description1: Staking ist vollständig dezentralisiert und wird durch **offizielle, auditiere** Liquid-Staking-**Smart Contracts** von Ethena betrieben.
+$safe_staking_ethena_description2: Die hinterlegte USDe-Stake wird in Ethenas **Handels- und Investitionsstrategien** eingesetzt, um automatisch und transparent Belohnungen zu erwirtschaften.
+$safe_staking_ethena_description3: Sie können Ihre Stake mit Belohnungen **jederzeit abheben** und sie wird gemäß Ethenas standardmäßiger Abhebungsfrist **innerhalb von 7 Tagen** auf Ihr Konto zurücküberwiesen.
+Unstake %amount%: "%amount% entstaken"
+Request Unstaking: Entstaken anfordern
+$unstaking_when_receive_ethena: Sie können Ihre abgesteckte Einzahlung in **7 Tagen** erhalten.
+Coins have been unstaked!: Coins wurden entstaked!
+Confirm Upgrading: Upgrade bestätigen
+How does it work?: Wie funktioniert das?

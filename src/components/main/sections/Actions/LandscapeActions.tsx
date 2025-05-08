@@ -57,6 +57,12 @@ interface StateProps {
 
 const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Swap, ActiveTab.Stake];
 const ANIMATED_STICKER_SPEED = 2;
+export const STAKING_TAB_TEXT_VARIANTS: Record<StakingStateStatus, string> = {
+  inactive: 'Earn',
+  active: 'Earning',
+  unstakeRequested: '$unstaking_short',
+  readyToClaim: '$unstaking_short',
+};
 let activeTransferKey = 0;
 
 function LandscapeActions({
@@ -104,7 +110,6 @@ function LandscapeActions({
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
   const accentColor = accentColorIndex ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
-
   const buttonTransitionKeyRef = useRef(0);
   useSyncEffect(() => {
     buttonTransitionKeyRef.current++;
@@ -282,9 +287,7 @@ function LandscapeActions({
               )}
               onEnded={stopStakeAnimation}
             />
-            <span className={styles.tabText}>
-              {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: '$unstaking_short' }[stakingStatus])}
-            </span>
+            <span className={styles.tabText}>{lang(STAKING_TAB_TEXT_VARIANTS[stakingStatus])}</span>
             <span className={styles.tabDecoration} aria-hidden />
             <span className={styles.tabDelimiter} aria-hidden />
           </div>

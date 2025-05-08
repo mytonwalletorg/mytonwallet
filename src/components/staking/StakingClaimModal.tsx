@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiJettonStakingState } from '../../api/types';
+import type { ApiEthenaStakingState, ApiJettonStakingState } from '../../api/types';
 import type { HardwareConnectState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
@@ -27,8 +27,10 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import TransactionBanner from '../common/TransactionBanner';
+import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
+import Button from '../ui/Button';
 import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
 import PasswordForm from '../ui/PasswordForm';
@@ -38,7 +40,7 @@ import modalStyles from '../ui/Modal.module.scss';
 import styles from './StakingClaimModal.module.scss';
 
 interface StateProps {
-  stakingState?: ApiJettonStakingState;
+  stakingState?: ApiJettonStakingState | ApiEthenaStakingState;
   isOpen?: boolean;
   tokens?: UserToken[];
   isLoading?: boolean;
@@ -57,6 +59,7 @@ const IS_OPEN_STATES = new Set([
   StakingState.ClaimPassword,
   StakingState.ClaimConfirmHardware,
   StakingState.ClaimConnectHardware,
+  StakingState.ClaimComplete,
 ]);
 
 function StakingClaimModal({
@@ -83,8 +86,11 @@ function StakingClaimModal({
 
   const {
     tokenSlug,
-    unclaimedRewards = 0n,
   } = stakingState ?? {};
+
+  const rewardAmount = stakingState && 'unclaimedRewards' in stakingState
+    ? stakingState.unclaimedRewards
+    : stakingState?.unstakeRequestAmount ?? 0n;
 
   const lang = useLang();
 
@@ -92,10 +98,17 @@ function StakingClaimModal({
   const nativeToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
   const nativeBalance = nativeToken?.amount ?? 0n;
 
-  const { gas: networkFee, real: realNetworkFee } = getTonStakingFees('jetton').claim!;
+  const { gas: networkFee, real: realNetworkFee } = getTonStakingFees(stakingState?.type).claim!;
   const isNativeEnough = nativeBalance > networkFee;
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, Boolean(isOpen));
-  const withModalHeader = !isHardwareAccount && !getDoesUsePinPad();
+  const withModalHeader = state === StakingState.ClaimComplete || (!isHardwareAccount && !getDoesUsePinPad());
+  const modalTitle = withModalHeader
+    ? lang(state === StakingState.ClaimComplete
+      ? 'Coins have been unstaked!'
+      : stakingState?.type === 'ethena'
+        ? 'Confirm Unstaking'
+        : 'Confirm Rewards Claim')
+    : undefined;
 
   const handleSubmit = useLastCallback((password: string) => {
     if (!isNativeEnough) return;
@@ -114,7 +127,7 @@ function StakingClaimModal({
     );
     const content = isSensitiveDataHidden
       ? `*** ${token!.symbol}`
-      : formatCurrency(toDecimal(unclaimedRewards, token!.decimals), token!.symbol, SHORT_FRACTION_DIGITS);
+      : formatCurrency(toDecimal(rewardAmount, token!.decimals), token!.symbol, SHORT_FRACTION_DIGITS);
 
     return (
       <>
@@ -182,13 +195,36 @@ function StakingClaimModal({
             {renderInfo()}
           </PasswordForm>
         );
+
+      case StakingState.ClaimComplete:
+        return (
+          <div className={modalStyles.transitionContent}>
+            <TransferResult
+              isSensitiveDataHidden={isSensitiveDataHidden}
+              color="green"
+              playAnimation={isActive}
+              amount={rewardAmount}
+              tokenSymbol={token?.symbol}
+              decimals={token?.decimals}
+              noSign
+            />
+
+            <div className={styles.unstakeInfo}>
+              {lang('$unstake_information_instantly')}
+            </div>
+
+            <div className={modalStyles.buttons}>
+              <Button onClick={cancelStakingClaim} isPrimary>{lang('Close')}</Button>
+            </div>
+          </div>
+        );
     }
   }
 
   return (
     <Modal
       isOpen={isOpen}
-      title={withModalHeader ? lang('Confirm Rewards Claim') : undefined}
+      title={modalTitle}
       hasCloseButton={withModalHeader}
       forceFullNative
       nativeBottomSheetKey="staking-claim"
@@ -222,6 +258,7 @@ export default memo(withGlobal((global): StateProps => {
 
   const stakingState = accountId ? selectAccountStakingState(global, accountId) : undefined;
   const tokens = selectCurrentAccountTokens(global);
+  const canBeClaimed = stakingState?.type === 'jetton' || stakingState?.type === 'ethena';
 
   const {
     hardwareState,
@@ -230,7 +267,7 @@ export default memo(withGlobal((global): StateProps => {
   } = global.hardware;
 
   return {
-    stakingState: stakingState?.type === 'jetton' ? stakingState : undefined,
+    stakingState: canBeClaimed ? stakingState : undefined,
     isOpen: IS_OPEN_STATES.has(state),
     state,
     tokens,

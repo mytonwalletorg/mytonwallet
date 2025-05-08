@@ -45,6 +45,10 @@
       .percent {
         background-color: var(--color-interactive-item-hover);
       }
+
+      .readyToClaim {
+        color: var(--color-interactive-item-hover);
+      }
     }
   }
 
@@ -54,6 +58,10 @@
     .vestingIcon,
     .percent {
       background-color: var(--color-interactive-item-hover);
+    }
+
+    .readyToClaim {
+      color: var(--color-interactive-item-hover);
     }
   }
 
@@ -221,6 +229,7 @@
 }
 
 .vestingIcon,
+.readyToClaim,
 .percent {
   position: absolute;
   top: 1.625rem;
@@ -253,6 +262,14 @@
 
 .percent {
   color: var(--color-purple-2);
+}
+
+.readyToClaim {
+  color: var(--color-background-first);
+
+  background-color: var(--color-activity-green-text);
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: 0 0 0 0.1rem currentColor;
 }
 
 .secondaryValue_vesting,

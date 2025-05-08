@@ -5,7 +5,7 @@ import { omit } from './iteratees';
 export interface Log {
   message: string;
   args: any[];
-  time: Date;
+  time: number; // Passing data from the worker to the application as a date object is not supported
   level: 'debug' | 'debugError';
 }
 
@@ -32,7 +32,7 @@ export function addLog(log: Omit<Log, 'time'>) {
   logs.push({
     ...log,
     args: log.args.map((arg) => JSON.stringify(arg, errorReplacer)),
-    time: new Date(),
+    time: Date.now(),
   });
 }
 

@@ -834,3 +834,12 @@ Preview: แสดงตัวอย่าง
 $preview_not_guaranteed: ผลลัพธ์ของการแสดงตัวอย่าง **ไม่ได้รับการรับประกัน **และ **อาจถูกปลอมแปลง **โดยบริการ
 Exit all wallets: ออกจากกระเป๋าทั้งหมด
 Can't confirm?: เข้าระบบไม่ได้?
+$safe_staking_ethena_description1: การ staking เป็นแบบกระจายศูนย์อย่างสมบูรณ์และดำเนินการโดย **สัญญาอัจฉริยะ** ของ Ethena ที่ผ่านการตรวจสอบแล้ว
+$safe_staking_ethena_description2: USDe ที่ฝากไว้จะถูกใช้ใน **กลยุทธ์การซื้อขายและการลงทุน** ของ Ethena เพื่อสร้างรางวัลโดยอัตโนมัติและโปร่งใส
+$safe_staking_ethena_description3: คุณสามารถ **ถอน** การ stake พร้อมรางวัลได้ทุกเวลา และจะได้รับคืนเข้าบัญชีของคุณ **ภายใน 7 วัน** ตามระยะเวลาถอนมาตรฐานของ Ethena
+Unstake %amount%: เลิกเดิมพัน %amount%
+Request Unstaking: ขอถอนการวางเดิมพัน
+$unstaking_when_receive_ethena: คุณจะสามารถรับเงินฝากที่ยกเลิกการวางเดิมพันได้ในอีก **7 วัน**
+Coins have been unstaked!: เหรียญถูกถอนแล้ว!
+Confirm Upgrading: ยืนยันการอัปเกรด
+How does it work?: ทำงานอย่างไร?

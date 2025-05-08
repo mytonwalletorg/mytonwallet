@@ -16,6 +16,7 @@ import type { Workchain } from '../../api/chains/ton';
 import type { ApiSubmitTransferOptions } from '../../api/methods/types';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
+  ApiEthenaStakingState,
   ApiJettonStakingState,
   ApiLocalTransactionParams,
   ApiNetwork,
@@ -29,8 +30,8 @@ import type { LedgerTransport, LedgerWalletInfo } from './types';
 import { ApiLiquidUnstakeMode, ApiTransactionError } from '../../api/types';
 
 import {
-  BURN_ADDRESS, IS_CAPACITOR, LIQUID_JETTON, LIQUID_POOL,
-  NOTCOIN_EXCHANGERS, NOTCOIN_VOUCHERS_ADDRESS, TONCOIN,
+  BURN_ADDRESS, ETHENA_STAKING_VAULT, IS_CAPACITOR, LIQUID_JETTON, LIQUID_POOL,
+  NOTCOIN_EXCHANGERS, NOTCOIN_VOUCHERS_ADDRESS, TON_TSUSDE, TON_USDE, TONCOIN,
 } from '../../config';
 import { callApi } from '../../api';
 import {
@@ -66,6 +67,7 @@ import { pause } from '../schedulers';
 import { IS_ANDROID_APP } from '../windowEnvironment';
 import { isLedgerConnectionBroken, isValidLedgerComment } from './utils';
 
+import { TsUSDeWallet } from '../../api/chains/ton/contracts/Ethena/TsUSDeWallet';
 import { StakingPool } from '../../api/chains/ton/contracts/JettonStaking/StakingPool';
 
 type BleConnectorClass = typeof import('./bleConnector').BleConnector;
@@ -88,6 +90,10 @@ type TransactionParams = {
 };
 
 export type PossibleWalletVersion = 'v3R2' | 'v4R2';
+
+type PartialLocalActivity = Partial<ApiLocalTransactionParams> & {
+  fee: bigint;
+};
 
 enum LedgerWalletVersion {
   v3R2 = 'v3r2',
@@ -383,12 +389,12 @@ export async function submitLedgerStake(
   accountId: string,
   amount: bigint,
   state: ApiStakingState,
-  realFee?: bigint,
+  realFee = 0n,
 ) {
   const address = await callApi('fetchAddress', accountId, 'ton');
 
   let result: string | { error: ApiTransactionError } | undefined;
-  const localTransactionParams: Partial<ApiLocalTransactionParams> = { type: 'stake' };
+  const localTransactionParams: PartialLocalActivity = { type: 'stake', fee: realFee };
 
   switch (state.type) {
     case 'nominators': {
@@ -398,7 +404,6 @@ export async function submitLedgerStake(
         toAddress: state.pool,
         amount: amount + TON_GAS.stakeNominators,
         comment: STAKE_COMMENT,
-        realFee,
       }, TONCOIN.slug, localTransactionParams);
       break;
     }
@@ -415,7 +420,6 @@ export async function submitLedgerStake(
         password: '',
         toAddress: LIQUID_POOL,
         amount: amount + TON_GAS.stakeLiquid,
-        realFee,
       }, TONCOIN.slug, localTransactionParams, payload);
       break;
     }
@@ -441,9 +445,21 @@ export async function submitLedgerStake(
         amount,
         data: StakingPool.stakePayload(period),
         forwardAmount: TON_GAS.stakeJettonsForward,
-        realFee,
       }, TONCOIN.slug, localTransactionParams);
       break;
+    }
+    case 'ethena': {
+      localTransactionParams.toAddress = ETHENA_STAKING_VAULT;
+      localTransactionParams.slug = state.tokenSlug;
+
+      result = await submitLedgerTransfer({
+        accountId,
+        password: '',
+        toAddress: ETHENA_STAKING_VAULT,
+        tokenAddress: TON_USDE.tokenAddress,
+        amount,
+        forwardAmount: TON_GAS.stakeEthenaForward,
+      }, TONCOIN.slug, localTransactionParams);
     }
   }
 
@@ -454,12 +470,12 @@ export async function submitLedgerStake(
   return result;
 }
 
-export async function submitLedgerUnstake(accountId: string, state: ApiStakingState, amount: bigint, realFee?: bigint) {
+export async function submitLedgerUnstake(accountId: string, state: ApiStakingState, amount: bigint, realFee = 0n) {
   const { network } = parseAccountId(accountId);
   const address = (await callApi('fetchAddress', accountId, 'ton'))!;
 
   let result: string | { error: ApiTransactionError } | undefined;
-  const localActivityParams: Partial<ApiLocalTransactionParams> = { type: 'unstakeRequest' };
+  const localActivityParams: PartialLocalActivity = { type: 'unstakeRequest', fee: realFee };
 
   switch (state.type) {
     case 'nominators': {
@@ -470,7 +486,6 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         toAddress: poolAddress,
         amount: TON_GAS.unstakeNominators,
         comment: UNSTAKE_COMMENT,
-        realFee,
       }, TONCOIN.slug, localActivityParams);
       break;
     }
@@ -496,7 +511,6 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         password: '',
         toAddress: tokenWalletAddress!,
         amount: TON_GAS.unstakeLiquid,
-        realFee,
       }, TONCOIN.slug, localActivityParams, payload);
       break;
     }
@@ -512,8 +526,19 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         password: '',
         toAddress: stakeWalletAddress,
         amount: TON_GAS.unstakeJettons,
-        realFee,
       }, TONCOIN.slug, localActivityParams, payload);
+      break;
+    }
+    case 'ethena': {
+      localActivityParams.amount = TON_GAS.unstakeEthena;
+      result = await submitLedgerTransfer({
+        accountId,
+        password: '',
+        toAddress: TON_TSUSDE.tokenAddress,
+        amount,
+        tokenAddress: TON_TSUSDE.tokenAddress,
+        forwardAmount: TON_GAS.unstakeEthenaForward,
+      }, TONCOIN.slug, localActivityParams);
       break;
     }
   }
@@ -521,36 +546,68 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
   return result;
 }
 
-export function submitLedgerStakingClaim(
+export async function submitLedgerStakingClaimOrUnlock(
   accountId: string,
-  state: ApiJettonStakingState,
-  realFee?: bigint,
+  state: ApiJettonStakingState | ApiEthenaStakingState,
+  realFee = 0n,
 ) {
-  const payload: TonPayloadFormat = {
-    type: 'unsafe',
-    message: buildJettonClaimPayload(state.poolWallets!),
-  };
+  const fromAddress = await callApi('fetchAddress', accountId, 'ton');
+  let result: string | { error: ApiTransactionError } | undefined;
 
-  return submitLedgerTransfer({
-    accountId,
-    amount: TON_GAS.claimJettons,
-    password: '',
-    toAddress: state.stakeWalletAddress,
-    realFee,
-  }, TONCOIN.slug, undefined, payload);
+  switch (state.type) {
+    case 'jetton': {
+      const payload: TonPayloadFormat = {
+        type: 'unsafe',
+        message: buildJettonClaimPayload(state.poolWallets!),
+      };
+      const localActivityParams = { fee: realFee };
+
+      result = await submitLedgerTransfer({
+        accountId,
+        amount: TON_GAS.claimJettons,
+        password: '',
+        toAddress: state.stakeWalletAddress,
+      }, TONCOIN.slug, localActivityParams, payload);
+      break;
+    }
+    case 'ethena': {
+      const payload: TonPayloadFormat = {
+        type: 'unsafe',
+        message: TsUSDeWallet.transferTimelockedMessage({
+          jettonAmount: state.lockedBalance,
+          to: Address.parse(TON_TSUSDE.tokenAddress),
+          responseAddress: Address.parse(fromAddress!),
+          forwardTonAmount: TON_GAS.unstakeEthenaLockedForward,
+        }),
+      };
+
+      const localActivityParams: PartialLocalActivity = {
+        type: 'unstake',
+        fee: realFee,
+      };
+
+      result = await submitLedgerTransfer({
+        accountId,
+        password: '',
+        toAddress: state.tsUsdeWalletAddress,
+        amount: TON_GAS.unstakeEthenaLocked,
+      }, TONCOIN.slug, localActivityParams, payload);
+    }
+  }
+
+  return result;
 }
 
 export async function submitLedgerTransfer(
   options: ApiSubmitTransferOptions & { data?: Cell },
   slug: string,
-  localActivityParams?: Partial<ApiLocalTransactionParams>,
+  localActivityParams?: PartialLocalActivity,
   payload?: TonPayloadFormat,
 ) {
   const {
     accountId,
     tokenAddress,
     comment,
-    realFee,
     data,
     forwardAmount,
   } = options;
@@ -629,8 +686,8 @@ export async function submitLedgerTransfer(
         fromAddress: fromAddress!,
         toAddress: normalizedAddress,
         comment,
-        fee: realFee ?? 0n,
         slug,
+        fee: 0n,
         ...localActivityParams,
       },
     };
@@ -979,7 +1036,8 @@ export async function getNextLedgerWallets(
 }
 
 export async function getLedgerWalletInfo(network: ApiNetwork, accountIndex: number): Promise<LedgerWalletInfo> {
-  const { address, publicKey } = await getLedgerWalletAddress(accountIndex);
+  const isTestnet = network === 'testnet';
+  const { address, publicKey } = await getLedgerWalletAddress(accountIndex, isTestnet);
   const balance = (await callApi('getWalletBalance', 'ton', network, address))!;
 
   return {
@@ -995,9 +1053,10 @@ export async function getLedgerWalletInfo(network: ApiNetwork, accountIndex: num
 }
 
 export function getLedgerWalletAddress(index: number, isTestnet?: boolean) {
-  const path = getLedgerAccountPathByIndex(index, isTestnet);
+  const path = getLedgerAccountPathByIndex(index);
 
   return tonTransport!.getAddress(path, {
+    testOnly: isTestnet,
     chain: INTERNAL_WORKCHAIN,
     bounceable: WALLET_IS_BOUNCEABLE,
     walletVersion: LedgerWalletVersion[DEFAULT_WALLET_VERSION],

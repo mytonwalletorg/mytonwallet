@@ -104,6 +104,10 @@
   @media (min-resolution: 1.5dppx) {
     background-image: url('../../assets/account_button_bg@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
   }
+
+  &.customCard {
+    background-image: var(--bg), linear-gradient(125deg, #71A9ED 0, #436CB6 100%) !important;
+  }
 }
 
 .accountName {

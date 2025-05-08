@@ -5,6 +5,7 @@ import type {
   ApiAccountAny,
   ApiAccountWithMnemonic,
   ApiActivityTimestamps,
+  ApiChain,
   ApiImportAddressByChain,
   ApiLedgerAccount,
   ApiNetwork,
@@ -200,6 +201,10 @@ export async function removeNetworkAccounts(network: ApiNetwork) {
     removeNetworkAccountsValue(network, 'accounts'),
     getEnvironment().isDappSupported && removeNetworkDapps(network),
   ]);
+
+  for (const chain of Object.keys(chains)) {
+    chains[chain as ApiChain].clearAccountsCacheByNetwork(network);
+  }
 }
 
 export async function resetAccounts() {
@@ -212,6 +217,10 @@ export async function resetAccounts() {
     nftRepository.clear(),
     tokenRepository.clear(),
   ]);
+
+  for (const chain of Object.keys(chains)) {
+    chains[chain as ApiChain].clearAccountsCache();
+  }
 }
 
 export async function removeAccount(
@@ -224,6 +233,10 @@ export async function removeAccount(
     getEnvironment().isDappSupported && removeAccountDapps(accountId),
     nftRepository.deleteWhere({ accountId }),
   ]);
+
+  for (const chain of Object.keys(chains)) {
+    chains[chain as ApiChain].clearAccountCache(accountId);
+  }
 
   await activateAccount(nextAccountId, newestActivityTimestamps);
 }

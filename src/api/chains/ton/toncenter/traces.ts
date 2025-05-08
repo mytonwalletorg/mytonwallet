@@ -3,7 +3,7 @@ import type { AddressBook, MetadataMap, Trace } from './types';
 
 import { callToncenterV3 } from './other';
 
-type TracesResponse = {
+export type TracesResponse = {
   traces: Trace[];
   address_book: AddressBook;
   metadata: MetadataMap;

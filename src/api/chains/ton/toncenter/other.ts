@@ -2,7 +2,7 @@ import type { ApiNetwork, ApiWalletInfo } from '../../../types';
 import type { ApiTonWalletVersion } from '../types';
 import type { AccountState, AddressBook, MetadataMap, WalletState, WalletVersion } from './types';
 
-import { TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config';
+import { TONCENTER_ACTIONS_VERSION, TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config';
 import { buildTxId } from '../../../../util/activities';
 import { fetchJson } from '../../../../util/fetch';
 import { buildCollectionByKey, mapValues, split } from '../../../../util/iteratees';
@@ -87,15 +87,21 @@ export function fetchMetadata(network: ApiNetwork, addresses: string[]): Promise
 }
 
 export function callToncenterV3<T = any>(network: ApiNetwork, path: string, data?: AnyLiteral) {
-  const { apiHeaders, toncenterMainnetKey, toncenterTestnetKey } = getEnvironment();
   const baseUrl = network === 'testnet' ? TONCENTER_TESTNET_URL : TONCENTER_MAINNET_URL;
   const url = `${baseUrl}/api/v3${path}`;
-  const apiKey = network === 'testnet' ? toncenterTestnetKey : toncenterMainnetKey;
 
   return fetchJson(url, data, {
-    headers: {
-      ...(apiKey && { 'X-Api-Key': apiKey }),
-      ...apiHeaders,
-    },
+    headers: getToncenterHeaders(network),
   }) as Promise<T>;
+}
+
+export function getToncenterHeaders(network: ApiNetwork) {
+  const { apiHeaders, toncenterMainnetKey, toncenterTestnetKey } = getEnvironment();
+  const apiKey = network === 'testnet' ? toncenterTestnetKey : toncenterMainnetKey;
+
+  return {
+    ...apiHeaders,
+    ...(apiKey && { 'X-Api-Key': apiKey }),
+    'X-Actions-Version': TONCENTER_ACTIONS_VERSION,
+  };
 }

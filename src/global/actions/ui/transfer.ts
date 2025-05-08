@@ -88,9 +88,9 @@ addActionHandler('submitTransferConfirm', async (global, actions) => {
   global = getGlobal();
 
   if (selectIsHardwareAccount(global)) {
-    actions.resetHardwareWalletConnect();
     global = updateCurrentTransfer(global, { state: TransferState.ConnectHardware });
     setGlobal(global);
+    actions.resetHardwareWalletConnect();
   } else if (inMemoryPassword) {
     global = updateCurrentTransfer(global, { isLoading: true });
     setGlobal(global);

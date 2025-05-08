@@ -56,6 +56,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
       isOpen={isModalOpen}
       isCompact
       title={title}
+      noBackdropClose={dialog.noBackdropClose}
       onClose={closeModal}
       onCloseAnimationEnd={dismissDialog}
     >

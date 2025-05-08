@@ -16,7 +16,7 @@ import styles from './TransactionBanner.module.scss';
 interface OwnProps {
   tokenIn?: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
   imageUrl?: string;
-  text: string | TeactNode[];
+  text?: string | TeactNode[];
   withChainIcon?: boolean;
   tokenOut?: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
   secondText?: string;
@@ -71,11 +71,14 @@ function TransactionBanner({
       {imageUrl && renderNftIcon()}
       <span className={styles.text}>
         {secondText
-          ? (
-            lang('%amount% to %address%', {
-              amount: <span className={styles.bold}>{text}</span>,
-              address: <span className={styles.bold}>{secondText}</span>,
-            }))
+          ? text
+            ? (
+              lang('%amount% to %address%', {
+                amount: <span className={styles.bold}>{text}</span>,
+                address: <span className={styles.bold}>{secondText}</span>,
+              })
+            )
+            : lang('$transaction_to', { address: <span className={styles.bold}>{secondText}</span> })
           : <span className={styles.bold}>{text}</span>}
       </span>
       {tokenOut && (

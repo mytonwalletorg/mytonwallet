@@ -24,6 +24,14 @@ import CardPros from './CardPros';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './MintCardModal.module.scss';
 
+export const MAP_CARD_TYPE_TO_NAME = {
+  standard: 'Standard Card',
+  silver: 'Silver Card',
+  gold: 'Gold Card',
+  platinum: 'Platinum Card',
+  black: 'Black Card',
+} as const;
+
 interface OwnProps {
   cardsInfo: ApiCardsInfo;
 }
@@ -125,7 +133,7 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
       case CardSlides.Standard:
         return renderMediaCard({
           ...defaultProps,
-          title: 'Standard Card',
+          title: MAP_CARD_TYPE_TO_NAME.standard,
           type: 'standard',
           cardInfo: cardsInfo?.standard,
         });
@@ -133,7 +141,7 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
       case CardSlides.Silver:
         return renderMediaCard({
           ...defaultProps,
-          title: 'Silver Card',
+          title: MAP_CARD_TYPE_TO_NAME.silver,
           type: 'silver',
           cardInfo: cardsInfo?.silver,
         });
@@ -141,7 +149,7 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
       case CardSlides.Gold:
         return renderMediaCard({
           ...defaultProps,
-          title: 'Gold Card',
+          title: MAP_CARD_TYPE_TO_NAME.gold,
           type: 'gold',
           cardInfo: cardsInfo?.gold,
         });
@@ -149,7 +157,7 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
       case CardSlides.Platinum:
         return renderMediaCard({
           ...defaultProps,
-          title: 'Platinum Card',
+          title: MAP_CARD_TYPE_TO_NAME.platinum,
           type: 'platinum',
           cardInfo: cardsInfo?.platinum,
         });
@@ -157,7 +165,7 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
       case CardSlides.Black:
         return renderMediaCard({
           ...defaultProps,
-          title: 'Black Card',
+          title: MAP_CARD_TYPE_TO_NAME.black,
           type: 'black',
           cardInfo: cardsInfo?.black,
         });
@@ -224,7 +232,7 @@ function renderMediaCard({
             {renderAvailability(lang, cardInfo)}
           </div>
         </div>
-        <CardPros type={type} price={cardInfo?.price} balance={tonBalance} />
+        <CardPros type={type} price={cardInfo?.price} balance={tonBalance} isAvailable={Boolean(cardInfo?.notMinted)} />
       </div>
     )
   );

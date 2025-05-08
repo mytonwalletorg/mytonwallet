@@ -6,18 +6,26 @@ import type { EmulationResponse } from './toncenter/emulation';
 import type { TonWallet } from './util/tonCore';
 
 import { BURN_ADDRESS, TONCOIN } from '../../../config';
+import { toBase64Address } from './util/tonCore';
 import { FAKE_TX_ID } from '../../constants';
 import { fetchEmulateTrace } from './toncenter/emulation';
 import { calculateActivityDetails, getActivityRealFee } from './activities';
 import { parseActions } from './toncenter';
 import { parseTrace } from './traces';
 
-export function emulateTrace(network: ApiNetwork, wallet: TonWallet, body: Cell, isInitialized?: boolean) {
-  const boc = buildExternalBoc(wallet, body, isInitialized);
-  return fetchEmulateTrace(network, boc);
+export async function emulateTransaction(
+  network: ApiNetwork,
+  wallet: TonWallet,
+  transaction: Cell,
+  isInitialized?: boolean,
+) {
+  const boc = buildExternalBoc(wallet, transaction, isInitialized);
+  const emulation = await fetchEmulateTrace(network, boc);
+  const walletAddress = toBase64Address(wallet.address, false, network);
+  return parseEmulation(network, walletAddress, emulation);
 }
 
-export function parseEmulation(
+function parseEmulation(
   network: ApiNetwork,
   walletAddress: string,
   emulation: EmulationResponse,
@@ -69,9 +77,10 @@ export function parseEmulation(
 
   return {
     networkFee: parsedTrace.totalNetworkFee,
-    realFee: totalRealFee,
+    received: parsedTrace.totalReceived,
     byTransactionIndex: parsedTrace.byTransactionIndex,
     activities: walletActivities,
+    realFee: totalRealFee,
   };
 }
 

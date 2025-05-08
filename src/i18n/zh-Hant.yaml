@@ -826,3 +826,12 @@ Preview: 預覽
 $preview_not_guaranteed: 預覽結果**不受保證**，且**可能被服務偽造**。
 Exit all wallets: 退出所有錢包
 Can't confirm?: 無法登入？
+$safe_staking_ethena_description1: 質押完全去中心化，由**Ethena官方**審計的流動性質押**智能合約**運營。
+$safe_staking_ethena_description2: 質押的USDe將用於Ethena的**交易和投資策略**，自動透明地產生收益。
+$safe_staking_ethena_description3: 您可以**隨時提取**質押資產及收益，根據Ethena標準提現週期，資金將在**7天內**返還至您的賬戶。
+Unstake %amount%: 解除質押 %amount%
+Request Unstaking: 申請取消質押
+$unstaking_when_receive_ethena: 您將在 **7 天** 後收到已解除質押的存款。
+Coins have been unstaked!: 代幣已解鎖！
+Confirm Upgrading: 確認升級
+How does it work?: 它是如何運作的？

@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiCardsInfo } from '../../api/types';
+import type { ApiCardsInfo, ApiMtwCardType } from '../../api/types';
 import type { HardwareConnectState, Theme } from '../../global/types';
 import { MintCardState } from '../../global/types';
 
@@ -18,6 +18,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import TransactionBanner from '../common/TransactionBanner';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -26,7 +27,7 @@ import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
-import CardRoster from './CardRoster';
+import CardRoster, { MAP_CARD_TYPE_TO_NAME } from './CardRoster';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './MintCardModal.module.scss';
@@ -41,6 +42,7 @@ interface StateProps {
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
+  selectedCardType?: ApiMtwCardType;
 }
 
 function MintCardModal({
@@ -53,7 +55,8 @@ function MintCardModal({
   isLedgerConnected,
   isTonAppConnected,
   hardwareState,
-} : StateProps) {
+  selectedCardType,
+}: StateProps) {
   const {
     closeMintCardModal, clearMintCardError, submitMintCard, submitMintCardHardware,
   } = getActions();
@@ -61,6 +64,8 @@ function MintCardModal({
   const lang = useLang();
   const appTheme = useAppTheme(theme);
   const { renderingKey, nextKey } = useModalTransitionKeys(state ?? 0, isOpen);
+
+  const selectedCardName = selectedCardType ? MAP_CARD_TYPE_TO_NAME[selectedCardType] : '';
 
   const handlePasswordSubmit = useLastCallback((password: string) => {
     submitMintCard({ password });
@@ -73,7 +78,11 @@ function MintCardModal({
   function renderPasswordForm(isActive: boolean) {
     return (
       <>
-        {!getDoesUsePinPad() && <ModalHeader title={lang('Enter Password')} onClose={closeMintCardModal} />}
+        <ModalHeader
+          title={!getDoesUsePinPad() ? lang('Confirm Upgrading') : undefined}
+          onClose={getDoesUsePinPad() ? closeMintCardModal : undefined}
+          onBackButtonClick={!getDoesUsePinPad() ? closeMintCardModal : undefined}
+        />
         <PasswordForm
           isActive={isActive}
           error={error}
@@ -83,8 +92,14 @@ function MintCardModal({
           onSubmit={handlePasswordSubmit}
           onCancel={closeMintCardModal}
           onUpdate={clearMintCardError}
+          operationType="mintCard"
           skipAuthScreen
-        />
+        >
+          <TransactionBanner
+            className={styles.mintCardBanner}
+            secondText={selectedCardName}
+          />
+        </PasswordForm>
       </>
     );
   }
@@ -210,5 +225,6 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
     theme: global.settings.theme,
+    selectedCardType: currentMintCard?.type,
   };
 })(MintCardModal));

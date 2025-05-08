@@ -18,7 +18,7 @@ import useDerivedSignal from '../../hooks/useDerivedSignal';
 import styles from './SensitiveDataMask.module.scss';
 
 export type SensitiveDataMaskSkin = (
-  'lightTheme' | 'darkTheme' | 'cardLightText' | 'cardDarkText' | 'cardGoldText' | 'purple'
+  'lightTheme' | 'darkTheme' | 'cardLightText' | 'cardDarkText' | 'cardGoldText' | 'purple' | 'green'
   );
 
 interface OwnProps {
@@ -69,6 +69,7 @@ const SKIN_COLORS: Record<SensitiveDataMaskSkin, string> = {
   cardDarkText: '10, 10, 10',
   cardGoldText: '101, 73, 16',
   purple: '96, 107, 215',
+  green: '43, 196, 105',
 };
 
 function SensitiveDataMask({

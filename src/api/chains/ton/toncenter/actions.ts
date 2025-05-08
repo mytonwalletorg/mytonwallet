@@ -1,4 +1,3 @@
-import type { Slice } from '@ton/core';
 import { Cell } from '@ton/core';
 
 import type {
@@ -41,6 +40,7 @@ import type {
 import {
   BURN_ADDRESS,
   DNS_IMAGE_GEN_URL,
+  ETHENA_STAKING_VAULT,
   LIQUID_POOL,
   MTW_CARDS_COLLECTION,
   MYCOIN_STAKING_POOL,
@@ -48,6 +48,8 @@ import {
   NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
   NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX,
   STON_PTON_ADDRESS,
+  TON_TSUSDE,
+  TON_USDE,
   TONCOIN,
 } from '../../../../config';
 import { buildTxId } from '../../../../util/activities';
@@ -87,6 +89,10 @@ type ParseOptions<T extends AnyAction = AnyAction> = {
 };
 
 type PartialTx = Pick<ApiTransactionActivity, 'kind' | 'id' | 'txId' | 'timestamp' | 'fee' | 'externalMsgHash'>;
+type CommonFields = Pick<
+ApiTransactionActivity,
+'fromAddress' | 'toAddress' | 'isIncoming' | 'normalizedAddress' | 'amount'
+>;
 
 const RAW_LIQUID_POOL_ADDRESS = '0:F6FF877DD4CE1355B101572045F09D54C29309737EB52CA542CFA6C195F7CC5B';
 const RAW_NFT_CARD_COLLECTION = '0:901362FD85FC31D55F2C82617D91EADA1F1D6B34AF559A047572D56F20D046CA';
@@ -354,7 +360,7 @@ function parseJettonTransfer(
   options: ParseOptions,
   partial: PartialTx,
 ): ApiTransactionActivity {
-  const { network } = options;
+  const { addressBook } = options;
   const {
     details,
     details: {
@@ -371,7 +377,8 @@ function parseJettonTransfer(
 
   const comment = (!isEncrypted && details.comment) || undefined;
   const encryptedComment = (isEncrypted && details.comment) || undefined;
-  const slug = buildTokenSlug('ton', toBase64Address(details.asset, true, network));
+  const tokenAddress = addressBook[details.asset].user_friendly;
+  const slug = buildTokenSlug('ton', tokenAddress);
   const shouldHide = !isIncoming && forwardPayload === OUR_FEE_PAYLOAD_BOC;
 
   let type: ApiTransactionType;
@@ -381,6 +388,12 @@ function parseJettonTransfer(
     type = 'stake';
   } else if (fromAddress === MYCOIN_STAKING_POOL) {
     type = 'unstake';
+  } else if (tokenAddress === TON_USDE.tokenAddress) {
+    if (fromAddress === ETHENA_STAKING_VAULT) {
+      type = 'unstake';
+    } else if (toAddress === ETHENA_STAKING_VAULT) {
+      type = 'stake';
+    }
   }
 
   return {
@@ -399,16 +412,44 @@ function parseJettonMint(
   options: ParseOptions,
   partial: PartialTx,
 ): ApiTransactionActivity {
-  const { network } = options;
-  const { details, details: { receiver, receiver_jetton_wallet: jettonWallet, amount } } = action;
+  const { addressBook } = options;
+  const {
+    details,
+    details: {
+      receiver,
+      receiver_jetton_wallet: jettonWalletRaw,
+      amount,
+    },
+  } = action;
 
-  const slug = buildTokenSlug('ton', toBase64Address(details.asset, true, network));
+  const tokenAddress = addressBook[details.asset].user_friendly;
+  const slug = buildTokenSlug('ton', tokenAddress);
+
+  let commonFields: CommonFields;
+  let type: ApiTransactionType = 'mint';
+
+  if (
+    tokenAddress === TON_TSUSDE.tokenAddress
+    && action.end_lt !== action.trace_end_lt
+  ) {
+    // TODO After fix on Toncenter's side, move it to transfer parsing (currently it's mistakenly detected as mint)
+    type = 'unstakeRequest';
+    commonFields = {
+      fromAddress: addressBook[receiver].user_friendly,
+      toAddress: ETHENA_STAKING_VAULT,
+      isIncoming: false,
+      normalizedAddress: ETHENA_STAKING_VAULT,
+      amount: 0n,
+    };
+  } else {
+    commonFields = parseCommonFields(options, jettonWalletRaw, receiver, amount);
+  }
 
   return {
     ...partial,
-    ...parseCommonFields(options, jettonWallet, receiver, amount),
+    ...commonFields,
     slug,
-    type: 'mint',
+    type,
   };
 }
 
@@ -457,7 +498,7 @@ function parseNftTransfer(
 
   const shouldHide = !nft && rawCollectionAddress ? isHiddenCollection(rawCollectionAddress, metadata) : undefined;
   const common = parseCommonFields(options, oldOwner ?? rawNftAddress, newOwner);
-  const comment = (forwardPayload && safeReadComment(Cell.fromBase64(forwardPayload).asSlice())) || undefined;
+  const comment = (forwardPayload && safeReadComment(forwardPayload)) || undefined;
   let type: ApiTransactionType | undefined = common.toAddress === BURN_ADDRESS ? 'burn' : undefined;
 
   if (isPurchase && price) {
@@ -777,7 +818,7 @@ function parseCommonFields(
   rawFromAddress: string,
   rawToAddress: string,
   amountString: string | number = 0,
-) {
+): CommonFields {
   const { walletAddress, network, addressBook } = options;
   const fromAddress = addressBook[rawFromAddress].user_friendly;
   const toAddress = addressBook[rawToAddress].user_friendly;
@@ -919,8 +960,12 @@ function extractMetadata<T extends AnyTokenMetadata>(
   return data.token_info?.find((tokenInfo) => tokenInfo.type === type) as T;
 }
 
-function safeReadComment(slice: Slice) {
-  return safeExec(() => readComment(slice));
+function safeReadComment(payloadBase64: string) {
+  return safeExec(() => {
+    const cell = Cell.fromBase64(payloadBase64);
+    if (cell.isExotic) return undefined;
+    return readComment(cell.asSlice());
+  });
 }
 
 function buildActionActivityId(action: AnyAction, type?: 'additional') {

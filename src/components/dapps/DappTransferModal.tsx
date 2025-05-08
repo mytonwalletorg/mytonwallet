@@ -23,6 +23,7 @@ import { getActivityHeight } from '../main/sections/Content/Activity';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
+import Skeleton from '../ui/Skeleton';
 import Transition from '../ui/Transition';
 import DappLedgerWarning from './DappLedgerWarning';
 import DappTransaction from './DappTransaction';
@@ -122,9 +123,9 @@ function DappTransferModal({
   function renderWaitForConnection() {
     const renderRow = (isLarge?: boolean, hasFee?: boolean) => (
       <div className={styles.rowContainerSkeleton}>
-        <div className={buildClassName(styles.rowLabelSkeleton, isLarge && styles.rowTextLargeSkeleton)} />
-        <div className={buildClassName(styles.rowSkeleton, isLarge && styles.rowLargeSkeleton)} />
-        {hasFee && <div className={styles.rowFeeSkeleton} />}
+        <Skeleton className={buildClassName(styles.rowLabelSkeleton, isLarge && styles.rowTextLargeSkeleton)} />
+        <Skeleton className={buildClassName(styles.rowSkeleton, isLarge && styles.rowLargeSkeleton)} />
+        {hasFee && <Skeleton className={styles.rowFeeSkeleton} />}
       </div>
     );
 
@@ -132,14 +133,14 @@ function DappTransferModal({
       <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
         <div className={styles.transactionDirection}>
           <div className={styles.transactionDirectionLeftSkeleton}>
-            <div className={buildClassName(styles.nameSkeleton, styles.nameDappSkeleton)} />
-            <div className={buildClassName(styles.descSkeleton, styles.descDappSkeleton)} />
+            <Skeleton className={buildClassName(styles.nameSkeleton, styles.nameDappSkeleton)} />
+            <Skeleton className={buildClassName(styles.descSkeleton, styles.descDappSkeleton)} />
           </div>
           <div className={styles.transactionDirectionRightSkeleton}>
-            <div className={buildClassName(styles.dappInfoIconSkeleton, styles.transactionDappIconSkeleton)} />
+            <Skeleton className={styles.dappInfoIconSkeleton} />
             <div className={styles.dappInfoDataSkeleton}>
-              <div className={buildClassName(styles.nameSkeleton, styles.nameDappSkeleton)} />
-              <div className={buildClassName(styles.descSkeleton, styles.descDappSkeleton)} />
+              <Skeleton className={buildClassName(styles.nameSkeleton, styles.nameDappSkeleton)} />
+              <Skeleton className={buildClassName(styles.descSkeleton, styles.descDappSkeleton)} />
             </div>
           </div>
         </div>

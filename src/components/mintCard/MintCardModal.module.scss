@@ -2,10 +2,6 @@
 
 .dialog {
   --modal-border-radius: var(--border-radius-normal);
-  --color-close-button-text: var(--color-card-text);
-  --color-close-button-text-hover: var(--color-card-text-hover);
-  --color-close-button-background: var(--color-card-button);
-  --color-close-button-background-hover: var(--color-card-button-hover);
 
   overflow: hidden;
 
@@ -102,6 +98,10 @@
   z-index: 3;
   top: 1rem;
   right: 1rem;
+  --color-close-button-text: var(--color-card-text);
+  --color-close-button-text-hover: var(--color-card-text-hover);
+  --color-close-button-background: var(--color-card-button);
+  --color-close-button-background-hover: var(--color-card-button-hover);
 }
 
 .navigation {
@@ -268,4 +268,11 @@
   transform: translate(-50%, -50%);
 
   font-size: 1rem;
+}
+
+.mintCardBanner {
+  align-items: center;
+
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
 }

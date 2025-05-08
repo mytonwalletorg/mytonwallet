@@ -57,7 +57,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         balance: 0n,
         unstakeRequestAmount: 0n,
         tokenBalance: 0n,
-        isUnstakeRequested: false,
       });
       global = updateStakingInfo(global, common);
       global = updateAccountStaking(global, accountId, {

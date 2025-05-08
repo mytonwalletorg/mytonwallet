@@ -1,0 +1,47 @@
+@use "sass:math";
+
+@import "../../styles/mixins";
+
+// The CSS variables to customize the component:
+// --skeleton-background-color
+// --color-skeleton-shimmer
+// For the proper appearance, avoid `transform` in the parent elements.
+
+$shimmerWidth: 18rem;
+
+.skeleton {
+  background: linear-gradient(90deg, transparent, var(--color-skeleton-shimmer), transparent);
+  background-color: var(--skeleton-background-color, var(--color-gray-button-background-light));
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: -$shimmerWidth;
+  background-size: $shimmerWidth 100%;
+
+  // The delay before the animation is needed to prevent a glitch caused by the fact that adding `transform` to a parent
+  // element (Modal) cancels `background-attachment: fixed`.
+  animation: shimmerMobile 1.6s linear 0.5s infinite;
+
+  @include respond-above(xs) {
+    animation-name: shimmerDesktop;
+  }
+}
+
+@keyframes shimmerMobile {
+  0% {
+    background-position: -$shimmerWidth;
+  }
+
+  50%, 100% {
+    background-position: 100vw;
+  }
+}
+
+@keyframes shimmerDesktop {
+  0% {
+    background-position: -$shimmerWidth;
+  }
+
+  90%, 100% {
+    background-position: 100vw;
+  }
+}

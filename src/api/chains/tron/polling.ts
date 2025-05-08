@@ -1,4 +1,11 @@
-import type { ApiActivity, ApiActivityTimestamps, ApiBalanceBySlug, ApiUpdatingStatus, OnApiUpdate } from '../../types';
+import type {
+  ApiActivity,
+  ApiActivityTimestamps,
+  ApiBalanceBySlug,
+  ApiNetwork,
+  ApiUpdatingStatus,
+  OnApiUpdate,
+} from '../../types';
 
 import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -22,7 +29,7 @@ const FORCE_CHECK_ACTIVITIES_PAUSE = 30 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL = 30 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 
-const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
+let inactiveAccountsCache: Record<string, ApiBalanceBySlug> = {};
 
 export async function setupPolling(
   accountId: string,
@@ -30,6 +37,7 @@ export async function setupPolling(
   onUpdatingStatusChange: (kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => void,
   newestActivityTimestamps: ApiActivityTimestamps,
 ) {
+  const cache: ApiBalanceBySlug = {};
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTronWallet(accountId);
 
@@ -59,16 +67,13 @@ export async function setupPolling(
       onUpdatingStatusChange('balance', true);
       onUpdatingStatusChange('activities', true);
 
-      if (!lastBalanceCache[accountId]) lastBalanceCache[accountId] = {};
-      const accountLastBalances = lastBalanceCache[accountId];
-
       const [trxBalance, usdtBalance] = await Promise.all([
         getWalletBalance(network, address),
         getTrc20Balance(network, usdtAddress, address),
       ]);
 
-      const isBalanceChanged = trxBalance !== accountLastBalances[TRX.slug]
-        || usdtBalance !== accountLastBalances[usdtAddress];
+      const isBalanceChanged = trxBalance !== cache[TRX.slug]
+        || usdtBalance !== cache[usdtAddress];
 
       if (isBalanceChanged) {
         onUpdate({
@@ -88,8 +93,8 @@ export async function setupPolling(
 
       onUpdatingStatusChange('activities', false);
 
-      accountLastBalances[TRX.slug] = trxBalance;
-      accountLastBalances[usdtAddress] = usdtBalance;
+      cache[TRX.slug] = trxBalance;
+      cache[usdtAddress] = usdtBalance;
     } catch (err) {
       logDebugError('tron:setupPolling', err);
     } finally {
@@ -123,10 +128,10 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
           getTrc20Balance(network, usdtAddress, address),
         ]);
 
-        if (!lastBalanceCache[accountId]) lastBalanceCache[accountId] = {};
-        const accountLastBalances = lastBalanceCache[accountId];
-
-        if (trxBalance !== accountLastBalances[TRX.slug] || usdtBalance !== accountLastBalances[usdtSlug]) {
+        if (
+          trxBalance !== inactiveAccountsCache[accountId][TRX.slug]
+          || usdtBalance !== inactiveAccountsCache[accountId][usdtSlug]
+        ) {
           onUpdate({
             type: 'updateBalances',
             accountId,
@@ -137,8 +142,8 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
             },
           });
 
-          accountLastBalances[TRX.slug] = trxBalance;
-          accountLastBalances[usdtSlug] = usdtBalance;
+          inactiveAccountsCache[accountId][TRX.slug] = trxBalance;
+          inactiveAccountsCache[accountId][usdtSlug] = usdtBalance;
         }
       }
     } catch (err) {
@@ -223,4 +228,20 @@ async function loadNewActivities(
   });
 
   return result;
+}
+
+export function clearAccountsCache() {
+  inactiveAccountsCache = {};
+}
+
+export function clearAccountsCacheByNetwork(network: ApiNetwork) {
+  for (const accountId of Object.keys(inactiveAccountsCache)) {
+    if (parseAccountId(accountId).network === network) {
+      clearAccountCache(accountId);
+    }
+  }
+}
+
+export function clearAccountCache(accountId: string) {
+  delete inactiveAccountsCache[accountId];
 }

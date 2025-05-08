@@ -4,10 +4,10 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiStakingHistory, ApiStakingState, ApiTokenWithPrice } from '../../api/types';
-import type { Theme, UserToken } from '../../global/types';
+import type { GlobalState, Theme, UserToken } from '../../global/types';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, SHORT_FRACTION_DIGITS, TONCOIN } from '../../config';
-import { buildStakingDropdownItems } from '../../global/helpers/staking';
+import { buildStakingDropdownItems, getStakingStateStatus } from '../../global/helpers/staking';
 import {
   selectAccountStakingHistory,
   selectAccountStakingState,
@@ -21,6 +21,7 @@ import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
+import { getUnstakeTime } from '../../util/staking';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../hooks/useAppTheme';
@@ -53,11 +54,11 @@ interface StateProps {
   isViewMode: boolean;
   states?: ApiStakingState[];
   stakingState?: ApiStakingState;
+  stakingInfo?: GlobalState['stakingInfo'];
   totalProfit: bigint;
   stakingHistory?: ApiStakingHistory;
   tokens?: UserToken[];
   tokenBySlug?: Record<string, ApiTokenWithPrice>;
-  endOfStakingCycle?: number;
   theme: Theme;
   shouldUseNominators?: boolean;
   isSensitiveDataHidden?: true;
@@ -65,17 +66,18 @@ interface StateProps {
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 const HISTORY_SCROLL_APPEARANCE_HEIGHT_PX = 640;
+const FRACTION_DIGITS = 2;
 
 function StakingInfoContent({
   states,
   stakingState,
+  stakingInfo,
   isActive,
   isStatic,
   totalProfit,
   stakingHistory,
   tokens,
   tokenBySlug,
-  endOfStakingCycle,
   theme,
   shouldUseNominators,
   isViewMode,
@@ -95,8 +97,12 @@ function StakingInfoContent({
     tokenSlug,
     balance: amount,
     annualYield = 0,
-    isUnstakeRequested,
+    unstakeRequestAmount,
+    type: stakingType,
   } = stakingState ?? {};
+
+  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
+  const canBeClaimed = stakingState ? getStakingStateStatus(stakingState) === 'readyToClaim' : undefined;
 
   const token = useMemo(() => {
     return tokenSlug ? tokens?.find(({ slug }) => tokenSlug === slug) : undefined;
@@ -125,7 +131,7 @@ function StakingInfoContent({
     : undefined;
 
   // Updates the unstaking countdown
-  useInterval(forceUpdate, isUnstakeRequested ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
+  useInterval(forceUpdate, unstakeRequestAmount ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
 
   useEffect(() => {
     if (isActive) {
@@ -151,8 +157,8 @@ function StakingInfoContent({
   let stakingResult = '0';
   let balanceResult = '0';
   if (amount) {
-    stakingResult = toBig(amount).round(SHORT_FRACTION_DIGITS).toString();
-    balanceResult = toBig(amount).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString();
+    stakingResult = toBig(amount, decimals).round(SHORT_FRACTION_DIGITS).toString();
+    balanceResult = toBig(amount, decimals).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString();
   }
 
   const dropDownItems = useMemo(() => {
@@ -180,10 +186,10 @@ function StakingInfoContent({
           previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockPurple}
         />
         <div>
-          {Boolean(endOfStakingCycle) && lang('$unstaking_when_receive', {
+          {Boolean(unstakeTime) && lang('$unstaking_when_receive', {
             time: (
               <strong>
-                {formatRelativeHumanDateTime(lang.code, endOfStakingCycle)}
+                {formatRelativeHumanDateTime(lang.code, unstakeTime)}
               </strong>
             ),
           })}
@@ -313,7 +319,7 @@ function StakingInfoContent({
             />
 
           </RichNumberField>
-          {isUnstakeRequested
+          {unstakeRequestAmount && unstakeRequestAmount > 0n && stakingType !== 'ethena'
             ? renderUnstakeDescription()
             : (
               <>
@@ -329,9 +335,11 @@ function StakingInfoContent({
                   labelClassName={styles.balanceStakedLabel}
                   valueClassName={styles.balanceResult}
                 />
+                {stakingType === 'ethena' && !canBeClaimed && !!unstakeRequestAmount && renderUnstakeDescription()}
                 {!isViewMode && (
                   <div className={buildClassName(
                     styles.stakingInfoButtons,
+                    stakingType === 'ethena' && styles.stakingInfoButtonsAdaptiveWidth,
                     !!unclaimedRewards && styles.stakingInfoButtonsWithMargin,
                   )}>
                     <Button
@@ -342,13 +350,28 @@ function StakingInfoContent({
                     >
                       {lang('Stake More')}
                     </Button>
-                    <Button
-                      className={styles.stakingInfoButton}
-                      isDisabled={isLoading}
-                      onClick={handleUnstakeClick}
-                    >
-                      {lang('Unstake')}
-                    </Button>
+                    {(stakingType !== 'ethena' || !canBeClaimed) && (
+                      <Button
+                        className={styles.stakingInfoButton}
+                        isDisabled={isLoading}
+                        onClick={handleUnstakeClick}
+                      >
+                        {lang(stakingType === 'ethena' ? 'Request Unstaking' : 'Unstake')}
+                      </Button>
+                    )}
+                    {canBeClaimed && (
+                      <Button
+                        className={styles.stakingInfoButton}
+                        isDisabled={isLoading}
+                        onClick={handleClaimClick}
+                      >
+                        {lang('Unstake %amount%', {
+                          amount: isSensitiveDataHidden
+                            ? `*** ${symbol}`
+                            : formatCurrency(toDecimal(unstakeRequestAmount!, decimals!), symbol!, FRACTION_DIGITS),
+                        })}
+                      </Button>
+                    )}
                   </div>
                 )}
                 {!!unclaimedRewards && renderRewards()}
@@ -379,14 +402,15 @@ function StakingInfoContent({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountId = global.currentAccountId;
+  const {
+    stakingInfo,
+    settings: { theme, isSensitiveDataHidden },
+    tokenInfo: { bySlug: tokenBySlug },
+  } = global;
   const accountState = selectCurrentAccountState(global);
 
   const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
   const stakingState = accountId ? selectAccountStakingState(global, accountId) : undefined;
-
-  const endOfStakingCycle = stakingState?.type === 'nominators'
-    ? stakingState.end
-    : global.stakingInfo?.round.end;
 
   const stakingHistory = accountId ? selectAccountStakingHistory(global, accountId) : undefined;
   const totalProfit = accountId ? selectAccountStakingTotalProfit(global, accountId) : 0n;
@@ -394,14 +418,14 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
     stakingState,
     states,
+    stakingInfo,
     totalProfit,
     stakingHistory,
     tokens: selectCurrentAccountTokens(global),
-    tokenBySlug: global.tokenInfo.bySlug,
-    endOfStakingCycle,
-    theme: global.settings.theme,
+    tokenBySlug,
+    theme,
     shouldUseNominators: accountState?.staking?.shouldUseNominators,
-    isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+    isSensitiveDataHidden,
     isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(StakingInfoContent));

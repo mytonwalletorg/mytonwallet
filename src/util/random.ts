@@ -10,3 +10,7 @@ export function randomBytes(size: number) {
   // eslint-disable-next-line no-restricted-globals
   return self.crypto.getRandomValues(new Uint8Array(size));
 }
+
+export function randomBase64(byteSize: number) {
+  return Buffer.from(randomBytes(byteSize)).toString('base64');
+}
