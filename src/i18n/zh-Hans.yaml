@@ -455,6 +455,7 @@ An error on the server side. Please try again.: 服务器端的错误。请再�
 Address was saved!: 地址已保存！
 US Dollar: 美元
 Euro: 欧元
+Hryvnia: 格里夫纳
 Ruble: 卢布
 Yuan: 元
 $max_balance: "最大: %balance%"
