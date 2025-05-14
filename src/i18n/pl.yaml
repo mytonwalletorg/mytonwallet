@@ -233,13 +233,11 @@ Unstake: Odzastaw
 Earning History: Historia zarobków
 $total: "Suma: %value%"
 $unstake_asset: Odzastaw %symbol%
-$unstake_information_with_time: |
-  Twoja obecna wpłata zostanie w całości zwrócona na Twoje konto w ciągu %time%.
-  Spowoduje to zatrzymanie zarobków.
 Amount to unstake: Kwota do odzastawienia
 Confirm Unstaking: Potwierdź odzastawienie
 Request for unstaking is sent!: Wysłano prośbę o odzastawienie!
 $unstaking_when_receive: Otrzymasz swoją odzastawioną wpłatę w ciągu %time%.
+$unstaking_when_receive_with_amount: Otrzymasz swoje wycofane %amount% za %time%.
 $unstake_insufficient_balance: Aby przejść do odzastawienia, musisz mieć na swoim głównym saldzie %balance%.
 at %annual_yield%: przy %annual_yield%
 Est. %annual_yield%: Szacowany %annual_yield%
@@ -849,3 +847,4 @@ $unstaking_when_receive_ethena: Będziesz mógł otrzymać swój wycofany depozy
 Coins have been unstaked!: Monety wycofane!
 Confirm Upgrading: Potwierdź ulepszenie
 How does it work?: Jak to działa?
+'%token% Staking': Stakowanie %token%

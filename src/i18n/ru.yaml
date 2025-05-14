@@ -234,11 +234,11 @@ Unstake: Вывести
 Earning History: История начислений
 $total: "Всего: %value%"
 $unstake_asset: Вывести %symbol%
-$unstake_information_with_time: Текущий депозит будет полностью отправлен обратно на ваш кошелёк через %time%.
 Amount to unstake: Сумма к выводу
 Confirm Unstaking: Подтвердить вывод
 Request for unstaking is sent!: Запрос на вывод отправлен!
 $unstaking_when_receive: Депозит будет выведен через %time%.
+$unstaking_when_receive_with_amount: "%amount% будут выведены через %time%."
 $unstake_insufficient_balance: Вам необходимо иметь %balance% на вашем основном балансе, чтобы отправить заявку на вывод депозита.
 at %annual_yield%: при %annual_yield%
 Staked: Стейкинг
@@ -845,3 +845,4 @@ $unstaking_when_receive_ethena: Вы сможете получить свой д
 Coins have been unstaked!: Монеты выведены!
 Confirm Upgrading: Подтвердить улучшение
 How does it work?: Как это работает?
+'%token% Staking': Стейкинг %token%

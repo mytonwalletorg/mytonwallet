@@ -231,13 +231,11 @@ Unstake: Unstake
 Earning History: Earning History
 $total: "Total: %value%"
 $unstake_asset: Unstake %symbol%
-$unstake_information_with_time: |
-  Your current deposit will be fully sent back to your wallet in %time%.
-  This will stop your earnings.
 Amount to unstake: Amount to unstake
 Confirm Unstaking: Confirm Unstaking
 Request for unstaking is sent!: Request for unstaking is sent!
 $unstaking_when_receive: You will receive your unstaked deposit in %time%.
+$unstaking_when_receive_with_amount: You will receive your unstaked %amount% in %time%.
 $unstake_insufficient_balance: You need to have %balance% on your main balance to proceed with unstaking.
 at %annual_yield%: at %annual_yield%
 Est. %annual_yield%: Est. %annual_yield%
@@ -843,3 +841,4 @@ $unstaking_when_receive_ethena: You will be able to receive your unstaked deposi
 Coins have been unstaked!: Coins have been unstaked!
 Confirm Upgrading: Confirm Upgrading
 How does it work?: How does it work?
+'%token% Staking': '%token% Staking'

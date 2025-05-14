@@ -80,19 +80,12 @@ type ActionsResponse = {
   metadata?: MetadataMap;
 };
 
-type ParseOptions<T extends AnyAction = AnyAction> = {
+type ParseOptions = {
   network: ApiNetwork;
-  action: T;
   addressBook: AddressBook;
   walletAddress: string;
   metadata: MetadataMap;
 };
-
-type PartialTx = Pick<ApiTransactionActivity, 'kind' | 'id' | 'txId' | 'timestamp' | 'fee' | 'externalMsgHash'>;
-type CommonFields = Pick<
-ApiTransactionActivity,
-'fromAddress' | 'toAddress' | 'isIncoming' | 'normalizedAddress' | 'amount'
->;
 
 const RAW_LIQUID_POOL_ADDRESS = '0:F6FF877DD4CE1355B101572045F09D54C29309737EB52CA542CFA6C195F7CC5B';
 const RAW_NFT_CARD_COLLECTION = '0:901362FD85FC31D55F2C82617D91EADA1F1D6B34AF559A047572D56F20D046CA';
@@ -166,7 +159,7 @@ export function parseActions(
 
   for (const action of rawActions) {
     for (const activity of parseAction(action, {
-      network, action, addressBook, walletAddress, metadata,
+      network, addressBook, walletAddress, metadata,
     })) {
       activities.push(activity);
 
@@ -184,62 +177,51 @@ export function parseActions(
 }
 
 function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
-  const id = buildActionActivityId(action);
-
-  const partialTx: PartialTx = {
-    kind: 'transaction',
-    id,
-    txId: id,
-    timestamp: toMilliseconds(action.end_utime),
-    externalMsgHash: action.trace_external_hash,
-    fee: 0n, // Calculated when TransactionModal opens
-  };
-
   let result: (ApiActivity | undefined)[] = [];
 
   switch (action.type) {
     case 'ton_transfer': {
-      result = [parseTonTransfer(action, options, partialTx)];
+      result = [parseTonTransfer(action, options)];
       break;
     }
     case 'call_contract': {
-      result = [parseCallContract(action, options, partialTx)];
+      result = [parseCallContract(action, options)];
       break;
     }
     case 'contract_deploy': {
-      result = [parseContractDeploy(action, options, partialTx)];
+      result = [parseContractDeploy(action, options)];
       break;
     }
     case 'nft_transfer': {
-      result = [parseNftTransfer(action, options, partialTx)];
+      result = [parseNftTransfer(action, options)];
       break;
     }
     case 'nft_mint': {
-      result = [parseNftMint(action, options, partialTx)];
+      result = [parseNftMint(action, options)];
       break;
     }
     case 'jetton_transfer': {
-      result = [parseJettonTransfer(action, options, partialTx)];
+      result = [parseJettonTransfer(action, options)];
       break;
     }
     case 'jetton_mint': {
-      result = [parseJettonMint(action, options, partialTx)];
+      result = [parseJettonMint(action, options)];
       break;
     }
     case 'jetton_burn': {
-      result = [parseJettonBurn(action, options, partialTx)];
+      result = [parseJettonBurn(action, options)];
       break;
     }
     case 'stake_deposit': {
-      result = [parseStakeDeposit(action, options, partialTx)];
+      result = [parseStakeDeposit(action, options)];
       break;
     }
     case 'stake_withdrawal': {
-      result = [parseStakeWithdrawal(action, options, partialTx)];
+      result = [parseStakeWithdrawal(action, options)];
       break;
     }
     case 'stake_withdrawal_request': {
-      result = [parseStakeWithdrawalRequest(action, options, partialTx)];
+      result = [parseStakeWithdrawalRequest(action, options)];
       break;
     }
     case 'jetton_swap': {
@@ -249,19 +231,19 @@ function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
     case 'change_dns':
     case 'delete_dns':
     case 'renew_dns': {
-      result = [parseDns(action, options, partialTx)];
+      result = [parseDns(action, options)];
       break;
     }
     case 'auction_bid': {
-      result = [parseAuctionBid(action, options, partialTx)];
+      result = [parseAuctionBid(action, options)];
       break;
     }
     case 'dex_deposit_liquidity': {
-      result = parseLiquidityDeposit(action, options, partialTx);
+      result = parseLiquidityDeposit(action, options);
       break;
     }
     case 'dex_withdraw_liquidity': {
-      result = parseLiquidityWithdraw(action, options, partialTx);
+      result = parseLiquidityWithdraw(action, options);
       break;
     }
   }
@@ -281,34 +263,25 @@ function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
   return result.filter(Boolean);
 }
 
-function parseTonTransfer(
-  action: TonTransferAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseTonTransfer(action: TonTransferAction, options: ParseOptions): ApiTransactionActivity {
   const { details, details: { encrypted: isEncrypted, source, destination, value } } = action;
 
   const comment = (!isEncrypted && details.comment) || undefined;
   const encryptedComment = (isEncrypted && details.comment) || undefined;
 
   return {
-    ...partial,
-    ...parseCommonFields(options, source, destination, value),
+    ...parseCommonFields(action, options, source, destination, value),
     slug: TONCOIN.slug,
     comment,
     encryptedComment,
   };
 }
 
-function parseCallContract(
-  action: CallContractAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity | undefined {
+function parseCallContract(action: CallContractAction, options: ParseOptions): ApiTransactionActivity | undefined {
   const { walletAddress } = options;
   const { details, details: { source, destination, value } } = action;
 
-  const common = parseCommonFields(options, source, destination, value);
+  const common = parseCommonFields(action, options, source, destination, value);
   const opCode = Number(details.opcode);
   const shouldHide = !common.isIncoming && [OpCode.OurFee, TeleitemOpCode.Ok].includes(opCode);
 
@@ -324,7 +297,6 @@ function parseCallContract(
   }
 
   return {
-    ...partial,
     ...common,
     slug: TONCOIN.slug,
     type,
@@ -332,11 +304,7 @@ function parseCallContract(
   };
 }
 
-function parseContractDeploy(
-  action: ContractDeployAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity | undefined {
+function parseContractDeploy(action: ContractDeployAction, options: ParseOptions): ApiTransactionActivity | undefined {
   const { details: { source, destination } } = action;
 
   if (!source) {
@@ -346,8 +314,7 @@ function parseContractDeploy(
   // Deploy action is additional and always occurs alongside others (duplicating amount), so we hide amount and fee.
 
   return {
-    ...partial,
-    ...parseCommonFields(options, source, destination),
+    ...parseCommonFields(action, options, source, destination),
     slug: TONCOIN.slug,
     type: 'contractDeploy',
     shouldLoadDetails: false,
@@ -355,11 +322,7 @@ function parseContractDeploy(
   };
 }
 
-function parseJettonTransfer(
-  action: JettonTransferAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseJettonTransfer(action: JettonTransferAction, options: ParseOptions): ApiTransactionActivity {
   const { addressBook } = options;
   const {
     details,
@@ -372,7 +335,7 @@ function parseJettonTransfer(
     },
   } = action;
 
-  const common = parseCommonFields(options, sender, receiver, amount);
+  const common = parseCommonFields(action, options, sender, receiver, amount);
   const { isIncoming, toAddress, fromAddress } = common;
 
   const comment = (!isEncrypted && details.comment) || undefined;
@@ -397,7 +360,6 @@ function parseJettonTransfer(
   }
 
   return {
-    ...partial,
     ...common,
     slug,
     comment,
@@ -407,11 +369,7 @@ function parseJettonTransfer(
   };
 }
 
-function parseJettonMint(
-  action: JettonMintAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseJettonMint(action: JettonMintAction, options: ParseOptions): ApiTransactionActivity {
   const { addressBook } = options;
   const {
     details,
@@ -425,7 +383,7 @@ function parseJettonMint(
   const tokenAddress = addressBook[details.asset].user_friendly;
   const slug = buildTokenSlug('ton', tokenAddress);
 
-  let commonFields: CommonFields;
+  let commonFields: ReturnType<typeof parseCommonFields>;
   let type: ApiTransactionType = 'mint';
 
   if (
@@ -435,47 +393,36 @@ function parseJettonMint(
     // TODO After fix on Toncenter's side, move it to transfer parsing (currently it's mistakenly detected as mint)
     type = 'unstakeRequest';
     commonFields = {
-      fromAddress: addressBook[receiver].user_friendly,
+      ...parseCommonFields(action, options, receiver, receiver, 0),
       toAddress: ETHENA_STAKING_VAULT,
       isIncoming: false,
       normalizedAddress: ETHENA_STAKING_VAULT,
-      amount: 0n,
     };
   } else {
-    commonFields = parseCommonFields(options, jettonWalletRaw, receiver, amount);
+    commonFields = parseCommonFields(action, options, jettonWalletRaw, receiver, amount);
   }
 
   return {
-    ...partial,
     ...commonFields,
     slug,
     type,
   };
 }
 
-function parseJettonBurn(
-  action: JettonBurnAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseJettonBurn(action: JettonBurnAction, options: ParseOptions): ApiTransactionActivity {
   const { network } = options;
   const { details, details: { owner, owner_jetton_wallet: jettonWallet, amount } } = action;
 
   const slug = buildTokenSlug('ton', toBase64Address(details.asset, true, network));
 
   return {
-    ...partial,
-    ...parseCommonFields(options, owner, jettonWallet, amount),
+    ...parseCommonFields(action, options, owner, jettonWallet, amount),
     slug,
     type: 'burn',
   };
 }
 
-function parseNftTransfer(
-  action: NftTransferAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity | undefined {
+function parseNftTransfer(action: NftTransferAction, options: ParseOptions): ApiTransactionActivity | undefined {
   const { metadata } = options;
 
   const {
@@ -497,7 +444,7 @@ function parseNftTransfer(
   );
 
   const shouldHide = !nft && rawCollectionAddress ? isHiddenCollection(rawCollectionAddress, metadata) : undefined;
-  const common = parseCommonFields(options, oldOwner ?? rawNftAddress, newOwner);
+  const common = parseCommonFields(action, options, oldOwner ?? rawNftAddress, newOwner);
   const comment = (forwardPayload && safeReadComment(forwardPayload)) || undefined;
   let type: ApiTransactionType | undefined = common.toAddress === BURN_ADDRESS ? 'burn' : undefined;
 
@@ -508,7 +455,6 @@ function parseNftTransfer(
   }
 
   return {
-    ...partial,
     ...common,
     shouldHide,
     slug: TONCOIN.slug,
@@ -518,11 +464,7 @@ function parseNftTransfer(
   };
 }
 
-function parseNftMint(
-  action: NftMintAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseNftMint(action: NftMintAction, options: ParseOptions): ApiTransactionActivity {
   const { metadata } = options;
 
   const {
@@ -540,8 +482,7 @@ function parseNftMint(
   );
 
   return {
-    ...partial,
-    ...parseCommonFields(options, owner, rawNftAddress),
+    ...parseCommonFields(action, options, owner, rawNftAddress),
     slug: TONCOIN.slug,
     nft,
     type: 'mint',
@@ -553,26 +494,17 @@ function isHiddenCollection(rawCollectionAddress: string, metadata: MetadataMap)
   return collectionMetadata?.name?.includes('Withdrawal Payout');
 }
 
-function parseStakeDeposit(
-  action: StakeDepositAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseStakeDeposit(action: StakeDepositAction, options: ParseOptions): ApiTransactionActivity {
   const { details: { stake_holder: holder, pool, amount } } = action;
 
   return {
-    ...partial,
-    ...parseCommonFields(options, holder, pool, amount),
+    ...parseCommonFields(action, options, holder, pool, amount),
     slug: TONCOIN.slug,
     type: 'stake',
   };
 }
 
-function parseStakeWithdrawal(
-  action: StakeWithdrawalAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
+function parseStakeWithdrawal(action: StakeWithdrawalAction, options: ParseOptions): ApiTransactionActivity {
   const { addressBook } = options;
   const { details, details: { stake_holder: holder, amount } } = action;
 
@@ -588,8 +520,7 @@ function parseStakeWithdrawal(
   };
 
   return {
-    ...partial,
-    ...parseCommonFields(fixedOptions, pool, holder, amount),
+    ...parseCommonFields(action, fixedOptions, pool, holder, amount),
     slug: TONCOIN.slug,
     type: 'unstake',
     shouldLoadDetails: details.provider === 'tonstakers' && !details.payout_nft,
@@ -599,13 +530,11 @@ function parseStakeWithdrawal(
 function parseStakeWithdrawalRequest(
   action: StakeWithdrawalRequestAction,
   options: ParseOptions,
-  partial: PartialTx,
 ): ApiTransactionActivity {
   const { details: { stake_holder: holder, pool } } = action;
 
   return {
-    ...partial,
-    ...parseCommonFields(options, holder, pool, 0), // TODO (actions) Replace to real fee
+    ...parseCommonFields(action, options, holder, pool, 0), // TODO (actions) Replace to real fee
     slug: TONCOIN.slug,
     type: 'unstakeRequest',
   };
@@ -660,7 +589,6 @@ function parseJettonSwap(action: SwapAction, options: ParseOptions): ApiSwapActi
 function parseDns(
   action: ChangeDnsAction | RenewDnsAction | DeleteDnsAction,
   options: ParseOptions,
-  partial: PartialTx,
 ): ApiTransactionActivity {
   const { metadata } = options;
   const { details: { source, asset } } = action;
@@ -689,20 +617,15 @@ function parseDns(
   }
 
   return {
-    ...partial,
-    ...parseCommonFields(options, source, asset, 0), // TODO (actions) Replace to real fee
+    ...parseCommonFields(action, options, source, asset, 0), // TODO (actions) Replace to real fee
     slug: TONCOIN.slug,
     type,
     nft,
   };
 }
 
-function parseAuctionBid(
-  action: AuctionBidAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity {
-  const { network, addressBook, metadata, walletAddress } = options;
+function parseAuctionBid(action: AuctionBidAction, options: ParseOptions): ApiTransactionActivity {
+  const { metadata } = options;
   const { details } = action;
 
   const {
@@ -713,11 +636,6 @@ function parseAuctionBid(
     nft_collection: rawCollectionAddress,
   } = details;
 
-  const fromAddress = addressBook[bidder].user_friendly;
-  const toAddress = addressBook[auction].user_friendly;
-  const isIncoming = toAddress === walletAddress;
-  const amount = isIncoming ? BigInt(details.amount) : -BigInt(details.amount);
-  const normalizedAddress = toBase64Address(isIncoming ? fromAddress : toAddress, true, network);
   const nft = parseToncenterNft(
     metadata,
     rawNftAddress ?? undefined,
@@ -726,47 +644,41 @@ function parseAuctionBid(
   );
 
   return {
-    ...partial,
+    ...parseCommonFields(action, options, bidder, auction, details.amount),
     slug: TONCOIN.slug,
-    amount,
-    isIncoming,
-    fromAddress,
-    toAddress,
-    normalizedAddress,
     type: 'auctionBid',
     nft,
   };
 }
 
-function parseLiquidityDeposit(
+export function parseLiquidityDeposit(
   action: DexDepositLiquidityAction,
   options: ParseOptions,
-  partial: PartialTx,
 ): ApiTransactionActivity[] {
   const { addressBook } = options;
-  const { details, details: { source, pool } } = action;
+  const { details, details: { source, pool, destination_liquidity: destinationAddress } } = action;
 
-  const common = parseCommonFields(options, source, pool);
+  const common = parseCommonFields(action, options, source, pool ?? destinationAddress);
 
   const partialExtended = {
-    ...partial,
     ...common,
     type: 'liquidityDeposit',
   } as const;
 
   const activities: ApiTransactionActivity[] = [{
     ...partialExtended,
-    amount: -BigInt(details.amount_1!),
+    amount: -BigInt(details.amount_1 ?? 0n),
     slug: getAssetSlug(addressBook, details.asset_1),
   }];
 
-  if (details.lp_tokens_minted) {
+  // eslint-disable-next-line no-null/no-null
+  if (details.amount_2 !== null) {
     const id = buildActionActivityId(action, 'additional');
     activities.push({
       ...partialExtended,
       id,
       txId: id,
-      amount: -BigInt(details.amount_2!),
+      amount: -BigInt(details.amount_2),
       slug: getAssetSlug(addressBook, details.asset_2),
     });
   }
@@ -774,18 +686,13 @@ function parseLiquidityDeposit(
   return activities;
 }
 
-function parseLiquidityWithdraw(
-  action: DexWithdrawLiquidityAction,
-  options: ParseOptions,
-  partial: PartialTx,
-): ApiTransactionActivity[] {
+function parseLiquidityWithdraw(action: DexWithdrawLiquidityAction, options: ParseOptions): ApiTransactionActivity[] {
   const { addressBook } = options;
   const { details, details: { source, pool } } = action;
 
-  const common = parseCommonFields(options, pool, source);
+  const common = parseCommonFields(action, options, pool, source);
 
   const partialExtended = {
-    ...partial,
     ...common,
     shouldLoadDetails: true,
     type: 'liquidityWithdraw',
@@ -814,18 +721,32 @@ function getAssetSlug(addressBook: AddressBook, rawAddress?: string | null) {
 }
 
 function parseCommonFields(
+  action: AnyAction,
   options: ParseOptions,
   rawFromAddress: string,
   rawToAddress: string,
   amountString: string | number = 0,
-): CommonFields {
+) {
+  const id = buildActionActivityId(action);
   const { walletAddress, network, addressBook } = options;
   const fromAddress = addressBook[rawFromAddress].user_friendly;
   const toAddress = addressBook[rawToAddress].user_friendly;
   const isIncoming = toAddress === walletAddress;
   const normalizedAddress = toBase64Address(isIncoming ? fromAddress : toAddress, true, network);
   const amount = isIncoming ? BigInt(amountString) : -BigInt(amountString);
-  return { fromAddress, toAddress, isIncoming, normalizedAddress, amount };
+  return {
+    kind: 'transaction',
+    id,
+    txId: id,
+    timestamp: toMilliseconds(action.end_utime),
+    externalMsgHash: action.trace_external_hash,
+    fee: 0n, // Calculated when TransactionModal opens
+    fromAddress,
+    toAddress,
+    isIncoming,
+    normalizedAddress,
+    amount,
+  } satisfies Partial<ApiTransactionActivity>;
 }
 
 function parseToncenterNft(

@@ -1,6 +1,6 @@
 import type { RefObject } from '../../lib/teact/teact';
 import { useLayoutEffect } from '../../lib/teact/teact';
-import { setExtraStyles } from '../../lib/teact/teact-dom';
+import { setExtraStyles, toggleExtraClass } from '../../lib/teact/teact-dom';
 
 import type { ApiNft } from '../../api/types';
 import type { AppTheme } from '../../global/types';
@@ -40,6 +40,8 @@ export function useAccentColor(
       '--color-accent-button-text': accentColor === '#FFFFFF' ? '#000000' : 'inherit',
       '--color-accent-button-text-hover': accentColor === '#FFFFFF' ? '#000000' : 'inherit',
     });
+
+    toggleExtraClass(document.documentElement, 'is-white-accent', accentColor === '#FFFFFF');
   }, [elementRefOrBody, accentColor]);
 }
 

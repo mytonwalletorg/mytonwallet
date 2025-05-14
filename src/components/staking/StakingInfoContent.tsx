@@ -1,5 +1,5 @@
 import React, {
-  memo, useEffect, useMemo,
+  memo, type TeactNode, useEffect, useMemo,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -174,6 +174,23 @@ function StakingInfoContent({
   }, [tokenBySlug, states, shouldUseNominators, isViewMode, stakingId]);
 
   function renderUnstakeDescription() {
+    let text: string | TeactNode[] | undefined;
+
+    if (unstakeTime) {
+      text = lang(stakingType === 'nominators' ? '$unstaking_when_receive' : '$unstaking_when_receive_with_amount', {
+        time: (
+          <strong>
+            {formatRelativeHumanDateTime(lang.code, unstakeTime)}
+          </strong>
+        ),
+        amount: (
+          <strong>
+            {formatCurrency(toDecimal(unstakeRequestAmount ?? 0n, decimals), symbol!).replace(' ', '\u00A0')}
+          </strong>
+        ),
+      });
+    }
+
     return (
       <div className={buildClassName(styles.unstakeTime, styles.unstakeTime_purple)}>
         <AnimatedIconWithPreview
@@ -186,13 +203,7 @@ function StakingInfoContent({
           previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockPurple}
         />
         <div>
-          {Boolean(unstakeTime) && lang('$unstaking_when_receive', {
-            time: (
-              <strong>
-                {formatRelativeHumanDateTime(lang.code, unstakeTime)}
-              </strong>
-            ),
-          })}
+          {text}
         </div>
       </div>
     );

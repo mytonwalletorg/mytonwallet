@@ -1,4 +1,7 @@
+@import "../../styles/mixins/index";
+
 .appLocked {
+  overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -17,6 +20,54 @@
 
   width: 100%;
   height: unset;
+
+  @include respond-below(xs) {
+    top: auto;
+    bottom: 0;
+  }
+
+  @media (max-height: 43.5rem) {
+    top: auto;
+    bottom: 0;
+  }
+}
+
+.unlockButtonWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  gap: 2rem;
+
+  height: 100%;
+}
+
+.unlockButtonWrapper,
+.passwordFormWrapper {
+  --header-gap-size: 2rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+
+  opacity: 0;
+
+}
+
+.unlockButtonWrapperActive,
+.passwordFormWrapperActive {
+  opacity: 1;
+}
+
+.passwordFormWrapperFixed {
+  position: fixed;
+  top: var(--position-top);
+}
+
+.passwordFormWrapperFullHeight {
+  height: 100vh;
 }
 
 .unlockButtonHidden :global {

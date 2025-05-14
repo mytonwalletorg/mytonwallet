@@ -10,6 +10,7 @@ import {
   APP_VERSION,
   IS_CORE_WALLET,
   IS_EXTENSION,
+  IS_TELEGRAM_APP,
 } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';
@@ -18,6 +19,7 @@ import { getPlatform } from '../../util/getPlatform';
 import { getLogs } from '../../util/logs';
 import { getLogsFromNative } from '../../util/multitab';
 import { shareFile } from '../../util/share';
+import { IS_IOS } from '../../util/windowEnvironment';
 import { callApi } from '../../api';
 
 import useLang from '../../hooks/useLang';
@@ -49,6 +51,11 @@ const NETWORK_OPTIONS = [{
   name: 'Testnet',
 }];
 
+// iOS allows downloading files even in TMA, however, in other platforms,
+// downloading files from `blob:https://` schemes is limited by Telegram itself.
+// Also, file downloading is limited in extensions.
+const CAN_DOWNLOAD_LOGS = IS_IOS || !(IS_EXTENSION || IS_TELEGRAM_APP);
+
 function SettingsDeveloperOptions({
   isOpen,
   onClose,
@@ -73,7 +80,7 @@ function SettingsDeveloperOptions({
   const handleDownloadLogs = useLastCallback(async () => {
     const logsString = await getLogsString({ currentAccountId, accountsById });
 
-    if (IS_EXTENSION) {
+    if (!CAN_DOWNLOAD_LOGS) {
       await copyTextToClipboard(logsString);
       showNotification({ message: lang('Logs were copied!') as string, icon: 'icon-copy' });
       onClose();
@@ -119,7 +126,7 @@ function SettingsDeveloperOptions({
       <div className={buildClassName(styles.settingsBlock)}>
         <div className={buildClassName(styles.item, styles.item_small)} onClick={handleDownloadLogs}>
           {
-            IS_EXTENSION
+            !CAN_DOWNLOAD_LOGS
               ? (
                 <>
                   {lang('Copy Logs')}

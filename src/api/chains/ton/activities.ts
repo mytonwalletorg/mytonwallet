@@ -14,7 +14,7 @@ import { fetchStoredTonWallet } from '../../common/accounts';
 import { updateActivityMetadata } from '../../common/helpers';
 import { getTokenBySlug } from '../../common/tokens';
 import { OpCode, OUR_FEE_PAYLOAD_BOC } from './constants';
-import { fetchActions, fetchTransactions, parseActionActivitySubId } from './toncenter';
+import { fetchActions, fetchTransactions, parseActionActivitySubId, parseLiquidityDeposit } from './toncenter';
 import { fetchAndParseTrace } from './traces';
 
 type ActivityDetailsResult = {
@@ -212,7 +212,7 @@ function setTransactionDetails(options: {
     received,
     sent,
     parsedTrace: {
-      byTransactionIndex,
+      addressBook,
       totalSent,
       totalReceived,
       totalNetworkFee,
@@ -244,21 +244,23 @@ function setTransactionDetails(options: {
     }
     case 'dex_deposit_liquidity': {
       // Liquidity deposit can be either a dual transaction or two separate single transactions.
-      if (byTransactionIndex.length > 1) {
-        // We always display the deposit as two separate actions, so we divide by 2.
-        networkFee = totalNetworkFee / 2n;
-        sentForFee = totalSent / 2n;
-        excess = totalReceived / 2n;
+      // We display the deposit as separate actions, so we divide by the number of actions.
+      const activitiesPerAction = BigInt(parseLiquidityDeposit(action, {
+        addressBook,
+        // The below fields don't matter here, they are only to satisfy the type requirements:
+        network: 'mainnet',
+        walletAddress: '',
+        metadata: {},
+      }).length);
 
-        if (!action.details.asset_1) {
-          sentForFee -= BigInt(action.details.amount_1!) / 2n;
-        } else if (!action.details.asset_2) {
-          sentForFee -= BigInt(action.details.amount_2!) / 2n;
-        }
-      } else if (!action.details.asset_1) {
-        sentForFee -= BigInt(action.details.amount_1!);
-      } else if (action.details.lp_tokens_minted && !action.details.asset_2) {
-        sentForFee -= BigInt(action.details.amount_2!);
+      networkFee = totalNetworkFee / activitiesPerAction;
+      sentForFee = totalSent / activitiesPerAction;
+      excess = totalReceived / activitiesPerAction;
+
+      if (!action.details.asset_1) {
+        sentForFee -= BigInt(action.details.amount_1 ?? 0n) / activitiesPerAction;
+      } else if (!action.details.asset_2) {
+        sentForFee -= BigInt(action.details.amount_2 ?? 0n) / activitiesPerAction;
       }
       break;
     }

@@ -250,8 +250,10 @@ export type ChangeDnsAction = BaseAction & {
 
 /*
   This is the only action combining two outgoing transactions from the wallet.
-  However, a deposit can consist of two separate transactions from the wallet (e.g., in the case of Ledger),
-  then there will be two actions (the first with zero and `amount_2` and without `lp_tokens_minted`).
+  However, a deposit can consist of separate actions from the wallet in case of Ledger:
+  - STON.fi v2: One without `lp_tokens_minted`, both with `amount_2` equal `null` (one action per deposited token);
+  - DeDust: Both actions contain the same deposited amounts, but one of the actions has no `lp_tokens_minted` and no
+    `pool`, and the real fee is spread across both actions;
 */
 export type DexDepositLiquidityAction = BaseAction & {
   type: 'dex_deposit_liquidity';
@@ -264,7 +266,7 @@ export type DexDepositLiquidityAction = BaseAction & {
     user_jetton_wallet_1: string | null;
     user_jetton_wallet_2: string | null;
     source: string;
-    pool: string;
+    pool: string | null;
     destination_liquidity: string;
     lp_tokens_minted: string | null;
   };

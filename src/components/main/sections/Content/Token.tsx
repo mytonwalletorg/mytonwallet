@@ -3,8 +3,9 @@ import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import type { ApiBaseCurrency, ApiYieldType } from '../../../../api/types';
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { AppTheme, UserToken } from '../../../../global/types';
+import type { LangFn } from '../../../../hooks/useLang';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, IS_CORE_WALLET, TOKEN_WITH_LABEL } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, IS_CORE_WALLET, TOKEN_WITH_LABEL, TON_USDE } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -70,7 +71,6 @@ function Token({
   onClick,
 }: OwnProps) {
   const {
-    name,
     symbol,
     slug,
     amount: tokenAmount,
@@ -91,6 +91,7 @@ function Token({
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const withLabel = Boolean(!isVesting && TOKEN_WITH_LABEL[slug]);
+  const name = getTokenName(lang, token, withYield);
   const amountCols = useMemo(() => getPseudoRandomNumber(4, 12, name), [name]);
   const fiatAmountCols = 5 + (amountCols % 6);
 
@@ -329,6 +330,19 @@ function Token({
   }
 
   return isInvestorView ? renderInvestorView() : renderDefaultView();
+}
+
+function getTokenName(lang: LangFn, token: UserToken, withYield: boolean): string {
+  if (!withYield) {
+    return token.name;
+  }
+
+  switch (token.slug) {
+    case TON_USDE.slug:
+      return lang('%token% Staking', { token: 'Ethena' })[0] as any;
+    default:
+      return lang('%token% Staking', { token: token.name })[0] as any;
+  }
 }
 
 export default memo(Token);

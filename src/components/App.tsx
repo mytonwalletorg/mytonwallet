@@ -33,7 +33,7 @@ import useSyncEffect from '../hooks/useSyncEffect';
 import useTimeout from '../hooks/useTimeout';
 
 import AppInactive from './AppInactive';
-import AppLocked from './AppLocked';
+import AppLocked from './appLocked/AppLocked';
 import Auth from './auth/Auth';
 import AuthImportWalletModal from './auth/AuthImportWalletModal';
 import DappConnectModal from './dapps/DappConnectModal';

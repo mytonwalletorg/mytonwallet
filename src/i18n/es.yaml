@@ -230,13 +230,11 @@ Unstake: Retirar
 Earning History: Historial de ganancias
 $total: "Total: %value%"
 $unstake_asset: Retirar %symbol%
-$unstake_information_with_time: |
-  Su depósito actual será enviado completamente a su monedero en %time%.
-  Esto detendrá sus ganancias.
 Amount to unstake: Cantidad a retirar
 Confirm Unstaking: Confirmar retiro
 Request for unstaking is sent!: ¡Se envía una solicitud de retiro!
 $unstaking_when_receive: Recibirá su depósito apostado en %time%.
+$unstaking_when_receive_with_amount: Recibirás tus %amount% retirados en %time%.
 $unstake_insufficient_balance: Debe tener %balance% en su saldo principal para proceder con la confirmación del retiro.
 at %annual_yield%: en %annual_yield%
 Est. %annual_yield%: Est. %annual_yield%
@@ -841,3 +839,4 @@ $unstaking_when_receive_ethena: Podrás recibir tu depósito retirado en **7 dí
 Coins have been unstaked!: ¡Monedas retiradas!
 Confirm Upgrading: Confirmar actualización
 How does it work?: ¿Cómo funciona?
+'%token% Staking': Staking de %token%

@@ -1,57 +1,45 @@
 import { BottomSheet } from 'native-bottom-sheet';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
-} from '../lib/teact/teact';
-import { getActions, withGlobal } from '../global';
+} from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import type { AutolockValueType, Theme } from '../global/types';
+import type { AutolockValueType, Theme } from '../../global/types';
 
-import {
-  APP_NAME, AUTOLOCK_OPTIONS_LIST, DEBUG, IS_CORE_WALLET, IS_TELEGRAM_APP,
-} from '../config';
+import { AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP } from '../../config';
 import {
   selectIsBiometricAuthEnabled,
   selectIsNativeBiometricAuthEnabled,
   selectIsPasswordAccount,
-} from '../global/selectors';
-import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../util/biometrics';
-import buildClassName from '../util/buildClassName';
-import { stopEvent } from '../util/domEvents';
-import { vibrateOnSuccess } from '../util/haptics';
-import { createSignal } from '../util/signals';
+} from '../../global/selectors';
+import buildClassName from '../../util/buildClassName';
+import { stopEvent } from '../../util/domEvents';
+import { createSignal } from '../../util/signals';
 import {
   IS_DELEGATED_BOTTOM_SHEET,
   IS_DELEGATING_BOTTOM_SHEET,
   IS_ELECTRON,
-} from '../util/windowEnvironment';
-import { callApi } from '../api';
+} from '../../util/windowEnvironment';
 
-import useAppTheme from '../hooks/useAppTheme';
-import useBackgroundMode, { isBackgroundModeActive } from '../hooks/useBackgroundMode';
-import useEffectOnce from '../hooks/useEffectOnce';
-import useFlag from '../hooks/useFlag';
-import useForceUpdate from '../hooks/useForceUpdate';
-import { useHotkeys } from '../hooks/useHotkeys';
-import useLang from '../hooks/useLang';
-import useLastCallback from '../hooks/useLastCallback';
-import useShowTransition from '../hooks/useShowTransition';
-import useThrottledCallback from '../hooks/useThrottledCallback';
+import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
+import useEffectOnce from '../../hooks/useEffectOnce';
+import useFlag from '../../hooks/useFlag';
+import useForceUpdate from '../../hooks/useForceUpdate';
+import { useHotkeys } from '../../hooks/useHotkeys';
+import useLastCallback from '../../hooks/useLastCallback';
+import useShowTransition from '../../hooks/useShowTransition';
+import useThrottledCallback from '../../hooks/useThrottledCallback';
 
-import Button from './ui/Button';
-import Image from './ui/Image';
-import { getInAppBrowser } from './ui/InAppBrowser';
-import PasswordForm, { triggerPasswordFormHandleBiometrics } from './ui/PasswordForm';
-import Transition from './ui/Transition';
+import { getInAppBrowser } from '../ui/InAppBrowser';
+import { triggerPasswordFormHandleBiometrics } from '../ui/PasswordForm';
+import Transition from '../ui/Transition';
+import PasswordFormSlide from './PasswordFormSlide';
+import UnlockButtonSlide from './UnlockButtonSlide';
 
 import styles from './AppLocked.module.scss';
 
-import coreWalletLogoPath from '../assets/logoCoreWallet.svg';
-import logoDarkPath from '../assets/logoDark.svg';
-import logoLightPath from '../assets/logoLight.svg';
-
 const WINDOW_EVENTS_LATENCY = 5000;
 const INTERVAL_CHECK_PERIOD = 5000;
-const PINPAD_RESET_DELAY = 300;
 const ACTIVATION_EVENT_NAMES = [
   'focus', // For Web
   'mousemove', // For Web
@@ -106,6 +94,44 @@ function useAppLockState(defaultValue?: boolean, canRender?: boolean) {
   return [isLockedRef.current, lock, unlock] as const;
 }
 
+function useContentSlide(isActive: boolean, isNonNativeBiometricAuthEnabled: boolean) {
+  // eslint-disable-next-line no-null/no-null
+  const passwordFormSlideRef = useRef<HTMLDivElement>(null);
+  const [slide, setSlide] = useState(
+    isBackgroundModeActive() ? SLIDES.button : SLIDES.passwordForm,
+  );
+  // After the first rendering of the password form, it is necessary to remember the `top` position
+  // so that when changing the height of the container, there is no shift in content.
+  const [wrapperTopPosition, setWrapperTopPosition] = useState(0);
+  const isFixedSlide = isNonNativeBiometricAuthEnabled && slide === SLIDES.button;
+  const resetContentSlide = useLastCallback(() => {
+    setWrapperTopPosition(0);
+  });
+
+  const { shouldRender: shouldRenderUnlockButtonSlide } = useShowTransition(isFixedSlide);
+
+  useEffect(() => {
+    const passwordFormWrapper = passwordFormSlideRef.current;
+
+    if (isActive && !isNonNativeBiometricAuthEnabled && passwordFormWrapper) {
+      const top = passwordFormWrapper.getBoundingClientRect().top;
+
+      setWrapperTopPosition(top);
+    }
+  }, [isActive, isNonNativeBiometricAuthEnabled]);
+
+  return {
+    slide,
+    setSlide,
+    isFixedSlide,
+    shouldRenderUnlockButtonSlide,
+    isWrapperFixed: wrapperTopPosition > 0,
+    wrapperTopPosition,
+    resetContentSlide,
+    passwordFormSlideRef,
+  };
+}
+
 function AppLocked({
   isNonNativeBiometricAuthEnabled,
   autolockValue = 'never',
@@ -116,22 +142,23 @@ function AppLocked({
   canRender,
 }: StateProps): TeactJsx {
   const {
-    setIsPinAccepted, clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive,
+    clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive,
   } = getActions();
-  const lang = useLang();
-
-  const appTheme = useAppTheme(theme);
-  const logoPath = IS_CORE_WALLET
-    ? coreWalletLogoPath
-    : appTheme === 'light' ? logoLightPath : logoDarkPath;
 
   const [isLocked, lock, unlock] = useAppLockState(autolockValue !== 'never' || isManualLockActive, canRender);
   const [shouldRenderUi, showUi, hideUi] = useFlag(isLocked);
   const lastActivityTime = useRef(Date.now());
-  const [slideForBiometricAuth, setSlideForBiometricAuth] = useState(
-    isBackgroundModeActive() ? SLIDES.button : SLIDES.passwordForm,
-  );
-  const [passwordError, setPasswordError] = useState('');
+
+  const {
+    slide: slideForBiometricAuth,
+    setSlide: setSlideForBiometricAuth,
+    isFixedSlide,
+    passwordFormSlideRef,
+    isWrapperFixed,
+    wrapperTopPosition,
+    resetContentSlide,
+    shouldRenderUnlockButtonSlide,
+  } = useContentSlide(shouldRenderUi, isNonNativeBiometricAuthEnabled);
 
   const handleActivity = useLastCallback(() => {
     if (IS_DELEGATED_BOTTOM_SHEET) {
@@ -151,6 +178,7 @@ function AppLocked({
     handleActivity();
     setIsManualLockActive({ isActive: undefined, shouldHideBiometrics: undefined });
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.show();
+    resetContentSlide();
   });
 
   const autolockPeriod = useMemo(
@@ -178,23 +206,6 @@ function AppLocked({
   const handleChangeSlideForBiometricAuth = useLastCallback(() => {
     setSlideForBiometricAuth(SLIDES.passwordForm);
   });
-
-  const handleSubmitPassword = useLastCallback(async (password: string) => {
-    const result = await callApi('verifyPassword', password);
-
-    if (!result) {
-      setPasswordError('Wrong password, please try again.');
-      return;
-    }
-
-    if (getDoesUsePinPad()) {
-      setIsPinAccepted();
-      await vibrateOnSuccess(true);
-    }
-    unlock();
-  });
-
-  const handlePasswordChange = useLastCallback(() => setPasswordError(''));
 
   useEffectOnce(() => {
     for (const eventName of ACTIVATION_EVENT_NAMES) {
@@ -239,53 +250,30 @@ function AppLocked({
 
   useBackgroundMode(undefined, handleChangeSlideForBiometricAuth);
 
-  function renderLogo() {
-    return (
-      <div className={styles.logo}>
-        <Image className={styles.logo} imageClassName={styles.logo} url={logoPath} alt="Logo" />
-      </div>
-    );
-  }
-
   function renderTransitionContent(isActive: boolean) {
-    const isFixedSlide = isNonNativeBiometricAuthEnabled && slideForBiometricAuth === SLIDES.button;
-
     return (
-      <div
-        className={buildClassName(styles.appLocked, isNonNativeBiometricAuthEnabled && styles.appLockedFixed)}
-      >
-        {
-          isFixedSlide ? (
-            <>
-              {renderLogo()}
-              <span className={buildClassName(styles.title, 'rounded-font')}>{APP_NAME}</span>
-              <Button
-                isPrimary
-                className={!isActive ? styles.unlockButtonHidden : undefined}
-                onClick={handleChangeSlideForBiometricAuth}
-              >
-                {lang('Unlock')}
-              </Button>
-            </>
-          ) : (
-            <PasswordForm
-              isActive={getIsNativeBiometricAuthSupported() ? !shouldHideBiometrics : true}
-              noAnimatedIcon
-              forceBiometricsInMain
-              error={passwordError}
-              resetStateDelayMs={PINPAD_RESET_DELAY}
-              operationType="unlock"
-              containerClassName={styles.passwordFormContent}
-              inputWrapperClassName={styles.passwordInputWrapper}
-              submitLabel={lang('Unlock')}
-              onSubmit={handleSubmitPassword}
-              onUpdate={handlePasswordChange}
-            >
-              {renderLogo()}
-              <span className={buildClassName(styles.title, 'rounded-font')}>{APP_NAME}</span>
-            </PasswordForm>
-          )
-        }
+      <div className={buildClassName(
+        styles.appLocked,
+        isNonNativeBiometricAuthEnabled && styles.appLockedFixed,
+        'custom-scroll',
+      )}>
+        {shouldRenderUnlockButtonSlide && (
+          <UnlockButtonSlide
+            isActive={isActive && isFixedSlide}
+            theme={theme}
+            onClick={handleChangeSlideForBiometricAuth}
+          />
+        )}
+        <PasswordFormSlide
+          ref={passwordFormSlideRef}
+          isActive={isActive && !isFixedSlide}
+          theme={theme}
+          shouldHideBiometrics={shouldHideBiometrics}
+          isFullHeight={!isNonNativeBiometricAuthEnabled}
+          isWrapperFixed={isWrapperFixed}
+          positionTop={wrapperTopPosition}
+          onSubmit={unlock}
+        />
       </div>
     );
   }

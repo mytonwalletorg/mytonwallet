@@ -1,4 +1,4 @@
-import { beginCell, Cell, external, internal, loadStateInit, SendMode, storeMessage } from '@ton/core';
+import { Cell, internal, loadStateInit, SendMode } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
 import type Deferred from '../../../util/Deferred';
@@ -54,8 +54,6 @@ import { getTokenByAddress } from '../../common/tokens';
 import { base64ToBytes } from '../../common/utils';
 import { MINUTE, SEC } from '../../constants';
 import { ApiServerError, handleServerError } from '../../errors';
-import { createBody } from './walletV5/walletV5';
-import { ActionSendMsg, packActionsList } from './walletV5/walletV5Actions';
 import { checkHasTransaction, fetchNewestActionId } from './activities';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
@@ -73,7 +71,7 @@ const WAIT_TRANSFER_TIMEOUT = MINUTE;
 const WAIT_PAUSE = SEC;
 
 const MAX_BALANCE_WITH_CHECK_DIESEL = 100000000n; // 0.1 TON
-const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
+const PENDING_DIESEL_TIMEOUT_SEC = 15 * 60; // 15 min
 
 const DIESEL_NOT_AVAILABLE: ApiFetchEstimateDieselResult = {
   status: 'not-available',
@@ -768,6 +766,7 @@ async function signMultiTransaction({
   messages: TonTransferParams[];
   version: ApiTonWalletVersion;
   privateKey?: Uint8Array;
+  /** Unix seconds */
   expireAt?: number;
   withW5Gasless?: boolean;
 }) {
@@ -783,7 +782,7 @@ async function signMultiTransaction({
   }
 
   if (!expireAt) {
-    expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
+    expireAt = Math.round(Date.now() / 1000) + (withW5Gasless ? PENDING_DIESEL_TIMEOUT_SEC : TRANSFER_TIMEOUT_SEC);
   }
 
   let hasPayload = false;
@@ -815,54 +814,21 @@ async function signMultiTransaction({
     });
   });
 
-  if (version === 'W5' && !withW5Gasless) {
+  if (version === 'W5') {
     // TODO Remove it. There is bug in @ton/ton library that causes transactions to be executed in reverse order.
     preparedMessages.reverse();
   }
 
-  let transaction;
-  if (withW5Gasless) {
-    const actionList = packActionsList(preparedMessages.map(
-      (msg) => new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY, msg),
-    ));
+  const transaction = wallet.createTransfer({
+    authType: withW5Gasless ? 'internal' : undefined,
+    seqno,
+    secretKey: Buffer.from(privateKey),
+    messages: preparedMessages,
+    sendMode: SendMode.PAY_GAS_SEPARATELY + (hasPayload ? 0 : SendMode.IGNORE_ERRORS),
+    timeout: expireAt,
+  });
 
-    transaction = createBody(
-      actionList,
-      seqno,
-      Buffer.from(privateKey),
-      PENDING_DIESEL_TIMEOUT,
-    );
-  } else {
-    transaction = wallet.createTransfer({
-      seqno,
-      secretKey: Buffer.from(privateKey),
-      messages: preparedMessages,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + (hasPayload ? 0 : SendMode.IGNORE_ERRORS),
-      timeout: expireAt,
-    });
-  }
-
-  const externalMessage = toExternalMessage(wallet, seqno, transaction);
-
-  return { seqno, transaction, externalMessage };
-}
-
-function toExternalMessage(
-  contract: TonWallet,
-  seqno: number,
-  body: Cell,
-) {
-  return beginCell()
-    .storeWritable(
-      storeMessage(
-        external({
-          to: contract.address,
-          init: seqno === 0 ? contract.init : undefined,
-          body,
-        }),
-      ),
-    )
-    .endCell();
+  return { seqno, transaction };
 }
 
 async function retrySendBoc(
@@ -1074,7 +1040,7 @@ async function getDiesel({
   const canPayDiesel = tokenBalance >= tokenAmount;
   const isAwaitingNotExpiredPrevious = Boolean(
     rawDiesel.pendingCreatedAt
-      && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT,
+      && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT_SEC * SEC,
   );
 
   // When both TON and diesel are insufficient, we want to show the TON fee

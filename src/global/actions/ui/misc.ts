@@ -69,7 +69,7 @@ import { switchAccount } from '../api/auth';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
-import { reportAppLockActivityEvent } from '../../../components/AppLocked';
+import { reportAppLockActivityEvent } from '../../../components/appLocked/AppLocked';
 import { closeModal } from '../../../components/ui/Modal';
 
 const OPEN_LEDGER_TAB_DELAY = 500;

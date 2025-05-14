@@ -229,13 +229,11 @@ Unstake: 解除質押
 Earning History: 收益紀錄
 $total: "總額: %value%"
 $unstake_asset: 解除 %symbol% 質押
-$unstake_information_with_time: |
-  你的存款將在 %time% 後全數退還到你的錢包。
-  解除後將不再獲得質押收益。
 Amount to unstake: 解除質押數量
 Confirm Unstaking: 確認解除質押
 Request for unstaking is sent!: 解除質押申請已送出!
 $unstaking_when_receive: 你將會在 %time% 後收到解除的質押數量。
+$unstaking_when_receive_with_amount: 您將於 %time% 後收到未質押的 %amount%。
 $unstake_insufficient_balance: 您的主帳戶餘額需要有 %balance% 才能繼續取消質押。
 at %annual_yield%: 在%annual_yield%
 Est. %annual_yield%: 預估 %annual_yield%
@@ -835,3 +833,4 @@ $unstaking_when_receive_ethena: 您將在 **7 天** 後收到已解除質押的�
 Coins have been unstaked!: 代幣已解鎖！
 Confirm Upgrading: 確認升級
 How does it work?: 它是如何運作的？
+'%token% Staking': '%token% 質押'

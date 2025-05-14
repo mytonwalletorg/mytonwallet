@@ -232,13 +232,11 @@ Unstake: Unstake et
 Earning History: Kazanç Geçmişi
 $total: "Toplam: %value%"
 $unstake_asset: "%symbol% Unstake et"
-$unstake_information_with_time: |
-  Mevcut birikiminiz %time% içinde tamamen cüzdanınıza geri aktarılacaktır.
-  Bu, pasif getirinizi durduracaktır.
 Amount to unstake: Unstake edilecek tutar
 Confirm Unstaking: Unstaking işlemini onayla
 Request for unstaking is sent!: Unstake işlemi için talep gönderildi!
 $unstaking_when_receive: Stake'e yatırılmamış bakiyenizi %time% içinde alacaksınız.
+$unstaking_when_receive_with_amount: Stake'i kaldırılan %amount%, %time% içinde hesabınıza geçecektir.
 $unstake_insufficient_balance: Unstaking işlemine devam etmek için ana bakiyenizde %balance% bulunması gerekir.
 at %annual_yield%: "%annual_yield% ile"
 Staked: Stake edildi
@@ -841,3 +839,4 @@ $unstaking_when_receive_ethena: Stake'ten çıkan bakiyenizi **7 gün** içinde 
 Coins have been unstaked!: Coin’ler çıkarıldı!
 Confirm Upgrading: Yükseltmeyi Onayla
 How does it work?: Nasıl çalışır?
+'%token% Staking': '%token% Stake Etme'

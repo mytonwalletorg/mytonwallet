@@ -231,13 +231,11 @@ Unstake: Unstaken
 Earning History: Verdiensthistorie
 $total: "Gesamt: %value%"
 $unstake_asset: "%symbol% unstaken"
-$unstake_information_with_time: |
-  Ihre aktuelle Einzahlung wird vollständig in %time% an Ihre Wallet zurückgesendet.
-  Dies wird Ihre Verdienste stoppen.
 Amount to unstake: Betrag zum unstaken
 Confirm Unstaking: Entstaken bestätigen
 Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
 $unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
+$unstaking_when_receive_with_amount: Du wirst deine abgezogenen %amount% in %time% erhalten.
 $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
 at %annual_yield%: bei %annual_yield%
 Est. %annual_yield%: Geschätzte %annual_yield%
@@ -844,3 +842,4 @@ $unstaking_when_receive_ethena: Sie können Ihre abgesteckte Einzahlung in **7 T
 Coins have been unstaked!: Coins wurden entstaked!
 Confirm Upgrading: Upgrade bestätigen
 How does it work?: Wie funktioniert das?
+'%token% Staking': '%token% Staking'

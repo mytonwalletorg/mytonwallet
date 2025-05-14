@@ -231,13 +231,11 @@ Unstake: ถอนการสเต็ก
 Earning History: ประวัติการได้รับ
 $total: "ทั้งหมด: %value%"
 $unstake_asset: ถอนการสเต็ก %symbol%
-$unstake_information_with_time: |
-  ทรัพย์สินในการสเต็กของคุณจะถูกส่งกลับไปยังวอลเล็ตของคุณเต็มจำนวนใน %time%.
-  การสเต็กของคุณจะหยุดลง.
 Amount to unstake: จำนวนที่ถอนจากการสเต็ก
 Confirm Unstaking: ยืนยันการถอนการสเต็ก
 Request for unstaking is sent!: คำขอการถอนการสเต็กได้ถูกส่งแล้ว!
 $unstaking_when_receive: คุณจะได้รับทรัพย์สินจากการสเต็กใน %time%.
+$unstaking_when_receive_with_amount: คุณจะได้รับ %amount% ที่ไม่ได้ล็อกในอีก %time%
 $unstake_insufficient_balance: คุณต้องมี %balance% ในบัญชีสำหรับการดำเนินการถอนการสเต็ก.
 at %annual_yield%: ที่ %annual_yield%
 Est. %annual_yield%: ประมาณ %annual_yield%
@@ -843,3 +841,4 @@ $unstaking_when_receive_ethena: คุณจะสามารถรับเง
 Coins have been unstaked!: เหรียญถูกถอนแล้ว!
 Confirm Upgrading: ยืนยันการอัปเกรด
 How does it work?: ทำงานอย่างไร?
+'%token% Staking': การวางเดิมพัน %token%

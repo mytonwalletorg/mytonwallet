@@ -234,11 +234,11 @@ Unstake: Вивести
 Earning History: Історія нарахувань
 $total: "Усього: %value%"
 $unstake_asset: Вивести %symbol%
-$unstake_information_with_time: Поточний депозит буде повністю відправлено назад на ваш гаманець через %time%.
 Amount to unstake: Сума до виведення
 Confirm Unstaking: Підтвердити виведення
 Request for unstaking is sent!: Запит на виведення відправлено!
 $unstaking_when_receive: Депозит буде виведено через %time%.
+$unstaking_when_receive_with_amount: "%amount% буде виведено через %time%."
 $unstake_insufficient_balance: Вам необхідно мати %balance% на вашому основному балансі, щоб відправити заявку на виведення депозиту.
 at %annual_yield%: при %annual_yield%
 Est. %annual_yield%: Прибутковість %annual_yield%
@@ -850,3 +850,4 @@ $unstaking_when_receive_ethena: Ви зможете отримати свій д
 Coins have been unstaked!: Монети виведено!
 Confirm Upgrading: Підтвердити оновлення
 How does it work?: Як це працює?
+'%token% Staking': Стейкінг %token%
