@@ -28,18 +28,12 @@ import { StakingPool } from '../contracts/JettonStaking/StakingPool';
 import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
-import {
-  DEFAULT_IS_BOUNCEABLE,
-  JettonOpCode,
-  LiquidStakingOpCode,
-  OpCode,
-  WORKCHAIN,
-} from '../constants';
+import { DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode } from '../constants';
 import { generateQueryId } from './index';
 
 import { TonClient } from './TonClient';
 
-export type TonWalletType = typeof WalletContractV1R1
+type TonWalletType = typeof WalletContractV1R1
 | typeof WalletContractV1R2
 | typeof WalletContractV1R3
 | typeof WalletContractV2R1
@@ -49,7 +43,7 @@ export type TonWalletType = typeof WalletContractV1R1
 | typeof WalletContractV4
 | typeof WalletContractV5R1;
 
-export type TonWallet = OpenedContract<WalletContractV1R1
+export type TonWallet = WalletContractV1R1
 | WalletContractV1R2
 | WalletContractV1R3
 | WalletContractV2R1
@@ -57,7 +51,7 @@ export type TonWallet = OpenedContract<WalletContractV1R1
 | WalletContractV3R1
 | WalletContractV3R2
 | WalletContractV4
-| WalletContractV5R1>;
+| WalletContractV5R1;
 
 const TON_MAX_COMMENT_BYTES = 127;
 
@@ -96,16 +90,6 @@ export function getTonClient(network: ApiNetwork = 'mainnet') {
   }
 
   return clientByNetwork[network];
-}
-
-export function getTonWalletContract(publicKeyHex: string, version: ApiTonWalletVersion) {
-  const walletClass = walletClassMap[version];
-  if (!walletClass) {
-    throw new Error('Unsupported wallet contract version');
-  }
-
-  const publicKey = Buffer.from(hexToBytes(publicKeyHex));
-  return walletClass.create({ workchain: WORKCHAIN, publicKey });
 }
 
 export const resolveTokenWalletAddress = withCacheAsync(

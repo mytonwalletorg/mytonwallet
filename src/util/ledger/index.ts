@@ -503,7 +503,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         queryId: 0n,
         amount,
         responseDestination: Address.parse(address),
-        customPayload: buildLiquidStakingWithdrawCustomPayload(fillOrKill, waitTillRoundEnd),
+        customPayload: buildLiquidStakingWithdrawCustomPayload(waitTillRoundEnd, fillOrKill),
       };
 
       result = await submitLedgerTransfer({

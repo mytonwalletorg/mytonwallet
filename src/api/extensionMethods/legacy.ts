@@ -68,14 +68,12 @@ export async function requestWallets() {
     return [];
   }
 
-  const { network } = parseAccountId(accountId);
   const { address, publicKey, version } = tonWallet;
-  const wallet = ton.buildWallet(network, publicKey!, version);
 
   return [{
     address,
     publicKey,
-    walletVersion: wallet ? ton.resolveWalletVersion(wallet) : undefined,
+    walletVersion: version,
   }];
 }
 

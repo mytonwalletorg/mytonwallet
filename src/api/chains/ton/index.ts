@@ -34,7 +34,6 @@ export {
   getTonWallet,
   pickBestWallet,
   publicKeyToAddress,
-  resolveWalletVersion,
   getWalletStateInit,
   getWalletBalance,
   getWalletSeqno,

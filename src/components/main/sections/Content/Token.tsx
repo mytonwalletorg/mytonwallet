@@ -91,7 +91,7 @@ function Token({
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const withLabel = Boolean(!isVesting && TOKEN_WITH_LABEL[slug]);
-  const name = getTokenName(lang, token, withYield);
+  const name = getTokenName(lang, token, !!stakingId);
   const amountCols = useMemo(() => getPseudoRandomNumber(4, 12, name), [name]);
   const fiatAmountCols = 5 + (amountCols % 6);
 
@@ -332,8 +332,8 @@ function Token({
   return isInvestorView ? renderInvestorView() : renderDefaultView();
 }
 
-function getTokenName(lang: LangFn, token: UserToken, withYield: boolean): string {
-  if (!withYield) {
+function getTokenName(lang: LangFn, token: UserToken, isStaking: boolean): string {
+  if (!isStaking) {
     return token.name;
   }
 

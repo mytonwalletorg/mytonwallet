@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.6.3",
+  "version": "3.6.4",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -207,8 +207,8 @@
     "@ledgerhq/hw-transport-webusb": "6.29.4",
     "@mauricewegner/capacitor-navigation-bar": "github:mytonwallet-org/capacitor-navigation-bar#de401d4b096f4de1e634215666969c5450069885",
     "@ton-community/ton-ledger": "7.2.0-pre.3",
-    "@ton/core": "0.59.0",
-    "@ton/ton": "github:mytonwallet-org/tonkeeper-ton#0d0fe1cd7ccfe1b87c1083b157a158aa0f50cda8",
+    "@ton/core": "0.60.1",
+    "@ton/ton": "15.2.1",
     "@tonconnect/sdk": "3.0.5",
     "bip39": "3.1.0",
     "buffer": "6.0.3",

@@ -34,26 +34,24 @@ export function publicKeyToAddress(
   publicKey: Uint8Array,
   walletVersion: ApiTonWalletVersion,
 ) {
-  const wallet = buildWallet(network, publicKey, walletVersion);
+  const wallet = buildWallet(publicKey, walletVersion);
   return toBase64Address(wallet.address, false, network);
 }
 
-export function buildWallet(
-  network: ApiNetwork,
-  publicKey: Uint8Array | string,
-  walletVersion: ApiTonWalletVersion,
-): TonWallet {
+export function buildWallet(publicKey: Uint8Array | string, walletVersion: ApiTonWalletVersion): TonWallet {
   if (typeof publicKey === 'string') {
     publicKey = hexToBytes(publicKey);
   }
-  const client = getTonClient(network);
-  const WalletClass = walletClassMap[walletVersion]!;
-  return client.open(
-    WalletClass.create({
-      publicKey: Buffer.from(publicKey),
-      workchain: WORKCHAIN,
-    }),
-  );
+
+  const WalletClass = walletClassMap[walletVersion];
+  if (!WalletClass) {
+    throw new Error(`Unsupported wallet contract version "${walletVersion}"`);
+  }
+
+  return WalletClass.create({
+    publicKey: Buffer.from(publicKey),
+    workchain: WORKCHAIN,
+  });
 }
 
 export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWallet | string): Promise<{
@@ -175,7 +173,7 @@ export async function getWalletVersionInfos(
   versions: ApiTonWalletVersion[] = ALL_WALLET_VERSIONS,
 ): Promise<(ApiWalletWithVersionInfo & { wallet: TonWallet })[]> {
   const items = versions.map((version) => {
-    const wallet = buildWallet(network, publicKey, version);
+    const wallet = buildWallet(publicKey, version);
     const address = toBase64Address(wallet.address, false, network);
     return { wallet, address, version };
   });
@@ -203,7 +201,7 @@ export function getWalletVersions(
     version: ApiTonWalletVersion;
   }[] {
   return versions.map((version) => {
-    const wallet = buildWallet(network, publicKey, version);
+    const wallet = buildWallet(publicKey, version);
     const address = toBase64Address(wallet.address, false, network);
 
     return {
@@ -236,12 +234,5 @@ export async function getTonWallet(accountId: string, tonWallet?: ApiTonWallet) 
     throw new Error('Public key is missing');
   }
 
-  const { network } = parseAccountId(accountId);
-  const publicKeyBytes = hexToBytes(publicKey);
-  return buildWallet(network, publicKeyBytes, version);
-}
-
-export function resolveWalletVersion(wallet: TonWallet) {
-  return Object.entries(walletClassMap)
-    .find(([, walletClass]) => wallet instanceof walletClass)?.[0];
+  return buildWallet(publicKey, version);
 }

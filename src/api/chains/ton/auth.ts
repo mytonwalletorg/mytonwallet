@@ -123,7 +123,7 @@ async function getWalletFromKeys(
   let wallet: TonWallet;
   let lastTxId: string | undefined;
   if (version) {
-    wallet = buildWallet(network, publicKey, version);
+    wallet = buildWallet(publicKey, version);
   } else {
     ({ wallet, version, lastTxId } = await pickBestWallet(network, publicKey));
   }

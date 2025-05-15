@@ -1,4 +1,5 @@
 import { Cell, internal, loadStateInit, SendMode } from '@ton/core';
+import { WalletContractV5R1 } from '@ton/ton/dist/wallets/WalletContractV5R1';
 
 import type { DieselStatus } from '../../../global/types';
 import type Deferred from '../../../util/Deferred';
@@ -40,7 +41,6 @@ import {
   commentToBytes,
   getOurFeePayload,
   getTonClient,
-  getTonWalletContract,
   getWalletPublicKey,
   packBytesAsSnake,
   packBytesAsSnakeForEncryptedData,
@@ -65,7 +65,7 @@ import {
   getTokenBalanceWithMintless,
   getToncoinAmountForTransfer,
 } from './tokens';
-import { getContractInfo, getTonWallet, getWalletBalance, getWalletInfo } from './wallet';
+import { buildWallet, getContractInfo, getTonWallet, getWalletBalance, getWalletInfo } from './wallet';
 
 const WAIT_TRANSFER_TIMEOUT = MINUTE;
 const WAIT_PAUSE = SEC;
@@ -601,7 +601,7 @@ async function signTransaction({
     ? SendMode.CARRY_ALL_REMAINING_BALANCE
     : SendMode.PAY_GAS_SEPARATELY + (payload ? 0 : SendMode.IGNORE_ERRORS);
 
-  const transaction = wallet.createTransfer({
+  const transferParams = {
     seqno,
     secretKey: Buffer.from(privateKey),
     messages: [internal({
@@ -613,7 +613,10 @@ async function signTransaction({
     })],
     sendMode,
     timeout: expireAt,
-  });
+  };
+  const transaction = wallet instanceof WalletContractV5R1 // Otherwise, TypeScript emits an error
+    ? wallet.createTransfer(transferParams)
+    : wallet.createTransfer(transferParams);
 
   return { seqno, transaction };
 }
@@ -819,14 +822,17 @@ async function signMultiTransaction({
     preparedMessages.reverse();
   }
 
-  const transaction = wallet.createTransfer({
-    authType: withW5Gasless ? 'internal' : undefined,
+  const transferParams = {
+    authType: withW5Gasless ? 'internal' as const : undefined,
     seqno,
     secretKey: Buffer.from(privateKey),
     messages: preparedMessages,
     sendMode: SendMode.PAY_GAS_SEPARATELY + (hasPayload ? 0 : SendMode.IGNORE_ERRORS),
     timeout: expireAt,
-  });
+  };
+  const transaction = wallet instanceof WalletContractV5R1 // Otherwise, TypeScript emits an error
+    ? wallet.createTransfer(transferParams)
+    : wallet.createTransfer(transferParams);
 
   return { seqno, transaction };
 }
@@ -894,7 +900,7 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredTonWallet(accountId);
   const client = getTonClient(network);
-  const wallet = client.open(getTonWalletContract(publicKey!, version));
+  const wallet = buildWallet(publicKey!, version);
   const { base64, seqno } = message;
   const pendingTransfer = pendingTransferId ? getPendingTransfer(pendingTransferId) : undefined;
 
@@ -914,7 +920,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredTonWallet(accountId);
   const client = getTonClient(network);
-  const wallet = client.open(getTonWalletContract(publicKey!, version));
+  const wallet = buildWallet(publicKey!, version);
 
   const attempts = ATTEMPTS + messages.length;
   let index = 0;
