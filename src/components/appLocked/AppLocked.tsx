@@ -6,12 +6,15 @@ import { getActions, withGlobal } from '../../global';
 
 import type { AutolockValueType, Theme } from '../../global/types';
 
-import { AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP } from '../../config';
+import {
+  AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP,
+} from '../../config';
 import {
   selectIsBiometricAuthEnabled,
   selectIsNativeBiometricAuthEnabled,
   selectIsPasswordAccount,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { stopEvent } from '../../util/domEvents';
 import { createSignal } from '../../util/signals';
@@ -29,6 +32,7 @@ import { useHotkeys } from '../../hooks/useHotkeys';
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 import useThrottledCallback from '../../hooks/useThrottledCallback';
+import useWindowSize from '../../hooks/useWindowSize';
 
 import { getInAppBrowser } from '../ui/InAppBrowser';
 import { triggerPasswordFormHandleBiometrics } from '../ui/PasswordForm';
@@ -72,8 +76,10 @@ export function reportAppLockActivityEvent() {
   setActivitySignal(Date.now());
 }
 
-function useAppLockState(defaultValue?: boolean, canRender?: boolean) {
-  const isLockedRef = useRef(defaultValue);
+function useAppLockState(autolockValue: AutolockValueType, isManualLockActive: boolean, canRender: boolean) {
+  const isFirstRunRef = useRef(true);
+  const isLockedRef = useRef(autolockValue !== 'never' || isManualLockActive);
+  const lockReasonRef = useRef<'autolock' | 'manual'>();
   const forceUpdate = useForceUpdate();
 
   // For cases when `canRender` changes from `true` -> `false`, e.g. when all accounts are deleted
@@ -88,47 +94,82 @@ function useAppLockState(defaultValue?: boolean, canRender?: boolean) {
 
   const unlock = useLastCallback(() => {
     isLockedRef.current = false;
+    lockReasonRef.current = undefined;
     forceUpdate();
   });
 
-  return [isLockedRef.current, lock, unlock] as const;
+  // For case when on cold start the app was manually locked at the previous session, this should be treated as a auto lock.
+  lockReasonRef.current = isManualLockActive && !(isFirstRunRef.current && autolockValue !== 'never')
+    ? 'manual'
+    : 'autolock';
+  isFirstRunRef.current = false;
+
+  return [!!isLockedRef.current, lock, unlock, lockReasonRef.current] as const;
 }
 
-function useContentSlide(isActive: boolean, isNonNativeBiometricAuthEnabled: boolean) {
+function useContentSlide(
+  isNonNativeBiometricAuthEnabled: boolean, isLocked: boolean, lockReason?: 'autolock' | 'manual',
+) {
   // eslint-disable-next-line no-null/no-null
-  const passwordFormSlideRef = useRef<HTMLDivElement>(null);
-  const [slide, setSlide] = useState(
-    isBackgroundModeActive() ? SLIDES.button : SLIDES.passwordForm,
-  );
+  const ref = useRef<HTMLDivElement>(null);
+
+  function getDefaultSlideForBiometricAuth() {
+    return (
+      (isBackgroundModeActive() || lockReason === 'manual')
+        && isNonNativeBiometricAuthEnabled ? SLIDES.button : SLIDES.passwordForm
+    );
+  }
+
+  const [slideForBiometricAuth, setSlideForBiometricAuth] = useState(getDefaultSlideForBiometricAuth());
+
   // After the first rendering of the password form, it is necessary to remember the `top` position
   // so that when changing the height of the container, there is no shift in content.
-  const [wrapperTopPosition, setWrapperTopPosition] = useState(0);
-  const isFixedSlide = isNonNativeBiometricAuthEnabled && slide === SLIDES.button;
-  const resetContentSlide = useLastCallback(() => {
-    setWrapperTopPosition(0);
-  });
+  // This logic is only applicable to the two-slides mode except for TMA as it has a pin pad.
+  const [innerContentTopPosition, setInnerContentTopPosition] = useState<number>();
+  const isFixedState = innerContentTopPosition !== undefined;
 
-  const { shouldRender: shouldRenderUnlockButtonSlide } = useShowTransition(isFixedSlide);
+  const isFixingSlideEnv = !getDoesUsePinPad() && isNonNativeBiometricAuthEnabled;
+
+  function fixSlide(force?: boolean) {
+    const innerContent = ref.current;
+
+    if (innerContent && (!isFixedState || force) && isLocked && isFixingSlideEnv) {
+      const top = innerContent.getBoundingClientRect().top;
+
+      setInnerContentTopPosition(top);
+    }
+  }
+
+  function unfixSlide() {
+    setInnerContentTopPosition(undefined);
+  }
+
+  function refixSlide() {
+    unfixSlide();
+    requestAnimationFrame(() => fixSlide(true));
+  }
 
   useEffect(() => {
-    const passwordFormWrapper = passwordFormSlideRef.current;
+    fixSlide();
+    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
+  }, [isLocked]);
 
-    if (isActive && !isNonNativeBiometricAuthEnabled && passwordFormWrapper) {
-      const top = passwordFormWrapper.getBoundingClientRect().top;
+  const { height } = useWindowSize();
 
-      setWrapperTopPosition(top);
-    }
-  }, [isActive, isNonNativeBiometricAuthEnabled]);
+  useEffect(() => {
+    if (!isFixingSlideEnv) return;
+
+    refixSlide();
+    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
+  }, [height]);
 
   return {
-    slide,
-    setSlide,
-    isFixedSlide,
-    shouldRenderUnlockButtonSlide,
-    isWrapperFixed: wrapperTopPosition > 0,
-    wrapperTopPosition,
-    resetContentSlide,
-    passwordFormSlideRef,
+    ref,
+    innerContentTopPosition,
+    unfixSlide,
+    slideForBiometricAuth,
+    setSlideForBiometricAuth,
+    getDefaultSlideForBiometricAuth,
   };
 }
 
@@ -145,20 +186,18 @@ function AppLocked({
     clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive,
   } = getActions();
 
-  const [isLocked, lock, unlock] = useAppLockState(autolockValue !== 'never' || isManualLockActive, canRender);
+  const [isLocked, lock, unlock, lockReason] = useAppLockState(autolockValue, !!isManualLockActive, canRender);
   const [shouldRenderUi, showUi, hideUi] = useFlag(isLocked);
   const lastActivityTime = useRef(Date.now());
 
   const {
-    slide: slideForBiometricAuth,
-    setSlide: setSlideForBiometricAuth,
-    isFixedSlide,
-    passwordFormSlideRef,
-    isWrapperFixed,
-    wrapperTopPosition,
-    resetContentSlide,
-    shouldRenderUnlockButtonSlide,
-  } = useContentSlide(shouldRenderUi, isNonNativeBiometricAuthEnabled);
+    ref,
+    innerContentTopPosition,
+    unfixSlide,
+    slideForBiometricAuth,
+    setSlideForBiometricAuth,
+    getDefaultSlideForBiometricAuth,
+  } = useContentSlide(isNonNativeBiometricAuthEnabled, isLocked, lockReason);
 
   const handleActivity = useLastCallback(() => {
     if (IS_DELEGATED_BOTTOM_SHEET) {
@@ -172,13 +211,13 @@ function AppLocked({
 
   const afterUnlockCallback = useLastCallback(() => {
     hideUi();
-    setSlideForBiometricAuth(SLIDES.button);
+    setSlideForBiometricAuth(getDefaultSlideForBiometricAuth());
     getInAppBrowser()?.show();
     clearIsPinAccepted();
     handleActivity();
     setIsManualLockActive({ isActive: undefined, shouldHideBiometrics: undefined });
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.show();
-    resetContentSlide();
+    unfixSlide();
   });
 
   const autolockPeriod = useMemo(
@@ -190,9 +229,12 @@ function AppLocked({
   const forceLockApp = useLastCallback(() => {
     lock();
     showUi();
+    if (document.activeElement) {
+      (document.activeElement as HTMLElement).blur();
+    }
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.hide();
     void getInAppBrowser()?.hide();
-    setSlideForBiometricAuth(SLIDES.button);
+    setSlideForBiometricAuth(getDefaultSlideForBiometricAuth());
   });
 
   const handleLock = useLastCallback(() => {
@@ -254,26 +296,30 @@ function AppLocked({
     return (
       <div className={buildClassName(
         styles.appLocked,
-        isNonNativeBiometricAuthEnabled && styles.appLockedFixed,
-        'custom-scroll',
+        innerContentTopPosition !== undefined && styles.appLockedFixed,
+        getDoesUsePinPad() && slideForBiometricAuth === SLIDES.passwordForm && styles.withPinPad,
       )}>
-        {shouldRenderUnlockButtonSlide && (
-          <UnlockButtonSlide
-            isActive={isActive && isFixedSlide}
-            theme={theme}
-            onClick={handleChangeSlideForBiometricAuth}
-          />
-        )}
-        <PasswordFormSlide
-          ref={passwordFormSlideRef}
-          isActive={isActive && !isFixedSlide}
-          theme={theme}
-          shouldHideBiometrics={shouldHideBiometrics}
-          isFullHeight={!isNonNativeBiometricAuthEnabled}
-          isWrapperFixed={isWrapperFixed}
-          positionTop={wrapperTopPosition}
-          onSubmit={unlock}
-        />
+        {
+          slideForBiometricAuth === SLIDES.button && isNonNativeBiometricAuthEnabled
+            ? (
+              <UnlockButtonSlide
+                ref={ref}
+                theme={theme}
+                innerContentTopPosition={innerContentTopPosition}
+                handleChangeSlideForBiometricAuth={handleChangeSlideForBiometricAuth}
+              />
+            )
+            : (
+              <PasswordFormSlide
+                ref={ref}
+                isActive={isActive}
+                theme={theme}
+                innerContentTopPosition={innerContentTopPosition}
+                shouldHideBiometrics={!!shouldHideBiometrics}
+                onSubmit={unlock}
+              />
+            )
+        }
       </div>
     );
   }
@@ -282,7 +328,7 @@ function AppLocked({
 
   const handleUnlockIntent = isNonNativeBiometricAuthEnabled
     ? slideForBiometricAuth === SLIDES.passwordForm
-      ? triggerPasswordFormHandleBiometrics
+      ? (!IS_TELEGRAM_APP ? triggerPasswordFormHandleBiometrics : undefined)
       : handleChangeSlideForBiometricAuth
     : undefined;
 

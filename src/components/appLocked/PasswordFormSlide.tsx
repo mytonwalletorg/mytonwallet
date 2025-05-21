@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import React, { memo, useState } from '../../lib/teact/teact';
+import React, { memo, type RefObject, useState } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { Theme } from '../../global/types';
@@ -18,32 +17,27 @@ import Logo from './Logo';
 
 import styles from './AppLocked.module.scss';
 
+const PINPAD_RESET_DELAY = 300;
+
 interface OwnProps {
   isActive: boolean;
+  ref: RefObject<HTMLDivElement | null>;
   theme: Theme;
-  shouldHideBiometrics?: boolean;
-  ref: RefObject<HTMLDivElement>;
-  positionTop: number;
-  isFullHeight: boolean;
-  isWrapperFixed: boolean;
+  innerContentTopPosition?: number;
+  shouldHideBiometrics: boolean;
   onSubmit: NoneToVoidFunction;
 }
 
-const PINPAD_RESET_DELAY = 300;
-
 function PasswordFormSlide({
   isActive,
-  theme,
   ref,
+  theme,
+  innerContentTopPosition = 0,
   shouldHideBiometrics,
-  positionTop,
-  isFullHeight,
-  isWrapperFixed,
   onSubmit,
 }: OwnProps) {
-  const { setIsPinAccepted } = getActions();
-
   const lang = useLang();
+  const { setIsPinAccepted } = getActions();
   const [passwordError, setPasswordError] = useState('');
 
   const handleSubmitPassword = useLastCallback(async (password: string) => {
@@ -66,13 +60,8 @@ function PasswordFormSlide({
   return (
     <div
       ref={ref}
-      className={buildClassName(
-        styles.passwordFormWrapper,
-        isActive && styles.passwordFormWrapperActive,
-        isWrapperFixed && styles.passwordFormWrapperFixed,
-        isFullHeight && getDoesUsePinPad() && styles.passwordFormWrapperFullHeight,
-      )}
-      style={`--position-top: ${positionTop}px;`}
+      className={styles.innerContent}
+      style={`--position-top: ${innerContentTopPosition}px;`}
     >
       <PasswordForm
         isActive={!isActive ? false : getIsNativeBiometricAuthSupported() ? !shouldHideBiometrics : true}
@@ -81,7 +70,7 @@ function PasswordFormSlide({
         error={passwordError}
         resetStateDelayMs={PINPAD_RESET_DELAY}
         operationType="unlock"
-        containerClassName={styles.passwordFormContent}
+        containerClassName={buildClassName(styles.passwordFormContent, 'custom-scroll')}
         inputWrapperClassName={styles.passwordInputWrapper}
         submitLabel={lang('Unlock')}
         onSubmit={handleSubmitPassword}

@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.6.4",
+  "version": "3.6.5",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -143,7 +143,7 @@
     "css-minimizer-webpack-plugin": "7.0.0",
     "dotenv": "16.4.5",
     "electron": "30.5.1",
-    "electron-builder": "25.1.7",
+    "electron-builder": "26.0.12",
     "electron-context-menu": "4.0.4",
     "electron-store": "8.2.0",
     "electron-updater": "6.3.9",

@@ -103,7 +103,6 @@ export async function fetchWithTimeout(url: string | URL, init?: RequestInit, ti
     return await fetch(url, {
       ...init,
       signal: controller.signal,
-      cache: 'no-cache', // TODO Remove it after a few releases
     });
   } finally {
     clearTimeout(id);

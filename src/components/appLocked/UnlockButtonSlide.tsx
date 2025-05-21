@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, type RefObject } from '../../lib/teact/teact';
 
 import type { Theme } from '../../global/types';
 
@@ -13,26 +13,29 @@ import Logo from './Logo';
 import styles from './AppLocked.module.scss';
 
 interface OwnProps {
-  isActive: boolean;
+  ref: RefObject<HTMLDivElement | null>;
   theme: Theme;
-  onClick: NoneToVoidFunction;
+  innerContentTopPosition?: number;
+  handleChangeSlideForBiometricAuth: NoneToVoidFunction;
 }
 
-function UnlockButtonSlide({ isActive, theme, onClick }: OwnProps) {
+function UnlockButtonSlide({
+  ref,
+  theme,
+  innerContentTopPosition = 0,
+  handleChangeSlideForBiometricAuth,
+}: OwnProps) {
   const lang = useLang();
 
   return (
-    <div className={buildClassName(
-      styles.unlockButtonWrapper,
-      isActive && styles.unlockButtonWrapperActive,
-    )}>
+    <div
+      ref={ref}
+      className={styles.innerContent}
+      style={`--position-top: ${innerContentTopPosition}px;`}
+    >
       <Logo theme={theme} />
       <span className={buildClassName(styles.title, 'rounded-font')}>{APP_NAME}</span>
-      <Button
-        isPrimary
-        className={!isActive ? styles.unlockButtonHidden : undefined}
-        onClick={onClick}
-      >
+      <Button isPrimary onClick={handleChangeSlideForBiometricAuth}>
         {lang('Unlock')}
       </Button>
     </div>

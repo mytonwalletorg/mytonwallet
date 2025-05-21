@@ -1,5 +1,3 @@
-@import "../../styles/mixins/index";
-
 .appLocked {
   overflow: auto;
   display: flex;
@@ -10,70 +8,35 @@
   height: 100vh;
 
   color: var(--color-black);
+
+  --header-gap-size: 2rem;
+}
+
+.innerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+
+  .withPinPad & {
+    width: 100% !important;
+    max-width: 31.4375rem !important;
+    height: 100% !important;
+  }
 }
 
 .appLockedFixed {
-  position: fixed;
-  top: calc(50% - 10rem); // Computed empirically
-
-  gap: 2rem;
-
-  width: 100%;
-  height: unset;
-
-  @include respond-below(xs) {
-    top: auto;
-    bottom: 0;
-  }
-
-  @media (max-height: 43.5rem) {
-    top: auto;
-    bottom: 0;
-  }
-}
-
-.unlockButtonWrapper {
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
 
-  gap: 2rem;
-
-  height: 100%;
-}
-
-.unlockButtonWrapper,
-.passwordFormWrapper {
-  --header-gap-size: 2rem;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
   width: 100%;
+  height: 100%;
 
-  opacity: 0;
-
-}
-
-.unlockButtonWrapperActive,
-.passwordFormWrapperActive {
-  opacity: 1;
-}
-
-.passwordFormWrapperFixed {
-  position: fixed;
-  top: var(--position-top);
-}
-
-.passwordFormWrapperFullHeight {
-  height: 100vh;
-}
-
-.unlockButtonHidden :global {
-  opacity: 0;
-
-  animation: fade-out-opacity 0.3s ease;
+  & .innerContent {
+    position: absolute;
+    top: var(--position-top, 0);
+  }
 }
 
 .title {
@@ -88,15 +51,18 @@
   flex-direction: column;
   gap: 2rem;
   align-items: center;
-  justify-content: center;
 
   min-width: 20rem;
   height: fit-content;
+  max-height: 100vh;
+  margin: auto;
 }
 
 .logo {
   width: 10rem;
+  min-width: 10rem;
   height: 10rem;
+  min-height: 10rem;
 }
 
 .passwordInputWrapper {
