@@ -1,5 +1,5 @@
-import type { BottomSheetKeys } from 'native-bottom-sheet';
-import { BottomSheet } from 'native-bottom-sheet';
+import type { BottomSheetKeys } from '@mytonwallet/native-bottom-sheet';
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import { useEffect } from '../lib/teact/teact';
 import { forceOnHeavyAnimationOnce } from '../lib/teact/teactn';
 import { getGlobal } from '../global';

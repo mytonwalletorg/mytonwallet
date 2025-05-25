@@ -56,8 +56,6 @@ jobs:
           path: |
             node_modules
           key: ${{ github.sha }}
-      - name: Build
-        run: npm run build:production
       - name: Download reference statistics
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -66,14 +64,26 @@ jobs:
           name: statoscope-reference
           path: ./
         continue-on-error: true
+      - name: Build
+        env:
+          STATOSCOPE_STATS_TO_COMPARE: statoscope-reference.json
+        run: npm run build:production
       - name: Prepare statoscope input
         run: mv public/statoscope-build-statistics.json input.json; mv statoscope-reference.json reference.json
       - name: Validate
         run: npm run statoscope:validate-diff
+      - name: Upload statoscope report
+        uses: actions/upload-artifact@v4
+        id: upload-report
+        with:
+          name: Statoscope report
+          path: ./public/statoscope-report.html
+          if-no-files-found: error
       - name: Query stats
         if: "github.event_name == 'pull_request'"
         run: cat .github/workflows/statoscope-comment.jora | npx --no-install @statoscope/cli query --input input.json --input reference.json > statoscope-result.json
       - name: Hide bot comments
+        if: ${{ github.event_name == 'pull_request' }}
         uses: int128/hide-comment-action@v1
       - name: Comment PR
         if: "github.event_name == 'pull_request'"
@@ -81,6 +91,6 @@ jobs:
         with:
           script: |
             const createStatoscopeComment = require('./dev/statoscopeCreateComment');
-            await createStatoscopeComment({ github, context, core })
+            await createStatoscopeComment({ github, context, core, diffReportUrl: '${{ steps.upload-report.outputs.artifact-url }}' })
       - name: Cleanup
         run: rm input.json; rm reference.json

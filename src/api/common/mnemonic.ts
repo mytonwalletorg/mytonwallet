@@ -2,6 +2,7 @@ import * as bip39 from 'bip39';
 
 import { type ApiAccountWithMnemonic, ApiCommonError } from '../types';
 
+import { logDebugError } from '../../util/logs';
 import { updateStoredAccount } from './accounts';
 
 const PBKDF2_IMPORT_KEY_ARGS = [
@@ -27,8 +28,11 @@ export function validateBip39Mnemonic(mnemonic: string[]) {
 }
 
 export async function tryMigratingMnemonicEncryption(accountId: string, mnemonic: string[], password: string) {
+  const sensitiveData = [password, ...mnemonic];
+
   try {
     const mnemonicEncrypted = await encryptMnemonic(mnemonic, password);
+    sensitiveData.push(mnemonicEncrypted);
 
     // This is a defensive approach against potential corrupted encryption reported by some users
     const decryptedMnemonic = await decryptMnemonic(mnemonicEncrypted, password)
@@ -40,8 +44,7 @@ export async function tryMigratingMnemonicEncryption(accountId: string, mnemonic
 
     await updateStoredAccount<ApiAccountWithMnemonic>(accountId, { mnemonicEncrypted });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logDebugError('tryMigratingMnemonicEncryption', removeSensitiveDataFromError(err, sensitiveData));
   }
 
   return undefined;
@@ -119,9 +122,14 @@ async function decryptMnemonicLegacy(encrypted: string, password: string) {
 }
 
 export async function getMnemonic(accountId: string, password: string, account: ApiAccountWithMnemonic) {
+  const sensitiveData = [password];
+
   try {
     const { mnemonicEncrypted } = account;
+    sensitiveData.push(mnemonicEncrypted);
+
     const mnemonic = await decryptMnemonic(mnemonicEncrypted, password);
+    sensitiveData.push(...mnemonic);
 
     if (!mnemonicEncrypted.includes(':')) {
       await tryMigratingMnemonicEncryption(accountId, mnemonic, password);
@@ -129,9 +137,32 @@ export async function getMnemonic(accountId: string, password: string, account: 
 
     return mnemonic;
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logDebugError('getMnemonic', removeSensitiveDataFromError(err, sensitiveData));
 
     return undefined;
   }
+}
+
+function removeSensitiveDataFromError(error: unknown, sensitiveData: string[]) {
+  const removeFromString = (text: string) => {
+    for (const toRemove of sensitiveData) {
+      text = text.replaceAll(toRemove, '(hidden)');
+    }
+    return text;
+  };
+
+  if (typeof error === 'string') {
+    return removeFromString(error);
+  }
+
+  if (error instanceof Error) {
+    const message = removeFromString(error.message);
+    return {
+      name: error.name,
+      message,
+      stack: error.stack?.replaceAll(error.message, message),
+    };
+  }
+
+  return error;
 }

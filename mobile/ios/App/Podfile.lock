@@ -10,6 +10,8 @@ PODS:
   - CapacitorCommunityBluetoothLe (7.0.0):
     - Capacitor
   - CapacitorCordova (7.1.0)
+  - CapacitorDialog (7.0.0):
+    - Capacitor
   - CapacitorFilesystem (7.0.0):
     - Capacitor
   - CapacitorHaptics (7.0.0):
@@ -120,18 +122,16 @@ PODS:
     - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
     - MLImage (= 1.0.0-beta6)
     - MLKitCommon (~> 12.0)
-  - MtwCapacitorUsbHid (0.0.1):
+  - MytonwalletCapacitorUsbHid (0.0.1):
     - Capacitor
+  - MytonwalletNativeBottomSheet (0.0.2):
+    - Capacitor
+    - FloatingPanel
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NativeBottomSheet (0.0.2):
-    - Capacitor
-    - FloatingPanel
-  - NativeDialog (7.0.0):
-    - Capacitor
   - PromisesObjC (2.4.0)
   - SwiftKeychainWrapper (4.0.1)
 
@@ -142,6 +142,7 @@ DEPENDENCIES:
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCommunityBluetoothLe (from `../../../node_modules/@capacitor-community/bluetooth-le`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
+  - CapacitorDialog (from `../../plugins/native-dialog`)
   - "CapacitorFilesystem (from `../../../node_modules/@capacitor/filesystem`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../../node_modules/@capacitor/keyboard`)"
@@ -160,9 +161,8 @@ DEPENDENCIES:
   - FirebaseMessaging
   - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `477fd70521abbb12eb7f069f0220660c172dc936`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
-  - MtwCapacitorUsbHid (from `../../../node_modules/mtw-capacitor-usb-hid`)
-  - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
-  - NativeDialog (from `../../plugins/native-dialog`)
+  - "MytonwalletCapacitorUsbHid (from `../../../node_modules/@mytonwallet/capacitor-usb-hid`)"
+  - MytonwalletNativeBottomSheet (from `../../plugins/native-bottom-sheet`)
 
 SPEC REPOS:
   trunk:
@@ -196,6 +196,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor-community/bluetooth-le"
   CapacitorCordova:
     :path: "../../../node_modules/@capacitor/ios"
+  CapacitorDialog:
+    :path: "../../plugins/native-dialog"
   CapacitorFilesystem:
     :path: "../../../node_modules/@capacitor/filesystem"
   CapacitorHaptics:
@@ -231,12 +233,10 @@ EXTERNAL SOURCES:
     :git: https://github.com/mytonwalletorg/FloatingPanel
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
-  MtwCapacitorUsbHid:
-    :path: "../../../node_modules/mtw-capacitor-usb-hid"
-  NativeBottomSheet:
+  MytonwalletCapacitorUsbHid:
+    :path: "../../../node_modules/@mytonwallet/capacitor-usb-hid"
+  MytonwalletNativeBottomSheet:
     :path: "../../plugins/native-bottom-sheet"
-  NativeDialog:
-    :path: "../../plugins/native-dialog"
 
 CHECKOUT OPTIONS:
   FloatingPanel:
@@ -250,6 +250,7 @@ SPEC CHECKSUMS:
   CapacitorClipboard: 007d79cd6c104002b274546d13873526ca20beb7
   CapacitorCommunityBluetoothLe: f911fcbecc25033bca1cfcc5782c46c11ebf62ec
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
+  CapacitorDialog: 128228f7256464205eba2479629f2c00743f39a5
   CapacitorFilesystem: 59a2b7b56a897c6a3de4d04c5718e1d80de9d2f5
   CapacitorHaptics: 7be406a91e4eb87287f321c6c68e1709d6837b3a
   CapacitorKeyboard: 4db71e694e7afb5d7c0be09b05495c19f7d6c914
@@ -280,13 +281,12 @@ SPEC CHECKSUMS:
   MLKitBarcodeScanning: 0a3064da0a7f49ac24ceb3cb46a5bc67496facd2
   MLKitCommon: 07c2c33ae5640e5380beaaa6e4b9c249a205542d
   MLKitVision: 45e79d68845a2de77e2dd4d7f07947f0ed157b0e
-  MtwCapacitorUsbHid: 59020f5b9202a42fb60aa01b3aa7e3c73567904a
+  MytonwalletCapacitorUsbHid: d37d8e638a45d54b9c08c90be9478cdad33603ef
+  MytonwalletNativeBottomSheet: 72009d621d5f73e950499f1d5efafa12636396de
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NativeBottomSheet: 8cd9262d15553f0cfd75559ed45ddfbdf94ece90
-  NativeDialog: 0384bcb05f5075a0f4c4e0ef606e8e20c3e7501d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: a5546a1f141f58c328dd2cbf289b495f6b040460
+PODFILE CHECKSUM: 717d09e683cb12c1762093716186ac18aec151f8
 
 COCOAPODS: 1.16.2

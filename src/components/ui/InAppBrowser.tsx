@@ -1,4 +1,4 @@
-import { BottomSheet } from 'native-bottom-sheet';
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 

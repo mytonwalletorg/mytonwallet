@@ -14,6 +14,7 @@ dependencies {
     implementation project(':capacitor-app')
     implementation project(':capacitor-app-launcher')
     implementation project(':capacitor-clipboard')
+    implementation project(':capacitor-dialog')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-haptics')
     implementation project(':capacitor-keyboard')
@@ -24,12 +25,11 @@ dependencies {
     implementation project(':capgo-capacitor-native-biometric')
     implementation project(':capgo-native-audio')
     implementation project(':mauricewegner-capacitor-navigation-bar')
+    implementation project(':mytonwallet-capacitor-usb-hid')
+    implementation project(':mytonwallet-native-bottom-sheet')
     implementation project(':capacitor-native-settings')
     implementation project(':capacitor-plugin-safe-area')
     implementation project(':capacitor-secure-storage-plugin')
-    implementation project(':mtw-capacitor-usb-hid')
-    implementation project(':native-bottom-sheet')
-    implementation project(':native-dialog')
 
 }
 

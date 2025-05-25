@@ -74,6 +74,13 @@ const appVersion = require('./package.json').version;
 
 const defaultI18nFilename = path.resolve(__dirname, './src/i18n/en.json');
 
+const statoscopeStatsFile = './public/statoscope-build-statistics.json';
+const statoscopeStatsFileToCompare = process.env.STATOSCOPE_STATS_TO_COMPARE;
+// If a compared stat file name is the same as the main stats file name, the Statoscope UI doesn't show it.
+if (path.basename(statoscopeStatsFileToCompare || '') === path.basename(statoscopeStatsFile)) {
+  throw new Error(`The STATOSCOPE_STATS_TO_COMPARE file name mustn't be ${path.basename(statoscopeStatsFile)}`);
+}
+
 export default function createConfig(
   _: any,
   { mode = 'production' }: { mode: 'none' | 'development' | 'production' },
@@ -380,10 +387,11 @@ export default function createConfig(
           context: __dirname,
         },
         saveReportTo: path.resolve('./public/statoscope-report.html'),
-        saveStatsTo: path.resolve('./public/statoscope-build-statistics.json'),
+        saveStatsTo: path.resolve(statoscopeStatsFile),
         normalizeStats: true,
         open: false,
         extensions: [new WebpackContextExtension()], // eslint-disable-line @typescript-eslint/no-use-before-define
+        ...(statoscopeStatsFileToCompare ? { additionalStats: [statoscopeStatsFileToCompare] } : undefined),
       })] : []),
       ...(IS_EXTENSION
         ? [

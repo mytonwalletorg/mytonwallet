@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
-import type { BottomSheetKeys } from 'native-bottom-sheet';
-import { BottomSheet } from 'native-bottom-sheet';
+import type { BottomSheetKeys } from '@mytonwallet/native-bottom-sheet';
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   beginHeavyAnimation,

@@ -1,16 +1,16 @@
 import { StatusCodes } from '@ledgerhq/errors';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
+import type { HIDTransport } from '@mytonwallet/capacitor-usb-hid';
 import type { StateInit } from '@ton/core';
 import { loadStateInit } from '@ton/core';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
 import { KNOWN_JETTONS, parseMessage, TonTransport } from '@ton-community/ton-ledger';
-import type { HIDTransport } from 'mtw-capacitor-usb-hid';
+import type { ICapacitorUSBDevice } from '@mytonwallet/capacitor-usb-hid/dist/esm/definitions';
 import { Address } from '@ton/core/dist/address/Address';
 import { Builder } from '@ton/core/dist/boc/Builder';
 import { Cell } from '@ton/core/dist/boc/Cell';
 import { SendMode } from '@ton/core/dist/types/SendMode';
-import type { ICapacitorUSBDevice } from 'mtw-capacitor-usb-hid/dist/esm/definitions';
 
 import type { Workchain } from '../../api/chains/ton';
 import type { ApiSubmitTransferOptions } from '../../api/methods/types';
@@ -71,8 +71,8 @@ import { TsUSDeWallet } from '../../api/chains/ton/contracts/Ethena/TsUSDeWallet
 import { StakingPool } from '../../api/chains/ton/contracts/JettonStaking/StakingPool';
 
 type BleConnectorClass = typeof import('./bleConnector').BleConnector;
-type HIDTransportClass = typeof import('mtw-capacitor-usb-hid/dist/esm').HIDTransport;
-type ListLedgerDevicesFunction = typeof import('mtw-capacitor-usb-hid/dist/esm').listLedgerDevices;
+type HIDTransportClass = typeof import('@mytonwallet/capacitor-usb-hid/dist/esm').HIDTransport;
+type ListLedgerDevicesFunction = typeof import('@mytonwallet/capacitor-usb-hid/dist/esm').listLedgerDevices;
 
 type TransactionParams = {
   to: Address;
@@ -148,7 +148,7 @@ async function ensureHidTransport() {
   if (!IS_ANDROID_APP) return undefined;
 
   if (!hidImportPromise) {
-    hidImportPromise = import('mtw-capacitor-usb-hid/dist/esm').then((module) => {
+    hidImportPromise = import('@mytonwallet/capacitor-usb-hid/dist/esm').then((module) => {
       return {
         transport: module.HIDTransport,
         listLedgerDevices: module.listLedgerDevices,
@@ -658,9 +658,9 @@ export async function submitLedgerTransfer(
 
   const isFullTonBalance = !tokenAddress && balance === amount;
 
-  const sendMode = isFullTonBalance
+  const sendMode = (isFullTonBalance
     ? SendMode.CARRY_ALL_REMAINING_BALANCE
-    : SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS;
+    : SendMode.PAY_GAS_SEPARATELY) + SendMode.IGNORE_ERRORS;
 
   const walletSpecifiers = account!.ton.version === 'v3R2'
     ? { includeWalletOp: false }

@@ -1,11 +1,11 @@
-# native-bottom-sheet
+# @mytonwallet/native-bottom-sheet
 
 Allows to open a native BottomSheet/FloatingPanel on iOS
 
 ## Install
 
 ```bash
-npm install native-bottom-sheet
+npm install @mytonwallet/native-bottom-sheet
 npx cap sync
 ```
 

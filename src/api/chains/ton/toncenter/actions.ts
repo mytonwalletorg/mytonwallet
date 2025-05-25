@@ -773,11 +773,11 @@ function parseToncenterNft(
 
     // TODO (actions) Determine that this is a domain by the collection address once Toncenter adds it
     const domain = extra?.domain ?? name ?? '';
-    const domainZone = getDnsDomainZone(domain)?.zone;
+    const { zone: domainZone, base: domainBase } = getDnsDomainZone(domain) ?? {};
 
     if (domainZone && (!collectionAddress || !image)) {
       if (domainZone.suffixes[0] === 'ton') {
-        image = `${DNS_IMAGE_GEN_URL}${extra!.domain!}`;
+        image = `${DNS_IMAGE_GEN_URL}${domainBase}`;
       }
 
       return omitUndefined<ApiNft>({

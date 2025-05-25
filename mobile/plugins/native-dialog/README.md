@@ -5,14 +5,14 @@ The Dialog API provides methods for triggering native dialog windows for alerts,
 ## Install
 
 ```bash
-npm install native-dialog
+npm install @capacitor/dialog
 npx cap sync
 ```
 
 ## Example
 
 ```typescript
-import { Dialog } from 'native-dialog';
+import { Dialog } from '@capacitor/dialog';
 
 const showAlert = async () => {
   await Dialog.alert({

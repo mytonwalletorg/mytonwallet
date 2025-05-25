@@ -1,8 +1,8 @@
 import type { HTMLInputTypeAttribute } from 'react';
+import type { BottomSheetKeys } from '@mytonwallet/native-bottom-sheet';
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import type { SafeAreaInsets } from 'capacitor-plugin-safe-area';
 import { SafeArea } from 'capacitor-plugin-safe-area';
-import type { BottomSheetKeys } from 'native-bottom-sheet';
-import { BottomSheet } from 'native-bottom-sheet';
 import { useEffect, useLayoutEffect, useState } from '../lib/teact/teact';
 import { forceOnHeavyAnimationOnce } from '../lib/teact/teactn';
 import { setGlobal } from '../global';

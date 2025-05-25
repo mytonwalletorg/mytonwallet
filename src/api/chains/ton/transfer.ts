@@ -389,7 +389,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       shouldEncrypt,
     });
 
-    const { networkFee } = await emulateTransaction(network, wallet!, transaction, isInitialized);
+    const { networkFee } = await emulateTransactionWithFallback(network, wallet!, transaction, isInitialized);
 
     const isEnoughBalance = isFullTonTransfer
       ? toncoinBalance > networkFee
@@ -597,9 +597,9 @@ async function signTransaction({
     stateInit.asSlice(),
   ) : undefined;
 
-  const sendMode = isFullBalance
+  const sendMode = (isFullBalance
     ? SendMode.CARRY_ALL_REMAINING_BALANCE
-    : SendMode.PAY_GAS_SEPARATELY + (payload ? 0 : SendMode.IGNORE_ERRORS);
+    : SendMode.PAY_GAS_SEPARATELY) + SendMode.IGNORE_ERRORS;
 
   const transferParams = {
     seqno,
@@ -712,7 +712,7 @@ export async function submitMultiTransfer({
     });
 
     if (!isGasless) {
-      const { networkFee } = await emulateTransaction(network, wallet!, transaction, isInitialized);
+      const { networkFee } = await emulateTransactionWithFallback(network, wallet!, transaction, isInitialized);
       if (balance < totalAmount + networkFee) {
         return { error: ApiTransactionError.InsufficientBalance };
       }
@@ -827,9 +827,10 @@ async function signMultiTransaction({
     seqno,
     secretKey: Buffer.from(privateKey),
     messages: preparedMessages,
-    sendMode: SendMode.PAY_GAS_SEPARATELY + (hasPayload ? 0 : SendMode.IGNORE_ERRORS),
+    sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
     timeout: expireAt,
   };
+
   const transaction = wallet instanceof WalletContractV5R1 // Otherwise, TypeScript emits an error
     ? wallet.createTransfer(transferParams)
     : wallet.createTransfer(transferParams);

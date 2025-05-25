@@ -139,7 +139,7 @@ function UnstakeModal({
 
   const nativeToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
   const isNativeEnough = nativeToken && nativeToken.amount >= networkFee;
-  const instantAvailable = stakingType === 'liquid' ? stakingInfo?.liquid?.available ?? 0n : 0n;
+  const instantAvailable = stakingState?.type === 'liquid' ? stakingState.instantAvailable : undefined;
 
   const token = useMemo(() => {
     return tokenSlug ? tokens?.find(({ slug }) => slug === tokenSlug) : undefined;

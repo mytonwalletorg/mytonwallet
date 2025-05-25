@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import { BottomSheet } from 'native-bottom-sheet';
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';

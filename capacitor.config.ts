@@ -9,6 +9,7 @@ const COMMON_PLUGINS = [
   '@capacitor/app',
   '@capacitor/app-launcher',
   '@capacitor/clipboard',
+  '@capacitor/dialog',
   '@capacitor/filesystem',
   '@capacitor/haptics',
   '@capacitor/keyboard',
@@ -19,13 +20,12 @@ const COMMON_PLUGINS = [
   '@capgo/capacitor-native-biometric',
   '@capgo/native-audio',
   '@mauricewegner/capacitor-navigation-bar',
+  '@mytonwallet/capacitor-usb-hid',
+  '@mytonwallet/native-bottom-sheet',
   'capacitor-native-settings',
   'capacitor-plugin-safe-area',
   'capacitor-secure-storage-plugin',
   'cordova-plugin-inappbrowser',
-  'mtw-capacitor-usb-hid',
-  'native-bottom-sheet',
-  'native-dialog',
 ];
 
 const IOS_PLUGINS = [

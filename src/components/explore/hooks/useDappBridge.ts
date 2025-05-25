@@ -1,3 +1,4 @@
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import type {
   AppRequest,
   ConnectEvent,
@@ -8,7 +9,6 @@ import type {
   WalletEvent,
   WalletResponse,
 } from '@tonconnect/protocol';
-import { BottomSheet } from 'native-bottom-sheet';
 import { useMemo, useRef, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 

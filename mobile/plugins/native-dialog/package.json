@@ -1,5 +1,5 @@
 {
-  "name": "native-dialog",
+  "name": "@capacitor/dialog",
   "version": "7.0.0",
   "description": "The Dialog API provides methods for triggering native dialog windows for alerts, confirmations, and input prompts",
   "main": "dist/plugin.cjs.js",
@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "NativeDialog.podspec"
+    "CapacitorDialog.podspec"
   ],
   "author": "MyTonWallet Team",
   "license": "MIT",

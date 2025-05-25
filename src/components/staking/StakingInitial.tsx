@@ -1,4 +1,4 @@
-import { Dialog } from 'native-dialog';
+import { Dialog } from '@capacitor/dialog';
 import React, { memo, type TeactNode, useEffect, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 

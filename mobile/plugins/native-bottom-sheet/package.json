@@ -1,5 +1,5 @@
 {
-  "name": "native-bottom-sheet",
+  "name": "@mytonwallet/native-bottom-sheet",
   "version": "0.0.2",
   "description": "Allows to open a native BottomSheet/FloatingPanel on iOS",
   "main": "dist/plugin.cjs.js",
@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "NativeBottomSheet.podspec"
+    "MytonwalletNativeBottomSheet.podspec"
   ],
   "author": "MyTonWallet Team",
   "license": "MIT",

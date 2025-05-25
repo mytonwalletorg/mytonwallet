@@ -36,6 +36,7 @@ import {
 import { parseAccountId } from '../../../util/account';
 import { bigintDivideToNumber, bigintMultiplyToNumber } from '../../../util/bigint';
 import { fromDecimal } from '../../../util/decimals';
+import { getDevSettings } from '../../../util/devSettings';
 import calcJettonStakingApr from '../../../util/ton/calcJettonStakingApr';
 import {
   buildJettonClaimPayload,
@@ -446,7 +447,7 @@ async function buildLiquidState({
   const accountCache = getAccountCache(accountId, address);
   const stakedAt = Math.max(accountCache.stakedAt ?? 0, backendState.stakedAt ?? 0);
 
-  const isInstantUnstake = Date.now() - stakedAt > VALIDATION_PERIOD_MS;
+  const isInstantUnstake = Date.now() - stakedAt > VALIDATION_PERIOD_MS && !getDevSettings().simulateLongUnstaking;
   const liquidAvailable = isInstantUnstake ? commonData.liquid.available : 0n;
 
   let liquidApy = commonData.liquid.apy;

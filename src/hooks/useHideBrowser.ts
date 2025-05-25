@@ -1,4 +1,4 @@
-import { BottomSheet } from 'native-bottom-sheet';
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 
 import { IS_CAPACITOR } from '../config';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
