@@ -835,7 +835,8 @@ function parseToncenterNft(
       ...(collectionAddress && {
         collectionAddress,
         collectionName: collectionMetadata?.name,
-        isOnFragment: isFragmentGift || NFT_FRAGMENT_COLLECTIONS.has(rawCollectionAddress!),
+        isOnFragment: isFragmentGift || NFT_FRAGMENT_COLLECTIONS.includes(rawCollectionAddress!),
+        isTelegramGift: isFragmentGift,
       }),
     });
 

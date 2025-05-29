@@ -268,6 +268,7 @@ $dapp_can_view_balance: Для %dappname% будет доступен ваш а�
 Send Transaction: Отправить перевод
 Payload: Служебные данные
 $many_transactions:
+  zeroValue: "Нет переводов"
   oneValue: "%1$d перевод"
   fewValue: "%1$d перевода"
   manyValue: "%1$d переводов"
@@ -614,6 +615,7 @@ Unfrozen: Разморожено
 Missed: Пропущено
 Frozen: Заморожено
 until %date%: до %date%
+Until %date%: До %date%
 "%volume% in %amount% parts": "%volume% в %amount% частях"
 Unfreeze: Разморозить
 Claim: Вывести награды
@@ -845,4 +847,65 @@ $unstaking_when_receive_ethena: Вы сможете получить свой д
 Coins have been unstaked!: Монеты выведены!
 Confirm Upgrading: Подтвердить улучшение
 How does it work?: Как это работает?
+Multisend: Мультиотправка
+Expires in %1$d days:
+  zeroValue: Истекает сегодня
+  oneValue: Истекает завтра
+  fewValue: Истекает через %1$d дня
+  manyValue: Истекает через %1$d дней
+Renew All: Продлить все
+Renew: Продлить
+Renew Domain: Продлить домен
+Renew Domains: Продлить домены
+Some domains are about to expire: Некоторые домены скоро истекают
+$domain_expire:
+  zeroValue: "%domain% истекает сегодня"
+  oneValue: "%domain% истекает завтра"
+  fewValue: "%domain% истекает через %days% дня"
+  manyValue: "%domain% истекает через %days% дней"
 '%token% Staking': Стейкинг %token%
+Add Tab: Добавить вкладку
+Remove Tab: Удалить вкладку
+Link Domain: Привязать домен
+Domain Linked!: Домен привязан!
+Failed to process domain operation. Please try again.: Не удалось выполнить операцию с доменом. Пожалуйста, попробуйте ещё раз.
+$domains_amount %1$d:
+  zeroValue: Нет доменов
+  oneValue: "%1$d домен"
+  fewValue: "%1$d домена"
+  manyValue: "%1$d доменов"
+Stake: Стейкинг
+Manage Tokens: Управление токенами
+Claim Rewards: Получить награды
+Configure DNS: Настроить DNS
+Link to Wallet: Привязать к кошельку
+Change Wallet: Изменить кошелёк
+Change Linked Wallet: Изменить привязанный кошелёк
+Domain has been renewed!: Домен продлён!
+Domains have been renewed!: Домены продлены!
+Linked Wallet: Привязанный кошелёк
+Domain has been linked!: Домен привязан!
+Link: Привязать
+Confirm Renewing: Подтвердить продление
+Confirm Linking: Подтвердить привязку
+$domains_expire:
+  zeroValue: "Нет доменов, истекающих %days%"
+  oneValue: "%domain% домен истекает %days%"
+  fewValue: "%domain% домена истекают %days%"
+  manyValue: "%domain% доменов истекают %days%"
+$in_days:
+  zeroValue: сегодня
+  oneValue: завтра
+  fewValue: "через %1$d дня"
+  manyValue: "через %1$d дней"
+$domain_was_expired: "%domain% истёк"
+$domains_was_expired:
+  zeroValue: "Нет истёкших доменов"
+  oneValue: "%domain% домен истёк"
+  fewValue: "%domain% домена истекло"
+  manyValue: "%domain% доменов истекло"
+
+Reload: Обновить
+Copy Link: Копировать ссылку
+Check eligibility for max APY: Проверить доступность макс. APY
+Check eligibility: Проверить доступность

@@ -16,39 +16,6 @@
   border-radius: var(--border-radius-default);
 }
 
-.wrapperVisible {
-  position: relative;
-  z-index: var(--z-menu-bubble);
-}
-
-.wrapperVisible:not(.wrapperHide) {
-  --color-gray-3: var(--color-black);
-}
-
-.menuCustomBackdrop {
-  pointer-events: none;
-
-  position: fixed;
-  z-index: var(--z-menu-backdrop);
-  top: -100vh;
-  right: -100vw;
-  bottom: -100vh;
-  left: -100vw;
-
-  opacity: 0;
-  background: var(--color-tint);
-
-  transition: opacity 200ms;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
-}
-
-.menuCustomBackdropVisible {
-  opacity: 1;
-}
-
 .button {
   cursor: var(--custom-cursor, pointer);
 
@@ -176,10 +143,6 @@
 }
 
 .menuIcon {
-  margin-inline-end: 0.5rem;
-
-  font-size: 1.25rem;
-
   &:global(.icon-star),
   &:global(.icon-star-filled) {
     margin-top: -0.125rem;
@@ -202,10 +165,6 @@
 }
 
 .menuItem {
-  height: 3rem;
-  margin: 0 !important;
-  padding-inline-end: 1rem !important;
-
   border-radius: 0;
 
   &:first-child {

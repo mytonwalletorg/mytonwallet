@@ -110,3 +110,23 @@
     text-overflow: ellipsis;
   }
 }
+
+.icon {
+  transform: scale(1.2);
+
+  margin-right: 0.375rem;
+
+  color: var(--color-gray-2);
+
+  transition: color 150ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.Tab_active .icon,
+.Tab:focus .icon,
+:global(html:not(.animation-level-0)) .Tab:not(.Tab_active):active .icon {
+  color: var(--color-accent) !important;
+}

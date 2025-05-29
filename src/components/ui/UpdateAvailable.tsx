@@ -32,9 +32,10 @@ interface StateProps {
 function UpdateAvailable({ isAppUpdateAvailable, newAppVersion, isAppUpdateRequired }: StateProps) {
   const lang = useLang();
 
-  const { shouldRender, transitionClassNames } = useShowTransition(
-    (IS_ANDROID_DIRECT && isAppUpdateAvailable) || isAppUpdateRequired,
-  );
+  const { shouldRender, ref } = useShowTransition<HTMLButtonElement>({
+    isOpen: (IS_ANDROID_DIRECT && isAppUpdateAvailable) || isAppUpdateRequired,
+    withShouldRender: true,
+  });
 
   const handleClick = () => {
     if (IS_WEB) {
@@ -50,7 +51,7 @@ function UpdateAvailable({ isAppUpdateAvailable, newAppVersion, isAppUpdateRequi
   }
 
   return (
-    <button type="button" className={buildClassName(styles.wrapper, transitionClassNames)} onClick={handleClick}>
+    <button ref={ref} type="button" className={styles.wrapper} onClick={handleClick}>
       <i className={buildClassName('icon icon-download-filled', styles.icon)} aria-hidden />
       {lang('Update %app_name%', { app_name: APP_NAME })}
     </button>

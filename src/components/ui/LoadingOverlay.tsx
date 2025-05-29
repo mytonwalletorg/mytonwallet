@@ -3,8 +3,6 @@ import { getActions, withGlobal } from '../../global';
 
 import { TransferState } from '../../global/types';
 
-import buildClassName from '../../util/buildClassName';
-
 import useShowTransition from '../../hooks/useShowTransition';
 
 import Portal from './Portal';
@@ -19,13 +17,16 @@ type StateProps = {
 function LoadingOverlay({ isOpen }: StateProps) {
   const { closeLoadingOverlay } = getActions();
 
-  const { shouldRender, transitionClassNames } = useShowTransition(isOpen);
+  const { shouldRender, ref } = useShowTransition({
+    isOpen,
+    withShouldRender: true,
+  });
 
   if (!shouldRender) return undefined;
 
   return (
     <Portal>
-      <div className={buildClassName(styles.root, transitionClassNames)} onClick={() => closeLoadingOverlay()}>
+      <div ref={ref} className={styles.root} onClick={() => closeLoadingOverlay()}>
         <Spinner color="white" />
       </div>
     </Portal>

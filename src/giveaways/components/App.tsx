@@ -38,12 +38,12 @@ interface OwnProps {
 const FETCH_REPEAT_MS = 3000;
 
 enum PageKey {
-  NoGiveawayPageId = 0,
-  LoadingPageId = 1,
-  ConnectPageId = 2,
-  CaptchaPageId = 3,
-  CompleteTaskPageId = 4,
-  GiveawayInfoPageId = 5,
+  NoGiveaway,
+  Loading,
+  Connect,
+  Captcha,
+  CompleteTask,
+  GiveawayInfo,
 }
 
 function App({ mtwWalletInfo }: OwnProps) {
@@ -58,7 +58,7 @@ function App({ mtwWalletInfo }: OwnProps) {
   const [participantStatus, setParticipantStatus] = useState<ParticipantStatus>();
   const [wallet, setWallet] = useState<Wallet>();
   const [tokenAddressData, setTokenAddressData] = useState<JettonMetadataInfo>();
-  const [renderKey, setRenderKey] = useState<PageKey>(PageKey.LoadingPageId);
+  const [renderKey, setRenderKey] = useState<PageKey>(PageKey.Loading);
 
   const loadGiveaway = useLoadGiveaway(setGiveaway, setTokenAddressData);
   const loadWallet = useLoadWallet(setWallet);
@@ -77,17 +77,17 @@ function App({ mtwWalletInfo }: OwnProps) {
 
   useEffect(() => {
     if (!getGiveawayId()) {
-      setRenderKey(PageKey.NoGiveawayPageId);
+      setRenderKey(PageKey.NoGiveaway);
     } else if (!giveaway) {
-      setRenderKey(PageKey.LoadingPageId);
+      setRenderKey(PageKey.Loading);
     } else if (!wallet) {
-      setRenderKey(PageKey.ConnectPageId);
+      setRenderKey(PageKey.Connect);
     } else if (giveaway.status === GiveawayStatus.Active && participantStatus === ParticipantStatus.NotFound) {
-      setRenderKey(PageKey.CaptchaPageId);
+      setRenderKey(PageKey.Captcha);
     } else if (isGiveawayWithTask(giveaway) && participantStatus === ParticipantStatus.AwaitingTask) {
-      setRenderKey(PageKey.CompleteTaskPageId);
+      setRenderKey(PageKey.CompleteTask);
     } else if (participantStatus) {
-      setRenderKey(PageKey.GiveawayInfoPageId);
+      setRenderKey(PageKey.GiveawayInfo);
     }
   }, [participantStatus, giveaway, wallet]);
 
@@ -98,13 +98,13 @@ function App({ mtwWalletInfo }: OwnProps) {
 
   function renderPage() {
     switch (renderKey) {
-      case PageKey.NoGiveawayPageId:
+      case PageKey.NoGiveaway:
         return <div>QueryParams has no giveawayId</div>;
 
-      case PageKey.LoadingPageId:
+      case PageKey.Loading:
         return <div className={styles.loading}><Spinner /></div>;
 
-      case PageKey.ConnectPageId:
+      case PageKey.Connect:
         return (
           <ConnectPage
             giveaway={giveaway!}
@@ -113,7 +113,7 @@ function App({ mtwWalletInfo }: OwnProps) {
           />
         );
 
-      case PageKey.CaptchaPageId:
+      case PageKey.Captcha:
         return (
           <CaptchaPage
             wallet={wallet!}
@@ -123,7 +123,7 @@ function App({ mtwWalletInfo }: OwnProps) {
           />
         );
 
-      case PageKey.CompleteTaskPageId:
+      case PageKey.CompleteTask:
         return (
           <CompleteTaskPage
             giveaway={giveaway as GiveawayWithTask}
@@ -132,7 +132,7 @@ function App({ mtwWalletInfo }: OwnProps) {
           />
         );
 
-      case PageKey.GiveawayInfoPageId:
+      case PageKey.GiveawayInfo:
         return (
           <GiveawayInfoPage
             giveaway={giveaway!}

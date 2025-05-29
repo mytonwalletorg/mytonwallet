@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
@@ -27,6 +28,7 @@ import CustomCardManager from './CustomCardManager';
 import styles from './StickyCard.module.scss';
 
 interface OwnProps {
+  ref?: RefObject<HTMLDivElement>;
   classNames?: string;
 }
 
@@ -39,6 +41,7 @@ interface StateProps {
 }
 
 function StickyCard({
+  ref,
   classNames,
   tokens,
   baseCurrency,
@@ -72,7 +75,7 @@ function StickyCard({
 
   return (
     <div className={styles.root}>
-      <div className={buildClassName(styles.background, cardNft && styles.noNoise, classNames)}>
+      <div ref={ref} className={buildClassName(styles.background, cardNft && styles.noNoise, classNames)}>
         {!IS_CORE_WALLET && (<CustomCardManager isSticky nft={cardNft} onCardChange={handleCardChange} />)}
         <div className={buildClassName(styles.content, customCardClassName)}>
           <AccountSelector

@@ -13,7 +13,10 @@ interface OwnProps {
 }
 
 function LoadingDots({ isActive, className, isDoubled }: OwnProps) {
-  const { shouldRender, transitionClassNames } = useShowTransition(isActive);
+  const { shouldRender, ref } = useShowTransition({
+    isOpen: isActive,
+    withShouldRender: true,
+  });
 
   if (!shouldRender) {
     // eslint-disable-next-line no-null/no-null
@@ -21,7 +24,7 @@ function LoadingDots({ isActive, className, isDoubled }: OwnProps) {
   }
 
   return (
-    <div className={buildClassName(styles.root, isDoubled && styles.doubled, className, transitionClassNames)}>
+    <div ref={ref} className={buildClassName(styles.root, isDoubled && styles.doubled, className)}>
       <span className={styles.dot} />
       <span className={styles.dot} />
       <span className={styles.dot} />

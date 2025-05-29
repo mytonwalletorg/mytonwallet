@@ -1,5 +1,4 @@
 import * as tonWebMnemonic from 'tonweb-mnemonic';
-import { Address } from '@ton/core';
 import * as bip39 from 'bip39';
 import nacl from 'tweetnacl';
 
@@ -9,7 +8,6 @@ import type {
   ApiNetwork,
   ApiTonAccount,
   ApiTonWallet,
-  ApiWalletInfo,
 } from '../../types';
 import type { ApiTonWalletVersion } from './types';
 import type { TonWallet } from './util/tonCore';
@@ -27,8 +25,7 @@ import { getMnemonic } from '../../common/mnemonic';
 import { bytesToHex, hexToBytes } from '../../common/utils';
 import { resolveAddress } from './address';
 import { TON_BIP39_PATH } from './constants';
-import { getWalletInfos } from './toncenter';
-import { buildWallet, pickBestWallet, publicKeyToAddress } from './wallet';
+import { buildWallet, getWalletInfo, pickBestWallet, publicKeyToAddress } from './wallet';
 
 export function generateMnemonic() {
   return tonWebMnemonic.generateMnemonic();
@@ -191,30 +188,17 @@ export async function getWalletFromAddress(
   if (resolvedAddress === 'invalidAddress') return { error: ApiAuthError.InvalidAddress };
   const rawAddress = resolvedAddress.address;
 
-  let address: Address;
-  try {
-    address = Address.parse(rawAddress);
-  } catch {
-    return { error: ApiAuthError.InvalidAddress };
-  }
-
-  const [walletInfos, publicKey] = await Promise.all([
-    getWalletInfos(network, [rawAddress]),
+  const [walletInfo, publicKey] = await Promise.all([
+    getWalletInfo(network, rawAddress),
     getWalletPublicKey(network, rawAddress),
   ]);
-  const walletInfo = walletInfos[rawAddress] as ApiWalletInfo | undefined;
-
-  // When the address is not initialized, it's unknown whether it will be a wallet or a smart contract. Assuming it'll
-  // be a wallet because it's more likely. If the address gets initialized as a smart contract, the mismatching format
-  // of the stored address will cause some transactions to miss in Activity section of the app (this is a known problem).
-  const isWallet = !walletInfo?.isInitialized || Boolean(walletInfo.version);
 
   return {
     title: resolvedAddress.name,
     wallet: omitUndefined<ApiTonWallet>({
       type: 'ton',
       publicKey: publicKey ? bytesToHex(publicKey) : undefined,
-      address: toBase64Address(address, !isWallet, network),
+      address: walletInfo.address,
       // The wallet has no version until it's initialized as a wallet. Using the default version just for the type
       // compliance, it plays no role for view wallets anyway.
       version: walletInfo?.version ?? DEFAULT_WALLET_VERSION,

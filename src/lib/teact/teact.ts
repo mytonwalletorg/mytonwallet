@@ -56,14 +56,17 @@ export interface VirtualElementComponent {
 export interface VirtualElementFragment {
   type: VirtualType.Fragment;
   children: VirtualElementChildren;
+  placeholderTarget?: Comment;
 }
 
 export type StateHookSetter<T> = (newValue: ((current: T) => T) | T) => void;
 
-export interface RefObject<T = any> {
+export interface RefObject<T = unknown> {
   current: T;
   onChange?: NoneToVoidFunction;
 }
+
+export type ElementRef<T = HTMLElement> = RefObject<T | undefined>;
 
 export enum MountState {
   Mounting,
@@ -92,7 +95,7 @@ interface ComponentInstance {
     effects?: {
       cursor: number;
       byCursor: {
-        dependencies?: readonly any[];
+        dependencies?: readonly unknown[];
         schedule?: NoneToVoidFunction;
         cleanup?: NoneToVoidFunction;
         releaseSignals?: NoneToVoidFunction;
@@ -102,7 +105,7 @@ interface ComponentInstance {
       cursor: number;
       byCursor: {
         value: any;
-        dependencies: any[];
+        dependencies: readonly unknown[];
       }[];
     };
     refs?: {
@@ -134,6 +137,7 @@ export type TeactNode =
   | string
   | number
   | boolean
+  | undefined
   | TeactNode[];
 
 type Effect = () => (NoneToVoidFunction | void);
@@ -354,7 +358,7 @@ const runUpdatePassOnRaf = throttleWith(requestMeasure, () => {
   requestMutation(() => {
     instancesToUpdate.forEach(prepareComponentForFrame);
     instancesToUpdate.forEach((instance) => {
-      if (idsToExcludeFromUpdate!.has(instance.id)) {
+      if (idsToExcludeFromUpdate.has(instance.id)) {
         return;
       }
 
@@ -390,7 +394,7 @@ export function renderComponent(componentInstance: ComponentInstance) {
   idsToExcludeFromUpdate.add(componentInstance.id);
 
   const { Component, props } = componentInstance;
-  let newRenderedValue: any;
+  let newRenderedValue: unknown;
 
   safeExec(() => {
     renderingInstance = componentInstance;
@@ -530,9 +534,9 @@ function helpGc(componentInstance: ComponentInstance) {
 
   if (effects) {
     for (const hook of effects.byCursor) {
-      hook.schedule = undefined as any;
-      hook.cleanup = undefined as any;
-      hook.releaseSignals = undefined as any;
+      hook.schedule = undefined;
+      hook.cleanup = undefined;
+      hook.releaseSignals = undefined;
       hook.dependencies = undefined;
     }
   }
@@ -541,25 +545,28 @@ function helpGc(componentInstance: ComponentInstance) {
     for (const hook of state.byCursor) {
       hook.value = undefined;
       hook.nextValue = undefined;
+
       hook.setter = undefined as any;
     }
   }
 
   if (memos) {
     for (const hook of memos.byCursor) {
-      hook.value = undefined as any;
+      hook.value = undefined;
+
       hook.dependencies = undefined as any;
     }
   }
 
   if (refs) {
     for (const hook of refs.byCursor) {
-      hook.current = undefined as any;
-      hook.onChange = undefined as any;
+      hook.current = undefined;
+      hook.onChange = undefined;
     }
   }
 
-  componentInstance.hooks = undefined as any;
+  componentInstance.hooks = undefined;
+
   componentInstance.$element = undefined as any;
   componentInstance.renderedValue = undefined;
   componentInstance.onUpdate = undefined;
@@ -650,7 +657,7 @@ export function useState<T>(initial?: T, debugKey?: string): [T, StateHookSetter
 function useEffectBase(
   isLayout: boolean,
   effect: Effect,
-  dependencies?: readonly any[],
+  dependencies?: readonly unknown[],
   debugKey?: string,
 ) {
   if (!renderingInstance.hooks) {
@@ -672,10 +679,10 @@ function useEffectBase(
   if (dependencies && effectConfig?.dependencies) {
     if (dependencies.some((dependency, i) => dependency !== effectConfig.dependencies![i])) {
       if (DEBUG && debugKey) {
-        const causedBy = dependencies.reduce((res, newValue, i) => {
+        const causedBy = dependencies.reduce<string[]>((res, newValue, i) => {
           const prevValue = effectConfig.dependencies![i];
           if (newValue !== prevValue) {
-            res.push(`${i}: ${prevValue} => ${newValue}`);
+            res.push(`${i}: ${String(prevValue)} => ${String(newValue)}`);
           }
 
           return res;
@@ -770,7 +777,7 @@ function scheduleEffect(
       }
     }, {
       rescue: () => {
-        // eslint-disable-next-line no-console, max-len
+        // eslint-disable-next-line no-console
         console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`,
           componentInstance);
       },
@@ -818,11 +825,11 @@ function scheduleEffect(
   runUpdatePassOnRaf();
 }
 
-export function useEffect(effect: Effect, dependencies?: readonly any[], debugKey?: string) {
+export function useEffect(effect: Effect, dependencies?: readonly unknown[], debugKey?: string) {
   return useEffectBase(false, effect, dependencies, debugKey);
 }
 
-export function useLayoutEffect(effect: Effect, dependencies?: readonly any[], debugKey?: string) {
+export function useLayoutEffect(effect: Effect, dependencies?: readonly unknown[], debugKey?: string) {
   return useEffectBase(true, effect, dependencies, debugKey);
 }
 
@@ -846,9 +853,9 @@ export function useUnmountCleanup(cleanup: NoneToVoidFunction) {
   renderingInstance.hooks.effects.cursor++;
 }
 
-export function useMemo<T extends any>(
+export function useMemo<T>(
   resolver: () => T,
-  dependencies: any[],
+  dependencies: readonly unknown[],
   debugKey?: string,
   debugHitRateKey?: string,
 ): T {
@@ -906,7 +913,7 @@ export function useMemo<T extends any>(
         ) {
           // eslint-disable-next-line no-console
           console.warn(
-            // eslint-disable-next-line max-len
+
             `[Teact] ${DEBUG_state.key}: Hit rate is ${DEBUG_state.hitRate.toFixed(2)} for ${DEBUG_state.calls} calls`,
           );
         }
@@ -926,7 +933,7 @@ export function useMemo<T extends any>(
   return value;
 }
 
-export function useCallback<F extends AnyFunction>(newCallback: F, dependencies: any[], debugKey?: string): F {
+export function useCallback<F extends AnyFunction>(newCallback: F, dependencies: unknown[], debugKey?: string): F {
   // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   return useMemo(() => newCallback, dependencies, debugKey);
 }
@@ -982,7 +989,7 @@ export function createContext<T>(defaultValue?: T): Context<T> {
 export function useContextSignal<T>(context: Context<T>) {
   const [getDefaultValue] = useSignal(context.defaultValue);
 
-  return renderingInstance.context?.[context.contextId] || getDefaultValue;
+  return renderingInstance.context?.[context.contextId] as Signal<T> || getDefaultValue;
 }
 
 export function useSignal<T>(initial?: T) {

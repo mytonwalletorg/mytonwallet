@@ -1,6 +1,4 @@
-import React, {
-  memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
-} from '../../../../lib/teact/teact';
+import React, { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
@@ -10,11 +8,13 @@ import {
   ANIMATED_STICKER_SMALL_SIZE_PX,
   NFT_MARKETPLACE_TITLE,
   NFT_MARKETPLACE_URL,
+  TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
-import { selectCurrentAccountState } from '../../../../global/selectors';
+import { selectCurrentAccountState, selectIsCurrentAccountViewMode } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { getTonDnsExpirationDate } from '../../../../util/dns';
 import { stopEvent } from '../../../../util/domEvents';
 import { openUrl } from '../../../../util/openUrl';
 import { getHostnameFromUrl } from '../../../../util/url';
@@ -44,6 +44,8 @@ interface StateProps {
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
   isNftBuyingDisabled?: boolean;
+  dnsExpiration?: Record<string, number>;
+  isViewAccount?: boolean;
 }
 
 const INTERSECTION_THROTTLE = 200;
@@ -56,9 +58,11 @@ function Nfts({
   selectedAddresses,
   byAddress,
   currentCollectionAddress,
+  dnsExpiration,
   isNftBuyingDisabled,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
+  isViewAccount,
 }: OwnProps & StateProps) {
   const { clearNftsSelection } = getActions();
 
@@ -81,16 +85,23 @@ function Nfts({
     const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
     const whitelistedNftAddressesSet = new Set(whitelistedNftAddresses);
 
-    const result = orderedAddresses
-      .map((address) => byAddress[address])
-      .filter((nft) => {
-        if (!nft) return false;
+    const result = orderedAddresses.reduce<ApiNft[]>((acc, address) => {
+      const nft = byAddress[address];
 
-        return !currentCollectionAddress || nft.collectionAddress === currentCollectionAddress;
-      })
-      .filter((nft) => (
+      if (nft && (
+        !currentCollectionAddress
+        || nft.collectionAddress === currentCollectionAddress
+        || (currentCollectionAddress === TELEGRAM_GIFTS_SUPER_COLLECTION && nft.isTelegramGift)
+      ) && (
         !nft.isHidden || whitelistedNftAddressesSet.has(nft.address)
-      ) && !blacklistedNftAddressesSet.has(nft.address));
+      ) && (
+        !blacklistedNftAddressesSet.has(nft.address)
+      )) {
+        acc.push(nft);
+      }
+
+      return acc;
+    }, []);
 
     return isScrolled ? result : result.slice(0, INITIAL_SLICE_LENGTH);
   }, [
@@ -189,6 +200,8 @@ function Nfts({
           key={nft.address}
           nft={nft}
           selectedAddresses={selectedAddresses}
+          tonDnsExpiration={getTonDnsExpirationDate(nft, dnsExpiration)}
+          isViewAccount={isViewAccount}
           observeIntersection={observeIntersection}
         />
       ))}
@@ -204,6 +217,7 @@ export default memo(
         byAddress,
         currentCollectionAddress,
         selectedAddresses,
+        dnsExpiration,
       } = selectCurrentAccountState(global)?.nfts || {};
       const { isNftBuyingDisabled } = global.restrictions;
 
@@ -220,6 +234,8 @@ export default memo(
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         isNftBuyingDisabled,
+        dnsExpiration,
+        isViewAccount: selectIsCurrentAccountViewMode(global),
       };
     },
     (global, _, stickToFirst) => {

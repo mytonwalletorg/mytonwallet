@@ -22,6 +22,7 @@ import {
 } from '../util/windowEnvironment';
 import { updateSizes } from '../util/windowSize';
 import { callApi } from '../api';
+import IFrameBrowser from './ui/IFrameBrowser';
 
 import { useAppIntersectionObserver } from '../hooks/useAppIntersectionObserver';
 import useAppTheme from '../hooks/useAppTheme';
@@ -265,17 +266,21 @@ function App({
           <AddAccountModal />
           <OnRampWidgetModal />
           <UnhideNftModal />
-          {!IS_DELEGATED_BOTTOM_SHEET && <Notifications />}
           {IS_CAPACITOR && (
             <QrScannerModal
               isOpen={isQrScannerOpen}
               onClose={closeQrScanner}
             />
           )}
-          {!IS_DELEGATED_BOTTOM_SHEET && <Dialogs />}
-          {!IS_DELEGATED_BOTTOM_SHEET && <ConfettiContainer />}
-          {IS_CAPACITOR && !IS_DELEGATED_BOTTOM_SHEET && <InAppBrowser />}
-          {!IS_DELEGATED_BOTTOM_SHEET && <LoadingOverlay />}
+          {!IS_DELEGATED_BOTTOM_SHEET && (
+            <>
+              <Notifications />
+              <Dialogs />
+              <ConfettiContainer />
+              {IS_CAPACITOR ? <InAppBrowser /> : <IFrameBrowser />}
+              <LoadingOverlay />
+            </>
+          )}
         </>
       )}
       {withBottomBar && <BottomBar />}

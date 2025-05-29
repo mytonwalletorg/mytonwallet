@@ -5,8 +5,8 @@ import type { AccountState, AddressBook, MetadataMap, WalletState, WalletVersion
 import { TONCENTER_ACTIONS_VERSION, TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config';
 import { buildTxId } from '../../../../util/activities';
 import { fetchJson } from '../../../../util/fetch';
-import { buildCollectionByKey, mapValues, split } from '../../../../util/iteratees';
-import { toBase64Address, toRawAddress } from '../util/tonCore';
+import { buildCollectionByKey, split } from '../../../../util/iteratees';
+import { toRawAddress } from '../util/tonCore';
 import { getEnvironment } from '../../../environment';
 
 const ADDRESS_BOOK_CHUNK_SIZE = 128;
@@ -43,30 +43,45 @@ export async function fixAddressFormat(network: ApiNetwork, address: string): Pr
   return result.address_book[address];
 }
 
-export async function getWalletStates(network: ApiNetwork, addresses: string[]) {
-  const { wallets: states } = await callToncenterV3<{
-    addressBook: AddressBook;
+/**
+ * The output dictionary is indexed by the input addresses.
+ * Every input address is guaranteed to be a key of the dictionary.
+ */
+export async function getWalletInfos(network: ApiNetwork, addresses: string[]): Promise<Record<string, ApiWalletInfo>> {
+  const { wallets: states, address_book: addressBook } = await callToncenterV3<{
+    address_book: AddressBook;
     wallets: WalletState[];
   }>(network, '/walletStates', { address: addresses.join(',') });
 
-  const addressByRaw = Object.fromEntries(addresses.map((address) => [toRawAddress(address).toUpperCase(), address]));
-  for (const state of states) {
-    state.address = addressByRaw[state.address];
-  }
-  return buildCollectionByKey(states, 'address');
+  const walletInfoByRawAddress = Object.fromEntries(states.map((state) => [
+    state.address.toLowerCase(),
+    buildWalletInfo(state, addressBook),
+  ]));
+
+  return Object.fromEntries(addresses.map((inputAddress) => {
+    const rawAddress = toRawAddress(inputAddress).toLowerCase();
+    return [
+      inputAddress,
+      walletInfoByRawAddress[rawAddress] ?? {
+        address: inputAddress,
+        balance: 0n,
+        isInitialized: false,
+        seqno: 0,
+      } satisfies ApiWalletInfo,
+    ];
+  }));
 }
 
-export async function getWalletInfos(network: ApiNetwork, addresses: string[]): Promise<Record<string, ApiWalletInfo>> {
-  const states = await getWalletStates(network, addresses);
-  return mapValues(states, (state) => {
-    return {
-      address: toBase64Address(state.address, false),
-      version: state.status === 'active' && state.is_wallet ? VERSION_MAP[state.wallet_type] : undefined,
-      balance: BigInt(state.balance),
-      isInitialized: state.status === 'active',
-      lastTxId: state.last_transaction_hash ? buildTxId(state.last_transaction_hash) : undefined,
-    };
-  });
+function buildWalletInfo(state: WalletState, addressBook: AddressBook): ApiWalletInfo {
+  return {
+    address: addressBook[state.address].user_friendly,
+    version: 'wallet_type' in state ? VERSION_MAP[state.wallet_type] : undefined,
+    balance: BigInt(state.balance),
+    isInitialized: state.status === 'active',
+    seqno: 'seqno' in state ? state.seqno : 0,
+    lastTxId: state.last_transaction_hash ? buildTxId(state.last_transaction_hash) : undefined,
+    domain: addressBook[state.address].domain ?? undefined,
+  };
 }
 
 export async function getAccountStates(network: ApiNetwork, addresses: string[]) {

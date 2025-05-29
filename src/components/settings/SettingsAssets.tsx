@@ -111,9 +111,9 @@ function SettingsAssets({
 
   const [localBaseCurrency, setLocalBaseCurrency] = useState(baseCurrency);
 
-  const handleBaseCurrencyChange = useLastCallback((currency: string) => {
-    setLocalBaseCurrency(currency as ApiBaseCurrency);
-    changeBaseCurrency({ currency: currency as ApiBaseCurrency });
+  const handleBaseCurrencyChange = useLastCallback((currency: ApiBaseCurrency) => {
+    setLocalBaseCurrency(currency);
+    changeBaseCurrency({ currency });
   });
 
   const {

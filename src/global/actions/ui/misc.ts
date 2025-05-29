@@ -5,6 +5,7 @@ import type { GlobalState } from '../../types';
 import {
   AppState,
   AuthState,
+  DomainLinkingState,
   HardwareConnectState,
   SettingsState,
   SwapState,
@@ -54,6 +55,7 @@ import {
   updateAuth,
   updateCurrentAccountSettings,
   updateCurrentAccountState,
+  updateCurrentDomainLinking,
   updateCurrentSwap,
   updateCurrentTransfer,
   updateHardware,
@@ -572,6 +574,8 @@ addActionHandler('requestOpenQrScanner', async (global, actions) => {
     currentQrScan = { currentTransfer: global.currentTransfer };
   } else if (global.currentSwap.state === SwapState.Blockchain) {
     currentQrScan = { currentSwap: global.currentSwap };
+  } else if (global.currentDomainLinking.state === DomainLinkingState.Initial) {
+    currentQrScan = { currentDomainLinking: global.currentDomainLinking };
   }
 
   const { camera } = await BarcodeScanner.requestPermissions();
@@ -611,7 +615,7 @@ addActionHandler('handleQrCode', async (global, actions, { data }) => {
     return;
   }
 
-  const { currentTransfer, currentSwap } = global.currentQrScan || {};
+  const { currentTransfer, currentSwap, currentDomainLinking } = global.currentQrScan || {};
 
   if (currentTransfer) {
     const transferParams = parseDeeplinkTransferParams(data, global);
@@ -631,10 +635,14 @@ addActionHandler('handleQrCode', async (global, actions, { data }) => {
     return;
   }
 
-  if (currentSwap) {
+  if (currentSwap || currentDomainLinking) {
     const linkParams = parseDeeplinkTransferParams(data, global);
     const toAddress = linkParams?.toAddress ?? data;
-    setGlobal(updateCurrentSwap(global, { ...currentSwap, toAddress }));
+    if (currentSwap) {
+      setGlobal(updateCurrentSwap(global, { ...currentSwap, toAddress }));
+    } else {
+      setGlobal(updateCurrentDomainLinking(global, { ...currentDomainLinking, walletAddress: toAddress }));
+    }
     return;
   }
 
@@ -727,29 +735,49 @@ addActionHandler('closeMediaViewer', (global) => {
   };
 });
 
-addActionHandler('openReceiveModal', (global) => {
+addActionHandler('setReceiveActiveTab', (global, actions, { chain }): GlobalState => {
+  return updateCurrentAccountState(global, { receiveModalChain: chain });
+});
+
+addActionHandler('openReceiveModal', (global, actions, params) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('openReceiveModal');
+    callActionInMain('openReceiveModal', params);
     return;
   }
 
-  setGlobal({ ...global, isReceiveModalOpen: true });
+  global = updateCurrentAccountState(global, { receiveModalChain: params?.chain });
+  global = { ...global, isReceiveModalOpen: true };
+  setGlobal(global);
 });
 
-addActionHandler('closeReceiveModal', (global) => {
-  setGlobal({ ...global, isReceiveModalOpen: undefined });
+addActionHandler('closeReceiveModal', (global): GlobalState => {
+  global = updateCurrentAccountState(global, { receiveModalChain: undefined });
+  return { ...global, isReceiveModalOpen: undefined };
 });
 
-addActionHandler('openInvoiceModal', (global) => {
+addActionHandler('openInvoiceModal', (global, actions, params) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('openInvoiceModal');
+    callActionInMain('openInvoiceModal', params);
     return;
   }
+
+  global = updateCurrentAccountState(global, { invoiceTokenSlug: params?.tokenSlug });
   setGlobal({ ...global, isInvoiceModalOpen: true });
 });
 
-addActionHandler('closeInvoiceModal', (global) => {
-  setGlobal({ ...global, isInvoiceModalOpen: undefined });
+addActionHandler('changeInvoiceToken', (global, actions, params) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('changeInvoiceToken', params);
+    return;
+  }
+
+  global = updateCurrentAccountState(global, { invoiceTokenSlug: params.tokenSlug });
+  setGlobal(global);
+});
+
+addActionHandler('closeInvoiceModal', (global): GlobalState => {
+  global = updateCurrentAccountState(global, { invoiceTokenSlug: undefined });
+  return { ...global, isInvoiceModalOpen: undefined };
 });
 
 addActionHandler('showIncorrectTimeError', (global, actions) => {

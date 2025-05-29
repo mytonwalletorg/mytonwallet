@@ -3,6 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
+import type { DropdownItem } from '../ui/Dropdown';
 
 import {
   APP_COMMIT_HASH,
@@ -43,7 +44,7 @@ interface StateProps {
   accountsById?: Record<string, Account>;
 }
 
-const NETWORK_OPTIONS = [{
+const NETWORK_OPTIONS: DropdownItem<ApiNetwork>[] = [{
   value: 'mainnet',
   name: 'Mainnet',
 }, {
@@ -72,8 +73,8 @@ function SettingsDeveloperOptions({
   const lang = useLang();
   const currentNetwork = NETWORK_OPTIONS[isTestnet ? 1 : 0].value;
 
-  const handleNetworkChange = useLastCallback((newNetwork: string) => {
-    startChangingNetwork({ network: newNetwork as ApiNetwork });
+  const handleNetworkChange = useLastCallback((newNetwork: ApiNetwork) => {
+    startChangingNetwork({ network: newNetwork });
     onClose();
   });
 

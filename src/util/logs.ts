@@ -1,6 +1,5 @@
 import { DEBUG, DEBUG_API } from '../config';
 import { AssertionError } from './assert';
-import { omit } from './iteratees';
 
 export interface Log {
   message: string;
@@ -38,17 +37,6 @@ export function addLog(log: Omit<Log, 'time'>) {
 
 export function getLogs() {
   return logs;
-}
-
-export function logActionHandling(name: string, payload?: any) {
-  if (!DEBUG_API) return;
-  if (name === 'apiUpdate') {
-    if (typeof payload?.type === 'string' && payload.type !== 'updatingStatus') {
-      logDebugApi(`Update: ${payload.type}`, omit(payload, ['type']));
-    }
-  } else {
-    logDebugApi(`Action: ${name}`, payload);
-  }
 }
 
 export function logDebugError(message: string, ...args: any[]) {

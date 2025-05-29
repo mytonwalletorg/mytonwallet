@@ -69,6 +69,10 @@
   &:active {
     opacity: 0.8;
   }
+
+  & + .textButton {
+    margin-top: 0.75rem;
+  }
 }
 
 .sticker {
@@ -385,10 +389,12 @@
   &_withMargin {
     margin-bottom: 2rem;
   }
+
   &_adaptiveWidth {
     display: grid;
     grid-auto-flow: column;
     grid-template-columns: repeat(auto-fit, minmax(max-content, 1fr));
+
     & .stakingInfoButton {
       min-width: 4rem !important;
       padding: 0.5rem !important;
@@ -402,6 +408,29 @@
   max-width: 100% !important;
 
   font-size: 0.9375rem !important;
+}
+
+.checkEligibilityButton {
+  position: relative;
+
+  margin: 1rem auto;
+
+  font-size: 1rem !important;
+  color: var(--color-gpurple-button-text-rest);
+
+  background: linear-gradient(81.88deg, var(--color-purple-1) 19.42%, #1EC160 71.55%);
+  background-clip: text;
+
+  transition: opacity 150ms;
+
+  -webkit-text-fill-color: transparent;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      opacity: 0.8;
+    }
+  }
 }
 
 .insufficientBalance {

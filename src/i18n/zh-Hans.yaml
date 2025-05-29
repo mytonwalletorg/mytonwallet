@@ -602,6 +602,7 @@ Unfrozen: 解冻
 Missed: 错过了
 Frozen: 冷冻
 until %date%: 截至 %date%
+Until %date%: 截至 %date%
 "%volume% in %amount% parts": "%volume% 分成 %amount% 份"
 Unfreeze: 解冻
 Claim: 宣称
@@ -833,4 +834,56 @@ $unstaking_when_receive_ethena: 您将在 **7 天** 后收到已解除质押的�
 Coins have been unstaked!: 代币已解锁！
 Confirm Upgrading: 确认升级
 How does it work?: 它是如何运作的？
+Multisend: 批量发送
+Expires in %1$d days:
+  zeroValue: 今日到期
+  otherValue: "%1$d 天后到期"
+Renew All: 全部续费
+Renew: 续费
+Renew Domain: 续费域名
+Renew Domains: 续费域名
+Some domains are about to expire: 部分域名即将到期
+$domain_expire:
+  zeroValue: "%domain% 今天到期"
+  otherValue: "%domain% 将在 %days% 天后到期"
 '%token% Staking': '%token% 质押'
+Add Tab: 添加标签页
+Remove Tab: 移除标签页
+Link Domain: 链接域名
+Domain Linked!: 域名已链接!
+Failed to process domain operation. Please try again.: 域名操作处理失败，请重试。
+$domains_amount %1$d:
+  zeroValue: 无域名
+  otherValue: "%1$d个域名"
+Stake: 质押
+Manage Tokens: 管理代币
+Claim Rewards: 领取奖励
+Configure DNS: 配置DNS
+Link to Wallet: 链接到钱包
+Change Wallet: 更改钱包
+Change Linked Wallet: 更改已链接钱包
+Domain has been renewed!: 域名已续费!
+Domains have been renewed!: 域名已成功续费!
+Linked Wallet: 已链接钱包
+Domain has been linked!: 域名已链接!
+Link: 链接
+Confirm Renewing: 确认续费
+Confirm Linking: 确认链接
+$domains_expire:
+  zeroValue: "没有域名将于%days%到期"
+  oneValue: "%domain%个域名将于%days%到期"
+  otherValue: "%domain%个域名将于%days%到期"
+$in_days:
+  zeroValue: "今天"
+  oneValue: "明天"
+  otherValue: "%1$d天后"
+$domain_was_expired: "%domain% 已过期"
+$domains_was_expired:
+  zeroValue: "没有域名过期"
+  oneValue: "%domain%个域名已过期"
+  otherValue: "%domain%个域名已过期"
+
+Reload: 重新加载
+Copy Link: 复制链接
+Check eligibility for max APY: 检查最大 APY 资格
+Check eligibility: 检查资格

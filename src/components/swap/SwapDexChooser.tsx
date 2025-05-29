@@ -77,9 +77,10 @@ function SwapDexChooser({
       dex_name: selectedDexLabel ? SWAP_DEX_LABELS[selectedDexLabel] : '',
     });
 
-  const { shouldRender, transitionClassNames } = useShowTransition(
-    !!estimates?.length && !!tokenOut && !!amountOut && !!amountIn,
-  );
+  const { shouldRender, ref: rootRef } = useShowTransition({
+    isOpen: !!estimates?.length && !!tokenOut && !!amountOut && !!amountIn,
+    withShouldRender: true,
+  });
 
   const handleDexConfirm = useLastCallback(() => {
     if (selectedDexLabel) {
@@ -147,7 +148,7 @@ function SwapDexChooser({
 
   if (renderedDexItems.length === 1) {
     return (
-      <div className={buildClassName(styles.root, transitionClassNames)}>
+      <div ref={rootRef} className={styles.root}>
         <div className={styles.container}>
           <span className={buildClassName(styles.content, isStatic && styles.static)}>{buttonContent}</span>
         </div>
@@ -210,7 +211,7 @@ function SwapDexChooser({
   }
 
   return (
-    <div className={buildClassName(styles.root, transitionClassNames)}>
+    <div ref={rootRef} className={styles.root}>
       <div className={styles.container}>
         <button
           type="button"

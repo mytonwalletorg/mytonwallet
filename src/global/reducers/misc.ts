@@ -172,30 +172,31 @@ export function updateBalances(
   chain: ApiChain,
   chainBalances: ApiBalanceBySlug,
 ): GlobalState {
-  const balances: ApiBalanceBySlug = { ...chainBalances };
+  const newBalances: ApiBalanceBySlug = { ...chainBalances };
   const currentBalances = selectAccountState(global, accountId)?.balances?.bySlug ?? {};
-  const importedSlugs = selectAccountSettings(global, accountId)?.importedSlugs ?? [];
-  const hasTonWallet = Boolean(selectAccount(global, accountId)?.addressByChain?.ton);
 
-  for (const [slug, balance] of Object.entries(currentBalances)) {
+  for (const [slug, currentBalance] of Object.entries(currentBalances)) {
     if (getChainBySlug(slug) !== chain) {
-      balances[slug] = balance;
+      newBalances[slug] = currentBalance;
     }
   }
 
-  // Force balance value for USDT-TON and manual imported tokens
+  // Force balance value for USDT-TON and manually imported tokens
+  const importedSlugs = selectAccountSettings(global, accountId)?.importedSlugs ?? [];
+  const hasTonWallet = Boolean(selectAccount(global, accountId)?.addressByChain?.ton);
+
   let forcedSlugs = importedSlugs;
   if (hasTonWallet) forcedSlugs = [...forcedSlugs, TON_USDT_SLUG];
 
   for (const slug of forcedSlugs) {
-    if (!(slug in balances)) {
-      balances[slug] = 0n;
+    if (!(slug in newBalances)) {
+      newBalances[slug] = 0n;
     }
   }
 
   return updateAccountState(global, accountId, {
     balances: {
-      bySlug: balances,
+      bySlug: newBalances,
     },
   });
 }

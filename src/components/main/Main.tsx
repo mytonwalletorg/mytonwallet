@@ -14,6 +14,8 @@ import {
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
+  selectIsStakingDisabled,
+  selectIsSwapDisabled,
 } from '../../global/selectors';
 import { useAccentColor } from '../../util/accentColor';
 import buildClassName from '../../util/buildClassName';
@@ -36,6 +38,8 @@ import useLastCallback from '../../hooks/useLastCallback';
 import usePreventPinchZoomGesture from '../../hooks/usePreventPinchZoomGesture';
 import useShowTransition from '../../hooks/useShowTransition';
 
+import LinkingDomainModal from '../domain/LinkingDomainModal';
+import RenewDomainModal from '../domain/RenewDomainModal';
 import InvoiceModal from '../receive/InvoiceModal';
 import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
@@ -65,6 +69,7 @@ type StateProps = {
   isViewMode?: boolean;
   isStakingInfoModalOpen?: boolean;
   isSwapDisabled?: boolean;
+  isStakingDisabled?: boolean;
   isOnRampDisabled?: boolean;
   isMediaViewerOpen?: boolean;
   theme: Theme;
@@ -83,6 +88,7 @@ function Main({
   isLedger,
   isStakingInfoModalOpen,
   isSwapDisabled,
+  isStakingDisabled,
   isOnRampDisabled,
   isMediaViewerOpen,
   theme,
@@ -122,8 +128,11 @@ function Main({
   const { isPortrait, isLandscape } = useDeviceScreen();
   const {
     shouldRender: shouldRenderStickyCard,
-    transitionClassNames: stickyCardTransitionClassNames,
-  } = useShowTransition(canRenderStickyCard);
+    ref: stickyCardRef,
+  } = useShowTransition({
+    isOpen: canRenderStickyCard,
+    withShouldRender: true,
+  });
 
   useEffectOnce(() => {
     if (IS_CORE_WALLET) return;
@@ -221,14 +230,14 @@ function Main({
           />
           {shouldRenderStickyCard && (
             <StickyCard
-              classNames={stickyCardTransitionClassNames}
+              ref={stickyCardRef}
             />
           )}
           {!isViewMode && (
             <PortraitActions
               isTestnet={isTestnet}
               stakingStatus={stakingStatus}
-              isLedger={isLedger}
+              isStakingDisabled={isStakingDisabled}
               isSwapDisabled={isSwapDisabled}
               isOnRampDisabled={isOnRampDisabled}
               onEarnClick={handleEarnClick}
@@ -268,6 +277,8 @@ function Main({
       <StakingClaimModal />
       <VestingModal />
       <VestingPasswordModal />
+      <RenewDomainModal />
+      <LinkingDomainModal />
       {!IS_ELECTRON && !IS_DELEGATED_BOTTOM_SHEET && <UpdateAvailable />}
     </>
   );
@@ -280,7 +291,7 @@ export default memo(
       const accountState = selectCurrentAccountState(global);
       const { currentTokenSlug } = accountState ?? {};
 
-      const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+      const { isOnRampDisabled } = global.restrictions;
 
       const stakingState = global.currentAccountId
         ? selectAccountStakingState(global, global.currentAccountId)
@@ -294,7 +305,8 @@ export default memo(
         isViewMode: selectIsCurrentAccountViewMode(global),
         isStakingInfoModalOpen: global.isStakingInfoModalOpen,
         isMediaViewerOpen: Boolean(global.mediaViewer?.mediaId),
-        isSwapDisabled,
+        isSwapDisabled: selectIsSwapDisabled(global),
+        isStakingDisabled: selectIsStakingDisabled(global),
         isOnRampDisabled,
         theme: global.settings.theme,
         accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,

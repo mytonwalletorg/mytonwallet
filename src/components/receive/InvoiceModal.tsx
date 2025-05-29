@@ -1,12 +1,12 @@
 import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiToken } from '../../api/types';
+import type { ApiTokenWithPrice } from '../../api/types';
 import type { UserSwapToken, UserToken } from '../../global/types';
 
 import { IS_CAPACITOR, TONCOIN } from '../../config';
 import renderText from '../../global/helpers/renderText';
-import { selectAccount } from '../../global/selectors';
+import { selectAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { fromDecimal } from '../../util/decimals';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
@@ -30,6 +30,8 @@ import styles from './ReceiveModal.module.scss';
 
 interface StateProps {
   isOpen?: boolean;
+  tokenSlug?: string;
+  tokensBySlug?: Record<string, ApiTokenWithPrice>;
   address?: string;
 }
 
@@ -40,22 +42,25 @@ const enum SLIDES {
 
 function InvoiceModal({
   address,
+  tokenSlug,
+  tokensBySlug,
   isOpen,
 }: StateProps) {
-  const { closeInvoiceModal } = getActions();
+  const { changeInvoiceToken, closeInvoiceModal } = getActions();
 
   const lang = useLang();
+  const selectedToken = tokensBySlug && tokenSlug ? tokensBySlug[tokenSlug] : TONCOIN;
   const [isTokenSelectorOpen, openTokenSelector, closeTokenSelector] = useFlag(false);
   const [amountValue, setAmountValue] = useState<string | undefined>(undefined);
   const [comment, setComment] = useState<string>('');
-  const [selectedToken, setSelectedToken] = useState<ApiToken | undefined>(TONCOIN);
 
   const decimals = selectedToken?.decimals ?? TONCOIN.decimals;
   const amount = amountValue ? fromDecimal(amountValue, decimals) : 0n;
-  const invoiceUrl = address ? formatTransferUrl(address, amount, comment, selectedToken?.tokenAddress) : '';
+  const tokenAddress = 'tokenAddress' in selectedToken ? selectedToken?.tokenAddress : undefined;
+  const invoiceUrl = address ? formatTransferUrl(address, amount, comment, tokenAddress) : '';
 
   const handleTokenSelect = useLastCallback((token: UserToken | UserSwapToken) => {
-    setSelectedToken(token as UserToken);
+    changeInvoiceToken({ tokenSlug: token.slug });
   });
 
   // eslint-disable-next-line consistent-return
@@ -147,9 +152,12 @@ function InvoiceModal({
 export default memo(
   withGlobal((global): StateProps => {
     const address = selectAccount(global, global.currentAccountId!)?.addressByChain?.ton;
+    const { invoiceTokenSlug } = selectCurrentAccountState(global) || {};
 
     return {
       isOpen: global.isInvoiceModalOpen,
+      tokenSlug: invoiceTokenSlug,
+      tokensBySlug: global.tokenInfo?.bySlug,
       address,
     };
   })(InvoiceModal),

@@ -12,7 +12,7 @@ import DropdownMenu from '../../../ui/DropdownMenu';
 interface OwnProps {
   isOpen: boolean;
   excludedCurrency?: string;
-  menuPositionHorizontal?: 'right' | 'left';
+  menuPositionX?: 'right' | 'left';
   onClose: NoneToVoidFunction;
   onChange?: (currency: ApiBaseCurrency) => void;
 }
@@ -25,7 +25,7 @@ function CurrencySwitcher({
   isOpen,
   currentCurrency,
   excludedCurrency,
-  menuPositionHorizontal,
+  menuPositionX,
   onClose,
   onChange,
 }: OwnProps & StateProps) {
@@ -52,7 +52,7 @@ function CurrencySwitcher({
       items={currencyList}
       shouldTranslateOptions
       selectedValue={currentCurrency}
-      menuPositionHorizontal={menuPositionHorizontal}
+      menuPositionX={menuPositionX}
       onSelect={handleBaseCurrencyChange}
     />
   );

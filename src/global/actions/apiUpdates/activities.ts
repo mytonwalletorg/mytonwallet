@@ -27,6 +27,8 @@ import {
   putInitialActivities,
   removeActivities,
   replaceCurrentActivityId,
+  replaceCurrentDomainLinkingId,
+  replaceCurrentDomainRenewalId,
   replaceCurrentSwapId,
   replaceCurrentTransferId,
   setIsInitialActivitiesLoadedTrue,
@@ -103,6 +105,8 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = addNewActivities(global, accountId, incomingActivities);
 
       global = replaceCurrentTransferId(global, replacedLocalIds);
+      global = replaceCurrentDomainLinkingId(global, replacedLocalIds);
+      global = replaceCurrentDomainRenewalId(global, replacedLocalIds);
       global = replaceCurrentSwapId(global, replacedLocalIds);
       global = replaceCurrentActivityId(global, accountId, replacedLocalIds);
       notifyAboutNewActivities(global, newActivities);

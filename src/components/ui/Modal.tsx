@@ -54,7 +54,7 @@ type OwnProps = {
   noBackdropClose?: boolean;
   header?: any;
   hasCloseButton?: boolean;
-  children: React.ReactNode;
+  children: TeactNode;
   onClose: NoneToVoidFunction;
   onCloseAnimationEnd?: NoneToVoidFunction;
   onEnter?: NoneToVoidFunction;
@@ -95,9 +95,9 @@ function Modal({
   onEnter,
 }: OwnProps): TeactJsx {
   const lang = useLang();
+
   // eslint-disable-next-line no-null/no-null
   const modalRef = useRef<HTMLDivElement>(null);
-
   // eslint-disable-next-line no-null/no-null
   const localDialogRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
@@ -193,14 +193,14 @@ function Modal({
     });
   }, [isOpen, isPortrait, isSlideUp, isDelegatingToNative, onClose]);
 
-  const { shouldRender, transitionClassNames } = useShowTransition(
-    isOpen && !isDelegatingToNative,
+  const { shouldRender } = useShowTransition({
+    ref: modalRef,
+    isOpen: isOpen && !isDelegatingToNative,
     onCloseAnimationEnd,
-    undefined,
-    false,
-    undefined,
-    animationDuration,
-  );
+    className: false,
+    closeDuration: animationDuration,
+    withShouldRender: true,
+  });
 
   if (!shouldRender) {
     return undefined;
@@ -232,7 +232,6 @@ function Modal({
   const fullClassName = buildClassName(
     styles.modal,
     className,
-    transitionClassNames,
     isSlideUp && styles.slideUpAnimation,
     isCompact && styles.compact,
     isCompact && 'is-compact-modal',

@@ -16,8 +16,8 @@ import {
 const ELECTRON_ORIGIN = 'file://';
 
 let environment: ApiInitArgs & {
-  isDappSupported: boolean;
-  isSseSupported: boolean;
+  isDappSupported?: boolean;
+  isSseSupported?: boolean;
   apiHeaders?: AnyLiteral;
   toncenterMainnetKey?: string;
   toncenterTestnetKey?: string;

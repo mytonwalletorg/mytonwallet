@@ -1,15 +1,10 @@
 import { Dictionary } from '@ton/core';
-import { sha256_sync } from '@ton/crypto';
 import type { Cell } from '@ton/ton';
 import { beginCell } from '@ton/ton';
 
-const ONCHAIN_CONTENT_PREFIX = 0x00;
+import { sha256BigInt as toKey } from '../../../util/other';
 
-const toKey = (key: string) => {
-  const result = BigInt(`0x${sha256_sync(key).toString('hex')}`);
-  // console.log(key, result);
-  return result;
-};
+const ONCHAIN_CONTENT_PREFIX = 0x00;
 
 export function buildOnchainMetadata(data: any): Cell {
   const dict = Dictionary.empty(

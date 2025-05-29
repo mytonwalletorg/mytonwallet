@@ -665,7 +665,8 @@ export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft |
       ...(collection && {
         collectionAddress,
         collectionName: collection.name,
-        isOnFragment: isFragmentGift || NFT_FRAGMENT_COLLECTIONS.has(collection.address),
+        isOnFragment: isFragmentGift || NFT_FRAGMENT_COLLECTIONS.includes(collection.address),
+        isTelegramGift: isFragmentGift,
       }),
       metadata,
     });

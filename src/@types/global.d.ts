@@ -52,6 +52,7 @@ type MaybePromise<T> = Promise<T> | T;
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
 type EnsurePromise<T> = T extends Promise<any> ? T : Promise<T>;
+type Override<T, U> = T extends any ? Omit<T, keyof U> & U : never;
 
 type EmojiCategory = {
   id: string;

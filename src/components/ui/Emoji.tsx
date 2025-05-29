@@ -26,7 +26,7 @@ function Emoji({ from }: OwnProps) {
   const key = from in PATH_BY_EMOJI ? PATH_BY_EMOJI[from as keyof typeof PATH_BY_EMOJI] : from;
   const src = `./emoji/${key}.png`;
   const [isLoaded, markLoaded] = useFlag(loadedImages.has(src));
-  const transitionClassNames = useMediaTransition(isLoaded);
+  const ref = useMediaTransition<HTMLImageElement>(isLoaded);
 
   const handleLoad = useLastCallback(() => {
     markLoaded();
@@ -35,9 +35,10 @@ function Emoji({ from }: OwnProps) {
 
   return (
     <img
+      ref={ref}
       src={src}
       alt={from}
-      className={buildClassName(styles.root, styles[`key-${key}`], transitionClassNames)}
+      className={buildClassName(styles.root, styles[`key-${key}`])}
       onLoad={handleLoad}
     />
   );

@@ -1,3 +1,4 @@
+import { TELEGRAM_GIFTS_SUPER_COLLECTION } from '../../../config';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   addToSelectedAddresses,
@@ -47,12 +48,10 @@ addActionHandler('selectAllNfts', (global, actions, { collectionAddress }) => {
   const whitelistedNftAddressesSet = new Set(whitelistedNftAddresses);
   const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
   const { nfts: accountNfts } = selectAccountState(global, accountId)!;
-  const nfts = Object.values(accountNfts!.byAddress).filter((nft) => (
+  const nfts = Object.values(accountNfts!.byAddress!).filter((nft) => (
     !nft.isHidden || whitelistedNftAddressesSet.has(nft.address)
   ) && !blacklistedNftAddressesSet.has(nft.address) && (
-    collectionAddress === undefined || (
-      collectionAddress !== undefined && nft.collectionAddress === collectionAddress
-    )
+    collectionAddress === undefined || (nft.collectionAddress === collectionAddress)
   ));
 
   global = updateAccountState(global, accountId, {
@@ -80,4 +79,47 @@ addActionHandler('clearNftsSelection', (global) => {
     },
   });
   setGlobal(global);
+});
+
+addActionHandler('addCollectionTab', (global, actions, { collectionAddress, isAuto }) => {
+  const accountId = global.currentAccountId!;
+  const accountState = selectAccountState(global, accountId);
+  const currentNfts = accountState?.nfts || { byAddress: {} };
+
+  if (isAuto && collectionAddress === TELEGRAM_GIFTS_SUPER_COLLECTION && currentNfts.wasTelegramGiftsAutoAdded) {
+    return global;
+  }
+
+  const existingCollectionTabs = currentNfts.collectionTabs || [];
+
+  if (!existingCollectionTabs.includes(collectionAddress)) {
+    global = updateAccountState(global, accountId, {
+      nfts: {
+        ...currentNfts,
+        collectionTabs: [...existingCollectionTabs, collectionAddress],
+        ...(isAuto && collectionAddress === TELEGRAM_GIFTS_SUPER_COLLECTION && { wasTelegramGiftsAutoAdded: true }),
+      },
+    });
+  }
+
+  return global;
+});
+
+addActionHandler('removeCollectionTab', (global, actions, { collectionAddress }) => {
+  const accountId = global.currentAccountId!;
+  const accountState = selectAccountState(global, accountId);
+  const currentNfts = accountState?.nfts || { byAddress: {} };
+
+  if (!currentNfts.collectionTabs) {
+    return global;
+  }
+
+  global = updateAccountState(global, accountId, {
+    nfts: {
+      ...currentNfts,
+      collectionTabs: currentNfts.collectionTabs.filter((address) => address !== collectionAddress),
+    },
+  });
+
+  return global;
 });

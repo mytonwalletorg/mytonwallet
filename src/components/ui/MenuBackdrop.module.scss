@@ -1,0 +1,32 @@
+@import "../../styles/mixins";
+
+.backdrop {
+  pointer-events: none;
+
+  position: fixed;
+  z-index: var(--z-menu-backdrop);
+  top: -100vh;
+  right: -100vw;
+  bottom: -100vh;
+  left: -100vw;
+
+  opacity: 0;
+  background: var(--color-tint);
+
+  @include transition(opacity 200ms);
+}
+
+.visible {
+  opacity: 1;
+}
+
+.wrapperVisible {
+  pointer-events: none;
+
+  position: relative;
+  z-index: var(--z-menu-bubble);
+}
+
+.wrapperVisible:not(.wrapperHide) {
+  --color-gray-3: var(--color-black);
+}

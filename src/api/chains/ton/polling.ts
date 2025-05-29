@@ -2,7 +2,9 @@ import type {
   ApiActivity,
   ApiActivityTimestamps,
   ApiBalanceBySlug,
+  ApiDomainData,
   ApiNetwork,
+  ApiNft,
   ApiNftUpdate,
   ApiStakingState,
   ApiTokenWithPrice,
@@ -24,10 +26,12 @@ import {
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs } from '../../../util/activities';
 import { areDeepEqual } from '../../../util/areDeepEqual';
+import { YEAR } from '../../../util/dateFormat';
 import Deferred from '../../../util/Deferred';
 import { compact, pick } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';
+import { parseTonapiioNft } from './util/metadata';
 import {
   fetchStoredAccount,
   fetchStoredAccounts,
@@ -46,6 +50,7 @@ import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
 import { AbortOperationError } from '../../errors';
 import { fetchActivitySlice } from './activities';
 import { getWalletFromAddress } from './auth';
+import { fetchDomains } from './domains';
 import { getAccountNfts, getNftUpdates } from './nfts';
 import { updateTokenHashes } from './priceless';
 import { getBackendStakingState, getStakingStates } from './staking';
@@ -73,6 +78,9 @@ const VESTING_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL = 30 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 
+const TON_DNS_INTERVAL = 15 * SEC;
+const TON_DNS_INTERVAL_WHEN_NOT_FOCUSED = 120 * SEC;
+
 let activeAccountCache: {
   accountId: string;
   balances: ApiBalanceBySlug;
@@ -92,6 +100,7 @@ export function setupPolling(
 
   void setupBalanceBasedPolling(accountId, onUpdate, onUpdatingStatusChange, newestActivityTimestamp);
   void setupWalletVersionsPolling(accountId, onUpdate);
+  void setupTonDnsPolling(accountId, onUpdate);
 
   if (!IS_CORE_WALLET) {
     void setupStakingPolling(accountId, onUpdate);
@@ -122,8 +131,10 @@ async function setupBalanceBasedPolling(
   let doubleCheckTokensTime: number | undefined;
   let forceCheckActivitiesTime = 0;
 
+  let lastDomain: string | undefined;
+
   async function updateBalance(newBalances: ApiBalanceBySlug, changedSlugs: string[]) {
-    const { balance, lastTxId } = await getWalletInfo(network, wallet.address);
+    const { balance, domain } = await getWalletInfo(network, wallet.address);
     const isToncoinBalanceChanged = balance !== undefined && balance !== cache[TONCOIN.slug];
 
     newBalances[TONCOIN.slug] = balance;
@@ -131,7 +142,7 @@ async function setupBalanceBasedPolling(
       changedSlugs.push(TONCOIN.slug);
     }
 
-    return { lastTxId, isToncoinBalanceChanged };
+    return { isToncoinBalanceChanged, domain };
   }
 
   async function updateNfts(isToncoinBalanceChanged: boolean) {
@@ -223,7 +234,7 @@ async function setupBalanceBasedPolling(
       const newBalances: ApiBalanceBySlug = {};
       const changedSlugs: string[] = [];
 
-      const { isToncoinBalanceChanged } = await updateBalance(newBalances, changedSlugs);
+      const { isToncoinBalanceChanged, domain } = await updateBalance(newBalances, changedSlugs);
       throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
       await updateTokenBalances(isToncoinBalanceChanged, newBalances, changedSlugs);
@@ -239,6 +250,16 @@ async function setupBalanceBasedPolling(
           chain: 'ton',
           balances: newBalances,
         });
+      }
+
+      if (domain !== lastDomain) {
+        onUpdate({
+          type: 'updateAccount',
+          accountId,
+          chain: 'ton',
+          domain: domain || false,
+        });
+        lastDomain = domain;
       }
 
       onUpdatingStatusChange('balance', false);
@@ -447,6 +468,50 @@ async function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpda
     }
 
     await pauseOrFocus(VERSIONS_INTERVAL, VERSIONS_INTERVAL_WHEN_NOT_FOCUSED);
+  }
+}
+
+async function setupTonDnsPolling(accountId: string, onUpdate: OnApiUpdate) {
+  let lastResult: Record<string, ApiDomainData> | { error: string } | undefined;
+  const { network } = parseAccountId(accountId);
+
+  while (isAlive(onUpdate, accountId)) {
+    try {
+      if (!isAlive(onUpdate, accountId)) return;
+      const data = await fetchDomains(accountId);
+      if (!data || 'error' in data) throw new Error(data?.error as string || 'Error fetching domains data');
+
+      if (!areDeepEqual(data, lastResult)) {
+        lastResult = data;
+        const expirationByAddress: Record<string, number> = {};
+        const linkedAddressByAddress: Record<string, string> = {};
+        const nfts: Record<string, ApiNft> = {};
+
+        Object.keys(data).forEach((nftAddress) => {
+          const { lastFillUpTime, linkedAddress, nft: rawNft } = data[nftAddress];
+          expirationByAddress[nftAddress] = new Date(lastFillUpTime).getTime() + YEAR;
+          if (linkedAddress) {
+            linkedAddressByAddress[nftAddress] = linkedAddress;
+          }
+          const nft = parseTonapiioNft(network, rawNft);
+          if (nft) {
+            nfts[nftAddress] = nft;
+          }
+        });
+
+        onUpdate({
+          type: 'updateAccountDomainData',
+          accountId,
+          expirationByAddress,
+          linkedAddressByAddress,
+          nfts,
+        });
+      }
+    } catch (err) {
+      logDebugError('setupTonDnsPolling', err);
+    }
+
+    await pauseOrFocus(TON_DNS_INTERVAL, TON_DNS_INTERVAL_WHEN_NOT_FOCUSED);
   }
 }
 

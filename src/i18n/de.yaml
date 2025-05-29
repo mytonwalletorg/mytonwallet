@@ -267,6 +267,7 @@ $dapp_can_view_balance: "%dappname% wird die Wallet adresse und den Kontostand a
 Send Transaction: Transaktion senden
 Payload: Nutzlast
 $many_transactions:
+  zeroValue: Keine Transaktionen
   oneValue: "%1$d Transaktion"
   otherValue: "%1$d Transaktionen"
 Total Amount: Gesamtbetrag
@@ -611,6 +612,7 @@ Unfrozen: Auftauen
 Missed: Verpasst
 Frozen: Gefroren
 until %date%: bis %date%
+Until %date%: Bis %date%
 "%volume% in %amount% parts": "%volume% in %amount% Teilen"
 Unfreeze: Auftauen
 Claim: Beanspruchen
@@ -842,4 +844,59 @@ $unstaking_when_receive_ethena: Sie können Ihre abgesteckte Einzahlung in **7 T
 Coins have been unstaked!: Coins wurden entstaked!
 Confirm Upgrading: Upgrade bestätigen
 How does it work?: Wie funktioniert das?
+Multisend: Multisend
+Expires in %1$d days:
+  zeroValue: Läuft heute ab
+  oneValue: Läuft morgen ab
+  otherValue: Läuft in %1$d Tagen ab
+Renew All: Alle erneuern
+Renew: Erneuern
+Renew Domain: Domain erneuern
+Renew Domains: Domains erneuern
+Some domains are about to expire: Einige Domains laufen bald ab
+$domain_expire:
+  zeroValue: "%domain% läuft heute ab"
+  oneValue: "%domain% läuft morgen ab"
+  otherValue: "%domain% läuft in %days% Tagen ab"
 '%token% Staking': '%token% Staking'
+Add Tab: Tab hinzufügen
+Remove Tab: Tab entfernen
+Link Domain: Domain verknüpfen
+Domain Linked!: Domain verknüpft!
+Failed to process domain operation. Please try again.: Fehler bei der Domain-Operation. Bitte versuchen Sie es erneut.
+$domains_amount %1$d:
+  zeroValue: Keine Domains
+  oneValue: "%1$d Domain"
+  otherValue: "%1$d Domains"
+Stake: Staken
+Manage Tokens: Token verwalten
+Claim Rewards: Belohnungen beanspruchen
+Configure DNS: DNS konfigurieren
+Link to Wallet: Mit Wallet verknüpfen
+Change Wallet: Wallet ändern
+Change Linked Wallet: Verknüpftes Wallet ändern
+Domain has been renewed!: Domain wurde erneuert!
+Domains have been renewed!: Domains wurden erneuert!
+Linked Wallet: Verknüpftes Wallet
+Domain has been linked!: Domain wurde verknüpft!
+Link: Verknüpfen
+Confirm Renewing: Erneuerung bestätigen
+Confirm Linking: Verknüpfung bestätigen
+$domains_expire:
+  zeroValue: "Keine Domains laufen %days% ab"
+  oneValue: "%domain% Domain läuft %days% ab"
+  otherValue: "%domain% Domains laufen %days% ab"
+$in_days:
+  zeroValue: heute
+  oneValue: morgen
+  otherValue: "in %1$d Tagen"
+$domain_was_expired: "%domain% ist abgelaufen"
+$domains_was_expired:
+  zeroValue: "Keine Domains sind abgelaufen"
+  oneValue: "%domain% Domain ist abgelaufen"
+  otherValue: "%domain% Domains sind abgelaufen"
+
+Reload: Neu laden
+Copy Link: Link kopieren
+Check eligibility for max APY: Verfügbarkeit für max. APY prüfen
+Check eligibility: Verfügbarkeit prüfen

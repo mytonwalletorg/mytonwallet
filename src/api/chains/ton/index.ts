@@ -16,6 +16,12 @@ export {
   submitNftTransfers,
   checkNftOwnership,
 } from './nfts';
+export {
+  submitDnsRenewal,
+  checkDnsRenewalDraft,
+  checkDnsChangeWalletDraft,
+  submitDnsChangeWallet,
+} from './domains';
 export { oneCellFromBoc } from './util/tonCore';
 export {
   checkTransactionDraft,

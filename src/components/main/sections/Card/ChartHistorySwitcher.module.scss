@@ -43,4 +43,10 @@
 
   margin-bottom: 0 !important;
   padding: 0.5625rem 0.75rem !important;
+
+  border-radius: var(--border-radius-small);
+
+  &::before {
+    display: none;
+  }
 }

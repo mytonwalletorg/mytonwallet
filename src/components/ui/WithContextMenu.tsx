@@ -1,0 +1,103 @@
+import type { TeactNode } from '../../lib/teact/teact';
+import React, { useRef } from '../../lib/teact/teact';
+
+import type { Layout } from '../../hooks/useMenuPosition';
+import type { DropdownItem } from './Dropdown';
+
+import useContextMenuHandlers from '../../hooks/useContextMenuHandlers';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useLastCallback from '../../hooks/useLastCallback';
+
+import DropdownMenu from './DropdownMenu';
+import MenuBackdrop from './MenuBackdrop';
+
+interface Props<T extends string> {
+  items: DropdownItem<T>[];
+  onItemClick: (value: T) => void;
+  children: (buttonProps: {
+    ref: React.RefObject<HTMLDivElement | HTMLButtonElement>;
+    onMouseDown: (e: React.MouseEvent) => void;
+    onContextMenu: (e: React.MouseEvent) => void;
+    className?: string;
+  }, isMenuOpen: boolean) => TeactNode;
+  menuClassName?: string;
+  menuPositionY?: 'top' | 'bottom';
+}
+
+export default function WithContextMenu<T extends string>({
+  items,
+  onItemClick,
+  children,
+  menuClassName,
+  menuPositionY = 'bottom',
+}: Props<T>) {
+  // eslint-disable-next-line no-null/no-null
+  const buttonRef = useRef<HTMLDivElement | HTMLButtonElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const { isPortrait } = useDeviceScreen();
+  const getTriggerElement = useLastCallback(() => buttonRef.current);
+  const getRootElement = useLastCallback(() => document.body);
+  const getMenuElement = useLastCallback(() => menuRef.current);
+  const getLayout: () => Layout = useLastCallback(() => ({
+    withPortal: true,
+    doNotCoverTrigger: true,
+    centerHorizontally: true,
+  }));
+
+  const {
+    isContextMenuOpen,
+    contextMenuAnchor,
+    handleBeforeContextMenu,
+    handleContextMenu,
+    handleContextMenuClose,
+    handleContextMenuHide,
+  } = useContextMenuHandlers({
+    elementRef: buttonRef,
+    shouldDisablePropagation: true,
+  });
+
+  const handleMenuItemSelect = useLastCallback((value: T) => {
+    onItemClick(value);
+  });
+
+  return (
+    <>
+      {isPortrait && (
+        <MenuBackdrop
+          isMenuOpen={isContextMenuOpen}
+          contentRef={buttonRef}
+          contentClassName={menuClassName}
+        />
+      )}
+      {children(
+        {
+          ref: buttonRef,
+          onMouseDown: handleBeforeContextMenu,
+          onContextMenu: handleContextMenu,
+        },
+        isContextMenuOpen,
+      )}
+      {!!contextMenuAnchor && (
+        <DropdownMenu
+          ref={menuRef}
+          withPortal
+          shouldTranslateOptions
+          isOpen={isContextMenuOpen}
+          items={items}
+          menuPositionY={menuPositionY}
+          menuAnchor={contextMenuAnchor}
+          bubbleClassName={menuClassName}
+          getTriggerElement={getTriggerElement}
+          getRootElement={getRootElement}
+          getMenuElement={getMenuElement}
+          getLayout={getLayout}
+          onSelect={handleMenuItemSelect}
+          onClose={handleContextMenuClose}
+          onCloseAnimationEnd={handleContextMenuHide}
+        />
+      )}
+    </>
+  );
+}

@@ -1,4 +1,4 @@
-import React, { memo, type TeactNode, useMemo } from '../../../../lib/teact/teact';
+import React, { memo, type TeactNode, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiChain } from '../../../../api/types';
@@ -11,6 +11,7 @@ import { handleOpenUrl, openUrl } from '../../../../util/openUrl';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import getChainNetworkIcon from '../../../../util/swap/getChainNetworkIcon';
 import { getExplorerAddressUrl, getExplorerName } from '../../../../util/url';
+import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 
 import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
@@ -23,13 +24,16 @@ import styles from './Card.module.scss';
 
 interface StateProps {
   addressByChain?: Account['addressByChain'];
+  domainByChain?: Account['domainByChain'];
   isTestnet?: boolean;
   accountType?: AccountType;
   withTextGradient?: boolean;
 }
 
+const MOUSE_LEAVE_TIMEOUT = 150;
+
 function CardAddress({
-  addressByChain, isTestnet, accountType, withTextGradient,
+  addressByChain, domainByChain, isTestnet, accountType, withTextGradient,
 }: StateProps) {
   const { showNotification } = getActions();
 
@@ -40,20 +44,23 @@ function CardAddress({
   const isViewAccount = accountType === 'view';
   const explorerTitle = lang('View on Explorer');
   const chainDropdownItems = useMemo(() => {
-    if (chains.length < 2) return undefined;
+    const hasDomain = chains[0] && domainByChain?.[chains[0]];
 
-    return chains.map((key) => ({
-      value: addressByChain![key]!,
-      name: shortenAddress(addressByChain![key]!)!,
-      icon: getChainNetworkIcon(key),
+    if (chains.length < 2 && !hasDomain) return undefined;
+
+    return chains.map((chain) => ({
+      value: addressByChain![chain]!,
+      address: shortenAddress(addressByChain![chain]!, domainByChain?.[chain] ? 4 : undefined)!,
+      ...(domainByChain?.[chain] && { domain: domainByChain[chain] }),
+      icon: getChainNetworkIcon(chain),
       fontIcon: 'copy',
-      chain: key,
+      chain,
       label: (lang('View address on %ton_explorer_name%', {
-        ton_explorer_name: getExplorerName(key),
+        ton_explorer_name: getExplorerName(chain),
       }) as TeactNode[]
       ).join(''),
     }));
-  }, [addressByChain, chains, lang]);
+  }, [addressByChain, domainByChain, chains, lang]);
 
   const handleCopyAddress = useLastCallback((address: string) => {
     showNotification({ message: lang('Address was copied!') as string, icon: 'icon-copy' });
@@ -65,9 +72,26 @@ function CardAddress({
     closeMenu();
   });
 
+  const handleDomainClick = useLastCallback((e: React.MouseEvent, domain: string) => {
+    showNotification({ message: lang('Domain was copied!') as string, icon: 'icon-copy' });
+    void copyTextToClipboard(domain);
+    closeMenu();
+  });
+
   const handleExplorerClick = useLastCallback((e: React.MouseEvent, chain: ApiChain, address: string) => {
     void openUrl(getExplorerAddressUrl(chain, address, isTestnet)!);
     closeMenu();
+  });
+
+  const closeTimeoutRef = useRef<number>();
+  const handleMouseEnter = useLastCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    openMenu();
+  });
+  const handleMouseLeave = useLastCallback(() => {
+    closeTimeoutRef.current = window.setTimeout(closeMenu, MOUSE_LEAVE_TIMEOUT);
   });
 
   function renderAddressMenu() {
@@ -75,28 +99,50 @@ function CardAddress({
       <Menu
         isOpen={isMenuOpen}
         type="dropdown"
+        bubbleClassName={styles.addressMenuBubble}
+        noBackdrop={!IS_TOUCH_ENV}
+        onMouseEnter={!IS_TOUCH_ENV ? handleMouseEnter : undefined}
+        onMouseLeave={!IS_TOUCH_ENV ? handleMouseLeave : undefined}
         onClose={closeMenu}
       >
         {chainDropdownItems!.map((item, index) => {
-          const fullButtonClassName = buildClassName(
-            menuStyles.button,
+          const fullItemClassName = buildClassName(
+            menuStyles.item,
             index > 0 && menuStyles.separator,
             styles.menuItem,
           );
 
           return (
-            <div key={item.value} className={fullButtonClassName}>
-              <img src={item.icon} alt="" className={buildClassName('icon', menuStyles.itemIcon, styles.menuIcon)} />
-              <span
-                className={buildClassName(menuStyles.itemName, styles.menuItemName)}
-                tabIndex={0}
-                role="button"
-                onClick={(e) => handleItemClick(e, item.value)}
-              >
-                {item.name}
+            <div key={item.value} className={fullItemClassName}>
+              {chainDropdownItems!.length > 1 && (
+                <img src={item.icon} alt="" className={buildClassName('icon', menuStyles.itemIcon, styles.menuIcon)} />
+              )}
+              <span className={buildClassName(menuStyles.itemName, styles.menuItemName)}>
+                {item.domain && (
+                  <>
+                    <span
+                      tabIndex={0}
+                      role="button"
+                      className={styles.domainText}
+                      onClick={(e) => handleDomainClick(e, item.domain!)}
+                    >
+                      {item.domain}
+                    </span>
+                    <span className={styles.separator}>·</span>
+                  </>
+                )}
+                <span
+                  tabIndex={0}
+                  role="button"
+                  onClick={(e) => handleItemClick(e, item.value)}
+                  className={item.domain && styles.addressText}
+                >
+                  {item.address}
+                </span>
                 <i
                   className={buildClassName(`icon icon-${item.fontIcon}`, menuStyles.fontIcon, styles.menuFontIcon)}
                   aria-hidden
+                  onClick={(e) => handleItemClick(e, item.value)}
                 />
               </span>
               <i
@@ -114,6 +160,10 @@ function CardAddress({
   }
 
   if (chainDropdownItems) {
+    const chain = chains[0];
+    const domain = domainByChain?.[chain];
+    const buttonText = chains.length === 1 && domain ? domain : lang('Multichain');
+
     return (
       <div className={styles.addressContainer}>
         {isViewAccount && (
@@ -125,10 +175,12 @@ function CardAddress({
         <button
           type="button"
           className={buildClassName(styles.address, withTextGradient && 'gradientText')}
-          onClick={() => openMenu()}
+          onMouseEnter={!IS_TOUCH_ENV ? handleMouseEnter : undefined}
+          onMouseLeave={!IS_TOUCH_ENV ? handleMouseLeave : undefined}
+          onClick={openMenu}
         >
           <span className={buildClassName(styles.itemName, 'itemName')}>
-            {lang('Multichain')}
+            {buttonText}
           </span>
           <i className={buildClassName(styles.icon, 'icon-caret-down')} aria-hidden />
         </button>
@@ -139,6 +191,10 @@ function CardAddress({
 
   const chain = chains[0];
   if (!chain) return undefined;
+
+  const address = addressByChain![chain]!;
+  const domain = domainByChain?.[chain];
+  const displayText = domain || shortenAddress(address);
 
   return (
     <div className={styles.addressContainer}>
@@ -153,13 +209,13 @@ function CardAddress({
         type="button"
         className={buildClassName(styles.address, withTextGradient && 'gradientText')}
         aria-label={lang('Copy wallet address')}
-        onClick={() => handleCopyAddress(addressByChain![chain]!)}
+        onClick={() => handleCopyAddress(address)}
       >
-        {shortenAddress(addressByChain![chain]!)}
+        {displayText}
         <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
       </button>
       <a
-        href={getExplorerAddressUrl(chain, addressByChain![chain], isTestnet)}
+        href={getExplorerAddressUrl(chain, address, isTestnet)}
         className={styles.explorerButton}
         title={explorerTitle}
         aria-label={explorerTitle}
@@ -174,10 +230,11 @@ function CardAddress({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { type: accountType, addressByChain } = selectAccount(global, global.currentAccountId!) || {};
+  const { type: accountType, addressByChain, domainByChain } = selectAccount(global, global.currentAccountId!) || {};
 
   return {
     addressByChain,
+    domainByChain,
     isTestnet: global.settings.isTestnet,
     accountType,
   };

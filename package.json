@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.6.6",
+  "version": "3.7.0",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -55,8 +55,11 @@
     "statoscope:validate-diff": "statoscope validate --input input.json --reference reference.json",
     "postversion": "./deploy/postversion.sh",
     "giveaways:build": "webpack --config ./webpack-giveaways.config.ts && bash ./deploy/copy_to_dist.sh dist-giveaways",
-    "giveaways:build:dev": "APP_ENV=development webpack --mode development --config ./webpack-giveaways.config.ts && bash ./deploy/copy_to_dist.sh dist-giveaways",
-    "giveaways:dev": "APP_ENV=development webpack serve --mode development --port 4322 --config ./webpack-giveaways.config.ts",
+    "giveaways:build:dev": "APP_ENV=development webpack --mode development --config ./webpack-giveaways.config.ts",
+    "giveaways:dev": "APP_ENV=development webpack serve --mode development --config ./webpack-giveaways.config.ts",
+    "multisend:build": "webpack --config webpack-multisend.config.ts && bash ./deploy/copy_to_dist.sh dist-multisend src/multisend/public",
+    "multisend:build:dev": "APP_ENV=development webpack --mode development --config webpack-multisend.config.ts",
+    "multisend:dev": "APP_ENV=development webpack serve --mode development --config webpack-multisend.config.ts",
     "resolve-stacktrace": "node ./dev/resolveStackTrace.js",
     "i18n:update": "node ./dev/locales/updateLocales.js",
     "i18n:find-missing": "node ./dev/locales/findMissingKeys.js"

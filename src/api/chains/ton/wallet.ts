@@ -1,12 +1,11 @@
 import { beginCell, Cell, storeStateInit } from '@ton/core';
 
-import type { ApiNetwork, ApiTonWallet, ApiWalletWithVersionInfo } from '../../types';
+import type { ApiNetwork, ApiTonWallet, ApiWalletInfo, ApiWalletWithVersionInfo } from '../../types';
 import type { ApiTonWalletVersion, ContractInfo } from './types';
 import type { TonWallet } from './util/tonCore';
 
 import { DEFAULT_WALLET_VERSION } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { buildTxId } from '../../../util/activities';
 import { extractKey, findLast } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { fetchJettonBalances } from './util/tonapiio';
@@ -25,8 +24,8 @@ export const isAddressInitialized = withCacheAsync(
 );
 
 export const isActiveSmartContract = withCacheAsync(async (network: ApiNetwork, address: string) => {
-  const { isInitialized, isWallet } = await getWalletInfo(network, address);
-  return isInitialized ? !isWallet : undefined;
+  const { isInitialized, version } = await getWalletInfo(network, address);
+  return isInitialized ? Boolean(version) : undefined;
 }, (value) => value !== undefined);
 
 export function publicKeyToAddress(
@@ -54,35 +53,12 @@ export function buildWallet(publicKey: Uint8Array | string, walletVersion: ApiTo
   });
 }
 
-export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWallet | string): Promise<{
-  isInitialized: boolean;
-  isWallet: boolean;
-  seqno: number;
-  balance: bigint;
-  lastTxId?: string;
-}> {
+export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWallet | string): Promise<ApiWalletInfo> {
   const address = typeof walletOrAddress === 'string'
     ? walletOrAddress
     : toBase64Address(walletOrAddress.address, undefined, network);
 
-  const {
-    account_state: accountState,
-    wallet: isWallet,
-    seqno = 0,
-    balance,
-    last_transaction_id: {
-      lt,
-      hash,
-    },
-  } = await getTonClient(network).getWalletInfo(address);
-
-  return {
-    isInitialized: accountState === 'active',
-    isWallet,
-    seqno,
-    balance: BigInt(balance || '0'),
-    lastTxId: lt === '0' ? undefined : buildTxId(hash),
-  };
+  return (await getWalletInfos(network, [address]))[address];
 }
 
 export async function getContractInfo(network: ApiNetwork, address: string): Promise<{

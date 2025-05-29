@@ -21,8 +21,8 @@ import {
   ANIMATION_LEVEL_MIN,
   IS_CAPACITOR,
   IS_CORE_WALLET,
-  STAKING_CYCLE_DURATION_MS,
   TONCOIN,
+  VALIDATION_PERIOD_MS,
 } from '../../../config';
 import { getStakingStateStatus } from '../../../global/helpers/staking';
 import {
@@ -137,7 +137,7 @@ function TransactionModal({
     ? 0
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedTransaction = usePrevDuringAnimation(transaction, animationDuration);
-  const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
+  const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + VALIDATION_PERIOD_MS);
   const appTheme = useAppTheme(theme);
 
   const {
@@ -190,8 +190,11 @@ function TransactionModal({
 
   const {
     shouldRender: shouldRenderTransactionId,
-    transitionClassNames: transactionIdClassNames,
-  } = useShowTransition(Boolean(isActivityWithHash && transactionUrl));
+    ref: transactionIdRef,
+  } = useShowTransition({
+    isOpen: Boolean(isActivityWithHash && transactionUrl),
+    withShouldRender: true,
+  });
 
   const state = useMemo(() => {
     return stakingStates?.find((staking): staking is ApiToncoinStakingState => {
@@ -205,13 +208,14 @@ function TransactionModal({
 
   const {
     shouldRender: shouldRenderUnstakeTimer,
-    transitionClassNames: unstakeTimerClassNames,
-  } = useShowTransition(
-    transaction?.type === 'unstakeRequest'
+    ref: unstakeTimerRef,
+  } = useShowTransition({
+    isOpen: transaction?.type === 'unstakeRequest'
     && startOfStakingCycle !== undefined
     && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
     && transaction.timestamp >= startOfStakingCycle,
-  );
+    withShouldRender: true,
+  });
 
   useSyncEffect(() => {
     if (renderedTransaction) {
@@ -408,7 +412,7 @@ function TransactionModal({
 
   function renderTransactionId() {
     return (
-      <div className={buildClassName(styles.textFieldWrapper, transactionIdClassNames)}>
+      <div ref={transactionIdRef} className={styles.textFieldWrapper}>
         <span className={styles.textFieldLabel}>
           {lang('Transaction ID')}
         </span>
@@ -427,7 +431,7 @@ function TransactionModal({
 
   function renderUnstakeTimer() {
     return (
-      <div className={buildClassName(styles.unstakeTime, unstakeTimerClassNames)}>
+      <div ref={unstakeTimerRef} className={styles.unstakeTime}>
         <AnimatedIconWithPreview
           play={isModalOpen}
           size={ANIMATED_STICKER_TINY_ICON_PX}

@@ -170,7 +170,7 @@ export function selectCurrentAccountNftByAddress(global: GlobalState, nftAddress
 }
 
 export function selectAccountNftByAddress(global: GlobalState, accountId: string, nftAddress: string) {
-  return selectAccountState(global, accountId)?.nfts?.byAddress[nftAddress];
+  return selectAccountState(global, accountId)?.nfts?.byAddress?.[nftAddress];
 }
 
 export function selectIsMultichainAccount(global: GlobalState, accountId: string) {

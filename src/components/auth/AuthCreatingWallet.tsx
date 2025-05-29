@@ -30,9 +30,9 @@ const AuthCreatingWallet = ({ isActive }: OwnProps) => {
   useTimeout(markTwo, isActive ? START_DELAY + INTERVAL : undefined);
   useTimeout(markThree, isActive ? START_DELAY + INTERVAL * 2 : undefined);
 
-  const oneClassNames = useMediaTransition(one);
-  const twoClassNames = useMediaTransition(two);
-  const threeClassNames = useMediaTransition(three);
+  const oneRef = useMediaTransition<HTMLElement>(one);
+  const twoRef = useMediaTransition<HTMLElement>(two);
+  const threeRef = useMediaTransition<HTMLElement>(three);
 
   return (
     <div className={buildClassName(styles.container, 'custom-scroll')}>
@@ -47,9 +47,9 @@ const AuthCreatingWallet = ({ isActive }: OwnProps) => {
 
       <div className={styles.counter}>
         <p className={styles.counterTitle}>{lang('On the count of three...')}</p>
-        <b className={buildClassName(styles.counterDigit, 'rounded-font', oneClassNames)}>1</b>
-        <b className={buildClassName(styles.counterDigit, 'rounded-font', twoClassNames)}>2</b>
-        <b className={buildClassName(styles.counterDigit, 'rounded-font', threeClassNames)}>3</b>
+        <b ref={oneRef} className={buildClassName(styles.counterDigit, 'rounded-font')}>1</b>
+        <b ref={twoRef} className={buildClassName(styles.counterDigit, 'rounded-font')}>2</b>
+        <b ref={threeRef} className={buildClassName(styles.counterDigit, 'rounded-font')}>3</b>
       </div>
     </div>
   );

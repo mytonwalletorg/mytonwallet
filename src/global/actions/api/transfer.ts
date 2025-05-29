@@ -364,7 +364,7 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
         toAddress: resolvedAddress!,
         comment,
         nft,
-        realFee: realNativeFee && bigintDivideToNumber(realNativeFee, nfts.length),
+        realFee: realNativeFee && realNativeFee / BigInt(nfts.length),
       });
 
       global = getGlobal();

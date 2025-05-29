@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 DESTINATION=${1:-"dist"}
+SOURCE=${2:-"public"}
 
-cp -R ./public/* "$DESTINATION"
+cp -R ./$SOURCE/* "$DESTINATION"
 
 cp ./src/lib/rlottie/rlottie-wasm.js "$DESTINATION"
 cp ./src/lib/rlottie/rlottie-wasm.wasm "$DESTINATION"

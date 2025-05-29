@@ -5,3 +5,4 @@ export * from './activities';
 export * from './swap';
 export * from './transfer';
 export * from './staking';
+export * from './domains';

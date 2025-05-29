@@ -67,6 +67,7 @@ import { pause } from '../schedulers';
 import { IS_ANDROID_APP } from '../windowEnvironment';
 import { isLedgerConnectionBroken, isValidLedgerComment } from './utils';
 
+import { DnsItem } from '../../api/chains/ton/contracts/DnsItem';
 import { TsUSDeWallet } from '../../api/chains/ton/contracts/Ethena/TsUSDeWallet';
 import { StakingPool } from '../../api/chains/ton/contracts/JettonStaking/StakingPool';
 
@@ -998,6 +999,43 @@ export async function signLedgerProof(accountId: string, proof: ApiTonConnectPro
     payload: Buffer.from(payload),
   });
   return result.signature.toString('base64');
+}
+
+export function submitLedgerDnsRenewal(
+  accountId: string,
+  nft: ApiNft,
+  realFee: bigint,
+) {
+  return submitLedgerTransfer(
+    {
+      accountId,
+      password: '',
+      toAddress: nft.address,
+      amount: TON_GAS.changeDns,
+    },
+    TONCOIN.slug,
+    { type: 'dnsRenew', fee: realFee, nft },
+    { type: 'unsafe', message: DnsItem.buildFillUpMessage() },
+  );
+}
+
+export function submitLedgerDnsChangeWallet(
+  accountId: string,
+  nft: ApiNft,
+  newWalletAddress: string,
+  realFee: bigint,
+) {
+  return submitLedgerTransfer(
+    {
+      accountId,
+      password: '',
+      toAddress: nft.address,
+      amount: TON_GAS.changeDns,
+    },
+    TONCOIN.slug,
+    { type: 'dnsChangeAddress', fee: realFee, nft },
+    { type: 'unsafe', message: DnsItem.buildChangeDnsWalletMessage(newWalletAddress) },
+  );
 }
 
 export async function getNextLedgerWallets(

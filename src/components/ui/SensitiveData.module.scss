@@ -55,26 +55,15 @@
   }
 }
 
-.spoiler,
-.content {
-  opacity: 1;
-
-  transition: opacity 300ms ease;
-
-  :global(html.animation-level-0) & {
-    transition: none;
+.content, .spoiler {
+  &:global(.not-shown) {
+    display: inline-block !important;
   }
 }
 
 .right > .content {
   display: inline-flex;
   justify-content: flex-end;
-}
-
-.hidden {
-  pointer-events: none;
-
-  opacity: 0;
 }
 
 .fixedWidth {

@@ -14,8 +14,8 @@ import { StakingState } from '../../global/types';
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
   IS_CAPACITOR,
-  STAKING_CYCLE_DURATION_MS,
   TONCOIN,
+  VALIDATION_PERIOD_MS,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
@@ -130,8 +130,6 @@ function UnstakeModal({
     balance: stakingBalance,
   } = stakingState ?? {};
 
-  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
-
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
 
@@ -150,16 +148,17 @@ function UnstakeModal({
 
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
 
-  const isLongUnstake = stakingState ? getIsLongUnstake(stakingState, amount) : undefined;
-
   const [isInsufficientBalance, setIsInsufficientBalance] = useState(false);
 
   const [unstakeAmount, setUnstakeAmount] = useState(isNominators ? stakingBalance : undefined);
   const [successUnstakeAmount, setSuccessUnstakeAmount] = useState<bigint | undefined>(undefined);
 
+  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
+  const isLongUnstake = stakingState ? getIsLongUnstake(stakingState, unstakeAmount) : undefined;
+
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  const [unstakeDate, setUnstakeDate] = useState<number>(unstakeTime ?? Date.now() + STAKING_CYCLE_DURATION_MS);
+  const [unstakeDate, setUnstakeDate] = useState<number>(unstakeTime ?? Date.now() + VALIDATION_PERIOD_MS);
   const forceUpdate = useForceUpdate();
   const appTheme = useAppTheme(theme);
 
@@ -174,9 +173,10 @@ function UnstakeModal({
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const isUnstakeDisabled = !isNativeEnough || isInsufficientBalance || !unstakeAmount;
 
-  const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
-    Boolean(amountInCurrency),
-  );
+  const { shouldRender: shouldRenderCurrency, ref: currencyRef } = useShowTransition({
+    isOpen: Boolean(amountInCurrency),
+    withShouldRender: true,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -298,7 +298,7 @@ function UnstakeModal({
 
   function renderCurrencyValue() {
     return (
-      <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
+      <span ref={currencyRef} className={styles.amountInCurrency}>
         ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol)}
       </span>
     );

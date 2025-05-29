@@ -1,14 +1,10 @@
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
-import React, {
-  memo, useEffect, useMemo, useRef, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useEffect, useMemo, useRef, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { AutolockValueType, Theme } from '../../global/types';
 
-import {
-  AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP,
-} from '../../config';
+import { AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP } from '../../config';
 import {
   selectIsBiometricAuthEnabled,
   selectIsNativeBiometricAuthEnabled,
@@ -18,11 +14,7 @@ import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { stopEvent } from '../../util/domEvents';
 import { createSignal } from '../../util/signals';
-import {
-  IS_DELEGATED_BOTTOM_SHEET,
-  IS_DELEGATING_BOTTOM_SHEET,
-  IS_ELECTRON,
-} from '../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON } from '../../util/windowEnvironment';
 
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import useEffectOnce from '../../hooks/useEffectOnce';
@@ -116,7 +108,7 @@ function useContentSlide(
   function getDefaultSlideForBiometricAuth() {
     return (
       (isBackgroundModeActive() || lockReason === 'manual')
-        && isNonNativeBiometricAuthEnabled ? SLIDES.button : SLIDES.passwordForm
+      && isNonNativeBiometricAuthEnabled ? SLIDES.button : SLIDES.passwordForm
     );
   }
 
@@ -224,7 +216,12 @@ function AppLocked({
     () => AUTOLOCK_OPTIONS_LIST.find((option) => option.value === autolockValue)!.period, [autolockValue],
   );
 
-  const { transitionClassNames } = useShowTransition(isLocked, afterUnlockCallback, true, 'slow');
+  const { ref: transitionRef } = useShowTransition({
+    isOpen: isLocked,
+    noMountTransition: true,
+    className: 'slow',
+    onCloseAnimationEnd: afterUnlockCallback,
+  });
 
   const forceLockApp = useLastCallback(() => {
     lock();
@@ -342,10 +339,11 @@ function AppLocked({
 
   return (
     <Transition
+      ref={transitionRef}
       name={isNonNativeBiometricAuthEnabled && IS_TELEGRAM_APP ? 'slideFade' : 'semiFade'}
       onContainerClick={handleUnlockIntent}
       activeKey={transitionKey}
-      className={buildClassName(transitionClassNames, styles.appLockedWrapper)}
+      className={styles.appLockedWrapper}
       shouldCleanup
     >
       {shouldRenderUi ? renderTransitionContent : undefined}

@@ -7,6 +7,7 @@ import type {
   ApiSwapDexLabel,
   ApiTokenWithPrice,
 } from './api/types';
+import type { DropdownItem } from './components/ui/Dropdown';
 import type { AutolockValueType, LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -123,6 +124,7 @@ export const MTW_TIPS_CHANNEL_NAME = { en: 'MyTonWalletTips', ru: 'MyTonWalletTi
 export const MTW_CARDS_BASE_URL = 'https://static.mytonwallet.org/cards/';
 export const MTW_CARDS_MINT_BASE_URL = 'https://static.mytonwallet.org/mint-cards/';
 export const MYTONWALLET_PROMO_URL = 'https://mytonwallet.io/';
+export const MYTONWALLET_MULTISEND_DAPP_URL = 'https://multisend.mytonwallet.io/';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
 export const NFT_MARKETPLACE_URL = 'https://getgems.io/';
 export const NFT_MARKETPLACE_TITLE = 'GetGems';
@@ -130,6 +132,11 @@ export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const HELPCENTER_URL = { en: 'https://help.mytonwallet.io/', ru: 'https://help.mytonwallet.io/ru' };
 export const EMPTY_HASH_VALUE = 'NOHASH';
+
+export const IFRAME_WHITELIST = [
+  'http://localhost:*', 'https://tonscan.org',
+];
+export const SUBPROJECT_URL_MASK = 'https://*.mytonwallet.io';
 
 export const CHANGELLY_SUPPORT_EMAIL = 'support@changelly.com';
 export const CHANGELLY_LIVE_CHAT_URL = 'https://changelly.com/';
@@ -144,7 +151,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-193';
+export const LANG_CACHE_NAME = 'mtw-lang-200';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -199,10 +206,10 @@ export const LANG_LIST: LangItem[] = [{
 }];
 
 export const IS_STAKING_DISABLED = IS_CORE_WALLET;
-export const STAKING_CYCLE_DURATION_MS = 131_072_000; // 36.4 hours
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON
+export const UNSTAKE_TON_GRACE_PERIOD = 20 * 60 * 1000; // 20 m.
 
 export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : [];
 export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
@@ -214,16 +221,19 @@ export const MIN_ACTIVE_STAKING_REWARDS = 100_000_000n; // 0.1 MY
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = IS_CORE_WALLET ? 'tonwallet' : 'mytonwallet';
 
-export const NFT_FRAGMENT_COLLECTIONS = new Set([
+export const NFT_FRAGMENT_COLLECTIONS = [
   '0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2', // Anonymous Telegram Numbers
   '0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2', // Telegram Usernames
-]);
+];
 export const NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX = 'https://nft.fragment.com/gift/';
 export const NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX = /^https?:\/\/nft\.(fragment\.com\/gift\/[\w-]+-\d+)\.\w+$/i;
+export const TELEGRAM_GIFTS_SUPER_COLLECTION = 'super:telegram-gifts';
 
 export const MTW_CARDS_WEBSITE = 'https://cards.mytonwallet.io';
 export const MTW_CARDS_COLLECTION = 'EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM';
 export const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
+export const TON_DNS_RENEWAL_WARNING_DAYS = 14;
+export const TON_DNS_RENEWAL_NFT_WARNING_DAYS = 30;
 
 export const TONCOIN = {
   name: 'Toncoin',
@@ -293,6 +303,8 @@ export const MYCOIN_STAKING_POOL = 'EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTV
 
 export const ETHENA_STAKING_VAULT = 'EQChGuD1u0e7KUWHH5FaYh_ygcLXhsdG2nSHPXHW8qqnpZXW';
 export const ETHENA_STAKING_MIN_AMOUNT = 1_000_000; // 1 USDe
+// eslint-disable-next-line max-len
+export const ETHENA_ELIGIBILITY_CHECK_URL = 'https://t.me/id_app/start?startapp=6bDa6xupJKTs38B8vSMyGSM5AUFkKPxZWEeAiMSk';
 
 // In cross-chain swaps, only a few TON/TRON tokens are available.
 // It’s not optimal to request swap history for all the others.
@@ -448,7 +460,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
 };
 
 export const DEFAULT_TRX_SWAP_FIRST_TOKEN_SLUG = TONCOIN.slug;
-export const DEFAULT_SWAP_FISRT_TOKEN_SLUG = TONCOIN.slug;
+export const DEFAULT_SWAP_FIRST_TOKEN_SLUG = TONCOIN.slug;
 export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = TON_USDT_SLUG;
 export const DEFAULT_TRANSFER_TOKEN_SLUG = TONCOIN.slug;
 export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = TRC20_USDT_MAINNET_SLUG;
@@ -476,7 +488,7 @@ export const SHORT_CURRENCY_SYMBOL_MAP = {
   RUB: '₽',
   CNY: '¥',
 };
-export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
+export const CURRENCY_LIST: DropdownItem<ApiBaseCurrency>[] = [
   {
     value: 'USD',
     name: 'US Dollar',

@@ -3,7 +3,6 @@ import { getActions, withGlobal } from '../../global';
 
 import { ANIMATION_LEVEL_MIN } from '../../config';
 import { selectCurrentAccountState } from '../../global/selectors';
-import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
@@ -28,15 +27,19 @@ function MintCardButton({
   const lang = useLang();
   const {
     shouldRender: shouldRenderMintCardsButton,
-    transitionClassNames: mintCardsButtonClassNames,
-  } = useShowTransition(hasCardsInfo || isCardMinting);
+    ref: mintCardsButtonRef,
+  } = useShowTransition<HTMLButtonElement>({
+    isOpen: hasCardsInfo || isCardMinting,
+    withShouldRender: true,
+  });
 
   if (!shouldRenderMintCardsButton) return undefined;
 
   return (
     <button
+      ref={mintCardsButtonRef}
       type="button"
-      className={buildClassName(styles.button, mintCardsButtonClassNames)}
+      className={styles.button}
       aria-label={lang('Mint Cards')}
       title={lang('Mint Cards')}
       onClick={() => openMintCardModal()}

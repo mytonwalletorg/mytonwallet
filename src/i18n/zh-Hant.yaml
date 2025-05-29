@@ -602,6 +602,7 @@ Unfrozen: 解凍
 Missed: 錯過了
 Frozen: 冷凍
 until %date%: 截至 %date%
+Until %date%: 截至 %date%
 "%volume% in %amount% parts": "%volume% 分成 %amount% 份"
 Unfreeze: 解凍
 Claim: 索賠
@@ -833,4 +834,56 @@ $unstaking_when_receive_ethena: 您將在 **7 天** 後收到已解除質押的�
 Coins have been unstaked!: 代幣已解鎖！
 Confirm Upgrading: 確認升級
 How does it work?: 它是如何運作的？
+Multisend: 批量發送
+Expires in %1$d days:
+  zeroValue: 今日到期
+  otherValue: 將於 %1$d 天後到期
+Renew All: 全部續費
+Renew: 續費
+Renew Domain: 續費域名
+Renew Domains: 續費域名
+Some domains are about to expire: 部分域名即將到期
+$domain_expire:
+  zeroValue: "%domain% 今天到期"
+  otherValue: "%domain% 將在 %days% 天後到期"
 '%token% Staking': '%token% 質押'
+Add Tab: 新增分頁
+Remove Tab: 移除分頁
+Link Domain: 連結網域
+Domain Linked!: 網域已連結!
+Failed to process domain operation. Please try again.: 網域操作處理失敗，請重試。
+$domains_amount %1$d:
+  zeroValue: 無網域
+  otherValue: "%1$d個網域"
+Stake: 質押
+Manage Tokens: 管理代幣
+Claim Rewards: 領取獎勵
+Configure DNS: 設定DNS
+Link to Wallet: 連結到錢包
+Change Wallet: 變更錢包
+Change Linked Wallet: 變更已連結錢包
+Domain has been renewed!: 網域已續約!
+Domains have been renewed!: 網域已成功續約!
+Linked Wallet: 已連結錢包
+Domain has been linked!: 網域已連結!
+Link: 連結
+Confirm Renewing: 確認續約
+Confirm Linking: 確認連結
+$domains_expire:
+  zeroValue: "沒有網域將於%days%到期"
+  oneValue: "%domain%個網域將於%days%到期"
+  otherValue: "%domain%個網域將於%days%到期"
+$in_days:
+  zeroValue: "今天"
+  oneValue: "明天"
+  otherValue: "%1$d天後"
+$domain_was_expired: "%domain% 已過期"
+$domains_was_expired:
+  zeroValue: "沒有網域過期"
+  oneValue: "%domain%個網域已過期"
+  otherValue: "%domain%個網域已過期"
+
+Reload: 重新載入
+Copy Link: 複製連結
+Check eligibility for max APY: 檢查最大 APY 資格
+Check eligibility: 檢查資格

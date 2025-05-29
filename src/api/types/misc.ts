@@ -1,3 +1,5 @@
+import type { NftItem } from 'tonapi-sdk-js';
+
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiTransactionActivity } from './activity';
 import type { ApiParsedPayload } from './payload';
@@ -14,10 +16,10 @@ export interface AccountIdParsed {
 }
 
 export interface ApiInitArgs {
-  isElectron: boolean;
-  isNativeBottomSheet: boolean;
-  isIosApp: boolean;
-  isAndroidApp: boolean;
+  isElectron?: boolean;
+  isNativeBottomSheet?: boolean;
+  isIosApp?: boolean;
+  isAndroidApp?: boolean;
   referrer?: string;
 }
 
@@ -120,8 +122,16 @@ export interface ApiNft {
   isOnSale: boolean;
   isHidden?: boolean;
   isOnFragment?: boolean;
+  isTelegramGift?: boolean;
   isScam?: boolean;
   metadata: ApiNftMetadata;
+}
+
+export interface ApiDomainData {
+  domain: string;
+  linkedAddress?: string;
+  lastFillUpTime: string;
+  nft: NftItem;
 }
 
 export type ApiHistoryList = Array<[number, number]>;
@@ -171,6 +181,8 @@ export type ApiEthenaStakingState = BaseStakingState & {
   lockedBalance: bigint;
   unstakeRequestAmount: bigint;
   unlockTime?: number;
+  annualYieldStandard?: number;
+  annualYieldVerified?: number;
 };
 
 export type ApiYieldType = 'APY' | 'APR';
@@ -195,6 +207,9 @@ export interface ApiBackendStakingState {
   loyaltyType?: ApiLoyaltyType;
   shouldUseNominators?: boolean;
   stakedAt?: number;
+  ethena: {
+    isVerified?: boolean;
+  };
 }
 
 export type ApiStakingHistory = {
@@ -265,12 +280,15 @@ export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standar
 export type ApiBalanceBySlug = Record<string, bigint>;
 
 export type ApiWalletInfo = {
+  /** The user-friendly address of this wallet (may differ from the requested address) */
   address: string;
   /** Undefined when the address is not initialized or not a wallet */
   version?: ApiTonWalletVersion;
   balance: bigint;
   isInitialized: boolean;
+  seqno: number;
   lastTxId?: string;
+  domain?: string;
 };
 
 export type ApiWalletWithVersionInfo = ApiWalletInfo & Required<Pick<ApiWalletInfo, 'version'>>;

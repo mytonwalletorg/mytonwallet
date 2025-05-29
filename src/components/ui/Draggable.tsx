@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
@@ -36,7 +37,7 @@ type DraggableState = {
 };
 
 type OwnProps = {
-  children: React.ReactNode;
+  children: TeactNode;
   onDrag: (translation: TPoint, id: number | string) => void;
   onDragEnd: NoneToVoidFunction;
   id: number | string;

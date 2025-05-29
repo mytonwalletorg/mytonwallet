@@ -1,13 +1,9 @@
-import React, {
-  memo, useLayoutEffect, useMemo, useRef,
-} from '../../../../lib/teact/teact';
+import React, { memo, useLayoutEffect, useMemo, useRef } from '../../../../lib/teact/teact';
 import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../../../../global';
 
-import type {
-  ApiBaseCurrency, ApiStakingState, ApiTokenWithPrice, ApiVestingInfo,
-} from '../../../../api/types';
-import type { Theme, UserToken } from '../../../../global/types';
+import type { ApiBaseCurrency, ApiStakingState, ApiTokenWithPrice, ApiVestingInfo } from '../../../../api/types';
+import type { Theme, UserSwapToken, UserToken } from '../../../../global/types';
 import { SettingsState } from '../../../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CORE_WALLET } from '../../../../config';
@@ -20,8 +16,12 @@ import {
   selectAccountStakingStates,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectIsCurrentAccountViewMode,
   selectIsMultichainAccount,
+  selectIsStakingDisabled,
+  selectIsSwapDisabled,
   selectMycoin,
+  selectSwapTokens,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { toDecimal } from '../../../../util/decimals';
@@ -54,6 +54,7 @@ type OwnProps = {
 
 interface StateProps {
   tokens?: UserToken[];
+  swapTokens?: UserSwapToken[];
   vesting?: ApiVestingInfo[];
   isInvestorViewEnabled?: boolean;
   currentTokenSlug?: string;
@@ -63,6 +64,9 @@ interface StateProps {
   isMultichainAccount: boolean;
   isSensitiveDataHidden?: true;
   states?: ApiStakingState[];
+  isViewMode?: boolean;
+  isSwapDisabled?: boolean;
+  isStakingDisabled?: boolean;
 }
 
 const LIST_SLICE = 30;
@@ -71,6 +75,7 @@ const TOKEN_HEIGHT_REM = 4;
 function Assets({
   isActive,
   tokens,
+  swapTokens,
   vesting,
   isInvestorViewEnabled,
   isSeparatePanel,
@@ -83,6 +88,9 @@ function Assets({
   isSensitiveDataHidden,
   theme,
   states,
+  isViewMode,
+  isSwapDisabled,
+  isStakingDisabled,
 }: OwnProps & StateProps) {
   const lang = useLang();
   const { openSettingsWithState } = getActions();
@@ -117,13 +125,20 @@ function Assets({
     }, {} as Record<string, { token: UserToken; state: ApiStakingState }>);
   }, [tokens, activeStates]);
 
-  const { shouldRender: shouldRenderStakedTokens, transitionClassNames: stakedTokenClassNames } = useShowTransition(
-    Boolean(Object.keys(stakedTokens).length),
-  );
+  const swapTokensBySlug = useMemo(() => {
+    return buildCollectionByKey<UserSwapToken>(swapTokens ?? [], 'slug');
+  }, [swapTokens]);
 
   const {
+    shouldRender: shouldRenderStakedTokens,
+  } = useShowTransition({
+    isOpen: Boolean(Object.keys(stakedTokens).length),
+    withShouldRender: true,
+  });
+
+  const {
+    ref: vestingTokenRef,
     shouldRender: shouldRenderVestingToken,
-    transitionClassNames: vestingTokenClassNames,
     amount: vestingAmount,
     vestingStatus,
     unfreezeEndDate,
@@ -180,13 +195,13 @@ function Assets({
   function renderVestingToken() {
     return (
       <Token
+        ref={vestingTokenRef}
         key="vesting"
         token={userMycoin!}
         vestingStatus={vestingStatus}
         unfreezeEndDate={unfreezeEndDate}
         amount={vestingAmount}
         isInvestorView={isInvestorViewEnabled}
-        classNames={vestingTokenClassNames}
         baseCurrency={baseCurrency}
         appTheme={appTheme}
         isSensitiveDataHidden={isSensitiveDataHidden}
@@ -205,16 +220,18 @@ function Assets({
         <Token
           key={`staking-${id}`}
           token={token}
-          stakingId={id}
           stakingStatus={stakingStatus}
           annualYield={annualYield}
           yieldType={yieldType}
           amount={toDecimal(stakingBalance, token.decimals)}
           isInvestorView={isInvestorViewEnabled}
-          classNames={stakedTokenClassNames}
           baseCurrency={baseCurrency}
           appTheme={appTheme}
           isSensitiveDataHidden={isSensitiveDataHidden}
+          withContextMenu
+          isViewMode={isViewMode}
+          isSwapDisabled={isSwapDisabled}
+          stakingState={state}
           onClick={onStakedTokenClick}
         />
       );
@@ -230,6 +247,8 @@ function Assets({
       annualYield,
       yieldType,
     } = (!(token.slug in stakedTokens) && stateByTokenSlug[token.slug]) || {};
+    const isStakingAvailable = Boolean(!isStakingDisabled && stateByTokenSlug[token.slug]);
+    const isSwapAvailable = Boolean(swapTokensBySlug[token.slug]);
 
     return (
       <Token
@@ -245,6 +264,10 @@ function Assets({
         withChainIcon={isMultichainAccount}
         appTheme={appTheme}
         isSensitiveDataHidden={isSensitiveDataHidden}
+        withContextMenu
+        isViewMode={isViewMode}
+        isStakingAvailable={isStakingAvailable}
+        isSwapDisabled={isSwapDisabled || !isSwapAvailable}
         onClick={onTokenClick}
       />
     );
@@ -282,7 +305,10 @@ function Assets({
   return (
     <InfiniteScroll
       ref={containerRef}
-      className={buildClassName(styles.wrapper, isSeparatePanel && !renderedTokens && styles.wrapperLoading)}
+      className={buildClassName(
+        styles.wrapper,
+        isSeparatePanel && !renderedTokens && styles.wrapperLoading,
+      )}
       scrollContainerClosest={!isLandscape && isActive ? '.app-slide-content' : undefined}
       items={viewportSlugs}
       itemSelector=".token-list-item"
@@ -307,13 +333,16 @@ export default memo(
     (global): StateProps => {
       const accountId = global.currentAccountId!;
       const tokens = selectCurrentAccountTokens(global);
+      const swapTokens = selectSwapTokens(global);
       const accountState = selectCurrentAccountState(global);
       const { isInvestorViewEnabled } = global.settings;
 
       const states = selectAccountStakingStates(global, accountId);
+      const isViewMode = selectIsCurrentAccountViewMode(global);
 
       return {
         tokens,
+        swapTokens,
         vesting: accountState?.vesting?.info,
         isInvestorViewEnabled,
         currentTokenSlug: accountState?.currentTokenSlug,
@@ -323,6 +352,9 @@ export default memo(
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         theme: global.settings.theme,
         states,
+        isViewMode,
+        isSwapDisabled: selectIsSwapDisabled(global),
+        isStakingDisabled: selectIsStakingDisabled(global),
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

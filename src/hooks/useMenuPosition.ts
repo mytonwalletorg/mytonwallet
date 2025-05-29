@@ -1,117 +1,463 @@
-import { useEffect, useState } from '../lib/teact/teact';
+import { useLayoutEffect } from '../lib/teact/teact';
+import { addExtraClass, removeExtraClass, setExtraStyles } from '../lib/teact/teact-dom';
 
-import type { IAnchorPosition } from '../global/types';
+import type { IAnchorPosition } from '../types';
 
-interface Layout {
-  withPortal?: boolean;
+import { requestForcedReflow } from '../lib/fasterdom/fasterdom';
+import { clamp } from '../util/math';
+import { useStateRef } from './useStateRef';
+
+import styles from '../components/ui/Menu.module.scss';
+
+interface Coordinates {
+  x: number;
+  y: number;
 }
 
-const MENU_POSITION_VISUAL_COMFORT_SPACE_PX = 16;
-const MENU_POSITION_BOTTOM_MARGIN = 12;
+interface Bounds {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+interface MenuDimensions {
+  width: number;
+  height: number;
+  marginTop: number;
+}
+
+interface PositionResult {
+  positionX: 'left' | 'right';
+  positionY: 'top' | 'bottom';
+  coordinates: Coordinates;
+  transformOrigin: Coordinates;
+}
+
+interface StaticPositionOptions {
+  anchor?: IAnchorPosition;
+  positionX?: 'left' | 'right';
+  positionY?: 'top' | 'bottom';
+  transformOriginX?: number;
+  transformOriginY?: number;
+  style?: string;
+  bubbleStyle?: string;
+}
+
+interface DynamicPositionOptions {
+  anchor: IAnchorPosition;
+  getTriggerElement: () => HTMLElement | undefined | null;
+  getRootElement: () => HTMLElement | undefined | null;
+  getMenuElement: () => HTMLElement | undefined | null;
+  getLayout?: () => Layout;
+  withMaxHeight?: boolean;
+}
+
+export type MenuPositionOptions =
+  StaticPositionOptions
+  | DynamicPositionOptions;
+
+export interface Layout {
+  extraPaddingX?: number;
+  extraTopPadding?: number;
+  extraMarginTop?: number;
+  menuElMinWidth?: number;
+  doNotCoverTrigger?: boolean;
+  centerHorizontally?: boolean;
+  deltaX?: number;
+  topShiftY?: number;
+  shouldAvoidNegativePosition?: boolean;
+  withPortal?: boolean;
+  isDense?: boolean; //  Allows you to place the menu as close to the edges of the area as possible
+  preferredPositionX?: 'left' | 'right';
+}
+
+const POSITIONING = {
+  VISUAL_COMFORT_SPACE: 16,
+  BOTTOM_MARGIN: 12,
+  HORIZONTAL_OFFSET: 3,
+  FALLBACK_X: 16,
+  TRIGGER_OFFSET: 6,
+} as const;
+
 const EMPTY_RECT = {
-  width: 0, left: 0, height: 0, top: 0,
+  width: 0, left: 0, height: 0, top: 0, right: 0, bottom: 0,
 };
 
 export default function useMenuPosition(
-  anchor: IAnchorPosition | undefined,
-  getTriggerElement: () => HTMLElement | null,
-  getRootElement: () => HTMLElement | null,
-  getMenuElement: () => HTMLElement | null,
-  getLayout?: () => Layout,
+  isOpen: boolean,
+  containerRef: React.RefObject<HTMLDivElement>,
+  bubbleRef: React.RefObject<HTMLDivElement>,
+  options: MenuPositionOptions,
 ) {
-  const [positionX, setPositionX] = useState<'right' | 'left'>('right');
-  const [positionY, setPositionY] = useState<'top' | 'bottom'>('bottom');
-  const [transformOriginX, setTransformOriginX] = useState<number>();
-  const [transformOriginY, setTransformOriginY] = useState<number>();
-  const [withScroll, setWithScroll] = useState(false);
-  const [style, setStyle] = useState('');
-  const [menuStyle, setMenuStyle] = useState('opacity: 0;');
+  const optionsRef = useStateRef(options);
 
-  useEffect(() => {
-    const triggerEl = getTriggerElement();
-    if (!anchor || !triggerEl) {
-      return;
-    }
+  useLayoutEffect(() => {
+    if (!isOpen) return;
 
-    let { x, y } = anchor;
-    const anchorX = x;
-    const anchorY = y;
+    const options2 = optionsRef.current;
 
-    const menuEl = getMenuElement();
-    const rootEl = getRootElement();
-
-    const {
-      withPortal = false,
-    } = getLayout?.() || {};
-
-    const marginTop = menuEl ? parseInt(getComputedStyle(menuEl).marginTop, 10) : undefined;
-    const { offsetWidth: menuElWidth, offsetHeight: menuElHeight } = menuEl || { offsetWidth: 0, offsetHeight: 0 };
-    const menuRect = menuEl ? {
-      width: menuElWidth,
-      height: menuElHeight + marginTop!,
-    } : EMPTY_RECT;
-
-    const rootRect = rootEl ? rootEl.getBoundingClientRect() : EMPTY_RECT;
-
-    let horizontalPosition: 'left' | 'right';
-    let verticalPosition: 'top' | 'bottom';
-    if (x - menuRect.width - rootRect.left > 0) {
-      horizontalPosition = 'right';
-      x -= 3;
+    if (!('getTriggerElement' in options2)) {
+      applyStaticOptions(containerRef, bubbleRef, options2);
     } else {
-      horizontalPosition = 'left';
-      x = 16;
+      requestForcedReflow(() => {
+        const staticOptions = processDynamically(options2);
+
+        return () => {
+          applyStaticOptions(containerRef, bubbleRef, staticOptions);
+        };
+      });
     }
-    setPositionX(horizontalPosition);
+  }, [isOpen, containerRef, bubbleRef, optionsRef]);
+}
 
-    if (y + menuRect.height < rootRect.height + rootRect.top) {
-      verticalPosition = 'top';
+function applyStaticOptions(
+  containerRef: React.RefObject<HTMLDivElement>,
+  bubbleRef: React.RefObject<HTMLDivElement>,
+  {
+    anchor,
+    positionX = 'left',
+    positionY = 'top',
+    transformOriginX,
+    transformOriginY,
+    style,
+    bubbleStyle,
+  }: StaticPositionOptions,
+) {
+  const containerEl = containerRef.current!;
+  const bubbleEl = bubbleRef.current!;
+
+  let finalStyle = style;
+  if (anchor && !style) {
+    finalStyle = `left: ${anchor.x}px; top: ${anchor.y}px`;
+  }
+
+  if (finalStyle) {
+    containerEl.style.cssText = finalStyle;
+  }
+
+  if (bubbleStyle) {
+    bubbleEl.style.cssText = bubbleStyle;
+  }
+
+  if (positionX) {
+    removeExtraClass(bubbleEl, styles.left);
+    removeExtraClass(bubbleEl, styles.right);
+    addExtraClass(bubbleEl, styles[positionX]);
+  }
+
+  if (positionY) {
+    removeExtraClass(bubbleEl, styles.top);
+    removeExtraClass(bubbleEl, styles.bottom);
+    addExtraClass(bubbleEl, styles[positionY]);
+  }
+
+  setExtraStyles(bubbleEl, {
+    transformOrigin: [
+      transformOriginX ? `${transformOriginX}px` : positionX,
+      transformOriginY ? `${transformOriginY}px` : positionY,
+    ].join(' '),
+  });
+}
+
+function gatherBounds(
+  getTriggerElement: () => HTMLElement | null | undefined,
+  getRootElement: () => HTMLElement | null | undefined,
+  getMenuElement: () => HTMLElement | null | undefined,
+  layout: Layout,
+): {
+    triggerRect: DOMRect;
+    rootRect: Bounds;
+    menuDimensions: MenuDimensions;
+  } {
+  const triggerEl = getTriggerElement()!;
+  const rootEl = getRootElement();
+  const menuEl = getMenuElement();
+
+  const { extraMarginTop = 0, menuElMinWidth = 0 } = layout;
+
+  const triggerRect = triggerEl.getBoundingClientRect();
+  const rootRect = rootEl ? rootEl.getBoundingClientRect() : EMPTY_RECT;
+
+  let menuDimensions: MenuDimensions;
+  if (menuEl) {
+    const marginTop = parseInt(getComputedStyle(menuEl).marginTop, 10) + extraMarginTop;
+    const { offsetWidth, offsetHeight } = menuEl;
+    menuDimensions = {
+      width: Math.max(offsetWidth, menuElMinWidth),
+      height: offsetHeight + marginTop,
+      marginTop,
+    };
+  } else {
+    menuDimensions = { width: 0, height: 0, marginTop: 0 };
+  }
+
+  return { triggerRect, rootRect, menuDimensions };
+}
+
+function determineHorizontalPosition(
+  anchor: Coordinates,
+  rootRect: Bounds,
+  menuWidth: number,
+  deltaX: number,
+  preferredPositionX: 'left' | 'right' = 'right',
+): { positionX: 'left' | 'right'; x: number } {
+  let x = anchor.x;
+  let positionX: 'left' | 'right';
+
+  if (preferredPositionX === 'right') {
+    // Prefer left-leaning (opening leftward): try 'right' position first
+    if (x - menuWidth >= rootRect.left + POSITIONING.VISUAL_COMFORT_SPACE) {
+      positionX = 'right';
+      x -= POSITIONING.HORIZONTAL_OFFSET;
     } else {
-      verticalPosition = 'bottom';
+      // Fall back to right-leaning (opening rightward)
+      positionX = 'left';
+      x += POSITIONING.HORIZONTAL_OFFSET;
+    }
+  } else {
+    // Prefer right-leaning (opening rightward): try 'left' position first
+    // eslint-disable-next-line no-lonely-if
+    if (x + menuWidth <= rootRect.right - POSITIONING.VISUAL_COMFORT_SPACE) {
+      positionX = 'left';
+      x += POSITIONING.HORIZONTAL_OFFSET;
+    } else {
+      // Fall back to left-leaning (opening leftward)
+      positionX = 'right';
+      x -= POSITIONING.HORIZONTAL_OFFSET;
+    }
+  }
 
-      if (y - menuRect.height < rootRect.top) {
+  x += deltaX;
+
+  return { positionX, x };
+}
+
+function determineVerticalPosition(
+  anchor: Coordinates,
+  triggerRect: DOMRect,
+  rootRect: Bounds,
+  menuHeight: number,
+  layout: Layout,
+): { positionY: 'top' | 'bottom'; y: number } {
+  const { topShiftY = 0, extraTopPadding = 0, isDense = false, doNotCoverTrigger = false } = layout;
+  let y = anchor.y;
+  let positionY: 'top' | 'bottom';
+
+  // For `doNotCoverTrigger` we use the position relative to the trigger
+  if (doNotCoverTrigger) {
+    const hasSpaceBelow = triggerRect.bottom + POSITIONING.TRIGGER_OFFSET + menuHeight <= rootRect.bottom;
+    const hasSpaceAbove = triggerRect.top - POSITIONING.TRIGGER_OFFSET - menuHeight >= rootRect.top;
+
+    if (hasSpaceBelow) {
+      positionY = 'top';
+      y = triggerRect.bottom + POSITIONING.TRIGGER_OFFSET;
+    } else if (hasSpaceAbove) {
+      positionY = 'bottom';
+      y = triggerRect.top - POSITIONING.TRIGGER_OFFSET;
+    } else {
+      // If there is no room at the top or bottom, we use standard logic
+      positionY = 'bottom';
+      y = rootRect.top + rootRect.height;
+    }
+  } else {
+    const yWithTopShift = y + topShiftY;
+    const hasSpaceBelow = yWithTopShift + triggerRect.height + menuHeight < rootRect.height + rootRect.top;
+
+    if (isDense || hasSpaceBelow) {
+      positionY = 'top';
+      y = yWithTopShift;
+    } else {
+      positionY = 'bottom';
+      const hasSpaceAbove = y - triggerRect.height - menuHeight >= rootRect.top + extraTopPadding;
+      if (!hasSpaceAbove) {
         y = rootRect.top + rootRect.height;
       }
     }
+  }
 
-    setPositionY(verticalPosition);
+  return { positionY, y };
+}
 
-    const triggerRect = triggerEl.getBoundingClientRect();
+function applyBoundaryConstraints(
+  coordinates: Coordinates,
+  positionX: 'left' | 'right',
+  triggerRect: DOMRect,
+  rootRect: Bounds,
+  menuDimensions: MenuDimensions,
+  layout: Layout,
+): Coordinates {
+  const {
+    shouldAvoidNegativePosition = false,
+    withPortal = false,
+    isDense = false,
+    menuElMinWidth = 0,
+    centerHorizontally = false,
+  } = layout;
 
-    const addedYForPortalPositioning = (withPortal ? triggerRect.top : 0);
-    const addedXForPortalPositioning = (withPortal ? triggerRect.left : 0);
+  let { x, y } = coordinates;
 
+  // Centering the menu with respect to the trigger
+  if (centerHorizontally) {
+    x = triggerRect.left + (triggerRect.width - menuDimensions.width) / 2;
+
+    // Check that the menu does not extend beyond the edges of the screen
+    x = clamp(
+      x,
+      rootRect.left + POSITIONING.VISUAL_COMFORT_SPACE,
+      rootRect.right - menuDimensions.width - POSITIONING.VISUAL_COMFORT_SPACE,
+    );
+
+    if (!withPortal) {
+      y -= triggerRect.top;
+    }
+  } else {
+    // Calculate relative position to trigger
     const leftWithPossibleNegative = Math.min(
       x - triggerRect.left,
-      rootRect.width - menuRect.width - MENU_POSITION_VISUAL_COMFORT_SPACE_PX,
+      rootRect.width - menuDimensions.width - POSITIONING.VISUAL_COMFORT_SPACE,
     );
-    const left = (horizontalPosition === 'left'
-      ? (withPortal
-        ? Math.max(MENU_POSITION_VISUAL_COMFORT_SPACE_PX, leftWithPossibleNegative)
-        : leftWithPossibleNegative)
-      : (x - triggerRect.left)) + addedXForPortalPositioning;
-    const top = y - triggerRect.top + addedYForPortalPositioning;
 
-    const menuMaxHeight = rootRect.height - MENU_POSITION_BOTTOM_MARGIN - (marginTop || 0);
+    // Apply horizontal constraints
+    if (positionX === 'left') {
+      if (withPortal || shouldAvoidNegativePosition) {
+        x = Math.max(POSITIONING.VISUAL_COMFORT_SPACE, leftWithPossibleNegative);
+      } else {
+        x = leftWithPossibleNegative;
+      }
+    } else {
+      x -= triggerRect.left;
+    }
 
-    setWithScroll(menuMaxHeight < menuRect.height);
-    setMenuStyle(`max-height: ${menuMaxHeight}px;`);
-    setStyle(`left: ${left}px; top: ${top}px`);
-    const offsetX = (anchorX + addedXForPortalPositioning - triggerRect.left) - left;
-    const offsetY = (anchorY + addedYForPortalPositioning - triggerRect.top) - top - (marginTop || 0);
-    setTransformOriginX(horizontalPosition === 'left' ? offsetX : menuRect.width + offsetX);
-    setTransformOriginY(verticalPosition === 'bottom' ? menuRect.height + offsetY : offsetY);
-  }, [
-    anchor, getMenuElement, getRootElement, getTriggerElement, getLayout,
-  ]);
+    // Apply portal positioning
+    if (withPortal) {
+      x += triggerRect.left;
+      // For portal, Y coordinate should remain unchanged (already in viewport coordinates)
+      // y stays as is
+    } else {
+      // For non-portal, convert from anchor coordinates to relative coordinates
+      y -= triggerRect.top;
+    }
+  }
+
+  // Apply dense mode constraints
+  if (isDense) {
+    x = Math.min(x, rootRect.width - menuDimensions.width - POSITIONING.VISUAL_COMFORT_SPACE);
+    y = Math.min(y, rootRect.height - menuDimensions.height - POSITIONING.VISUAL_COMFORT_SPACE);
+  }
+
+  // Handle portal edge constraints
+  if (withPortal) {
+    if (positionX === 'left') {
+      x = Math.min(x, rootRect.width - menuDimensions.width - POSITIONING.VISUAL_COMFORT_SPACE);
+    } else {
+      x = Math.max(x, POSITIONING.VISUAL_COMFORT_SPACE);
+    }
+  }
+
+  // Handle minimum width adjustments
+  const addedXForMenuPositioning = menuElMinWidth ? Math.max(0,
+    (menuElMinWidth - (menuDimensions.width - menuElMinWidth)) / 2) : 0;
+  if (x - addedXForMenuPositioning < 0 && shouldAvoidNegativePosition) {
+    x = addedXForMenuPositioning + POSITIONING.VISUAL_COMFORT_SPACE;
+  }
+
+  return { x, y };
+}
+
+function calculateTransformOrigin(
+  anchor: Coordinates,
+  finalCoordinates: Coordinates,
+  positionResult: Pick<PositionResult, 'positionX' | 'positionY'>,
+  triggerRect: DOMRect,
+  menuDimensions: MenuDimensions,
+  withPortal: boolean,
+): Coordinates {
+  const portalOffset = withPortal ? { x: triggerRect.left, y: triggerRect.top } : { x: 0, y: 0 };
+
+  const offsetX = (anchor.x + portalOffset.x - triggerRect.left) - finalCoordinates.x;
+  const offsetY = (anchor.y + portalOffset.y - triggerRect.top) - finalCoordinates.y - menuDimensions.marginTop;
+
+  const transformOriginX = positionResult.positionX === 'left'
+    ? offsetX
+    : menuDimensions.width + offsetX;
+
+  const transformOriginY = positionResult.positionY === 'bottom'
+    ? menuDimensions.height + offsetY
+    : offsetY;
+
+  return { x: transformOriginX, y: transformOriginY };
+}
+
+function processDynamically(
+  {
+    anchor,
+    getRootElement,
+    getMenuElement,
+    getTriggerElement,
+    getLayout,
+    withMaxHeight,
+  }: DynamicPositionOptions,
+) {
+  const layout = getLayout?.() || {};
+
+  const { triggerRect, rootRect, menuDimensions } = gatherBounds(
+    getTriggerElement,
+    getRootElement,
+    getMenuElement,
+    layout,
+  );
+
+  const { positionX, x } = determineHorizontalPosition(
+    anchor,
+    rootRect,
+    menuDimensions.width,
+    layout.deltaX || 0,
+    layout.preferredPositionX,
+  );
+
+  const { positionY, y } = determineVerticalPosition(
+    anchor,
+    triggerRect,
+    rootRect,
+    menuDimensions.height,
+    layout,
+  );
+
+  const finalCoordinates = applyBoundaryConstraints(
+    { x, y },
+    positionX,
+    triggerRect,
+    rootRect,
+    menuDimensions,
+    layout,
+  );
+
+  const transformOrigin = calculateTransformOrigin(
+    anchor,
+    finalCoordinates,
+    { positionX, positionY },
+    triggerRect,
+    menuDimensions,
+    layout.withPortal || false,
+  );
+
+  const style = `left: ${finalCoordinates.x}px; top: ${finalCoordinates.y}px`;
+
+  let bubbleStyle;
+  if (withMaxHeight) {
+    const menuMaxHeight = rootRect.height - POSITIONING.BOTTOM_MARGIN - menuDimensions.marginTop;
+    bubbleStyle = `max-height: ${menuMaxHeight}px;`;
+  }
 
   return {
     positionX,
     positionY,
-    transformOriginX,
-    transformOriginY,
+    transformOriginX: transformOrigin.x,
+    transformOriginY: transformOrigin.y,
     style,
-    menuStyle,
-    withScroll,
+    bubbleStyle,
   };
 }

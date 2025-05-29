@@ -267,6 +267,7 @@ $dapp_can_view_balance: "%dappname% will be able to view wallet address and bala
 Send Transaction: Send Transaction
 Payload: Payload
 $many_transactions:
+  zeroValue: No Transactions
   oneValue: "%1$d Transaction"
   otherValue: "%1$d Transactions"
 Total Amount: Total Amount
@@ -610,6 +611,7 @@ Unfrozen: Unfrozen
 Missed: Missed
 Frozen: Frozen
 until %date%: until %date%
+Until %date%: Until %date%
 "%volume% in %amount% parts": "%volume% in %amount% parts"
 Unfreeze: Unfreeze
 Claim: Claim
@@ -841,4 +843,57 @@ $unstaking_when_receive_ethena: You will be able to receive your unstaked deposi
 Coins have been unstaked!: Coins have been unstaked!
 Confirm Upgrading: Confirm Upgrading
 How does it work?: How does it work?
+Multisend: Multisend
+Expires in %1$d days:
+  zeroValue: Expires today
+  oneValue: Expires tomorrow
+  otherValue: Expires in %1$d days
+Renew All: Renew All
+Renew: Renew
+Renew Domain: Renew Domain
+Renew Domains: Renew Domains
+Some domains are about to expire: Some domains are about to expire
+$domain_expire:
+  zeroValue: "%domain% expires today"
+  oneValue: "%domain% expires tomorrow"
+  otherValue: "%domain% expires in %days% days"
 '%token% Staking': '%token% Staking'
+Add Tab: Add Tab
+Remove Tab: Remove Tab
+Failed to process domain operation. Please try again.: Failed to process domain operation. Please try again.
+$domains_amount %1$d:
+  zeroValue: No domains
+  oneValue: "%1$d domain"
+  otherValue: "%1$d domains"
+Stake: Stake
+Manage Tokens: Manage Tokens
+Claim Rewards: Claim Rewards
+Configure DNS: Configure DNS
+Link to Wallet: Link to Wallet
+Change Wallet: Change Wallet
+Change Linked Wallet: Change Linked Wallet
+Domain has been renewed!: Domain has been renewed!
+Domains have been renewed!: Domains have been renewed!
+Linked Wallet: Linked Wallet
+Domain has been linked!: Domain has been linked!
+Link: Link
+Confirm Renewing: Confirm Renewing
+Confirm Linking: Confirm Linking
+$domains_expire:
+  zeroValue: "No domains expires %days%"
+  oneValue: "%domain% domain expires %days%"
+  otherValue: "%domain% domains expire %days%"
+$in_days:
+  zeroValue: today
+  oneValue: tomorrow
+  otherValue: in %1$d days
+$domain_was_expired: "%domain% is expired"
+$domains_was_expired:
+  zeroValue: "No domains is expired"
+  oneValue: "%domain% domain is expired"
+  otherValue: "%domain% domains are expired"
+
+Reload: Reload
+Copy Link: Copy Link
+Check eligibility for max APY: Check eligibility for max APY
+Check eligibility: Check eligibility

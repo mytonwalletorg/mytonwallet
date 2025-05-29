@@ -47,7 +47,8 @@ import { tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 import chains from '../chains';
 import { getContractInfo, parsePayloadBase64 } from '../chains/ton';
 import { fetchKeyPair } from '../chains/ton/auth';
-import { DEFAULT_MAX_MESSAGES, LEDGER_MAX_MESSAGES, W5_MAX_MESSAGES } from '../chains/ton/constants';
+import { DEFAULT_MAX_MESSAGES } from '../chains/ton/constants';
+import { getMaxMessagesInTransaction } from '../chains/ton/util';
 import {
   getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress,
 } from '../chains/ton/util/tonCore';
@@ -247,14 +248,12 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
 }
 
 function getMaxMessages(account: ApiAccountWithTon) {
-  const { type, ton: { version } } = account;
+  const { type } = account;
 
   if (type === 'ledger') {
-    return LEDGER_MAX_MESSAGES;
-  } else if (version === 'W5') {
-    return W5_MAX_MESSAGES;
+    return DEFAULT_MAX_MESSAGES; // TODO Remove after DEXs support the 1 message limit
   } else {
-    return DEFAULT_MAX_MESSAGES;
+    return getMaxMessagesInTransaction(account);
   }
 }
 

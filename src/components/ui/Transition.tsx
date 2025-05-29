@@ -1,4 +1,5 @@
 import type { RefObject } from 'react';
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { beginHeavyAnimation, useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 import { addExtraClass, removeExtraClass, setExtraStyles, toggleExtraClass } from '../../lib/teact/teact-dom';
 import { getGlobal } from '../../global';
@@ -21,7 +22,7 @@ type AnimationName = (
   | 'fade' | 'pushSlide' | 'reveal' | 'slideOptimized' | 'slideOptimizedRtl' | 'semiFade'
   | 'slideVertical' | 'slideVerticalFade' | 'slideFadeAndroid'
   );
-export type ChildrenFn = (isActive: boolean, isFrom: boolean, currentKey: number, activeKey: number) => React.ReactNode;
+export type ChildrenFn = (isActive: boolean, isFrom: boolean, currentKey: number, activeKey: number) => TeactNode;
 export type TransitionProps = {
   ref?: RefObject<HTMLDivElement>;
   activeKey: number;
@@ -44,7 +45,7 @@ export type TransitionProps = {
   onStop?: NoneToVoidFunction;
   onContainerClick?: NoneToVoidFunction;
   // Should be not a falsy value, otherwise some transitions will be delayed
-  children: React.ReactNode | ChildrenFn;
+  children: TeactNode | ChildrenFn;
 };
 
 const FALLBACK_ANIMATION_END = SECOND;
@@ -92,7 +93,7 @@ function Transition({
     containerRef = ref;
   }
 
-  const rendersRef = useRef<Record<number, React.ReactNode | ChildrenFn>>({});
+  const rendersRef = useRef<Record<number, TeactNode | ChildrenFn>>({});
   const prevActiveKey = usePrevious<any>(activeKey);
   const forceUpdate = useForceUpdate();
   const isAnimatingRef = useRef(false);

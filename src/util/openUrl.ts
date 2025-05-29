@@ -1,13 +1,24 @@
 import { AppLauncher } from '@capacitor/app-launcher';
-import { getActions } from '../global';
+import { getActions, getGlobal } from '../global';
 
-import { IS_CAPACITOR } from '../config';
+import { IFRAME_WHITELIST, IS_CAPACITOR, SUBPROJECT_URL_MASK } from '../config';
 import { isTelegramUrl } from './url';
+
+const [, SUBPROJECT_HOST_ENDING] = SUBPROJECT_URL_MASK.split('*');
 
 export async function openUrl(
   url: string, options?: { isExternal?: boolean; title?: string; subtitle?: string },
 ) {
-  if (IS_CAPACITOR && !options?.isExternal && url.startsWith('http') && !isTelegramUrl(url)) {
+  if (isSubproject(url)) {
+    url = `${url}#theme=${getGlobal().settings.theme}`;
+  }
+
+  if (
+    !options?.isExternal
+    && url.startsWith('http')
+    && (IS_CAPACITOR || isSubproject(url) || isInIframeWhitelist(url))
+    && !isTelegramUrl(url)
+  ) {
     getActions().openBrowser({
       url,
       title: options?.title,
@@ -19,6 +30,15 @@ export async function openUrl(
       window.open(url, '_blank', 'noopener');
     }
   }
+}
+
+function isSubproject(url: string) {
+  const { host } = new URL(url);
+  return host.endsWith(SUBPROJECT_HOST_ENDING) || host.startsWith('localhost:432');
+}
+
+function isInIframeWhitelist(url: string) {
+  return IFRAME_WHITELIST.some((allowedOrigin) => url.startsWith(allowedOrigin.replace(/\*$/, '')));
 }
 
 export function handleOpenUrl(

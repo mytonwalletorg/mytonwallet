@@ -1,0 +1,84 @@
+@import "../../styles/mixins";
+
+$modalHeight: 36.5rem;
+
+.modalDialog {
+  height: $modalHeight;
+
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc($modalHeight + var(--safe-area-bottom));
+  }
+
+  :global(.is-native-bottom-sheet) & {
+    height: calc($modalHeight + var(--safe-area-bottom, 0rem));
+  }
+}
+
+.modalTitle {
+  overflow: visible;
+
+  line-height: 1 !important;
+}
+
+.headerTitle {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 0.25rem;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.headerDate {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray-2);
+}
+
+.sticker {
+  margin: -0.5rem auto 1.25rem;
+}
+
+.transactionBanner {
+  align-self: center;
+
+  margin-bottom: 2rem;
+}
+
+.nftContainer {
+  margin-bottom: auto;
+}
+
+.multiNftChips {
+  max-height: 16rem !important;
+}
+
+.footer {
+  margin-top: 1rem;
+  padding-top: 0;
+}
+
+.button {
+  position: relative;
+
+  width: 100%;
+  max-width: 100% !important;
+}
+
+.buttons {
+  --color-gray-button-background: var(--color-gray-button-background-light);
+  --color-gray-button-background-hover: var(--color-gray-button-background-light-hover);
+
+  display: flex;
+  justify-content: center;
+
+  margin-top: -0.25rem;
+}
+
+.buttonsAfterNft {
+  margin-top: 0.75rem;
+}

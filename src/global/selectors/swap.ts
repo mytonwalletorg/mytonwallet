@@ -2,12 +2,17 @@ import type { ApiBalanceBySlug, ApiSwapAsset } from '../../api/types';
 import type { AccountSettings, GlobalState, UserSwapToken } from '../types';
 import { SwapType } from '../types';
 
-import { DEFAULT_SWAP_FISRT_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG } from '../../config';
+import { DEFAULT_SWAP_FIRST_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CORE_WALLET } from '../../config';
 import { toBig } from '../../util/decimals';
 import memoize from '../../util/memoize';
 import { getChainBySlug } from '../../util/tokens';
 import withCache from '../../util/withCache';
-import { selectCurrentAccount, selectCurrentAccountSettings, selectCurrentAccountState } from './accounts';
+import {
+  selectCurrentAccount,
+  selectCurrentAccountSettings,
+  selectCurrentAccountState,
+  selectIsHardwareAccount,
+} from './accounts';
 import { selectAccountTokensMemoizedFor } from './tokens';
 
 function createTokenList(
@@ -152,7 +157,7 @@ export function selectCurrentSwapTokenOut(global: GlobalState) {
 
 export function selectSwapType(global: GlobalState) {
   const {
-    tokenInSlug = DEFAULT_SWAP_FISRT_TOKEN_SLUG,
+    tokenInSlug = DEFAULT_SWAP_FIRST_TOKEN_SLUG,
     tokenOutSlug = DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   } = global.currentSwap;
   const tokenInChain = getChainBySlug(tokenInSlug);
@@ -169,4 +174,11 @@ export function selectSwapType(global: GlobalState) {
   }
 
   return SwapType.CrosschainToWallet;
+}
+
+export function selectIsSwapDisabled(global: GlobalState) {
+  return IS_CORE_WALLET
+    || global.restrictions.isSwapDisabled
+    || global.settings.isTestnet
+    || selectIsHardwareAccount(global);
 }

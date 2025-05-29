@@ -1,6 +1,5 @@
 import React, { memo, useRef } from '../../lib/teact/teact';
 
-import buildClassName from '../../util/buildClassName';
 import { preloadedImageUrls } from '../../util/preloadImage';
 
 import useFlag from '../../hooks/useFlag';
@@ -12,6 +11,7 @@ interface OwnProps {
   loading?: 'lazy' | 'eager';
   className?: string;
   imageClassName?: string;
+  children?: TeactJsx;
 }
 
 function ImageComponent({
@@ -20,6 +20,7 @@ function ImageComponent({
   loading,
   className,
   imageClassName,
+  children,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLImageElement>(null);
@@ -30,10 +31,10 @@ function ImageComponent({
     preloadedImageUrls.add(url);
   };
 
-  const transitionClassNames = useMediaTransition(isLoaded);
+  const divRef = useMediaTransition(isLoaded);
 
   return (
-    <div className={buildClassName(transitionClassNames, className)}>
+    <div ref={divRef} className={className}>
       <img
         ref={ref}
         src={url}
@@ -44,6 +45,7 @@ function ImageComponent({
         referrerPolicy="same-origin"
         onLoad={!isLoaded ? handleLoad : undefined}
       />
+      {children}
     </div>
   );
 }

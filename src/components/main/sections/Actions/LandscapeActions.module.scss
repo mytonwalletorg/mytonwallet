@@ -88,11 +88,13 @@ $tab-1-height: 348;
   }
 
   &.active {
-    pointer-events: none;
-
     font-weight: 700;
 
     background: var(--color-background-first);
+
+    &:not(.withContextMenu) {
+      pointer-events: none;
+    }
 
     &::before,
     &::after,
@@ -281,4 +283,11 @@ $tab-1-height: 348;
 
 .spinner {
   align-self: center;
+}
+
+.menu {
+  --offset-y-value: 0;
+  --offset-y-bottom-value: 0;
+
+  max-height: max(70vh, 20rem);
 }

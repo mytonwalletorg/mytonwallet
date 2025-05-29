@@ -1,11 +1,10 @@
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
-import React, { memo, useEffect } from '../../lib/teact/teact';
+import { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { CustomInAppBrowserObject } from '../explore/hooks/useWebViewBridge';
 
 import { ANIMATION_LEVEL_DEFAULT } from '../../config';
-import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
 import { listenOnce } from '../../util/domEvents';
 import { compact } from '../../util/iteratees';
@@ -16,10 +15,7 @@ import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windo
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useShowTransition from '../../hooks/useShowTransition';
 import { useDappBridge } from '../explore/hooks/useDappBridge';
-
-import styles from './InAppBrowser.module.scss';
 
 interface StateProps {
   title?: string;
@@ -38,8 +34,6 @@ function InAppBrowser({
   title, subtitle, url, theme, animationLevel,
 }: StateProps) {
   const { closeBrowser } = getActions();
-
-  const { hasOpenClass, hasShownClass } = useShowTransition(Boolean(url));
 
   const lang = useLang();
 
@@ -151,9 +145,7 @@ function InAppBrowser({
     void openBrowser();
   }, [url, title, subtitle]);
 
-  return (
-    <div className={buildClassName(hasShownClass && styles.browserShown, hasOpenClass && styles.browserOpen)} />
-  );
+  return undefined;
 }
 
 export default memo(withGlobal((global): StateProps => {

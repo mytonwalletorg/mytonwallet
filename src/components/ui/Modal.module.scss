@@ -266,7 +266,7 @@
   position: relative;
 
   display: grid;
-  grid-template-areas: "back title close";
+  grid-template-areas: "back title button";
   grid-template-columns: 0.5fr 1fr 0.5fr;
   align-items: center;
 
@@ -276,18 +276,6 @@
 
   :global(html.is-mobile-telegram-app.is-fullscreen) & {
     padding-top: 0.625rem;
-  }
-
-  &_noClose {
-    grid-template-areas: "title title title";
-
-    padding-top: 1.125rem;
-    padding-bottom: 0.5rem;
-
-    .title {
-      position: static;
-      transform: none;
-    }
   }
 
   &_wideContent {
@@ -317,8 +305,56 @@
   }
 }
 
+.menuButton {
+  grid-area: button;
+
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  margin-right: 0.5rem;
+  margin-left: auto;
+  padding: 0.5rem !important;
+
+  color: var(--color-gray-3) !important;
+
+  background: none !important;
+
+  transition: color 150ms;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text) !important;
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: var(--no-animation-transition) !important;
+  }
+
+  @include respond-below(xs) {
+    :global(html.is-telegram-app) & {
+      visibility: hidden;
+    }
+  }
+}
+
+.menuIcon {
+  font-size: 1.125rem;
+  line-height: 1;
+
+  transition: color 150ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
 .closeButton {
-  grid-area: close;
+  grid-area: button;
 
   width: 1.875rem !important;
   max-width: none !important;
@@ -445,6 +481,7 @@
 
   margin-top: auto;
   padding-top: 2rem;
+
   &.footerButtonFullWidth {
     width: 100%;
     margin-top: initial;

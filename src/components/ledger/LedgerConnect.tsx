@@ -119,8 +119,11 @@ function LedgerConnect({
   }, [availableTransports]);
   const {
     shouldRender: shouldRenderAvailableTransports,
-    transitionClassNames: availableTransportsClassNames,
-  } = useShowTransition(Boolean(renderingAvailableTransports.length > 0 && selectedTransport));
+    ref: availableTransportsRef,
+  } = useShowTransition({
+    isOpen: Boolean(renderingAvailableTransports.length > 0 && selectedTransport),
+    withShouldRender: true,
+  });
 
   useHistoryBack({
     isActive,
@@ -192,7 +195,7 @@ function LedgerConnect({
 
   function renderAvailableTransports() {
     return (
-      <div className={buildClassName(styles.dropdownBlock, availableTransportsClassNames)}>
+      <div ref={availableTransportsRef} className={styles.dropdownBlock}>
         <Dropdown
           label={lang('Connection Type')}
           items={renderingAvailableTransports}
@@ -201,7 +204,7 @@ function LedgerConnect({
           arrow="chevron"
           disabled={isConnecting}
           className={buildClassName(styles.item, styles.item_small)}
-          onChange={setSelectedTransport as (value: string) => void}
+          onChange={setSelectedTransport}
         />
       </div>
     );

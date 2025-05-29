@@ -8,7 +8,7 @@ import { StakingState } from '../../global/types';
 
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
-  ANIMATED_STICKER_SMALL_SIZE_PX,
+  ANIMATED_STICKER_SMALL_SIZE_PX, ETHENA_ELIGIBILITY_CHECK_URL,
   ETHENA_HELP_CENTER_URL,
   JVAULT_URL,
   SHORT_FRACTION_DIGITS,
@@ -124,12 +124,16 @@ function StakingInitial({
   const { amount: balance = 0n, symbol, decimals = TONCOIN.decimals } = token ?? {};
 
   let { annualYield = 0 } = stakingState ?? {};
+  let annualYieldText = `${annualYield}%`;
   if (stakingState?.type === 'jetton' && amount) {
     annualYield = calcJettonStakingApr({
       tvl: stakingState.tvl + amount,
       dailyReward: stakingState.dailyReward,
       decimals,
     });
+  } else if (stakingState?.type === 'ethena') {
+    const { annualYieldStandard, annualYieldVerified } = stakingState!;
+    annualYieldText = `${annualYieldStandard}%–${annualYieldVerified}%`;
   }
 
   const isNativeToken = getIsNativeToken(token?.slug);
@@ -307,6 +311,10 @@ function StakingInitial({
   const handleAmountChange = useLastCallback((stringValue?: string) => {
     const value = stringValue ? fromDecimal(stringValue, decimals) : undefined;
     validateAndSetAmount(value);
+  });
+
+  const handleCheckEligibility = useLastCallback(() => {
+    void openUrl(ETHENA_ELIGIBILITY_CHECK_URL);
   });
 
   function getError() {
@@ -505,7 +513,12 @@ function StakingInitial({
         />
         <div className={buildClassName(styles.welcomeInformation, isStatic && styles.welcomeInformation_static)}>
           <div>{lang('Earn from your tokens while holding them', { symbol })}</div>
-          <div className={styles.stakingApy}>{lang('Est. %annual_yield%', { annual_yield: `${annualYield}%` })}</div>
+          <div className={styles.stakingApy}>{lang('Est. %annual_yield%', { annual_yield: annualYieldText })}</div>
+          {stakingType === 'ethena' && (
+            <Button isText className={styles.textButton} onClick={handleCheckEligibility}>
+              {lang('Check eligibility')}
+            </Button>
+          )}
           <Button isText className={styles.textButton} onClick={openSafeInfoModal}>
             {lang(getStakingTitle(stakingType))}
           </Button>

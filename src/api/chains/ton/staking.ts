@@ -13,15 +13,8 @@ import type {
 } from '../../types';
 import type { StakingPoolConfigUnpacked } from './contracts/JettonStaking/StakingPool';
 import type { Nominator } from './contracts/NominatorPool';
-import type {
-  ApiCheckTransactionDraftResult,
-  ApiSubmitTransferTonResult,
-  TonTransferParams,
-} from './types';
-import {
-  ApiLiquidUnstakeMode,
-  ApiTransactionDraftError,
-} from '../../types';
+import type { ApiCheckTransactionDraftResult, ApiSubmitTransferTonResult, TonTransferParams } from './types';
+import { ApiLiquidUnstakeMode, ApiTransactionDraftError } from '../../types';
 
 import {
   DEBUG,
@@ -584,7 +577,8 @@ async function buildJettonState(
 async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthenaStakingState> {
   const {
     network, balances, address: walletAddress,
-    commonData, commonData: { ethena: { apy } },
+    commonData, commonData: { ethena: { apy, apyVerified } },
+    backendState: { ethena: { isVerified } },
   } = options;
 
   const rate = network === 'testnet' ? 1 : commonData.ethena.rate;
@@ -598,12 +592,14 @@ async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthena
   const balance = bigintMultiplyToNumber(tokenBalance, rate);
   const unstakeRequestAmount = bigintMultiplyToNumber(lockedBalance, rate);
 
-  const state: ApiEthenaStakingState = {
+  return {
     id: 'ethena',
     type: 'ethena',
     tokenSlug: TON_USDE.slug,
     yieldType: 'APY',
-    annualYield: apy,
+    annualYield: isVerified === false ? apy : apyVerified,
+    annualYieldStandard: apy,
+    annualYieldVerified: apyVerified,
     balance,
     pool: ETHENA_STAKING_VAULT,
     tokenBalance,
@@ -611,9 +607,7 @@ async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthena
     lockedBalance,
     unlockTime: unlockTime && lockedBalance ? unlockTime * 1000 : undefined,
     tsUsdeWalletAddress,
-  };
-
-  return state;
+  } as ApiEthenaStakingState;
 }
 
 async function getLiquidStakingTokenBalance(accountId: string) {

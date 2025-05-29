@@ -1,4 +1,5 @@
 import type { Wallet } from '@tonconnect/sdk';
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo } from '../../lib/teact/teact';
 
 import Footer from './Footer';
@@ -6,7 +7,7 @@ import Footer from './Footer';
 import styles from './CommonPage.module.scss';
 
 interface OwnProps {
-  children: React.ReactNode;
+  children: TeactNode;
   onConnectClick?: (args?: any) => any;
   wallet?: Wallet;
   isGiveawayFinished: boolean;

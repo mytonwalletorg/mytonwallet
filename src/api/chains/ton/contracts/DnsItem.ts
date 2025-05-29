@@ -1,9 +1,16 @@
 import type {
-  Address, Cell, Contract, ContractProvider,
+  Cell,
+  Contract,
+  ContractProvider,
 } from '@ton/core';
 import {
-  beginCell, contractAddress,
+  Address,
+  beginCell,
+  contractAddress,
 } from '@ton/core';
+
+import { dnsCategoryToBigInt } from '../util/dns';
+import { DnsCategory, DnsOpCode } from '../constants';
 
 export type DnsItemConfig = {};
 
@@ -56,5 +63,38 @@ export class DnsItem implements Contract {
       collectionAddress,
       owner,
     };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async getLastFillUpTime(provider: ContractProvider): Promise<bigint> {
+    const result = await provider.get('get_last_fill_up_time', []);
+    return result.stack.readBigNumber();
+  }
+
+  static buildFillUpMessage(queryId?: bigint) {
+    return DnsItem.buildDeleteDnsRecordMessage(queryId);
+  }
+
+  static buildDeleteDnsRecordMessage(queryId?: bigint, category?: string) {
+    return beginCell()
+      .storeUint(DnsOpCode.ChangeRecord, 32)
+      .storeUint(queryId ?? 0n, 64)
+      .storeUint(dnsCategoryToBigInt(category), 256)
+      .endCell();
+  }
+
+  static buildChangeDnsWalletMessage(address: string, queryId?: bigint) {
+    return beginCell()
+      .storeUint(DnsOpCode.ChangeRecord, 32)
+      .storeUint(queryId ?? 0n, 64)
+      .storeUint(dnsCategoryToBigInt(DnsCategory.Wallet), 256)
+      .storeRef(
+        beginCell()
+          .storeUint(0x9fd3, 16)
+          .storeAddress(Address.parse(address))
+          .storeUint(0, 8)
+          .endCell(),
+      )
+      .endCell();
   }
 }

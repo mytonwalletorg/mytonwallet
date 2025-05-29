@@ -4,8 +4,6 @@ import React, {
 
 import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
 
-import buildClassName from '../../util/buildClassName';
-
 import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
 import useMediaTransition from '../../hooks/useMediaTransition';
@@ -29,7 +27,7 @@ function AnimatedIcon(props: OwnProps) {
     ...otherProps
   } = props;
   const [isAnimationLoaded, markAnimationLoaded] = useFlag(false);
-  const transitionClassNames = useMediaTransition(noTransition || isAnimationLoaded);
+  const ref = useMediaTransition(noTransition || isAnimationLoaded);
 
   const handleLoad = useLastCallback(() => {
     markAnimationLoaded();
@@ -48,7 +46,8 @@ function AnimatedIcon(props: OwnProps) {
 
   return (
     <AnimatedSticker
-      className={buildClassName(className, transitionClassNames)}
+      ref={ref}
+      className={className}
       size={size}
       play={play === true ? playKey : play}
       noLoop={noLoop}

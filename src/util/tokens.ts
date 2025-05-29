@@ -1,7 +1,7 @@
 import type { ApiChain, ApiToken, ApiTokenWithPrice } from '../api/types';
 import type { UserToken } from '../global/types';
 
-import { CHAIN_CONFIG, TONCOIN } from '../config';
+import { CHAIN_CONFIG, PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN } from '../config';
 import { getChainConfig } from './chain';
 import { pick } from './iteratees';
 
@@ -24,6 +24,14 @@ export function getNativeToken(chain: ApiChain): ApiToken {
 export function getChainBySlug(slug: string) {
   const items = slug.split('-');
   return items.length > 1 ? items[0] as ApiChain : chainByNativeSlug[slug];
+}
+
+export function getIsServiceToken(token?: ApiToken) {
+  const { type, codeHash = '', slug = '' } = token ?? {};
+
+  return type === 'lp_token'
+    || STAKED_TOKEN_SLUGS.has(slug)
+    || PRICELESS_TOKEN_HASHES.has(codeHash);
 }
 
 export function buildUserToken(token: ApiTokenWithPrice | ApiToken): UserToken {

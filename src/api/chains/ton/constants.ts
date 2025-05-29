@@ -33,7 +33,7 @@ export const TON_GAS = {
   stakeJettons: JettonStakingGas.STAKE_JETTONS + TOKEN_TRANSFER_AMOUNT,
   unstakeJettons: JettonStakingGas.UNSTAKE_JETTONS,
   claimJettons: JettonStakingGas.JETTON_TRANSFER + JettonStakingGas.SIMPLE_UPDATE_REQUEST,
-  changeDns: 50_000_000n, // 0.05 TON
+  changeDns: 15_000_000n, // 0.015 TON
   stakeEthena: TOKEN_TRANSFER_AMOUNT + 100_000_000n, // 0.15 TON
   stakeEthenaForward: 100_000_000n, // 0.1 TON
   unstakeEthena: TOKEN_TRANSFER_AMOUNT + 100_000_000n, // 0.15 TON
@@ -84,7 +84,7 @@ export const WORKCHAIN = Workchain.BaseChain;
 export const TRANSFER_TIMEOUT_SEC = 600; // 10 min.
 
 export const DEFAULT_MAX_MESSAGES = 4;
-export const LEDGER_MAX_MESSAGES = 4; // TODO Replace to 1 after DEX support
+export const LEDGER_MAX_MESSAGES = 1;
 export const W5_MAX_MESSAGES = 255;
 
 export enum OpCode {

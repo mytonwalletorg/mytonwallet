@@ -385,6 +385,14 @@
         {
           "text": "'mint-card'",
           "complexTypes": []
+        },
+        {
+          "text": "'renew-domain'",
+          "complexTypes": []
+        },
+        {
+          "text": "'link-domain'",
+          "complexTypes": []
         }
       ]
     }

@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -7,7 +8,7 @@ import styles from './AccountButton.module.scss';
 interface StateProps {
   accountLength: number;
   labelText?: string;
-  children: React.ReactNode;
+  children: TeactNode;
   className?: string;
 }
 

@@ -12,7 +12,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import useAppTheme from '../../hooks/useAppTheme';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
-import useShowTransition from '../../hooks/useShowTransition';
+import useMediaTransition from '../../hooks/useMediaTransition';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -51,7 +51,7 @@ function AuthStart({
   const appTheme = useAppTheme(theme);
   const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
   const [isLogoReady, markLogoReady] = useFlag();
-  const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
+  const logoRef = useMediaTransition<HTMLImageElement>(isLogoReady);
 
   function renderSimpleImportForm() {
     return (
@@ -96,9 +96,10 @@ function AuthStart({
         />
       ) : (
         <img
+          ref={logoRef}
           src={logoPath}
           alt={APP_NAME}
-          className={buildClassName(styles.logo, transitionClassNames)}
+          className={styles.logo}
           onLoad={markLogoReady}
         />
       )}

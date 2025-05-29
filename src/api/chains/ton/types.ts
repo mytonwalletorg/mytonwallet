@@ -22,7 +22,7 @@ export interface TokenTransferBodyParams {
   tokenAmount: bigint;
   toAddress: string;
   responseAddress: string;
-  forwardAmount: bigint;
+  forwardAmount?: bigint;
   forwardPayload?: AnyPayload;
   customPayload?: Cell;
 }

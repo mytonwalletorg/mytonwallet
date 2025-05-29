@@ -610,6 +610,7 @@ Unfrozen: ยกเลิกการแช่แข็ง
 Missed: พลาด
 Frozen: แช่แข็ง
 until %date%: ถึง %date%
+Until %date%: ถึง %date%
 "%volume% in %amount% parts": "%volume% มี %amount% ส่วน"
 Unfreeze: เลิกตรึง
 Claim: เรียกร้อง
@@ -841,4 +842,53 @@ $unstaking_when_receive_ethena: คุณจะสามารถรับเง
 Coins have been unstaked!: เหรียญถูกถอนแล้ว!
 Confirm Upgrading: ยืนยันการอัปเกรด
 How does it work?: ทำงานอย่างไร?
+Multisend: ส่งหลายรายการ
+Expires in %1$d days:
+  zeroValue: หมดอายุวันนี้
+  otherValue: จะหมดอายุใน %1$d วัน
+Renew All: ต่ออายุทั้งหมด
+Renew: ต่ออายุ
+Renew Domain: ต่ออายุโดเมน
+Renew Domains: ต่ออายุโดเมน
+Some domains are about to expire: โดเมนบางรายการกำลังจะหมดอายุ
+$domain_expire:
+  zeroValue: "%domain% หมดอายุวันนี้"
+  otherValue: "%domain% หมดอายุในอีก %days% วัน"
 '%token% Staking': การวางเดิมพัน %token%
+Add Tab: เพิ่มแท็บ
+Remove Tab: ลบแท็บ
+Link Domain: ลิงก์โดเมน
+Domain Linked!: เชื่อมโยงโดเมนเรียบร้อยแล้ว!
+Failed to process domain operation. Please try again.: การดำเนินการเกี่ยวกับโดเมนล้มเหลว กรุณาลองอีกครั้ง
+$domains_amount %1$d:
+  zeroValue: ไม่มีโดเมน
+  otherValue: "%1$d โดเมน"
+Stake: ลงทุน
+Manage Tokens: จัดการโทเคน
+Claim Rewards: รับรางวัล
+Configure DNS: กำหนดค่า DNS
+Link to Wallet: เชื่อมโยงกับกระเป๋าเงิน
+Change Wallet: เปลี่ยนกระเป๋าเงิน
+Change Linked Wallet: เปลี่ยนกระเป๋าเงินที่เชื่อมโยง
+Domain has been renewed!: ต่ออายุโดเมนเรียบร้อยแล้ว!
+Domains have been renewed!: ต่ออายุโดเมนเรียบร้อยแล้ว!
+Linked Wallet: กระเป๋าเงินที่เชื่อมโยง
+Domain has been linked!: เชื่อมโยงโดเมนเรียบร้อยแล้ว!
+Link: เชื่อมโยง
+Confirm Renewing: ยืนยันการต่ออายุ
+Confirm Linking: ยืนยันการเชื่อมโยง
+$domains_expire:
+  zeroValue: "ไม่มีโดเมนหมดอายุ %days%"
+  otherValue: "%domain% โดเมนหมดอายุ %days%"
+$in_days:
+  zeroValue: วันนี้
+  otherValue: "ใน %1$d วัน"
+$domain_was_expired: "%domain% หมดอายุแล้ว"
+$domains_was_expired:
+  zeroValue: "ไม่มีโดเมนที่หมดอายุ"
+  otherValue: "%domain% โดเมนหมดอายุแล้ว"
+
+Reload: โหลดใหม่
+Copy Link: คัดลอกลิงค์
+Check eligibility for max APY: ตรวจสอบสิทธิ์สำหรับ APY สูงสุด
+Check eligibility: ตรวจสอบสิทธิ์

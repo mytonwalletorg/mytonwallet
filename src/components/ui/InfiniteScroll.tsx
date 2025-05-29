@@ -1,5 +1,5 @@
 import type { RefObject, UIEvent } from 'react';
-import type { FC } from '../../lib/teact/teact';
+import type { FC, TeactNode } from '../../lib/teact/teact';
 import React, {
   useEffect, useLayoutEffect, useMemo, useRef,
 } from '../../lib/teact/teact';
@@ -31,9 +31,9 @@ type OwnProps = {
   noScrollRestoreOnTop?: boolean;
   noFastList?: boolean;
   cacheBuster?: any;
-  beforeChildren?: React.ReactNode;
+  beforeChildren?: TeactNode;
   scrollContainerClosest?: string;
-  children: React.ReactNode;
+  children: TeactNode;
   onLoadMore?: ({ direction }: { direction: LoadMoreDirection }) => void;
   onScroll?: (e: UIEvent<HTMLDivElement>) => void;
   onWheel?: (e: React.WheelEvent<HTMLDivElement>) => void;

@@ -22,13 +22,31 @@ import {
   updateAccountState,
   updateCurrentStaking,
 } from '../../reducers';
-import { selectAccount, selectAccountStakingState, selectIsHardwareAccount } from '../../selectors';
+import {
+  selectAccount,
+  selectAccountStakingState,
+  selectAccountStakingStatesBySlug,
+  selectIsHardwareAccount,
+} from '../../selectors';
 import { switchAccount } from './auth';
 
 const MODAL_CLOSING_DELAY = 50;
 
 addActionHandler('startStaking', (global, actions, payload) => {
   const isOpen = global.currentStaking.state !== StakingState.None;
+  const { tokenSlug } = payload || {};
+
+  if (tokenSlug) {
+    const stakingState = selectAccountStakingStatesBySlug(global, global.currentAccountId!)[tokenSlug];
+    if (stakingState) {
+      global = getGlobal();
+      global = updateAccountStaking(global, global.currentAccountId!, { stakingId: stakingState.id });
+      setGlobal(global);
+
+      global = getGlobal();
+    }
+  }
+
   if (IS_DELEGATED_BOTTOM_SHEET && !isOpen) {
     callActionInMain('startStaking', payload);
     return;
@@ -44,6 +62,16 @@ addActionHandler('startStaking', (global, actions, payload) => {
 
 addActionHandler('startUnstaking', (global, actions, payload) => {
   const isOpen = global.currentStaking.state !== StakingState.None;
+  const { stakingId } = payload || {};
+
+  if (stakingId) {
+    global = getGlobal();
+    global = updateAccountStaking(global, global.currentAccountId!, { stakingId });
+    setGlobal(global);
+
+    global = getGlobal();
+  }
+
   if (IS_DELEGATED_BOTTOM_SHEET && !isOpen) {
     callActionInMain('startUnstaking', payload);
     return;
@@ -430,9 +458,19 @@ addActionHandler('changeCurrentStaking', async (global, actions, { stakingId, sh
   }
 });
 
-addActionHandler('startStakingClaim', (global) => {
+addActionHandler('startStakingClaim', (global, actions, payload) => {
+  const { stakingId } = payload || {};
+
+  if (stakingId) {
+    global = getGlobal();
+    global = updateAccountStaking(global, global.currentAccountId!, { stakingId });
+    setGlobal(global);
+
+    global = getGlobal();
+  }
+
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('startStakingClaim');
+    callActionInMain('startStakingClaim', payload);
     return;
   }
 

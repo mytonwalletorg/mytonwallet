@@ -1,4 +1,5 @@
-import React, { memo, useRef } from '../../lib/teact/teact';
+import type { TeactNode } from '../../lib/teact/teact';
+import React from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { SensitiveDataMaskSkin } from '../common/SensitiveDataMask';
@@ -24,7 +25,7 @@ interface OwnProps {
   className?: string;
   maskClassName?: string;
   contentClassName?: string;
-  children: React.ReactNode;
+  children: TeactNode;
 }
 
 function SensitiveData({
@@ -41,14 +42,23 @@ function SensitiveData({
   children,
 }: OwnProps) {
   const { setIsSensitiveDataHidden } = getActions();
-  // eslint-disable-next-line no-null/no-null
-  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Do not animate on first load with active state
+  const {
+    ref: contentRef,
+  } = useShowTransition<HTMLDivElement>({
+    isOpen: !isActive,
+    noMountTransition: !isActive,
+    className: 'slow',
+  });
+
   const {
     shouldRender: shouldRenderSpoiler,
-    hasOpenClass: isSpoilerVisible,
-  } = useShowTransition(isActive, undefined, isActive);
+    ref: spoilerRef,
+  } = useShowTransition<HTMLCanvasElement>({
+    isOpen: isActive,
+    withShouldRender: true,
+    className: 'slow',
+  });
 
   function handleClick(e: React.UIEvent) {
     stopEvent(e);
@@ -64,7 +74,6 @@ function SensitiveData({
   );
   const spoilerClassName = buildClassName(
     styles.spoiler,
-    !isSpoilerVisible && styles.hidden,
     maskClassName,
     styles[align],
   );
@@ -75,9 +84,8 @@ function SensitiveData({
   );
   const contentFullClassName = buildClassName(
     styles.content,
-    isActive && styles.hidden,
     contentClassName,
-    isActive && isSpoilerVisible && styles.fixedWidth,
+    isActive && styles.fixedWidth,
   );
 
   return (
@@ -88,6 +96,7 @@ function SensitiveData({
     >
       {shouldRenderSpoiler && (
         <SensitiveDataMask
+          ref={spoilerRef}
           cols={cols}
           rows={rows}
           cellSize={cellSize}
@@ -102,4 +111,4 @@ function SensitiveData({
   );
 }
 
-export default memo(SensitiveData);
+export default SensitiveData;

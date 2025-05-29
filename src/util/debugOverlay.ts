@@ -117,7 +117,7 @@ export function debugFps() {
 function setupOverlay() {
   loggerEl = document.createElement('div');
   loggerEl.style.cssText = 'position: absolute; left: 0; bottom: 25px; z-index: 9998; width: 260px; height: 200px;'
-    + ' border: 1px solid #555; background: rgba(255, 255, 255, 0.9); overflow: auto; font-size: 50px; color: black;';
+    + ' border: 1px solid #555; background: rgba(255, 255, 255, 0.9); overflow: auto; font-size: 12px; color: black;';
   document.body.appendChild(loggerEl);
 
   const clearEl = document.createElement('a');

@@ -212,6 +212,7 @@
 .imageWrapper {
   /* Fix for border-radius missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
   isolation: isolate;
+  position: relative;
 
   display: block !important;
 
@@ -236,7 +237,7 @@
   object-fit: cover;
   border-radius: var(--border-radius-normal);
 
-  transition: transform 300ms;
+  transition: transform 300ms, opacity 300ms !important;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -268,6 +269,27 @@
   text-align: center;
 
   background: var(--color-tint);
+}
+
+.warningBlock {
+  cursor: var(--custom-cursor, pointer);
+
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  width: 100%;
+  padding: 0.3125rem 0.5rem;
+
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 0.875rem;
+  color: var(--color-red-button-text);
+  text-align: center;
+  overflow-wrap: break-word;
+
+  background: var(--color-red-button-background);
+  border: none;
 }
 
 .infoWrapper {

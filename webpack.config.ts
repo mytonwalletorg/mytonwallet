@@ -21,8 +21,8 @@ import {
 import {
   APP_NAME,
   EXTENSION_DESCRIPTION,
-  EXTENSION_NAME,
-  PRODUCTION_URL,
+  EXTENSION_NAME, IFRAME_WHITELIST, PRODUCTION_URL,
+  SUBPROJECT_URL_MASK,
 } from './src/config';
 
 dotenv.config();
@@ -50,6 +50,8 @@ const cspFrameSrcExtra = IS_CORE_WALLET ? '' : [
   'https://buy.moonpay.com/',
   'https://dreamwalkers.io/',
   'https://avanchange.com/',
+  ...IFRAME_WHITELIST,
+  SUBPROJECT_URL_MASK,
 ].join(' ');
 
 // The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.
@@ -67,7 +69,7 @@ const CSP = `
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
   form-action 'none';
-  frame-src 'self' ${cspFrameSrcExtra};`
+  frame-src 'self' https: ${cspFrameSrcExtra};`
   .replace(/\s+/g, ' ').trim();
 
 const appVersion = require('./package.json').version;

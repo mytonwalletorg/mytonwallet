@@ -11,8 +11,8 @@ import Spinner from './Spinner';
 
 import styles from './Dropdown.module.scss';
 
-export interface DropdownItem {
-  value: string;
+export interface DropdownItem<T extends string = string> {
+  value: T;
   name: string;
   selectedName?: string;
   description?: string;
@@ -21,30 +21,31 @@ export interface DropdownItem {
   fontIcon?: string;
   isDisabled?: boolean;
   isDangerous?: boolean;
-  withSeparator?: boolean;
+  withDelimiter?: boolean;
+  withDelimiterAfter?: boolean;
 }
 
-interface OwnProps {
+interface OwnProps<T extends string> {
   label?: string;
-  selectedValue?: string;
-  items: DropdownItem[];
+  selectedValue?: T;
+  items: DropdownItem<T>[];
   className?: string;
   itemClassName?: string;
   menuClassName?: string;
   theme?: 'light';
   arrow?: 'caret' | 'chevron';
-  menuPosition?: 'top' | 'bottom';
-  menuPositionHorizontal?: 'right' | 'left';
+  menuPositionX?: 'right' | 'left';
+  menuPositionY?: 'top' | 'bottom';
   disabled?: boolean;
   shouldTranslateOptions?: boolean;
-  onChange?: (value: string) => void;
+  onChange?: (value: T) => void;
   isLoading?: boolean;
 }
 
 const DEFAULT_ARROW = 'caret';
-const DEFAULT_MENU_POSITION_HORIZONTAL = 'right';
+const DEFAULT_MENU_POSITION_X = 'right';
 
-function Dropdown({
+function Dropdown<T extends string>({
   label,
   items,
   selectedValue,
@@ -53,13 +54,13 @@ function Dropdown({
   menuClassName,
   theme,
   arrow = DEFAULT_ARROW,
-  menuPosition,
-  menuPositionHorizontal = DEFAULT_MENU_POSITION_HORIZONTAL,
+  menuPositionX = DEFAULT_MENU_POSITION_X,
+  menuPositionY,
   disabled,
   shouldTranslateOptions,
   onChange,
   isLoading = false,
-}: OwnProps): TeactJsx {
+}: OwnProps<T>): TeactJsx {
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
 
@@ -69,7 +70,7 @@ function Dropdown({
     return [item, selectedName];
   }, [items, selectedValue]);
 
-  const handleSelect = useLastCallback((value: string) => {
+  const handleSelect = useLastCallback((value: T) => {
     if (value !== selectedValue) {
       onChange?.(value);
     }
@@ -141,8 +142,8 @@ function Dropdown({
       {withMenu && (
         <DropdownMenu
           isOpen={isMenuOpen && !isLoading}
-          menuPositionHorizontal={menuPositionHorizontal}
-          menuPosition={menuPosition}
+          menuPositionX={menuPositionX}
+          menuPositionY={menuPositionY}
           items={items}
           shouldTranslateOptions={shouldTranslateOptions}
           selectedValue={selectedValue}

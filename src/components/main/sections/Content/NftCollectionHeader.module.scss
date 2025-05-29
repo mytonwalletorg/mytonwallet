@@ -86,24 +86,41 @@
 .menu {
   --offset-x-value: 0.5rem;
 
-  overflow: hidden;
-
-  padding-right: 0.5rem !important;
+  max-height: 65vh;
 }
 
-.menuItem > :global(.icon) {
-  overflow: hidden;
-  order: 2;
+.menuItem {
+  padding: 0.75rem 1rem !important;
 
-  max-width: 14rem;
-  margin-inline-start: 0.25rem;
-  margin-inline-end: 0;
+  @media (pointer: coarse) {
+    padding: 0.875rem 1rem !important;
+  }
 
-  font-size: 1rem;
-  color: var(--color-gray-3);
-  text-overflow: ellipsis;
+  > :global(.icon) {
+    overflow: hidden;
+    order: 2;
 
-  transition: color 150ms;
+    max-width: 14rem;
+    margin-inline-start: 0.25rem;
+    margin-inline-end: 0;
+
+    font-size: 1rem;
+    color: var(--color-gray-3);
+    text-overflow: ellipsis;
+
+    transition: color 150ms;
+
+    @media (pointer: coarse) {
+      font-size: 1.125rem;
+    }
+  }
+
+  &:hover,
+  &:focus-visible {
+    > :global(.icon) {
+      color: var(--color-accent);
+    }
+  }
 }
 
 .sendAllButton {

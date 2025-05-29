@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
@@ -22,6 +23,7 @@ export type SensitiveDataMaskSkin = (
   );
 
 interface OwnProps {
+  ref?: RefObject<HTMLCanvasElement>;
   cols: number;
   rows: number;
   cellSize: number;
@@ -73,6 +75,7 @@ const SKIN_COLORS: Record<SensitiveDataMaskSkin, string> = {
 };
 
 function SensitiveDataMask({
+  ref,
   cols,
   rows,
   cellSize,
@@ -81,7 +84,11 @@ function SensitiveDataMask({
   theme,
 }: OwnProps & StateProps) {
   // eslint-disable-next-line no-null/no-null
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  let canvasRef = useRef<HTMLCanvasElement>(null);
+  if (ref) {
+    canvasRef = ref;
+  }
+
   const cellSizeDpr = cellSize * DPR;
 
   const appTheme = useAppTheme(theme);

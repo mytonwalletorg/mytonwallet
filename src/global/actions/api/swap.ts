@@ -25,7 +25,7 @@ import {
 } from '../../types';
 
 import {
-  DEFAULT_SWAP_FISRT_TOKEN_SLUG,
+  DEFAULT_SWAP_FIRST_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   TONCOIN,
   TRX_SWAP_COUNT_FEE_ADDRESS,
@@ -212,7 +212,7 @@ addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
   let { tokenInSlug: requiredTokenInSlug, tokenOutSlug: requiredTokenOutSlug } = payload ?? {};
   const { withResetAmount } = payload ?? {};
 
-  requiredTokenInSlug = requiredTokenInSlug || DEFAULT_SWAP_FISRT_TOKEN_SLUG;
+  requiredTokenInSlug = requiredTokenInSlug || DEFAULT_SWAP_FIRST_TOKEN_SLUG;
   requiredTokenOutSlug = requiredTokenOutSlug || DEFAULT_SWAP_SECOND_TOKEN_SLUG;
   if (
     global.currentSwap.tokenInSlug === requiredTokenInSlug

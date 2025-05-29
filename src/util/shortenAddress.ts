@@ -1,7 +1,7 @@
 import withCache from './withCache';
 
 export const MEANINGFUL_CHAR_LENGTH = 6;
-const FILLER = '...';
+const FILLER = '···';
 const FILLER_LENGTH = FILLER.length;
 
 export const shortenAddress = withCache((address: string, shift = MEANINGFUL_CHAR_LENGTH, fromRight = shift) => {

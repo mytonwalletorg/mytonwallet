@@ -1,4 +1,4 @@
-import type { FC, RefObject } from '../../lib/teact/teact';
+import type { FC, RefObject, TeactNode } from '../../lib/teact/teact';
 import React, { beginHeavyAnimation, useEffect, useRef } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -7,6 +7,7 @@ import { stopEvent } from '../../util/domEvents';
 
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useHistoryBack from '../../hooks/useHistoryBack';
+import useMenuPosition, { type MenuPositionOptions } from '../../hooks/useMenuPosition';
 import useShowTransition from '../../hooks/useShowTransition';
 import useVirtualBackdrop from '../../hooks/useVirtualBackdrop';
 
@@ -14,30 +15,27 @@ import Portal from './Portal';
 
 import styles from './Menu.module.scss';
 
+export type { MenuPositionOptions } from '../../hooks/useMenuPosition';
+
 type OwnProps = {
-  children: React.ReactNode;
+  children: TeactNode;
   menuRef?: RefObject<HTMLDivElement | null>;
   isOpen: boolean;
   id?: string;
   className?: string;
   bubbleClassName?: string;
-  style?: string;
   type?: 'menu' | 'suggestion' | 'dropdown';
-  positionX?: 'left' | 'right';
-  positionY?: 'top' | 'bottom';
-  transformOriginX?: number;
-  transformOriginY?: number;
   autoClose?: boolean;
   shouldSkipTransition?: boolean;
   noBackdrop?: boolean;
   withPortal?: boolean;
   noCloseOnBackdrop?: boolean;
   shouldCleanup?: boolean;
-  onCloseAnimationEnd?: () => void;
-  onClose?: () => void;
+  onCloseAnimationEnd?: NoneToVoidFunction;
+  onClose?: NoneToVoidFunction;
   onMouseEnter?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   onMouseLeave?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-};
+} & MenuPositionOptions;
 
 export const ANIMATION_DURATION = 200;
 
@@ -48,11 +46,6 @@ const Menu: FC<OwnProps> = ({
   menuRef,
   className,
   bubbleClassName,
-  style,
-  positionX = 'left',
-  positionY = 'top',
-  transformOriginX,
-  transformOriginY,
   type = 'menu',
   autoClose = false,
   shouldSkipTransition,
@@ -64,12 +57,17 @@ const Menu: FC<OwnProps> = ({
   onClose,
   onMouseEnter,
   onMouseLeave,
+  ...positionOptions
 }) => {
+  // eslint-disable-next-line no-null/no-null
+  const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   let bubbleRef = useRef<HTMLDivElement>(null);
   if (menuRef) {
     bubbleRef = menuRef;
   }
+
+  useMenuPosition(isOpen, containerRef, bubbleRef, positionOptions);
 
   useHistoryBack({
     isActive: Boolean(isOpen && onClose),
@@ -79,14 +77,14 @@ const Menu: FC<OwnProps> = ({
 
   const {
     shouldRender,
-    transitionClassNames,
-  } = useShowTransition(
+  } = useShowTransition({
     isOpen,
+    ref: bubbleRef,
     onCloseAnimationEnd,
-    shouldSkipTransition,
-    undefined,
-    shouldSkipTransition,
-  );
+    noMountTransition: shouldSkipTransition,
+    noCloseTransition: shouldSkipTransition,
+    withShouldRender: true,
+  });
 
   useEffect(
     () => (isOpen && onClose ? captureEscKeyListener(onClose) : undefined),
@@ -99,20 +97,14 @@ const Menu: FC<OwnProps> = ({
     }
   }, [isOpen]);
 
-  useVirtualBackdrop(isOpen && !noBackdrop, bubbleRef, noCloseOnBackdrop ? undefined : onClose);
+  useVirtualBackdrop(isOpen && !noBackdrop, containerRef, noCloseOnBackdrop ? undefined : onClose);
 
   const fullBubbleClassName = buildClassName(
     styles.bubble,
     bubbleClassName,
     'menu-bubble',
-    styles[positionY],
-    styles[positionX],
     styles[type],
-    transitionClassNames,
   );
-
-  const transformOriginYStyle = transformOriginY !== undefined ? `${transformOriginY}px` : undefined;
-  const transformOriginXStyle = transformOriginX !== undefined ? `${transformOriginX}px` : undefined;
 
   if (shouldCleanup && !shouldRender) {
     return undefined;
@@ -120,9 +112,9 @@ const Menu: FC<OwnProps> = ({
 
   const menu = (
     <div
+      ref={containerRef}
       id={id}
       className={buildClassName(styles.wrapper, className, withPortal && styles.inPortal)}
-      style={style}
       onMouseEnter={onMouseEnter}
       onMouseLeave={isOpen ? onMouseLeave : undefined}
     >
@@ -133,7 +125,6 @@ const Menu: FC<OwnProps> = ({
       <div
         ref={bubbleRef}
         className={fullBubbleClassName}
-        style={`transform-origin: ${transformOriginXStyle || positionX} ${transformOriginYStyle || positionY}`}
         onClick={autoClose ? onClose : undefined}
       >
         {children}

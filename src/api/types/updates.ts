@@ -22,7 +22,7 @@ import type {
   ApiWalletWithVersionInfo,
 } from './misc';
 import type { ApiParsedPayload } from './payload';
-import type { ApiDapp, ApiTonWallet } from './storage';
+import type { ApiDapp } from './storage';
 
 export type ApiUpdateBalances = {
   type: 'updateBalances';
@@ -190,7 +190,10 @@ export type ApiNftUpdate = ApiUpdateNftReceived | ApiUpdateNftSent | ApiUpdateNf
 export type ApiUpdateAccount = {
   type: 'updateAccount';
   accountId: string;
-  partial: Partial<ApiTonWallet>;
+  chain: ApiChain;
+  address?: string;
+  /** false means that the account has no domain; undefined means that the domain has not changed */
+  domain?: string | false;
 };
 
 export type ApiUpdateConfig = {
@@ -260,6 +263,14 @@ export type ApiUpdateAccountConfig = {
   accountConfig: ApiAccountConfig;
 };
 
+export type ApiUpdateAccountDomainData = {
+  type: 'updateAccountDomainData';
+  accountId: string;
+  expirationByAddress: Record<string, number>;
+  linkedAddressByAddress: Record<string, string>;
+  nfts: Record<string, ApiNft>;
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateInitialActivities
@@ -292,6 +303,7 @@ export type ApiUpdate =
   | ApiUpdatingStatus
   | ApiUpdateSettings
   | ApiMigrateCoreApplication
-  | ApiUpdateAccountConfig;
+  | ApiUpdateAccountConfig
+  | ApiUpdateAccountDomainData;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

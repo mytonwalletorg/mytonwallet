@@ -1,17 +1,17 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useEffect, useMemo, useRef, useState,
+  memo, useEffect, useMemo, useRef,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiFetchEstimateDieselResult } from '../../api/chains/ton/types';
-import type { ApiBaseCurrency, ApiChain, ApiNft } from '../../api/types';
+import type { ApiBaseCurrency, ApiNft } from '../../api/types';
 import type { Account, SavedAddress, UserToken } from '../../global/types';
 import type { ExplainedTransferFee } from '../../util/fee/transferFee';
 import type { FeePrecision, FeeTerms } from '../../util/fee/types';
 import { TransferState } from '../../global/types';
 
-import { PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN } from '../../config';
+import { TONCOIN } from '../../config';
 import { Big } from '../../lib/big.js';
 import {
   selectCurrentAccountState,
@@ -22,10 +22,8 @@ import {
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { readClipboardContent } from '../../util/clipboard';
 import { SECOND } from '../../util/dateFormat';
 import { fromDecimal, toBig } from '../../util/decimals';
-import { isDnsDomain } from '../../util/dns';
 import { stopEvent } from '../../util/domEvents';
 import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
@@ -33,18 +31,16 @@ import {
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { getLocalAddressName } from '../../util/getLocalAddressName';
 import { vibrate } from '../../util/haptics';
-import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { trimStringByMaxBytes } from '../../util/text';
-import { getChainBySlug, getNativeToken } from '../../util/tokens';
-import { getIsMobileTelegramApp, IS_ANDROID, IS_CLIPBOARDS_SUPPORTED, IS_IOS } from '../../util/windowEnvironment';
+import { getChainBySlug, getIsServiceToken, getNativeToken } from '../../util/tokens';
 
+import useAddressInput from '../../hooks/useAddressInput';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useQrScannerSupport from '../../hooks/useQrScannerSupport';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
@@ -53,7 +49,7 @@ import Button from '../ui/Button';
 import FeeLine from '../ui/FeeLine';
 import Transition from '../ui/Transition';
 import AddressBook from './AddressBook';
-import AddressInput, { INPUT_CLEAR_BUTTON_ID } from './AddressInput';
+import AddressInput from './AddressInput';
 import AmountInputSection from './AmountInputSection';
 import CommentSection from './CommentSection';
 import NftChips from './NftChips';
@@ -94,7 +90,6 @@ interface StateProps {
   isSensitiveDataHidden?: true;
 }
 
-const SAVED_ADDRESS_OPEN_DELAY = 300;
 const COMMENT_MAX_SIZE_BYTES = 5000;
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 const AUTHORIZE_DIESEL_INTERVAL_MS = SECOND;
@@ -131,7 +126,6 @@ function TransferInitial({
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
-    showNotification,
     fetchTransferFee,
     fetchNftFee,
     changeTransferToken,
@@ -140,7 +134,6 @@ function TransferInitial({
     setTransferComment,
     setTransferShouldEncrypt,
     cancelTransfer,
-    requestOpenQrScanner,
     showDialog,
     authorizeDiesel,
     fetchTransferDieselState,
@@ -154,11 +147,6 @@ function TransferInitial({
     amount = undefined;
   }
 
-  // eslint-disable-next-line no-null/no-null
-  const toAddressRef = useRef<HTMLInputElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const addressBookTimeoutRef = useRef<number>(null);
-
   const lang = useLang();
 
   const transferToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
@@ -168,36 +156,57 @@ function TransferInitial({
     price,
     symbol,
     chain,
-    codeHash,
-    type: tokenType,
   } = transferToken || {};
 
-  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
-  const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
-  const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
-  const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
-  const [savedChainForDeletion, setSavedChainForDeletion] = useState<ApiChain | undefined>();
-
-  const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
-  const otherAccountIds = useMemo(() => {
-    return accounts ? Object.keys(accounts).filter((accountId) => accountId !== currentAccountId) : [];
-  }, [currentAccountId, accounts]);
-  const shouldUseAddressBook = useMemo(() => {
-    return otherAccountIds.length > 0 || (savedAddresses && savedAddresses.length > 0);
-  }, [otherAccountIds.length, savedAddresses]);
-
+  const isDisabledDebounce = useRef<boolean>(false);
   const isToncoin = tokenSlug === TONCOIN.slug;
+
+  const handleAddressInput = useLastCallback((newToAddress?: string) => {
+    setTransferToAddress({ toAddress: newToAddress });
+  });
+
+  const {
+    isAddressFocused,
+    isAddressValid,
+    hasAddressError,
+    isQrScannerSupported,
+    withPasteButton,
+    addressInputRef,
+
+    shouldUseAddressBook,
+    isAddressBookOpen,
+    addressBookAccountIds,
+    chainForDeletion,
+    addressForDeletion,
+
+    closeAddressBook,
+    handlePasteClick,
+    handleAddressBlur,
+    handleAddressFocus,
+    handleAddressClear,
+    handleQrScanClick,
+    handleAddressBookItemSelect,
+    handleDeleteSavedAddressClick,
+    handleDeleteSavedAddressModalClose,
+  } = useAddressInput({
+    value: toAddress,
+    chain,
+    callbackDebounceRef: isDisabledDebounce,
+    currentAccountId,
+    accounts,
+    savedAddresses,
+    validateAddress: checkTransferAddress,
+    onChange: handleAddressInput,
+    onClose: cancelTransfer,
+  });
 
   const shouldDisableClearButton = !toAddress && !(comment || binPayload) && !shouldEncrypt
     && !(isNftTransfer ? isStatic : amount !== undefined);
-
-  const isQrScannerSupported = useQrScannerSupport();
 
   const amountInCurrency = price && amount
     ? toBig(amount, decimals).mul(price).round(decimals, Big.roundHalfUp).toString()
     : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
-  const withPasteButton = shouldRenderPasteButton && toAddress === '';
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const localAddressName = useMemo(() => getLocalAddressName({
@@ -226,8 +235,6 @@ function TransferInitial({
 
   const isAmountMissing = !isNftTransfer && !amount;
 
-  const isDisabledDebounce = useRef(false);
-
   const maxAmount = getMaxTransferAmount({
     tokenBalance: balance,
     tokenSlug,
@@ -240,15 +247,16 @@ function TransferInitial({
     ? AUTHORIZE_DIESEL_INTERVAL_MS
     : undefined;
 
-  const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
-    Boolean(amountInCurrency),
-  );
+  const { shouldRender: shouldRenderCurrency, ref: currencyRef } = useShowTransition({
+    isOpen: Boolean(amountInCurrency),
+    withShouldRender: true,
+  });
   const renderedCurrencyValue = useMemo(() => {
     return (
-      <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
+      <span ref={currencyRef} className={styles.amountInCurrency}>
         ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol, undefined, true)}
       </span>);
-  }, [currencyClassNames, renderingAmountInCurrency, shortBaseSymbol]);
+  }, [currencyRef, renderingAmountInCurrency, shortBaseSymbol]);
 
   const updateDieselState = useLastCallback(() => {
     fetchTransferDieselState({ tokenSlug });
@@ -306,140 +314,28 @@ function TransferInitial({
   ]);
 
   useEffect(() => {
-    if (tokenType === 'lp_token' || STAKED_TOKEN_SLUGS.has(tokenSlug) || PRICELESS_TOKEN_HASHES.has(codeHash ?? '')) {
+    if (getIsServiceToken(transferToken)) {
       showDialog({
         title: lang('Warning!'),
         message: lang('$service_token_transfer_warning'),
         noBackdropClose: true,
       });
     }
-  }, [tokenType, tokenSlug, codeHash, lang]);
+  }, [lang, transferToken]);
 
   const handleTokenChange = useLastCallback((slug: string) => {
     changeTransferToken({ tokenSlug: slug });
-  });
-
-  const handleAddressBookClose = useLastCallback(() => {
-    if (!shouldUseAddressBook || !isAddressBookOpen) return;
-
-    closeAddressBook();
-
-    if (addressBookTimeoutRef.current) {
-      window.clearTimeout(addressBookTimeoutRef.current);
-    }
-  });
-
-  const handleAddressFocus = useLastCallback(() => {
-    markAddressFocused();
-
-    if (shouldUseAddressBook) {
-      // Simultaneous opening of the virtual keyboard and display of Saved Addresses causes animation degradation
-      if (IS_ANDROID) {
-        addressBookTimeoutRef.current = window.setTimeout(openAddressBook, SAVED_ADDRESS_OPEN_DELAY);
-      } else {
-        openAddressBook();
-      }
-    }
-  });
-
-  const handleAddressCheck = useLastCallback((address?: string) => {
-    if ((address && chain && isValidAddressOrDomain(address, chain)) || !address) {
-      checkTransferAddress({ address });
-    }
-  });
-
-  const handleAddressBlur = useLastCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    unmarkAddressFocused();
-
-    if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) {
-      handleAddressBookClose();
-      handleAddressCheck(toAddress);
-
-      return;
-    }
-
-    let addressToCheck = toAddress;
-    if (isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
-      addressToCheck = toAddress.toLowerCase().trim();
-      setTransferToAddress({ toAddress: addressToCheck });
-    } else if (toAddress !== toAddress.trim()) {
-      addressToCheck = toAddress.trim();
-      setTransferToAddress({ toAddress: addressToCheck });
-    }
-
-    requestAnimationFrame(() => {
-      handleAddressBookClose();
-      handleAddressCheck(addressToCheck);
-    });
-  });
-
-  const handleAddressInput = useLastCallback((newToAddress: string) => {
-    setTransferToAddress({ toAddress: newToAddress });
-  });
-
-  const handleAddressClearClick = useLastCallback(() => {
-    setTransferToAddress({ toAddress: undefined });
-    handleAddressCheck();
-  });
-
-  const handleQrScanClick = useLastCallback(() => {
-    if (IS_IOS && getIsMobileTelegramApp()) {
-      // eslint-disable-next-line no-alert
-      alert('Scanning is temporarily not available');
-      return;
-    }
-
-    requestOpenQrScanner();
-    cancelTransfer();
   });
 
   const handleClear = useLastCallback(() => {
     if (isStatic) {
       cancelTransfer({ shouldReset: true });
     } else {
-      handleAddressClearClick();
+      handleAddressClear();
       setTransferAmount({ amount: undefined });
       setTransferComment({ comment: undefined });
       setTransferShouldEncrypt({ shouldEncrypt: false });
     }
-  });
-
-  const handlePasteClick = useLastCallback(async () => {
-    try {
-      const { type, text } = await readClipboardContent();
-
-      if (type === 'text/plain') {
-        isDisabledDebounce.current = true;
-        const newToAddress = text.trim();
-        setTransferToAddress({ toAddress: newToAddress });
-
-        handleAddressCheck(newToAddress);
-      }
-    } catch (err: any) {
-      showNotification({ message: lang('Error reading clipboard') });
-      setShouldRenderPasteButton(false);
-    }
-  });
-
-  const handleAddressBookItemSelect = useLastCallback(
-    (address: string) => {
-      isDisabledDebounce.current = true;
-      setTransferToAddress({ toAddress: address });
-      closeAddressBook();
-    },
-  );
-
-  const handleDeleteSavedAddressClick = useLastCallback(
-    (address: string) => {
-      setSavedAddressForDeletion(address);
-      setSavedChainForDeletion(chain);
-      closeAddressBook();
-    },
-  );
-
-  const closeDeleteSavedAddressModal = useLastCallback(() => {
-    setSavedAddressForDeletion(undefined);
-    setSavedChainForDeletion(undefined);
   });
 
   const handleAmountChange = useLastCallback((stringValue?: string) => {
@@ -467,7 +363,6 @@ function TransferInitial({
     setTransferComment({ comment: trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES) });
   });
 
-  const hasToAddressError = toAddress.length > 0 && !isAddressValid;
   const isAmountGreaterThanBalance = !isNftTransfer && balance !== undefined && amount !== undefined
     && amount > balance;
   const hasInsufficientFeeError = isEnoughBalance === false && !isAmountGreaterThanBalance
@@ -587,19 +482,20 @@ function TransferInitial({
         {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
 
         <AddressInput
+          label={lang('Recipient Address')}
           value={toAddress}
-          error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
+          error={hasAddressError ? (lang('Incorrect address') as string) : undefined}
           isStatic={isStatic}
           isFocused={isAddressFocused}
           isQrScannerSupported={isQrScannerSupported}
           withPasteButton={withPasteButton}
           address={resolvedAddress || toAddress}
           addressName={localAddressName || toAddressName}
-          inputRef={toAddressRef}
+          inputRef={addressInputRef}
           onInput={handleAddressInput}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
-          onClearClick={handleAddressClearClick}
+          onClearClick={handleAddressClear}
           onQrScanClick={handleQrScanClick}
           onPasteClick={handlePasteClick}
         />
@@ -609,7 +505,7 @@ function TransferInitial({
             isOpen={isAddressBookOpen}
             isNftTransfer={isNftTransfer}
             currentAddress={toAddress}
-            otherAccountIds={otherAccountIds}
+            otherAccountIds={addressBookAccountIds}
             onAddressSelect={handleAddressBookItemSelect}
             onSavedAddressDelete={handleDeleteSavedAddressClick}
             onClose={closeAddressBook}
@@ -676,10 +572,10 @@ function TransferInitial({
         </div>
       </form>
       <DeleteSavedAddressModal
-        isOpen={Boolean(savedAddressForDeletion)}
-        address={savedAddressForDeletion}
-        chain={savedChainForDeletion}
-        onClose={closeDeleteSavedAddressModal}
+        isOpen={Boolean(addressForDeletion)}
+        address={addressForDeletion}
+        chain={chainForDeletion}
+        onClose={handleDeleteSavedAddressModalClose}
       />
       <FeeDetailsModal
         isOpen={isFeeModalOpen}

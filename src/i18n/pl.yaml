@@ -269,6 +269,7 @@ $dapp_can_view_balance: "%dappname% będzie mógł zobaczyć adres portfela i sa
 Send Transaction: Wyślij transakcję
 Payload: Ładunek
 $many_transactions:
+  zeroValue: Brak transakcji
   oneValue: "%1$d transakcja"
   fewValue: "%1$d transakcje"
   manyValue: "%1$d transakcji"
@@ -616,6 +617,7 @@ Unfrozen: Niezamrożone
 Missed: Pominięty
 Frozen: Mrożony
 until %date%: do %date%
+Until %date%: Do %date%
 "%volume% in %amount% parts": "%volume% w %amount% częściach"
 Unfreeze: Odmrozić
 Claim: Prawo
@@ -847,4 +849,65 @@ $unstaking_when_receive_ethena: Będziesz mógł otrzymać swój wycofany depozy
 Coins have been unstaked!: Monety wycofane!
 Confirm Upgrading: Potwierdź ulepszenie
 How does it work?: Jak to działa?
+Multisend: Multiwysyłka
+Expires in %1$d days:
+  zeroValue: Wygasa dzisiaj
+  oneValue: Wygasa jutro
+  fewValue: Wygasa za %1$d dni
+  manyValue: Wygasa za %1$d dni
+Renew All: Odnów wszystkie
+Renew: Odnów
+Renew Domain: Odnów domenę
+Renew Domains: Odnów domeny
+Some domains are about to expire: Niektóre domeny wkrótce wygasną
+$domain_expire:
+  zeroValue: "%domain% wygasa dziś"
+  oneValue: "%domain% wygasa jutro"
+  fewValue: "%domain% wygasa za %days% dni"
+  manyValue: "%domain% wygasa za %days% dni"
 '%token% Staking': Stakowanie %token%
+Add Tab: Dodaj kartę
+Remove Tab: Usuń kartę
+Link Domain: Połącz domenę
+Domain Linked!: Domenę połączono!
+Failed to process domain operation. Please try again.: Nie udało się przetworzyć operacji domeny. Proszę spróbować ponownie.
+$domains_amount %1$d:
+  zeroValue: Brak domen
+  oneValue: "%1$d domena"
+  fewValue: "%1$d domen"
+  manyValue: "%1$d domen"
+Stake: Stakować
+Manage Tokens: Zarządzaj tokenami
+Claim Rewards: Odbierz nagrody
+Configure DNS: Konfiguruj DNS
+Link to Wallet: Połącz z portfelem
+Change Wallet: Zmień portfel
+Change Linked Wallet: Zmień powiązany portfel
+Domain has been renewed!: Domena została odnowiona!
+Domains have been renewed!: Domeny zostały odnowione!
+Linked Wallet: Powiązany portfel
+Domain has been linked!: Domena została połączona!
+Link: Połącz
+Confirm Renewing: Potwierdź odnowienie
+Confirm Linking: Potwierdź łączenie
+$domains_expire:
+  zeroValue: "Żadne domeny nie wygasają %days%"
+  oneValue: "%domain% domena wygasa %days%"
+  fewValue: "%domain% domeny wygasną %days%"
+  manyValue: "%domain% domeny wygasną %days%"
+$in_days:
+  zeroValue: dziś
+  oneValue: jutro
+  fewValue: "za %1$d dni"
+  manyValue: "za %1$d dni"
+$domain_was_expired: "%domain% wygasł"
+$domains_was_expired:
+  zeroValue: "Żadne domeny nie wygasły"
+  oneValue: "%domain% domena wygasła"
+  fewValue: "%domain% domeny wygasły"
+  manyValue: "%domain% domeny wygasły"
+
+Reload: Przeładuj
+Copy Link: Kopiuj link
+Check eligibility for max APY: Sprawdź dostępność maks. APY
+Check eligibility: Sprawdź dostępność

@@ -1,6 +1,4 @@
-import React, {
-  memo, useEffect, useMemo, useRef, useState,
-} from '../../../../lib/teact/teact';
+import React, { memo, useEffect, useMemo, useRef, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
@@ -11,40 +9,48 @@ import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
   IS_CORE_WALLET,
+  NFT_FRAGMENT_COLLECTIONS,
+  TELEGRAM_GIFTS_SUPER_COLLECTION,
+  TON_DNS_COLLECTION,
 } from '../../../../config';
-import {
-  selectCurrentAccountState,
-  selectIsCurrentAccountViewMode,
-} from '../../../../global/selectors';
+import { selectCurrentAccountState, selectIsCurrentAccountViewMode } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { getCountDaysToDate } from '../../../../util/dateFormat';
+import { getDomainsExpirationDate } from '../../../../util/dns';
+import { compact } from '../../../../util/iteratees';
 import { openUrl } from '../../../../util/openUrl';
 import { getExplorerName, getExplorerNftCollectionUrl } from '../../../../util/url';
 
-import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
-import useMenuPosition from '../../../../hooks/useMenuPosition';
 
 import Button from '../../../ui/Button';
 import DropdownMenu from '../../../ui/DropdownMenu';
 
 import styles from './NftCollectionHeader.module.scss';
 
+type MenuHandler = 'sendAll' | 'fragment' | 'getgems' | 'tonExplorer' | 'hideAll' | 'burnAll' | 'selectAll'
+| 'removeTab' | 'addTab' | 'renew';
+
 interface StateProps {
-  isTestnet?: boolean;
-  isViewMode: boolean;
-  nfts?: Record<string, ApiNft>;
   currentCollectionAddress?: string;
+  nfts?: Record<string, ApiNft>;
+  isTestnet?: boolean;
+  isViewMode?: boolean;
+  collectionTabs?: string[];
+  dnsExpiration?: Record<string, number>;
 }
 
 function NftCollectionHeader({
+  currentCollectionAddress,
+  nfts,
   isTestnet,
   isViewMode,
-  nfts,
-  currentCollectionAddress,
+  collectionTabs,
+  dnsExpiration,
 }: StateProps) {
   const {
     closeNftCollection,
@@ -52,154 +58,195 @@ function NftCollectionHeader({
     startTransfer,
     burnNfts,
     openHideNftModal,
+    addCollectionTab,
+    removeCollectionTab,
+    openDomainRenewalModal,
   } = getActions();
 
   const lang = useLang();
-  const [menuPosition, setMenuPosition] = useState<IAnchorPosition>();
-  const isMenuOpen = Boolean(menuPosition);
+  const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition>();
+  const isMenuOpen = Boolean(menuAnchor);
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLButtonElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const menuItems: DropdownItem[] = useMemo(() => {
-    return [
-      ...(!isViewMode ? [{
+  const isTelegramGifts = currentCollectionAddress === TELEGRAM_GIFTS_SUPER_COLLECTION;
+
+  const collectionNfts = useMemo(() => {
+    if (!currentCollectionAddress || !nfts) {
+      return [];
+    }
+
+    return Object.values(nfts).filter((nft) => {
+      return (isTelegramGifts && nft.isTelegramGift) || nft.collectionAddress === currentCollectionAddress;
+    });
+  }, [currentCollectionAddress, isTelegramGifts, nfts]);
+
+  const dnsExpireInDays = useMemo(() => {
+    if (currentCollectionAddress !== TON_DNS_COLLECTION) return undefined;
+    const date = getDomainsExpirationDate(collectionNfts, undefined, dnsExpiration);
+
+    return date ? getCountDaysToDate(date) : undefined;
+  }, [collectionNfts, currentCollectionAddress, dnsExpiration]);
+
+  const collectionName = isTelegramGifts
+    ? lang('Telegram Gifts')
+    : collectionNfts[0].collectionName ?? lang('Unnamed Collection');
+
+  const menuItems: DropdownItem<MenuHandler>[] = useMemo(() => {
+    const isInTabs = collectionTabs?.includes(currentCollectionAddress!);
+
+    return compact([
+      !isViewMode && {
         name: 'Send All',
         value: 'sendAll',
-      }] : []),
+      } satisfies DropdownItem<MenuHandler>,
+      collectionNfts[0].isOnFragment && {
+        name: 'Fragment',
+        value: 'fragment',
+        fontIcon: 'external',
+      } satisfies DropdownItem<MenuHandler>,
       {
         name: 'Getgems',
         value: 'getgems',
         fontIcon: 'external',
-      }, {
+      },
+      !isTelegramGifts && {
         name: getExplorerName('ton'),
         value: 'tonExplorer',
         fontIcon: 'external',
       },
-      ...(!IS_CORE_WALLET ? [{
+      !isViewMode && currentCollectionAddress === TON_DNS_COLLECTION && {
+        name: collectionNfts.length > 1 ? 'Renew All' : 'Renew',
+        value: 'renew',
+        description: lang('Expires in %1$d days', dnsExpireInDays, 'i') as string,
+      } satisfies DropdownItem<MenuHandler>,
+      !IS_CORE_WALLET && {
         name: 'Hide All',
         value: 'hideAll',
-      }] : []),
-      ...(!isViewMode ? [{
+      } satisfies DropdownItem<MenuHandler>,
+      !isViewMode && {
         name: 'Burn All',
         value: 'burnAll',
         isDangerous: true,
-      }] : []), {
+      } satisfies DropdownItem<MenuHandler>, {
         name: 'Select All',
         value: 'selectAll',
-        withSeparator: true,
+        withDelimiter: true,
       },
-    ];
-  }, [isViewMode]);
-
-  const nftFromCurrentCollection = useMemo(() => {
-    if (!currentCollectionAddress || !nfts) {
-      return undefined;
-    }
-
-    return Object.values(nfts).find((nft) => nft.collectionAddress === currentCollectionAddress);
-  }, [currentCollectionAddress, nfts]);
-  const amount = useMemo(() => {
-    if (!currentCollectionAddress || !nfts) {
-      return undefined;
-    }
-
-    return Object.values(nfts).reduce((acc, nft) => {
-      return nft.collectionAddress === currentCollectionAddress ? acc + 1 : acc;
-    }, 0);
-  }, [currentCollectionAddress, nfts]);
-  const renderedNft = useCurrentOrPrev(nftFromCurrentCollection, true);
-  const renderedAmount = useCurrentOrPrev(amount, true);
-
-  const isActive = Boolean(currentCollectionAddress);
+      {
+        name: isInTabs ? lang('Remove Tab') : lang('Add Tab'),
+        value: isInTabs ? 'removeTab' : 'addTab',
+      },
+    ]);
+  }, [collectionNfts, collectionTabs, currentCollectionAddress, dnsExpireInDays, isTelegramGifts, isViewMode, lang]);
 
   useHistoryBack({
-    isActive,
+    isActive: true,
     onBack: closeNftCollection,
   });
 
-  useEffect(() => (isActive ? captureEscKeyListener(closeNftCollection) : undefined), [isActive]);
+  useEffect(() => captureEscKeyListener(closeNftCollection), []);
 
   const getTriggerElement = useLastCallback(() => ref.current);
   const getRootElement = useLastCallback(() => document.body);
-  const getMenuElement = useLastCallback(() => document.querySelector('#portals .menu-bubble'));
+  const getMenuElement = useLastCallback(() => menuRef.current);
   const getLayout = useLastCallback(() => ({ withPortal: true }));
 
-  const {
-    positionY, transformOriginX, transformOriginY, style: menuStyle,
-  } = useMenuPosition(
-    menuPosition,
-    getTriggerElement,
-    getRootElement,
-    getMenuElement,
-    getLayout,
-  );
-
-  const handleMenuItemClick = useLastCallback((value: string) => {
+  const handleMenuItemClick = useLastCallback((value: MenuHandler) => {
     switch (value) {
       case 'sendAll': {
-        const collectionNfts = Object.values(nfts!).filter((nft) => {
-          return nft.collectionAddress === currentCollectionAddress && !nft.isOnSale;
-        });
-
         startTransfer({
-          nfts: collectionNfts,
+          nfts: collectionNfts.filter(({ isOnSale }) => !isOnSale),
           isPortrait: getIsPortrait(),
         });
+
         break;
       }
 
       case 'getgems': {
         const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
-        void openUrl(`${getgemsBaseUrl}collection/${renderedNft?.collectionAddress}`);
+        void openUrl(
+          isTelegramGifts ? `${getgemsBaseUrl}top-gifts` : `${getgemsBaseUrl}collection/${currentCollectionAddress}`,
+        );
+
         break;
       }
 
       case 'tonExplorer': {
-        const url = getExplorerNftCollectionUrl(renderedNft?.collectionAddress, isTestnet);
+        const url = getExplorerNftCollectionUrl(currentCollectionAddress, isTestnet);
         if (url) {
           void openUrl(url);
         }
+
+        break;
+      }
+
+      case 'fragment': {
+        if (isTelegramGifts) {
+          void openUrl('https://fragment.com/gifts');
+        } else if (currentCollectionAddress === NFT_FRAGMENT_COLLECTIONS[0]) {
+          void openUrl('https://fragment.com/numbers');
+        } else if (currentCollectionAddress === NFT_FRAGMENT_COLLECTIONS[1]) {
+          void openUrl('https://fragment.com');
+        } else {
+          const collectionSlug = collectionName.toLowerCase().replace(/\W/g, '').replace(/s$/, '');
+          void openUrl(`https://fragment.com/gifts/${collectionSlug}`);
+        }
+
         break;
       }
 
       case 'selectAll': {
-        const addresses = Object.values(nfts || {})
-          .filter((nft) => nft.collectionAddress === currentCollectionAddress && !nft.isOnSale)
-          .map((nft) => nft.address);
-        selectNfts({ addresses });
+        selectNfts({
+          addresses: collectionNfts
+            .filter(({ isOnSale }) => !isOnSale)
+            .map(({ address }) => address),
+        });
+
         break;
       }
 
       case 'burnAll': {
-        const collectionNfts = Object.values(nfts!).filter((nft) => {
-          return nft.collectionAddress === currentCollectionAddress && !nft.isOnSale;
-        });
-        burnNfts({ nfts: collectionNfts });
+        burnNfts({ nfts: collectionNfts.filter(({ isOnSale }) => !isOnSale) });
 
         break;
       }
 
       case 'hideAll': {
-        const collectionNfts = Object.values(nfts!)
-          .filter((nft) => {
-            return nft.collectionAddress === currentCollectionAddress;
-          })
-          .map((nft) => nft.address);
-        openHideNftModal({ addresses: collectionNfts, isCollection: true });
+        openHideNftModal({ addresses: collectionNfts.map((nft) => nft.address), isCollection: true });
+
+        break;
+      }
+
+      case 'addTab': {
+        addCollectionTab({ collectionAddress: currentCollectionAddress! });
+
+        break;
+      }
+
+      case 'removeTab': {
+        removeCollectionTab({ collectionAddress: currentCollectionAddress! });
+
+        break;
+      }
+
+      case 'renew': {
+        openDomainRenewalModal({ addresses: collectionNfts.map((nft) => nft.address) });
+        break;
       }
     }
   });
+
   const handleMenuOpen = useLastCallback(() => {
     const { right: x, bottom: y } = ref.current!.getBoundingClientRect();
-    setMenuPosition({ x, y });
-  });
-  const handleMenuClose = useLastCallback(() => {
-    setMenuPosition(undefined);
+    setMenuAnchor({ x, y });
   });
 
-  if (!renderedNft) {
-    return undefined;
-  }
+  const handleMenuClose = useLastCallback(() => {
+    setMenuAnchor(undefined);
+  });
 
   return (
     <div className={styles.root}>
@@ -209,9 +256,9 @@ function NftCollectionHeader({
       </Button>
 
       <div className={styles.content}>
-        <div className={styles.title}>{renderedNft?.collectionName || lang('Unnamed Collection')}</div>
+        <div className={styles.title}>{collectionName}</div>
         <div className={styles.amount}>
-          {renderedAmount! > 1 ? lang('%amount% NFTs', { amount: renderedAmount }) : lang('1 NFT')}
+          {collectionNfts.length > 1 ? lang('%amount% NFTs', { amount: collectionNfts.length }) : lang('1 NFT')}
         </div>
       </div>
 
@@ -220,13 +267,15 @@ function NftCollectionHeader({
       </Button>
       <DropdownMenu
         isOpen={isMenuOpen}
+        ref={menuRef}
         withPortal
         shouldTranslateOptions
-        menuPositionHorizontal="right"
-        menuPosition={positionY}
-        menuStyle={menuStyle}
-        transformOriginX={transformOriginX}
-        transformOriginY={transformOriginY}
+        menuPositionX="right"
+        menuAnchor={menuAnchor}
+        getTriggerElement={getTriggerElement}
+        getRootElement={getRootElement}
+        getMenuElement={getMenuElement}
+        getLayout={getLayout}
         buttonClassName={styles.menuItem}
         bubbleClassName={styles.menu}
         items={menuItems}
@@ -241,12 +290,22 @@ export default memo(withGlobal((global): StateProps => {
   const {
     byAddress: nfts,
     currentCollectionAddress,
+    collectionTabs,
+    dnsExpiration,
   } = selectCurrentAccountState(global)?.nfts || {};
 
   return {
-    isTestnet: global.settings.isTestnet,
-    nfts,
     currentCollectionAddress,
+    nfts,
+    isTestnet: global.settings.isTestnet,
     isViewMode: selectIsCurrentAccountViewMode(global),
+    collectionTabs,
+    dnsExpiration,
   };
+}, (global, ownProps, stickToFirst) => {
+  const {
+    currentCollectionAddress,
+  } = selectCurrentAccountState(global)?.nfts || {};
+
+  return stickToFirst(currentCollectionAddress);
 })(NftCollectionHeader));

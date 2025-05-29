@@ -15,6 +15,7 @@ import styles from './AddressInput.module.scss';
 export const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
 interface OwnProps {
+  label: string;
   value: string;
   error?: string;
   isStatic?: boolean;
@@ -28,8 +29,8 @@ interface OwnProps {
   onFocus: () => void;
   onBlur: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onClearClick: () => void;
-  onQrScanClick: () => void;
-  onPasteClick: () => void;
+  onQrScanClick?: () => void;
+  onPasteClick?: () => void;
 }
 
 const SHORT_ADDRESS_SHIFT = 4;
@@ -37,6 +38,7 @@ const SHORT_SINGLE_ADDRESS_SHIFT = 11;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_SINGLE_ADDRESS_SHIFT * 2;
 
 function AddressInput({
+  label,
   value,
   error,
   isStatic,
@@ -54,7 +56,8 @@ function AddressInput({
   onPasteClick,
 }: OwnProps) {
   const lang = useLang();
-  const withButton = isQrScannerSupported || withPasteButton || !!value.length;
+  const withQrButton = onQrScanClick && isQrScannerSupported;
+  const withButton = withQrButton || withPasteButton || !!value.length;
 
   const addressOverlay = useMemo(() => {
     if (!address) return undefined;
@@ -95,7 +98,7 @@ function AddressInput({
           </div>
         ) : (
           <div className={wrapperClassName}>
-            {isQrScannerSupported && (
+            {withQrButton && (
               <Button
                 isSimple
                 className={styles.inputButton}
@@ -122,7 +125,7 @@ function AddressInput({
       className={buildClassName(isStatic && styles.inputStatic, withButton && styles.inputWithIcon)}
       isRequired
       isStatic={isStatic}
-      label={lang('Recipient Address')}
+      label={label}
       placeholder={lang('Wallet address or domain')}
       value={value}
       error={error}

@@ -54,6 +54,11 @@
   --color-green-button-background: #1EC160;
   --color-green-button-background-hover: #26D76D;
 
+  --color-secondary-button-text: #007FBE;
+  --color-secondary-button-text-hover: #007FBE;
+  --color-secondary-button-background: #DCEAF1;
+  --color-secondary-button-background-hover: #CCE0ED;
+
   --color-red-warning-text: #FFFFFF;
   --color-red-warning-text-70: rgba(255, 255, 255, 0.7);
   --color-red-warning-text-hover: rgba(255, 255, 255, 0.85);
@@ -206,14 +211,14 @@
   --z-media-viewer: 99;
   --z-modal: 100;
   --z-menu-backdrop: 199;
-  --z-menu-bubble: 200;
-  --z-over-menu-bubble: 201;
+  --z-menu-bubble: calc(var(--z-menu-backdrop) + 1);
+  --z-over-menu-bubble: calc(var(--z-menu-bubble) + 1);
   --z-notification: 250;
   --z-tooltip: 300;
   --z-confetti: 400;
-  --z-autolock: 500;
-  --z-modal-in-autolock: 501;
   --z-portal-menu: 2500;
+  --z-autolock: 3000;
+  --z-modal-in-autolock: calc(var(--z-autolock) + 1);
 
   --no-animation-transition: 200ms opacity ease;
   --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -386,6 +391,11 @@
     --color-gradient-main-blue2-green: linear-gradient(81.88deg, #469CEC 19.42%, #2CD36F 71.55%);
     --color-gradient-main-gray2-green: linear-gradient(90deg, #89898B 25%, #2CD36F 75%);
     --color-gradient-activity-gray-green-bg: linear-gradient(135deg, #1F3838 13.89%, #2E3947 86.11%);
+
+    --color-secondary-button-text: #58AFFF;
+    --color-secondary-button-text-hover: #58AFFF;
+    --color-secondary-button-background: #151F2A;
+    --color-secondary-button-background-hover: #1A2530;
   }
 }
 

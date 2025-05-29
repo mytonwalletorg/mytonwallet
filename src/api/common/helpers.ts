@@ -277,9 +277,8 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
         onUpdate({
           type: 'updateAccount',
           accountId,
-          partial: {
-            address: newAddress,
-          },
+          chain: 'ton',
+          address: newAddress,
         });
       }
 
@@ -381,9 +380,8 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
           onUpdate({
             type: 'updateAccount',
             accountId,
-            partial: {
-              address: account.address,
-            },
+            chain: 'ton',
+            address: account.address,
           });
         }
       }

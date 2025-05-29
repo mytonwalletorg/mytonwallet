@@ -187,8 +187,9 @@
   display: flex;
   align-items: center;
 
-  height: 2.25rem;
-  padding: 0 0.625rem;
+  padding: 0.75rem 1rem;
+
+  font-size: 0.9375rem;
 
   border-radius: var(--border-radius-small);
 
@@ -201,6 +202,14 @@
     text-decoration: none;
 
     background-color: var(--color-interactive-drop-down-menu-hover);
+  }
+
+  @include separator();
+
+  @media (pointer: coarse) {
+    padding: 0.875rem 1rem;
+
+    font-size: 1rem;
   }
 }
 
@@ -215,7 +224,6 @@
 .savedAddressNameText {
   overflow: hidden;
 
-  font-size: 1rem;
   font-weight: 600;
   color: var(--color-black);
   text-overflow: ellipsis;
@@ -235,7 +243,7 @@
 .savedAddressAddress {
   padding-inline-start: 0.5rem;
 
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--color-gray-3);
   white-space: nowrap;
 
@@ -243,6 +251,10 @@
 
   .savedAddressDelete:hover + & {
     opacity: 0;
+  }
+
+  @media (pointer: coarse) {
+    font-size: 0.8125rem;
   }
 }
 

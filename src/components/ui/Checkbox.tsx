@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react';
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -11,7 +12,7 @@ type OwnProps = {
   id?: string;
   className?: string;
   contentClassName?: string;
-  children?: React.ReactNode;
+  children?: TeactNode;
   checked: boolean;
   isDisabled?: boolean;
   onChange: (isChecked: boolean) => void;

@@ -31,7 +31,7 @@ function CustomCardBackground({
 }: OwnProps) {
   const { imageUrl } = useCachedImage(nft ? getCardNftImageUrl(nft) : undefined);
   const [isLoaded, markLoaded] = useFlag();
-  const transitionClassNames = useMediaTransition(noShowAnimation || (isLoaded && !shouldHide));
+  const ref = useMediaTransition(noShowAnimation || (isLoaded && !shouldHide));
 
   const {
     borderShineType,
@@ -57,7 +57,7 @@ function CustomCardBackground({
   const withShadow = nft.metadata?.mtwCardType === 'standard';
 
   return (
-    <div className={buildClassName(rootClassName, transitionClassNames)} onTransitionEnd={onTransitionEnd}>
+    <div ref={ref} className={rootClassName} onTransitionEnd={onTransitionEnd}>
       {imageUrl && (
         <img
           src={imageUrl}

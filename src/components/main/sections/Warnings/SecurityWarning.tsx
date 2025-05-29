@@ -19,7 +19,11 @@ type StateProps = {
 function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
   const { closeSecurityWarning } = getActions();
 
-  const { shouldRender, transitionClassNames } = useShowTransition(!isSecurityWarningHidden, undefined, true);
+  const { shouldRender, ref } = useShowTransition({
+    isOpen: !isSecurityWarningHidden,
+    noMountTransition: true,
+    withShouldRender: true,
+  });
   const { isLandscape } = useDeviceScreen();
 
   const lang = useLang();
@@ -40,7 +44,8 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
 
   return (
     <div
-      className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape, transitionClassNames)}
+      ref={ref}
+      className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape)}
       onClick={handleClick}
     >
       {lang('Consider More Secure Version')}

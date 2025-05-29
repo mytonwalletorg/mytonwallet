@@ -13,9 +13,11 @@
   justify-content: center;
 
   width: 100%;
-  padding: 0.875rem 0.875rem 0.875rem 0.75rem;
+  padding: 0.75rem 0.875rem 0.75rem 0.75rem;
 
   color: var(--color-black);
+
+  background: var(--color-background-first);
 
   &:not(:last-of-type) {
     &::after {
@@ -283,4 +285,15 @@
   background-clip: text;
 
   -webkit-text-fill-color: transparent;
+}
+
+.wrapperVisible {
+  border-radius: var(--border-radius-with-menu, 0rem);
+}
+
+.menu {
+  --offset-y-value: 0;
+  --offset-y-bottom-value: 0;
+
+  max-height: max(70vh, 20rem);
 }

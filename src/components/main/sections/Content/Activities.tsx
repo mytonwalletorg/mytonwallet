@@ -69,7 +69,6 @@ type StateProps = {
   isMainHistoryEndReached?: boolean;
   isHistoryEndReachedBySlug?: Record<string, boolean>;
   alwaysShownSlugs?: string[];
-  activitiesUpdateStartedAt?: number;
   theme: Theme;
   isFirstTransactionsLoaded?: boolean;
   isSensitiveDataHidden?: true;
@@ -109,7 +108,6 @@ function Activities({
   isMainHistoryEndReached,
   isHistoryEndReachedBySlug,
   alwaysShownSlugs,
-  activitiesUpdateStartedAt = 0,
   theme,
   isFirstTransactionsLoaded,
   isSensitiveDataHidden,
@@ -126,7 +124,7 @@ function Activities({
 
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
-  const isUpdating = useUpdateIndicator(activitiesUpdateStartedAt);
+  const isUpdating = useUpdateIndicator('activitiesUpdateStartedAt');
 
   const appTheme = useAppTheme(theme);
 
@@ -447,7 +445,6 @@ export default memo(
         isHistoryEndReachedBySlug,
         currentActivityId: accountState?.currentActivityId,
         alwaysShownSlugs: accountSettings?.alwaysShownSlugs,
-        activitiesUpdateStartedAt: accountState?.activitiesUpdateStartedAt,
         theme: global.settings.theme,
         isFirstTransactionsLoaded,
         stakingStateBySlug,

@@ -1,31 +1,29 @@
 import React, {
-  memo, useEffect, useRef, useState,
+  memo, type RefObject, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import type { IAnchorPosition } from '../../global/types';
 import type { DropdownItem } from './Dropdown';
+import type { MenuPositionOptions } from './Menu';
 
 import buildClassName from '../../util/buildClassName';
 import windowSize from '../../util/windowSize';
 
 import useLang from '../../hooks/useLang';
-import { usePrevDuringAnimationSimple } from '../../hooks/usePrevDuringAnimationSimple';
 
 import Menu from './Menu';
 
 import styles from './Dropdown.module.scss';
 
-interface OwnProps {
+interface OwnProps<T extends string> {
   isOpen: boolean;
-  selectedValue?: string;
-  items: DropdownItem[];
+  ref?: RefObject<HTMLDivElement | null>;
+  selectedValue?: T;
+  items: DropdownItem<T>[];
   withPortal?: boolean;
-  anchorPosition?: IAnchorPosition;
-  menuPosition?: 'top' | 'bottom';
-  menuPositionHorizontal?: 'right' | 'left';
-  transformOriginX?: number;
-  transformOriginY?: number;
-  menuStyle?: string;
+  menuAnchor?: IAnchorPosition;
+  menuPositionY?: 'top' | 'bottom';
+  menuPositionX?: 'right' | 'left';
   shouldTranslateOptions?: boolean;
   className?: string;
   bubbleClassName?: string;
@@ -33,23 +31,26 @@ interface OwnProps {
   iconClassName?: string;
   fontIconClassName?: string;
   shouldCleanup?: boolean;
-  onSelect?: (value: string) => void;
+  onSelect?: (value: T) => void;
   onClose: NoneToVoidFunction;
+  getTriggerElement?: () => HTMLElement | null;
+  getRootElement?: () => HTMLElement | null;
+  getMenuElement?: () => HTMLElement | null;
+  getLayout?: () => { withPortal?: boolean };
+  onCloseAnimationEnd?: NoneToVoidFunction;
 }
 
 const SAFE_POSITION_PX = 6;
 
-function DropdownMenu({
+function DropdownMenu<T extends string>({
   isOpen,
+  ref,
   selectedValue,
   items,
   withPortal,
-  anchorPosition,
-  menuPosition,
-  menuPositionHorizontal,
-  menuStyle,
-  transformOriginX,
-  transformOriginY,
+  menuAnchor,
+  menuPositionX,
+  menuPositionY,
   shouldTranslateOptions,
   className,
   bubbleClassName,
@@ -59,32 +60,50 @@ function DropdownMenu({
   shouldCleanup,
   onSelect,
   onClose,
-}: OwnProps) {
+  getTriggerElement,
+  getRootElement,
+  getMenuElement,
+  getLayout,
+  onCloseAnimationEnd,
+}: OwnProps<T>) {
   const lang = useLang();
+  const [menuLeft, setMenuLeft] = useState(menuAnchor?.x);
+
   // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [menuLeft, setMenuLeft] = useState(anchorPosition?.x);
+  let menuRef = useRef<HTMLDivElement>(null);
+  if (ref) {
+    menuRef = ref;
+  }
 
   useEffect(() => {
-    if (isOpen && menuRef.current && anchorPosition) {
+    if (isOpen && menuRef.current && menuAnchor) {
       const menuWidth = menuRef.current.offsetWidth;
       const windowWidth = windowSize.get().width;
-      let left = anchorPosition?.x;
+      let left = menuAnchor?.x;
 
       left = Math.min(left, left - menuWidth / 2 - SAFE_POSITION_PX, windowWidth - menuWidth - SAFE_POSITION_PX);
       left = Math.max(left, SAFE_POSITION_PX);
 
       setMenuLeft(left);
     }
-  }, [anchorPosition, isOpen]);
+  }, [menuAnchor, isOpen]);
 
-  if (anchorPosition) {
-    menuStyle = `${menuStyle || ''};left: ${menuLeft}px; top: ${anchorPosition.y}px;`;
-  }
+  // Create position options
+  const menuPositionOptions: MenuPositionOptions = menuAnchor && getTriggerElement && getRootElement && getMenuElement
+    ? {
+      anchor: menuAnchor,
+      getTriggerElement,
+      getRootElement,
+      getMenuElement,
+      getLayout,
+    }
+    : {
+      positionX: menuPositionX,
+      positionY: menuPositionY,
+      style: menuAnchor ? `left: ${menuLeft}px; top: ${menuAnchor.y}px;` : undefined,
+    };
 
-  const prevMenuStyle = usePrevDuringAnimationSimple(menuStyle);
-
-  const handleItemClick = (e: React.MouseEvent, value: string) => {
+  const handleItemClick = (e: React.MouseEvent, value: T) => {
     e.stopPropagation();
     onSelect?.(value);
     onClose();
@@ -95,24 +114,22 @@ function DropdownMenu({
       menuRef={menuRef}
       isOpen={isOpen}
       type="dropdown"
-      style={menuStyle || prevMenuStyle}
       withPortal={withPortal}
-      positionX={menuPositionHorizontal}
-      positionY={menuPosition}
-      transformOriginX={transformOriginX}
-      transformOriginY={transformOriginY}
       className={className}
       bubbleClassName={bubbleClassName}
       shouldCleanup={shouldCleanup}
       onClose={onClose}
+      onCloseAnimationEnd={onCloseAnimationEnd}
+      {...menuPositionOptions}
     >
       {items.map((item, index) => {
         const fullButtonClassName = buildClassName(
           styles.item,
-          item.icon && styles.item_with_icon,
+          (item.icon || item.fontIcon) && styles.item_with_icon,
           item.isDisabled && styles.disabled,
           item.isDangerous && styles.dangerous,
-          item.withSeparator && index > 0 && styles.separator,
+          item.withDelimiter && index > 0 && styles.delimiter,
+          item.withDelimiterAfter && styles.delimiterAfter,
           selectedValue === item.value && styles.item_selected,
           buttonClassName,
           'capture-scroll',

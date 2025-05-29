@@ -65,7 +65,7 @@ $listHorizontalPadding: 1rem;
 .suggestion {
   align-items: center;
 
-  padding: 0.5rem 2.25rem 0.5rem 0.5rem !important;
+  font-size: 1rem;
 }
 
 .suggestionIcon {
@@ -73,6 +73,10 @@ $listHorizontalPadding: 1rem;
 
   font-size: 1.25rem !important;
   color: var(--color-gray-3);
+
+  @media (pointer: coarse) {
+    font-size: 1.5rem !important;
+  }
 }
 
 .suggestionAddress {
@@ -93,8 +97,8 @@ $listHorizontalPadding: 1rem;
   align-items: center;
   justify-content: center;
 
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
 
   font-size: 1.25rem;
@@ -109,6 +113,13 @@ $listHorizontalPadding: 1rem;
   &:hover,
   &:focus-visible {
     color: var(--color-gray-3);
+  }
+
+  @media (pointer: coarse) {
+    width: 3rem;
+    height: 3rem;
+
+    font-size: 1.5rem;
   }
 }
 

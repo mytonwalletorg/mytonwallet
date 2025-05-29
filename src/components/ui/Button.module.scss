@@ -117,6 +117,25 @@
   }
 }
 
+.button.secondary:not(.isSimple) {
+  color: var(--color-secondary-button-text);
+
+  background-color: var(--color-secondary-button-background);
+
+  &.loadingInit {
+    --color-dot: var(--color-secondary-button-text);
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      color: var(--color-secondary-button-text-hover);
+
+      background-color: var(--color-secondary-button-background-hover);
+    }
+  }
+}
+
 .button.transparent:not(.isSimple) {
   &,
   &:hover,

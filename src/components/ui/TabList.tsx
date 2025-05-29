@@ -19,6 +19,7 @@ export type TabWithProperties = {
   className?: string;
   menuItems?: DropdownItem[];
   onMenuItemClick?: (value: string) => void;
+  icon?: string;
 };
 
 type OwnProps = {
@@ -91,6 +92,7 @@ function TabList({
           onMenuItemClick={tab?.onMenuItemClick}
           onClick={onSwitchTab}
           clickArg={tab.id}
+          icon={tab.icon}
         />
       ))}
     </div>

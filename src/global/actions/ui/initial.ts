@@ -5,7 +5,7 @@ import { ApiAuthError, ApiCommonError, ApiTransactionDraftError, ApiTransactionE
 import { AppState } from '../../types';
 
 import {
-  DEFAULT_SWAP_FISRT_TOKEN_SLUG,
+  DEFAULT_SWAP_FIRST_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   DEFAULT_TRANSFER_TOKEN_SLUG,
   IS_CAPACITOR,
@@ -192,13 +192,13 @@ addActionHandler('selectToken', (global, actions, { slug } = {}) => {
   } else {
     const currentActivityToken = global.byAccountId[global.currentAccountId!].currentTokenSlug;
 
-    const isDefaultFirstTokenOutSwap = global.currentSwap.tokenOutSlug === DEFAULT_SWAP_FISRT_TOKEN_SLUG
+    const isDefaultFirstTokenOutSwap = global.currentSwap.tokenOutSlug === DEFAULT_SWAP_FIRST_TOKEN_SLUG
     && global.currentSwap.tokenInSlug === DEFAULT_SWAP_SECOND_TOKEN_SLUG;
 
     const shouldResetSwap = global.currentSwap.tokenOutSlug === currentActivityToken
     && (
       (
-        global.currentSwap.tokenInSlug === DEFAULT_SWAP_FISRT_TOKEN_SLUG
+        global.currentSwap.tokenInSlug === DEFAULT_SWAP_FIRST_TOKEN_SLUG
         && global.currentSwap.tokenOutSlug !== DEFAULT_SWAP_SECOND_TOKEN_SLUG
       )
     || isDefaultFirstTokenOutSwap

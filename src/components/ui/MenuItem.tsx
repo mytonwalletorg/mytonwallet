@@ -1,4 +1,4 @@
-import type { FC } from '../../lib/teact/teact';
+import type { FC, TeactNode } from '../../lib/teact/teact';
 import React from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -12,11 +12,10 @@ type OnClickHandler = (e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElemen
 interface OwnProps {
   className?: string;
   href?: string;
-  children: React.ReactNode;
+  children: TeactNode;
   onClick?: OnClickHandler;
   clickArg?: string;
   isDestructive?: boolean;
-  isSeparator?: boolean;
 }
 
 const MenuItem: FC<OwnProps> = (props) => {
@@ -27,7 +26,6 @@ const MenuItem: FC<OwnProps> = (props) => {
     onClick,
     clickArg,
     isDestructive,
-    isSeparator,
   } = props;
 
   const handleClick = useLastCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -60,7 +58,6 @@ const MenuItem: FC<OwnProps> = (props) => {
     styles.menuItem,
     className,
     isDestructive && styles.destructive,
-    isSeparator && styles.menuItem_separator,
   );
 
   if (href) {

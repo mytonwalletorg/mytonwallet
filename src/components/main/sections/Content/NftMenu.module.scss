@@ -58,15 +58,22 @@
 }
 
 .menu {
+  --offset-y-bottom-value: 0rem;
   --offset-y-value: 2rem;
   --offset-x-value: 0.25rem;
 }
 
 .menuBubble {
-  max-height: 60vh;
+  max-height: 65vh;
 }
 
 .item {
+  padding: 0.75rem 1rem !important;
+
+  @media (pointer: coarse) {
+    padding: 0.875rem 1rem !important;
+  }
+
   > :global(.icon) {
     order: 2;
 
@@ -77,6 +84,10 @@
     color: var(--color-gray-3);
 
     transition: color 150ms;
+
+    @media (pointer: coarse) {
+      font-size: 1.125rem;
+    }
   }
 
   &:hover,

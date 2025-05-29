@@ -35,7 +35,7 @@ function getIsNewAccount(balancesBySlug: ApiBalanceBySlug, tokenInfo: GlobalStat
 export const selectAccountTokensMemoizedFor = withCache((accountId: string) => memoize((
   balancesBySlug: ApiBalanceBySlug,
   tokenInfo: GlobalState['tokenInfo'],
-  accountSettings: AccountSettings,
+  accountSettings: AccountSettings = {},
   isSortByValueEnabled: boolean = false,
   areTokensWithNoCostHidden: boolean = false,
 ) => {
@@ -126,7 +126,7 @@ export function selectAccountTokens(global: GlobalState, accountId: string) {
     return undefined;
   }
 
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
+  const accountSettings = selectAccountSettings(global, accountId);
   const { areTokensWithNoCostHidden, isSortByValueEnabled } = global.settings;
 
   return selectAccountTokensMemoizedFor(accountId)(

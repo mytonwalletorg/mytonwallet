@@ -4,16 +4,14 @@ import { Address, Builder } from '@ton/core';
 
 import type { TonClient } from './TonClient';
 
-import { sha256 } from '../../../common/utils';
 import { DnsCategory } from '../constants';
+import { sha256BigInt } from './other';
 
 export type DnsResult = Cell | Address | string | undefined;
 
-async function categoryToBigInt(category?: string) {
+export function dnsCategoryToBigInt(category?: string) {
   if (!category) return 0n; // all categories
-  const categoryBytes = new TextEncoder().encode(category);
-  const categoryHashHex = Buffer.from(await sha256(categoryBytes)).toString('hex');
-  return BigInt(`0x${categoryHashHex}`);
+  return sha256BigInt(category);
 }
 
 function parseSmartContractAddressImpl(cell: Cell, prefix0: number, prefix1: number): Address | undefined {
@@ -88,10 +86,10 @@ async function dnsResolveImpl(
     .storeBuffer(Buffer.from(rawDomainBytes))
     .asCell();
 
-  const categoryBN = await categoryToBigInt(category);
+  const categoryBigInt = dnsCategoryToBigInt(category);
   const { stack } = await client.callGetMethod(Address.parse(dnsAddress), 'dnsresolve', [
     { type: 'slice', cell: domainCell },
-    { type: 'int', value: BigInt(categoryBN.toString()) },
+    { type: 'int', value: categoryBigInt },
   ]);
 
   const resultLen = stack.readNumber();

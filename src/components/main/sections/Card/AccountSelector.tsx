@@ -87,14 +87,16 @@ function AccountSelector({
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
-  const modalRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement>(null);
 
   const lang = useLang();
   const [isOpen, openAccountSelector, closeAccountSelector] = useFlag(false);
   const [isEdit, openEdit, closeEdit] = useFlag(shouldForceAccountEdit);
-  const { shouldRender, transitionClassNames } = useShowTransition(isOpen && !isEdit, undefined, undefined, 'slow');
+  const { shouldRender, ref: containerRef } = useShowTransition({
+    isOpen: isOpen && !isEdit,
+    className: 'slow',
+    withShouldRender: true,
+  });
   const [inputValue, setInputValue] = useState<string>(currentAccount?.title || '');
 
   const isQrScannerSupported = useQrScannerSupport() && !isViewMode;
@@ -129,7 +131,10 @@ function AccountSelector({
     () => (isEdit ? captureEscKeyListener(closeEdit) : undefined),
     [closeEdit, isEdit],
   );
-  useEffect(() => (shouldRender && modalRef.current ? trapFocus(modalRef.current) : undefined), [shouldRender]);
+  useEffect(
+    () => (shouldRender && containerRef.current ? trapFocus(containerRef.current) : undefined),
+    [containerRef, shouldRender],
+  );
   useFocusAfterAnimation(inputRef, !isEdit);
   useEffect(() => {
     if (isEdit) {
@@ -230,7 +235,6 @@ function AccountSelector({
 
   const fullClassName = buildClassName(
     styles.container,
-    transitionClassNames,
     accountSelectorClassName,
   );
   const accountTitleClassName = buildClassName(
@@ -340,7 +344,7 @@ function AccountSelector({
 
     return (
       <div
-        ref={modalRef}
+        ref={containerRef}
         className={fullClassName}
         tabIndex={-1}
         role="dialog"

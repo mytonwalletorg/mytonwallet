@@ -31,7 +31,7 @@ const Notification: FC<OwnProps> = ({
   // eslint-disable-next-line no-null/no-null
   const timerRef = useRef<number | undefined>(null);
 
-  const { transitionClassNames } = useShowTransition(isOpen);
+  const { ref } = useShowTransition({ isOpen });
 
   const closeAndDismiss = useLastCallback(() => {
     setIsOpen(false);
@@ -68,7 +68,8 @@ const Notification: FC<OwnProps> = ({
       containerId={containerId}
     >
       <div
-        className={buildClassName(styles.notification, transitionClassNames)}
+        ref={ref}
+        className={styles.notification}
         onClick={closeAndDismiss}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}

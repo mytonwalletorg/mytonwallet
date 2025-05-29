@@ -7,16 +7,21 @@ import type { ApiNft } from '../../../../api/types';
 import type { ObserveFn } from '../../../../hooks/useIntersectionObserver';
 import { type IAnchorPosition, MediaType } from '../../../../global/types';
 
+import { TON_DNS_RENEWAL_NFT_WARNING_DAYS } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
+import { getCountDaysToDate } from '../../../../util/dateFormat';
+import { stopEvent } from '../../../../util/domEvents';
 import { vibrate } from '../../../../util/haptics';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { IS_ANDROID, IS_IOS } from '../../../../util/windowEnvironment';
 
+import useContextMenuHandlers from '../../../../hooks/useContextMenuHandlers';
 import useFlag from '../../../../hooks/useFlag';
 import { useIsIntersecting } from '../../../../hooks/useIntersectionObserver';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
+import useSyncEffect from '../../../../hooks/useSyncEffect';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Image from '../../../ui/Image';
@@ -29,6 +34,8 @@ interface OwnProps {
   nft: ApiNft;
   selectedAddresses?: string[];
   observeIntersection: ObserveFn;
+  tonDnsExpiration?: number;
+  isViewAccount?: boolean;
 }
 
 interface UseLottieReturnType {
@@ -39,8 +46,19 @@ interface UseLottieReturnType {
   unmarkHover?: NoneToVoidFunction;
 }
 
-function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
-  const { openMediaViewer, selectNfts, clearNftSelection } = getActions();
+function Nft({
+  nft,
+  selectedAddresses,
+  tonDnsExpiration,
+  observeIntersection,
+  isViewAccount,
+}: OwnProps) {
+  const {
+    openMediaViewer,
+    selectNfts,
+    clearNftSelection,
+    openDomainRenewalModal,
+  } = getActions();
 
   const lang = useLang();
 
@@ -51,14 +69,30 @@ function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
     isLottie, shouldPlay, noLoop, markHover, unmarkHover,
   } = useLottie(nft, ref, observeIntersection);
 
-  const [menuPosition, setMenuPosition] = useState<IAnchorPosition>();
+  const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition>();
   const isSelectionEnabled = !!selectedAddresses && selectedAddresses.length > 0;
   const isSelected = useMemo(() => selectedAddresses?.includes(nft.address), [selectedAddresses, nft.address]);
-  const isMenuOpen = Boolean(menuPosition);
+  const isMenuOpen = Boolean(menuAnchor);
+  const dnsExpireInDays = tonDnsExpiration ? getCountDaysToDate(tonDnsExpiration) : undefined;
+  const isDnsExpireSoon = dnsExpireInDays !== undefined ? dnsExpireInDays <= TON_DNS_RENEWAL_NFT_WARNING_DAYS : false;
   const {
     shouldRender: shouldRenderWarning,
-    transitionClassNames: warningTransitionClassNames,
-  } = useShowTransition(isSelectionEnabled && nft.isOnSale);
+    ref: warningRef,
+  } = useShowTransition({
+    isOpen: isSelectionEnabled && nft.isOnSale,
+    withShouldRender: true,
+  });
+
+  const {
+    isContextMenuOpen,
+    handleBeforeContextMenu,
+    handleContextMenu,
+    handleContextMenuHide,
+    handleContextMenuClose,
+  } = useContextMenuHandlers({
+    elementRef: ref,
+    shouldDisablePropagation: true,
+  });
 
   const fullClassName = buildClassName(
     styles.item,
@@ -81,14 +115,42 @@ function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
     openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft });
   }
 
+  function handleRenewDomainClick(e: React.MouseEvent) {
+    stopEvent(e);
+
+    openDomainRenewalModal({ addresses: [nft.address] });
+  }
+
   const handleOpenMenu = useLastCallback(() => {
     const { right: x, y } = ref.current!.getBoundingClientRect();
-    setMenuPosition({ x, y });
+    setMenuAnchor({ x, y });
   });
 
   const handleCloseMenu = useLastCallback(() => {
-    setMenuPosition(undefined);
+    setMenuAnchor(undefined);
+    handleContextMenuClose();
+    handleContextMenuHide();
   });
+
+  useSyncEffect(() => {
+    if (isContextMenuOpen) {
+      handleOpenMenu();
+    } else {
+      handleCloseMenu();
+    }
+  }, [isContextMenuOpen]);
+
+  function renderDnsExpireWarning() {
+    return (
+      <button
+        type="button"
+        className={buildClassName(styles.warningBlock, isViewAccount && styles.nonInteractive)}
+        onClick={!isViewAccount ? handleRenewDomainClick : undefined}
+      >
+        {dnsExpireInDays! < 0 ? lang('Expired') : lang('Expires in %1$d days', dnsExpireInDays, 'i')}
+      </button>
+    );
+  }
 
   return (
     <div
@@ -99,6 +161,8 @@ function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
       onMouseEnter={markHover}
       onMouseLeave={unmarkHover}
       onClick={!isSelectionEnabled || !nft.isOnSale ? handleClick : undefined}
+      onMouseDown={handleBeforeContextMenu}
+      onContextMenu={handleContextMenu}
     >
       {isSelectionEnabled && !nft.isOnSale && (
         <Radio
@@ -111,7 +175,8 @@ function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
       {!isSelectionEnabled && (
         <NftMenu
           nft={nft}
-          menuPosition={menuPosition}
+          dnsExpireInDays={dnsExpireInDays}
+          menuAnchor={menuAnchor}
           onOpen={handleOpenMenu}
           onClose={handleCloseMenu}
         />
@@ -129,16 +194,19 @@ function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
             noPreviewTransition
             className={buildClassName(styles.image, isSelected && styles.imageSelected)}
           />
+          {isDnsExpireSoon && renderDnsExpireWarning()}
         </div>
       ) : (
         <Image
           url={nft.thumbnail}
           className={styles.imageWrapper}
           imageClassName={buildClassName(styles.image, isSelected && styles.imageSelected)}
-        />
+        >
+          {isDnsExpireSoon && renderDnsExpireWarning()}
+        </Image>
       )}
       {shouldRenderWarning && (
-        <div className={buildClassName(styles.warning, warningTransitionClassNames)}>
+        <div ref={warningRef} className={styles.warning}>
           {lang('For sale. Cannot be sent and burned')}
         </div>
       )}

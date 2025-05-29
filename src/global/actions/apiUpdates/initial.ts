@@ -1,14 +1,21 @@
 import type { ApiLiquidStakingState } from '../../../api/types';
+import type { Account } from '../../types';
 
-import { DEFAULT_STAKING_STATE, IS_CORE_WALLET, MTW_CARDS_COLLECTION } from '../../../config';
+import {
+  DEFAULT_STAKING_STATE,
+  IS_CORE_WALLET,
+  MTW_CARDS_COLLECTION,
+  TELEGRAM_GIFTS_SUPER_COLLECTION,
+} from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
-import { buildCollectionByKey } from '../../../util/iteratees';
+import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { callActionInNative } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
 import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS_APP } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   addNft,
+  addUnorderedNfts,
   createAccount,
   removeNft,
   updateAccount,
@@ -112,8 +119,8 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateAccountState(global, accountId, {
         nfts: {
           ...currentNfts,
-          byAddress: nfts,
-          orderedAddresses: Object.keys(nfts),
+          byAddress: { ...nfts, ...currentNfts?.byAddress },
+          orderedAddresses: unique([...Object.keys(nfts), ...currentNfts?.orderedAddresses || []]),
         },
       });
 
@@ -124,6 +131,15 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           }
         });
       }
+
+      const hasTelegramGifts = update.nfts.some((nft) => nft.isTelegramGift);
+      if (hasTelegramGifts) {
+        actions.addCollectionTab({
+          collectionAddress: TELEGRAM_GIFTS_SUPER_COLLECTION,
+          isAuto: true,
+        });
+      }
+
       setGlobal(global);
 
       actions.checkCardNftOwnership();
@@ -171,14 +187,22 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'updateAccount': {
-      const { accountId, partial } = update;
+      const { accountId, chain, domain, address } = update;
       const account = selectAccount(global, accountId);
-      global = updateAccount(global, accountId, {
-        addressByChain: {
+      const accountUpdate: Partial<Account> = {};
+      if (address) {
+        accountUpdate.addressByChain = {
           ...account?.addressByChain,
-          ton: partial.address,
-        },
-      });
+          [chain]: address,
+        };
+      }
+      if (domain !== false) {
+        accountUpdate.domainByChain = {
+          ...account?.domainByChain,
+          [chain]: domain,
+        };
+      }
+      global = updateAccount(global, accountId, accountUpdate);
       setGlobal(global);
       break;
     }
@@ -305,6 +329,26 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const { accountConfig, accountId } = update;
       global = updateAccountState(global, accountId, { config: accountConfig });
       setGlobal(global);
+      break;
+    }
+
+    case 'updateAccountDomainData': {
+      const {
+        accountId,
+        expirationByAddress,
+        linkedAddressByAddress,
+        nfts: updatedNfts,
+      } = update;
+      const nfts = selectAccountState(global, accountId)?.nfts || { byAddress: {} };
+
+      global = updateAccountState(global, accountId, { nfts: {
+        ...nfts,
+        dnsExpiration: expirationByAddress,
+        linkedAddressByAddress,
+      } });
+      global = addUnorderedNfts(global, accountId, updatedNfts);
+      setGlobal(global);
+      break;
     }
   }
 });

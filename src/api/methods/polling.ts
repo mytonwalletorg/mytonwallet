@@ -31,7 +31,7 @@ const LONG_BACKEND_INTERVAL = 60 * SEC;
 const INCORRECT_TIME_DIFF = 30 * SEC;
 
 const ACCOUNT_CONFIG_INTERVAL = 60 * SEC;
-const ACCOUNT_CONFIG_INTERVAL_INTERVAL_WHEN_NOT_FOCUSED = 10 * MINUTE;
+const ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED = 10 * MINUTE;
 
 const MAX_POST_TOKENS = 1000;
 
@@ -219,6 +219,6 @@ export async function setupAccountConfigPolling(accountId: string, account: ApiA
       logDebugError('setupBackendAccountPolling', err);
     }
 
-    await pauseOrFocus(ACCOUNT_CONFIG_INTERVAL, ACCOUNT_CONFIG_INTERVAL_INTERVAL_WHEN_NOT_FOCUSED);
+    await pauseOrFocus(ACCOUNT_CONFIG_INTERVAL, ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED);
   }
 }

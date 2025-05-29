@@ -39,7 +39,7 @@
   margin: 0.5rem 0 0.75rem;
   padding: 0.75rem;
 
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 0.9375rem;
   color: var(--color-red-warning-text);
@@ -51,6 +51,8 @@
 
   &_landscape {
     margin-top: 0;
+
+    font-size: 0.9375rem;
   }
 
   &:active {
@@ -62,6 +64,15 @@
       color: var(--color-red-warning-text-hover);
     }
   }
+
+  @media (pointer: coarse) {
+    padding-inline-end: 3rem;
+  }
+}
+
+.wrapperFlex {
+  display: flex;
+  align-items: center;
 }
 
 .icon {
@@ -123,4 +134,57 @@
   :global(html.animation-level-0) & {
     transition: none !important;
   }
+
+  @media (pointer: coarse) {
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+
+    width: 2rem !important;
+    height: 2rem !important;
+
+    font-size: 1.75rem !important;
+  }
+}
+
+.domainPreviewWrapper {
+  position: relative;
+
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: 0.625rem;
+}
+
+.domainPreview {
+  position: absolute;
+  z-index: calc(3 - var(--index));
+  bottom: 0;
+  left: 0;
+
+  width: var(--domain-preview-size);
+  height: var(--domain-preview-size);
+
+  border: 1px solid var(--color-red-warning-background);
+  border-radius: var(--border-radius-domain);
+}
+
+.domainPreview_1 {
+  --domain-preview-size: 2.5rem;
+  --border-radius-domain: 0.375rem;
+}
+
+.domainPreview_2 {
+  --domain-preview-size: 1.75rem;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  --border-radius-domain: 0.28125rem;
+
+  transform: translate(calc(var(--index) * 0.75rem), calc(var(--index) * -0.75rem));
+}
+
+.domainPreview_3 {
+  --domain-preview-size: 1.625rem;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  --border-radius-domain: 0.2625rem;
+
+  transform: translate(calc(var(--index) * 0.4375rem), calc(var(--index) * -0.4375rem));
 }

@@ -1,0 +1,43 @@
+.container {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  padding: 1rem;
+}
+
+.form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 1rem;
+
+  @supports (padding-bottom: var(--safe-area-bottom)) {
+    margin-bottom: var(--safe-area-bottom);
+  }
+}
+
+.buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.button {
+  flex: 1;
+
+  height: 3rem;
+}
+
+.container.editing :global(.icon-close-filled::before) {
+  content: "\f109";
+}
+
+.transitionSlide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

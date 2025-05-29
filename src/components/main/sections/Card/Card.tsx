@@ -56,7 +56,6 @@ interface StateProps {
   currentTokenSlug?: string;
   baseCurrency?: ApiBaseCurrency;
   stakingStates?: ApiStakingState[];
-  balanceUpdateStartedAt?: number;
   cardNft?: ApiNft;
   isSensitiveDataHidden?: true;
   isNftBuyingDisabled: boolean;
@@ -74,7 +73,6 @@ function Card({
   stakingStates,
   isSensitiveDataHidden,
   isNftBuyingDisabled,
-  balanceUpdateStartedAt,
   cardNft,
   isViewMode,
 }: OwnProps & StateProps) {
@@ -83,7 +81,7 @@ function Card({
   const [withTextGradient, setWithTextGradient] = useState<boolean>(false);
   const { isPortrait } = useDeviceScreen();
 
-  const isUpdating = useUpdateIndicator(balanceUpdateStartedAt);
+  const isUpdating = useUpdateIndicator('balanceUpdateStartedAt');
 
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
   const currentToken = useMemo(() => {
@@ -92,8 +90,12 @@ function Card({
   const renderedToken = useCurrentOrPrev(currentToken, true);
   const {
     shouldRender: shouldRenderTokenCard,
-    transitionClassNames: tokenCardTransitionClassNames,
-  } = useShowTransition(Boolean(currentTokenSlug), undefined, true);
+    ref: tokenCardRef,
+  } = useShowTransition({
+    isOpen: Boolean(currentTokenSlug),
+    noMountTransition: true,
+    withShouldRender: true,
+  });
   const sensitiveDataMaskSkin = getSensitiveDataMaskSkinFromCardNft(cardNft);
 
   const handleCardChange = useLastCallback((hasGradient: boolean, className?: string) => {
@@ -228,7 +230,7 @@ function Card({
       {shouldRenderTokenCard && (
         <TokenCard
           token={renderedToken!}
-          classNames={tokenCardTransitionClassNames}
+          ref={tokenCardRef}
           isUpdating={isUpdating}
           onYieldClick={isViewMode ? undefined : onYieldClick}
           onClose={onTokenCardClose}
@@ -251,7 +253,6 @@ export default memo(
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency: global.settings.baseCurrency,
         stakingStates,
-        balanceUpdateStartedAt: accountState?.balanceUpdateStartedAt,
         cardNft,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         isNftBuyingDisabled: global.restrictions.isNftBuyingDisabled,

@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
@@ -40,8 +41,9 @@ import styles from './Card.module.scss';
 import tonUrl from '../../../../assets/coins/ton.svg';
 
 interface OwnProps {
+  ref?: RefObject<HTMLDivElement>;
   token: UserToken;
-  classNames: string;
+  classNames?: string;
   isUpdating?: boolean;
   onYieldClick?: (stakingId?: string) => void;
   onClose: NoneToVoidFunction;
@@ -65,6 +67,7 @@ const INTERVAL = 5 * SECOND;
 const DEFAULT_PERIOD = HISTORY_PERIODS[0];
 
 function TokenCard({
+  ref,
   isTestnet,
   token,
   classNames,
@@ -193,7 +196,7 @@ function TokenCard({
   }
 
   return (
-    <div className={buildClassName(styles.container, styles.tokenCard, classNames, color, 'token-card')}>
+    <div ref={ref} className={buildClassName(styles.container, styles.tokenCard, classNames, color, 'token-card')}>
       <div className={styles.tokenInfo}>
         <Button className={styles.backButton} isSimple onClick={onClose} ariaLabel={lang('Back')}>
           <i className="icon-chevron-left" aria-hidden />
@@ -227,7 +230,7 @@ function TokenCard({
                 </div>
                 <CurrencySwitcher
                   isOpen={isCurrencyMenuOpen}
-                  menuPositionHorizontal="right"
+                  menuPositionX="right"
                   excludedCurrency={token.symbol}
                   onClose={closeCurrencyMenu}
                   onChange={handleCurrencyChange}

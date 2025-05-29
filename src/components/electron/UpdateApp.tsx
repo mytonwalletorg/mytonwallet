@@ -63,7 +63,10 @@ function UpdateApp({ isAppUpdateAvailable }: StateProps) {
     }
   });
 
-  const { transitionClassNames, shouldRender } = useShowTransition(isElectronUpdateDownloaded || isAppUpdateAvailable);
+  const { ref, shouldRender } = useShowTransition({
+    isOpen: isElectronUpdateDownloaded || isAppUpdateAvailable,
+    withShouldRender: true,
+  });
 
   if (!shouldRender) {
     return null; // eslint-disable-line no-null/no-null
@@ -71,9 +74,9 @@ function UpdateApp({ isAppUpdateAvailable }: StateProps) {
 
   return (
     <div
+      ref={ref}
       className={buildClassName(
         styles.container,
-        transitionClassNames,
         isDisabled && styles.disabled,
       )}
       onClick={handleClick}

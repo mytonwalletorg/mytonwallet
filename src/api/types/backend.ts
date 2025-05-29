@@ -206,6 +206,7 @@ export type ApiStakingCommonData = {
   jettonPools: ApiStakingJettonPool[];
   ethena: {
     apy: number;
+    apyVerified: number;
     rate: number;
     isDisabled?: boolean;
   };

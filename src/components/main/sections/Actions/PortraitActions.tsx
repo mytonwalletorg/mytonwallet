@@ -3,24 +3,27 @@ import { getActions } from '../../../../global';
 
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
 
-import { IS_CORE_WALLET, IS_STAKING_DISABLED } from '../../../../config';
+import { IS_CORE_WALLET } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/haptics';
+import { handleSendMenuItemClick, SEND_CONTEXT_MENU_ITEMS } from './helpers/sendMenu';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
 import Button from '../../../ui/Button';
+import WithContextMenu from '../../../ui/WithContextMenu';
 import { STAKING_TAB_TEXT_VARIANTS } from './LandscapeActions';
 
 import styles from './PortraitActions.module.scss';
 
 interface OwnProps {
   isTestnet?: boolean;
+  isLedger?: boolean;
   stakingStatus: StakingStateStatus;
   onEarnClick: NoneToVoidFunction;
-  isLedger?: boolean;
   isSwapDisabled?: boolean;
+  isStakingDisabled?: boolean;
   isOnRampDisabled?: boolean;
 }
 
@@ -28,7 +31,7 @@ function PortraitActions({
   isTestnet,
   stakingStatus,
   onEarnClick,
-  isLedger,
+  isStakingDisabled,
   isSwapDisabled,
   isOnRampDisabled,
 }: OwnProps) {
@@ -38,12 +41,10 @@ function PortraitActions({
 
   const lang = useLang();
 
-  const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
-  const isStakingAllowed = !isTestnet && !IS_STAKING_DISABLED;
   const addBuyButtonName = IS_CORE_WALLET
     ? 'Receive'
-    : (isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add');
+    : (!isSwapDisabled || isOnRampAllowed ? 'Add / Buy' : 'Add');
 
   const handleStartSwap = useLastCallback(() => {
     void vibrate();
@@ -80,15 +81,25 @@ function PortraitActions({
           <i className={buildClassName(styles.buttonIcon, 'icon-action-add')} aria-hidden />
           {lang(addBuyButtonName)}
         </Button>
-        <Button
-          isSimple
-          className={styles.button}
-          onClick={handleStartTransfer}
+        <WithContextMenu
+          items={SEND_CONTEXT_MENU_ITEMS}
+          onItemClick={handleSendMenuItemClick}
+          menuClassName={styles.menu}
         >
-          <i className={buildClassName(styles.buttonIcon, 'icon-action-send')} aria-hidden />
-          {lang('Send')}
-        </Button>
-        {isSwapAllowed && (
+          {(buttonProps, isMenuOpen) => (
+            <Button
+              {...buttonProps}
+              isSimple
+              className={buildClassName(styles.button, isMenuOpen && styles.buttonActive)}
+              onClick={handleStartTransfer}
+              ref={buttonProps.ref as React.RefObject<HTMLButtonElement>}
+            >
+              <i className={buildClassName(styles.buttonIcon, 'icon-action-send')} aria-hidden />
+              {lang('Send')}
+            </Button>
+          )}
+        </WithContextMenu>
+        {!isSwapDisabled && (
           <Button
             isSimple
             className={styles.button}
@@ -98,7 +109,7 @@ function PortraitActions({
             {lang('Swap')}
           </Button>
         )}
-        {isStakingAllowed && (
+        {!isStakingDisabled && (
           <Button
             isSimple
             className={buildClassName(styles.button, stakingStatus !== 'inactive' && styles.button_purple)}

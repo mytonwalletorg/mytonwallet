@@ -11,7 +11,6 @@ import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';
 
 import useLastCallback from '../../hooks/useLastCallback';
-import useMenuPosition from '../../hooks/useMenuPosition';
 
 import DropdownMenu from './DropdownMenu';
 
@@ -26,6 +25,7 @@ type OwnProps = {
   onClick: (arg: number) => void;
   clickArg: number;
   onMenuItemClick?: (value: string) => void;
+  icon?: string;
 };
 
 function Tab({
@@ -37,30 +37,23 @@ function Tab({
   onClick,
   clickArg,
   onMenuItemClick,
+  icon,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const tabRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
+  const menuRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
   const contentRef = useRef<HTMLDivElement>(null);
-  const [menuPosition, setMenuPosition] = useState<IAnchorPosition | undefined>();
+  const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>();
   const hasMenu = Boolean(menuItems?.length);
-  const isMenuOpen = Boolean(menuPosition);
+  const isMenuOpen = Boolean(menuAnchor);
 
   const getTriggerElement = useLastCallback(() => contentRef.current);
   const getRootElement = useLastCallback(() => document.body);
-  const getMenuElement = useLastCallback(() => document.querySelector('#portals .menu-bubble'));
+  const getMenuElement = useLastCallback(() => menuRef.current);
   const getLayout = useLastCallback(() => ({ withPortal: true }));
-  const closeMenu = useLastCallback(() => setMenuPosition(undefined));
-
-  const {
-    positionY, transformOriginX, transformOriginY, style: menuStyle,
-  } = useMenuPosition(
-    menuPosition,
-    getTriggerElement,
-    getRootElement,
-    getMenuElement,
-    getLayout,
-  );
+  const closeMenu = useLastCallback(() => setMenuAnchor(undefined));
 
   const handleClick = useLastCallback(() => {
     if (isActive && !hasMenu) return;
@@ -74,7 +67,7 @@ function Tab({
       closeMenu();
     } else {
       const { right: x, y, height } = contentRef.current!.getBoundingClientRect();
-      setMenuPosition({ x, y: y + height });
+      setMenuAnchor({ x, y: y + height });
     }
   });
 
@@ -138,6 +131,7 @@ function Tab({
       ref={tabRef}
     >
       <span className={styles.content} ref={contentRef}>
+        {icon && <i className={buildClassName(icon, styles.icon)} aria-hidden />}
         {title}
         {hasMenu && isActive && <i className="icon-caret-down" aria-hidden />}
         <i className={styles.platform} aria-hidden />
@@ -145,14 +139,16 @@ function Tab({
       {hasMenu && (
         <DropdownMenu
           isOpen={isMenuOpen}
+          ref={menuRef}
           items={menuItems!}
           withPortal
           buttonClassName={styles.menuItem}
-          menuPositionHorizontal="right"
-          menuPosition={positionY}
-          menuStyle={menuStyle}
-          transformOriginX={transformOriginX}
-          transformOriginY={transformOriginY}
+          menuPositionX="right"
+          menuAnchor={menuAnchor}
+          getTriggerElement={getTriggerElement}
+          getRootElement={getRootElement}
+          getMenuElement={getMenuElement}
+          getLayout={getLayout}
           onSelect={onMenuItemClick}
           onClose={closeMenu}
         />

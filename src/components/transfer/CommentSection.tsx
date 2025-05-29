@@ -57,7 +57,7 @@ function CommentSection({
         selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncrypt ? 1 : 0].value}
         theme="light"
         disabled={chain === 'tron'}
-        menuPositionHorizontal="left"
+        menuPositionX="left"
         shouldTranslateOptions
         className={styles.commentLabel}
         onChange={handleCommentOptionsChange}

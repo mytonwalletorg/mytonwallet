@@ -179,7 +179,7 @@ export default function createConfig(
       ),
       new NormalModuleReplacementPlugin(
         /i18n\/en\.json/,
-        '../giveaways/assets/mockI18N.json',
+        '../giveaways/utils/mockI18nEn.json',
       ),
     ],
     devtool: APP_ENV === 'development' ? 'source-map' : 'hidden-source-map',

@@ -61,6 +61,10 @@
   }
 }
 
+.buttonActive {
+  color: var(--color-accent);
+}
+
 .buttonIcon {
   display: block;
 
@@ -83,4 +87,11 @@
 
     font-size: 1.875rem;
   }
+}
+
+.menu {
+  --offset-y-value: 0;
+  --offset-y-bottom-value: 0;
+
+  max-height: max(70vh, 20rem);
 }

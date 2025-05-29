@@ -117,7 +117,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   if (
     !skipComponentUpdate
     && isCurrentComponent && isNewComponent
-    && !hasElementChanged($current!, $new!)
+    && !hasElementChanged($current, $new!)
   ) {
     $new = updateComponent($current, $new as VirtualElementComponent) as typeof $new;
   }
@@ -304,6 +304,15 @@ function mountChildren(
   },
 ) {
   const { children } = $element;
+
+  // Add a placeholder comment node for empty fragments to maintain position
+  if ($element.type === VirtualType.Fragment && children.length === 0) {
+    const fragmentEl = $element;
+    fragmentEl.placeholderTarget = document.createComment('empty-fragment');
+    insertBefore(options.fragment || parentEl, fragmentEl.placeholderTarget, options.nextSibling);
+    return;
+  }
+
   for (let i = 0, l = children.length; i < l; i++) {
     const $child = children[i];
     const $renderedChild = renderWithVirtual(parentEl, undefined, $child, $element, currentContext, i, options);
@@ -391,7 +400,14 @@ function remount(
 function unmountRealTree($element: VirtualElement) {
   if ($element.type === VirtualType.Component) {
     unmountComponent($element.componentInstance);
-  } else if ($element.type !== VirtualType.Fragment) {
+  } else if ($element.type === VirtualType.Fragment) {
+    // Remove placeholder for empty fragments
+    const fragment = $element;
+    if (fragment.placeholderTarget && fragment.children.length === 0) {
+      fragment.placeholderTarget.parentNode?.removeChild(fragment.placeholderTarget);
+      fragment.placeholderTarget = undefined;
+    }
+  } else {
     if ($element.type === VirtualType.Tag) {
       extraClasses.delete($element.target!);
       setElementRef($element, undefined);
@@ -420,6 +436,15 @@ function insertBefore(parentEl: DOMElement | DocumentFragment, node: Node, nextS
 
 function getNextSibling($current: VirtualElement): ChildNode | undefined {
   if ($current.type === VirtualType.Component || $current.type === VirtualType.Fragment) {
+    if ($current.children.length === 0) {
+      // For empty fragments, use the placeholder node to track position
+      const fragment = $current as VirtualElementFragment;
+      if (fragment.placeholderTarget) {
+        return fragment.placeholderTarget.nextSibling || undefined;
+      }
+      return undefined;
+    }
+
     const lastChild = $current.children[$current.children.length - 1];
     return getNextSibling(lastChild);
   }
@@ -443,6 +468,28 @@ function renderChildren(
   if (('props' in $new) && $new.props.teactFastList) {
     renderFastListChildren($current, $new, currentContext, currentEl);
     return;
+  }
+
+  // Handle transitions between empty and non-empty fragments
+  if ($current.type === VirtualType.Fragment && $new.type === VirtualType.Fragment) {
+    const currentFragment = $current;
+    const newFragment = $new;
+
+    // If transitioning from empty to non-empty, use the placeholder's position
+    if (currentFragment.children.length === 0 && newFragment.children.length > 0 && currentFragment.placeholderTarget) {
+      nextSibling = currentFragment.placeholderTarget.nextSibling || undefined;
+      // Remove the placeholder as we're adding real content
+      currentFragment.placeholderTarget.parentNode?.removeChild(currentFragment.placeholderTarget);
+      currentFragment.placeholderTarget = undefined;
+    }
+
+    // If transitioning from non-empty to empty, add a placeholder
+    if (currentFragment.children.length > 0 && newFragment.children.length === 0) {
+      const lastCurrentChild = currentFragment.children[currentFragment.children.length - 1];
+      const siblingAfterFragment = getNextSibling(lastCurrentChild);
+      newFragment.placeholderTarget = document.createComment('empty-fragment');
+      insertBefore(currentEl, newFragment.placeholderTarget, siblingAfterFragment);
+    }
   }
 
   const currentChildren = $current.children;
@@ -657,11 +704,6 @@ function processControlled(tag: string, props: AnyLiteral) {
   } = props;
 
   props.onChange = undefined;
-  props.onBlur = (e: FocusEvent<HTMLInputElement>) => {
-    delete e.currentTarget.dataset[SELECTION_STATE_ATTRIBUTE];
-
-    onBlur?.(e);
-  };
   props.onInput = (e: ChangeEvent<HTMLInputElement>) => {
     onInput?.(e);
     onChange?.(e);
@@ -676,7 +718,7 @@ function processControlled(tag: string, props: AnyLiteral) {
         e.currentTarget.setSelectionRange(selectionStart, selectionEnd);
 
         const selectionState: SelectionState = { selectionStart, selectionEnd, isCaretAtEnd };
-        // eslint-disable-next-line no-underscore-dangle
+
         e.currentTarget.dataset[SELECTION_STATE_ATTRIBUTE] = JSON.stringify(selectionState);
       }
     }
@@ -684,6 +726,11 @@ function processControlled(tag: string, props: AnyLiteral) {
     if (checked !== undefined) {
       e.currentTarget.checked = checked;
     }
+  };
+  props.onBlur = (e: FocusEvent<HTMLInputElement>) => {
+    delete e.currentTarget.dataset[SELECTION_STATE_ATTRIBUTE];
+
+    onBlur?.(e);
   };
 }
 
@@ -741,7 +788,6 @@ function setAttribute(element: DOMElement, key: string, value: any, namespace?: 
     if (inputEl.value !== value) {
       inputEl.value = value;
 
-      // eslint-disable-next-line no-underscore-dangle
       const selectionStateJson = inputEl.dataset[SELECTION_STATE_ATTRIBUTE];
       if (selectionStateJson) {
         const { selectionStart, selectionEnd, isCaretAtEnd } = JSON.parse(selectionStateJson) as SelectionState;

@@ -53,7 +53,7 @@ function ChartHistorySwitcher({
       bubbleClassName={styles.menu}
       buttonClassName={styles.menuItem}
       selectedValue={currentPeriod}
-      menuPositionHorizontal="right"
+      menuPositionX="right"
       onSelect={handlePeriodChange}
     />
   );

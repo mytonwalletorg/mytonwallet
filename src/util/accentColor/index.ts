@@ -22,7 +22,7 @@ const HEX_80_PERCENT = 'CC';
 const HEX_10_PERCENT = '1A';
 
 export function useAccentColor(
-  elementRefOrBody: RefObject | 'body',
+  elementRefOrBody: RefObject<HTMLElement | null> | 'body',
   appTheme: AppTheme,
   accentColorIndex: number | undefined,
 ) {

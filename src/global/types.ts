@@ -157,6 +157,24 @@ export enum TransferState {
   Complete,
 }
 
+export enum DomainRenewalState {
+  None,
+  Initial,
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
+  Complete,
+}
+
+export enum DomainLinkingState {
+  None,
+  Initial,
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
+  Complete,
+}
+
 export enum SwapState {
   None,
   Initial,
@@ -317,6 +335,7 @@ export interface Account {
   title?: string;
   type: AccountType;
   addressByChain: { [K in ApiChain]?: string };
+  domainByChain?: { [K in ApiChain]?: string };
   ledger?: {
     index: number;
     driver: ApiLedgerDriver;
@@ -350,10 +369,14 @@ export interface AccountState {
     [chain in ApiChain]?: { isFirstTransactionsLoaded?: boolean };
   };
   nfts?: {
-    byAddress: Record<string, ApiNft>;
+    byAddress?: Record<string, ApiNft>;
     orderedAddresses?: string[];
     currentCollectionAddress?: string;
     selectedAddresses?: string[];
+    dnsExpiration?: Record<string, number>;
+    linkedAddressByAddress?: Record<string, string>;
+    collectionTabs?: string[];
+    wasTelegramGiftsAutoAdded?: boolean;
   };
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
@@ -400,6 +423,8 @@ export interface AccountState {
   isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
   isCardMinting?: boolean;
+  receiveModalChain?: ApiChain;
+  invoiceTokenSlug?: string;
 
   dapps?: ApiDapp[];
   currentSiteCategoryId?: number;
@@ -580,6 +605,28 @@ export type GlobalState = {
     error?: string;
   };
 
+  currentDomainRenewal: {
+    addresses?: string[];
+    state: DomainRenewalState;
+    isLoading?: boolean;
+    error?: string;
+    // There's only one commission because the transaction has no change
+    realFee?: bigint;
+    txId?: string;
+  };
+
+  currentDomainLinking: {
+    address?: string;
+    state: DomainLinkingState;
+    isLoading?: boolean;
+    error?: string;
+    realFee?: bigint;
+    walletAddress?: string;
+    walletAddressName?: string;
+    resolvedWalletAddress?: string;
+    txId?: string;
+  };
+
   dappConnectRequest?: {
     state: DappConnectState;
     isSse?: boolean;
@@ -696,6 +743,7 @@ export type GlobalState = {
   currentQrScan?: {
     currentTransfer?: GlobalState['currentTransfer'];
     currentSwap?: GlobalState['currentSwap'];
+    currentDomainLinking?: GlobalState['currentDomainLinking'];
   };
 
   latestAppVersion?: string;
@@ -879,6 +927,8 @@ export interface ActionPayloads {
   selectAllNfts: { collectionAddress?: string };
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
+  addCollectionTab: { collectionAddress: string; isAuto?: boolean };
+  removeCollectionTab: { collectionAddress: string };
   burnNfts: { nfts: ApiNft[] };
   addNftsToBlacklist: { addresses: ApiNft['address'][] };
   addNftsToWhitelist: { addresses: ApiNft['address'][] };
@@ -922,8 +972,8 @@ export interface ActionPayloads {
   handleQrCode: { data: string };
 
   // Staking
-  startStaking: undefined;
-  startUnstaking: undefined;
+  startStaking: { tokenSlug: string } | undefined;
+  startUnstaking: { stakingId: string } | undefined;
   setStakingScreen: { state: StakingState };
   submitStakingInitial: { amount?: bigint; isUnstaking?: boolean } | undefined;
   submitStakingPassword: { password: string; isUnstaking?: boolean };
@@ -936,7 +986,7 @@ export interface ActionPayloads {
   openAnyAccountStakingInfo: { accountId: string; network: ApiNetwork; stakingId: string };
   closeStakingInfo: undefined;
   changeCurrentStaking: { stakingId: string; shouldReopenModal?: boolean };
-  startStakingClaim: undefined;
+  startStakingClaim: { stakingId: string } | undefined;
   submitStakingClaim: { password: string };
   submitStakingClaimHardware: undefined;
   cancelStakingClaim: undefined;
@@ -1078,9 +1128,11 @@ export interface ActionPayloads {
   };
   closeMediaViewer: undefined;
 
-  openReceiveModal: undefined;
+  openReceiveModal: { chain: ApiChain } | undefined;
   closeReceiveModal: undefined;
-  openInvoiceModal: undefined;
+  setReceiveActiveTab: { chain: ApiChain };
+  openInvoiceModal: { tokenSlug: string } | undefined;
+  changeInvoiceToken: { tokenSlug: string };
   closeInvoiceModal: undefined;
 
   loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod; currency?: ApiBaseCurrency };
@@ -1121,6 +1173,25 @@ export interface ActionPayloads {
   closeFullscreen: undefined;
 
   setIsSensitiveDataHidden: { isHidden: boolean };
+
+  openDomainRenewalModal: { addresses: string[] };
+  startDomainsRenewal: undefined;
+  checkDomainsRenewalDraft: { nfts: ApiNft[] };
+  submitDomainsRenewal: { password: string };
+  submitDomainsRenewalHardware: undefined;
+  clearDomainsRenewalError: undefined;
+  cancelDomainsRenewal: undefined;
+
+  openDomainLinkingModal: { address: string };
+  startDomainLinking: undefined;
+  checkDomainLinkingDraft: { nft: ApiNft };
+  submitDomainLinking: { password: string };
+  submitDomainLinkingHardware: undefined;
+  clearDomainLinkingError: undefined;
+  cancelDomainLinking: undefined;
+
+  checkLinkingAddress: { address?: string };
+  setDomainLinkingWalletAddress: { address?: string };
 }
 
 export enum LoadMoreDirection {

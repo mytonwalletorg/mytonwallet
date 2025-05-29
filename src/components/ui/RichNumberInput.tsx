@@ -15,7 +15,7 @@ import styles from './Input.module.scss';
 
 type OwnProps = {
   id?: string;
-  labelText?: React.ReactNode;
+  labelText?: TeactNode;
   value?: string;
   hasError?: boolean;
   isLoading?: boolean;

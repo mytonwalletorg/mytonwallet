@@ -12,11 +12,12 @@ import styles from './NftChips.module.scss';
 interface OwnProps {
   nfts: NftTransfer[];
   isStatic?: boolean;
+  className?: string;
 }
 
 const LIMIT = 10;
 
-function NftChips({ nfts, isStatic }: OwnProps) {
+function NftChips({ nfts, isStatic, className }: OwnProps) {
   const lang = useLang();
   const [isCollapsed, , expand] = useFlag(true);
   const shouldRenderExpander = isCollapsed && nfts.length > LIMIT + 1;
@@ -35,7 +36,7 @@ function NftChips({ nfts, isStatic }: OwnProps) {
   }
 
   return (
-    <div className={buildClassName(styles.root, isStatic && styles.static, 'custom-scroll')}>
+    <div className={buildClassName(styles.root, isStatic && styles.static, 'custom-scroll', className)}>
       {renderedNfts.map(renderNft)}
       {shouldRenderExpander && (
         <button type="button" className={styles.expander} onClick={() => expand()}>

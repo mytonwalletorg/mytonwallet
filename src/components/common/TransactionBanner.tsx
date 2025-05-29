@@ -39,6 +39,7 @@ function TransactionBanner({
   const fullClassName = buildClassName(
     styles.root,
     color && styles[color],
+    tokenOut && styles.twoIcons,
     className,
   );
 

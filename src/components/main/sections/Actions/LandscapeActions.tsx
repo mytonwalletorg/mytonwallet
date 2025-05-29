@@ -11,16 +11,22 @@ import { ActiveTab } from '../../../../global/types';
 import {
   ANIMATED_STICKER_ICON_PX,
   DEFAULT_LANDSCAPE_ACTION_TAB_ID,
-  IS_STAKING_DISABLED,
   TONCOIN,
 } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
-import { selectAccountState, selectCurrentAccountSettings } from '../../../../global/selectors';
+import {
+  selectAccountState,
+  selectCurrentAccountSettings,
+  selectIsStakingDisabled,
+  selectIsSwapDisabled,
+} from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
+import { stopEvent } from '../../../../util/domEvents';
 import { getChainBySlug } from '../../../../util/tokens';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+import { handleSendMenuItemClick, SEND_CONTEXT_MENU_ITEMS } from './helpers/sendMenu';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
 import useFlag from '../../../../hooks/useFlag';
@@ -35,6 +41,7 @@ import SwapInitial from '../../../swap/SwapInitial';
 import TransferInitial from '../../../transfer/TransferInitial';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Transition, { ACTIVE_SLIDE_CLASS_NAME, TO_SLIDE_CLASS_NAME } from '../../../ui/Transition';
+import WithContextMenu from '../../../ui/WithContextMenu';
 
 import styles from './LandscapeActions.module.scss';
 
@@ -51,6 +58,7 @@ interface StateProps {
   isTransferWithComment: boolean;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
+  isStakingDisabled: boolean;
   isOnRampDisabled: boolean;
   accentColorIndex?: number;
 }
@@ -76,6 +84,7 @@ function LandscapeActions({
   isTestnet,
   isSwapDisabled,
   isOnRampDisabled,
+  isStakingDisabled,
   accentColorIndex,
 }: OwnProps & StateProps) {
   const { setLandscapeActionsActiveTabIndex: setActiveTabIndex } = getActions();
@@ -94,13 +103,11 @@ function LandscapeActions({
     isStaking,
   );
 
-  const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
-  const isStakingAllowed = !isTestnet && !IS_STAKING_DISABLED;
-  const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
-  const isLastTab = (!isStakingAllowed && !isSwapAllowed && activeTabIndex === ActiveTab.Transfer)
-    || (!isStakingAllowed && isSwapAllowed && activeTabIndex === ActiveTab.Swap)
-    || (isStakingAllowed && activeTabIndex === ActiveTab.Stake);
+  const areNotAllTabs = isSwapDisabled || isStakingDisabled;
+  const isLastTab = (isStakingDisabled && isSwapDisabled && activeTabIndex === ActiveTab.Transfer)
+    || (isStakingDisabled && !isSwapDisabled && activeTabIndex === ActiveTab.Swap)
+    || (!isStakingDisabled && activeTabIndex === ActiveTab.Stake);
   const transferKey = useMemo(() => nfts?.map((nft) => nft.address).join(',') || tokenSlug, [nfts, tokenSlug]);
 
   const [isAddBuyAnimating, playAddBuyAnimation, stopAddBuyAnimation] = useFlag();
@@ -121,12 +128,12 @@ function LandscapeActions({
 
   useEffect(() => {
     if (
-      (!isSwapAllowed && activeTabIndex === ActiveTab.Swap)
-      || (!isStakingAllowed && activeTabIndex === ActiveTab.Stake)
+      (isSwapDisabled && activeTabIndex === ActiveTab.Swap)
+      || (isStakingDisabled && activeTabIndex === ActiveTab.Stake)
     ) {
       setActiveTabIndex({ index: ActiveTab.Transfer });
     }
-  }, [activeTabIndex, isTestnet, isLedger, isSwapAllowed, isStakingAllowed]);
+  }, [activeTabIndex, isTestnet, isLedger, isSwapDisabled, isStakingDisabled]);
 
   function renderCurrentTab(isActive: boolean, isPrev: boolean) {
     switch (activeTabIndex) {
@@ -187,6 +194,7 @@ function LandscapeActions({
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Receive && styles.active)}
           onMouseEnter={!IS_TOUCH_ENV ? playAddBuyAnimation : undefined}
+          onContextMenu={stopEvent}
           onClick={() => {
             handleSelectTab(ActiveTab.Receive, playAddBuyAnimation);
           }}
@@ -204,38 +212,53 @@ function LandscapeActions({
             iconPreviewClass="icon-action-add"
             onEnded={stopAddBuyAnimation}
           />
-          <span className={styles.tabText}>{lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}</span>
+          <span className={styles.tabText}>{lang(!isSwapDisabled || isOnRampAllowed ? 'Add / Buy' : 'Add')}</span>
 
           <span className={styles.tabDecoration} aria-hidden />
         </div>
-        <div
-          className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Transfer && styles.active)}
-          onMouseEnter={!IS_TOUCH_ENV ? playSendAnimation : undefined}
-          onClick={() => {
-            handleSelectTab(ActiveTab.Transfer, playSendAnimation);
-          }}
+        <WithContextMenu
+          items={SEND_CONTEXT_MENU_ITEMS}
+          onItemClick={handleSendMenuItemClick}
+          menuClassName={styles.menu}
         >
-          <AnimatedIconWithPreview
-            play={isSendAnimating}
-            size={ANIMATED_STICKER_ICON_PX}
-            speed={ANIMATED_STICKER_SPEED}
-            className={styles.tabIcon}
-            key={accentColor}
-            color={accentColor}
-            nonInteractive
-            forceOnHeavyAnimation
-            tgsUrl={stickerPaths.iconSend}
-            iconPreviewClass="icon-action-send"
-            onEnded={stopSendAnimation}
-          />
-          <span className={styles.tabText}>{lang('Send')}</span>
-          <span className={styles.tabDecoration} aria-hidden />
-          <span className={styles.tabDelimiter} aria-hidden />
-        </div>
-        {isSwapAllowed && (
+          {({ ref, ...restButtonProps }) => (
+            <div
+              {...restButtonProps}
+              ref={ref as React.RefObject<HTMLDivElement>}
+              className={buildClassName(
+                styles.tab,
+                activeTabIndex === ActiveTab.Transfer && styles.active,
+                styles.withContextMenu,
+              )}
+              onMouseEnter={!IS_TOUCH_ENV ? playSendAnimation : undefined}
+              onClick={() => {
+                handleSelectTab(ActiveTab.Transfer, playSendAnimation);
+              }}
+            >
+              <AnimatedIconWithPreview
+                play={isSendAnimating}
+                size={ANIMATED_STICKER_ICON_PX}
+                speed={ANIMATED_STICKER_SPEED}
+                className={styles.tabIcon}
+                key={accentColor}
+                color={accentColor}
+                nonInteractive
+                forceOnHeavyAnimation
+                tgsUrl={stickerPaths.iconSend}
+                iconPreviewClass="icon-action-send"
+                onEnded={stopSendAnimation}
+              />
+              <span className={styles.tabText}>{lang('Send')}</span>
+              <span className={styles.tabDecoration} aria-hidden />
+              <span className={styles.tabDelimiter} aria-hidden />
+            </div>
+          )}
+        </WithContextMenu>
+        {!isSwapDisabled && (
           <div
             className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Swap && styles.active)}
             onMouseEnter={!IS_TOUCH_ENV ? playSwapAnimation : undefined}
+            onContextMenu={stopEvent}
             onClick={() => {
               handleSelectTab(ActiveTab.Swap, playSwapAnimation);
             }}
@@ -258,7 +281,7 @@ function LandscapeActions({
             <span className={styles.tabDelimiter} aria-hidden />
           </div>
         )}
-        {isStakingAllowed && (
+        {!isStakingDisabled && (
           <div
             className={buildClassName(
               styles.tab,
@@ -267,6 +290,7 @@ function LandscapeActions({
               stakingStatus !== 'inactive' && styles.tab_purpleText,
             )}
             onMouseEnter={!IS_TOUCH_ENV ? playStakeAnimation : undefined}
+            onContextMenu={stopEvent}
             onClick={() => {
               handleSelectTab(ActiveTab.Stake, playStakeAnimation);
             }}
@@ -410,7 +434,7 @@ export default memo(
     (global): StateProps => {
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
-      const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+      const { isOnRampDisabled } = global.restrictions;
       const { nfts, tokenSlug } = global.currentTransfer;
       const isTransferWithComment = getChainBySlug(tokenSlug) === TONCOIN.chain;
 
@@ -420,7 +444,8 @@ export default memo(
         nfts,
         tokenSlug,
         isTransferWithComment,
-        isSwapDisabled,
+        isSwapDisabled: selectIsSwapDisabled(global),
+        isStakingDisabled: selectIsStakingDisabled(global),
         isOnRampDisabled,
         accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
       };

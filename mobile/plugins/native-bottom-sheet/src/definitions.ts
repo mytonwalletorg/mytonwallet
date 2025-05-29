@@ -24,7 +24,9 @@ export type BottomSheetKeys =
   | 'disclaimer'
   | 'backup-warning'
   | 'onramp-widget'
-  | 'mint-card';
+  | 'mint-card'
+  | 'renew-domain'
+  | 'link-domain';
 
 export interface BottomSheetPlugin {
   prepare(): Promise<void>;

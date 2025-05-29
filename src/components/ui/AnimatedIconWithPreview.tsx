@@ -46,7 +46,7 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
   const [isPreviewLoaded, markPreviewLoaded] = useFlag(
     Boolean(iconPreviewClass) || Boolean(thumbDataUri) || loadedPreviewUrls.has(previewUrl),
   );
-  const transitionClassNames = useMediaTransition(isPreviewLoaded && !noPreviewTransition);
+  const ref = useMediaTransition(isPreviewLoaded || noPreviewTransition);
   const [isAnimationReady, markAnimationReady, markAnimationNotReady] = useFlag(false);
 
   useEffect(() => {
@@ -62,7 +62,8 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
 
   return (
     <div
-      className={buildClassName(className, styles.root, !noPreviewTransition && transitionClassNames)}
+      ref={!noPreviewTransition ? ref : undefined}
+      className={buildClassName(className, styles.root)}
       style={buildStyle(
         size !== undefined && !otherProps.shouldStretch && `width: ${size}px; height: ${size}px;`,
       )}

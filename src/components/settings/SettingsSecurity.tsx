@@ -309,8 +309,8 @@ function SettingsSecurity({
     setAppLockValue({ value: autolockValue, isEnabled: !isAppLockEnabled });
   });
 
-  const handleAutolockChange = useLastCallback((value: string) => {
-    setAppLockValue({ value: value as AutolockValueType, isEnabled: true });
+  const handleAutolockChange = useLastCallback((value: AutolockValueType) => {
+    setAppLockValue({ value, isEnabled: true });
   });
 
   const handleAutoConfirmToggle = useLastCallback(() => {
@@ -454,7 +454,7 @@ function SettingsSecurity({
                 <Collapsible isShown={!!isAppLockEnabled}>
                   <Dropdown
                     label={lang('Auto-Lock')}
-                    items={AUTOLOCK_OPTIONS_LIST as unknown as DropdownItem[]}
+                    items={AUTOLOCK_OPTIONS_LIST as unknown as DropdownItem<AutolockValueType>[]}
                     selectedValue={autolockValue}
                     theme="light"
                     shouldTranslateOptions

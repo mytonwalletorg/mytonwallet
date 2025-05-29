@@ -605,6 +605,13 @@ function reduceByAccountId(global: GlobalState) {
       'dapps',
     ]);
 
+    if (state.nfts?.collectionTabs) {
+      acc[accountId].nfts = {
+        collectionTabs: state.nfts.collectionTabs,
+        wasTelegramGiftsAutoAdded: state.nfts.wasTelegramGiftsAutoAdded,
+      };
+    }
+
     const accountTokens = selectAccountTokens(global, accountId);
     acc[accountId].balances = reduceAccountBalances(state.balances, accountTokens);
     acc[accountId].activities = reduceAccountActivities(state.activities, accountTokens);

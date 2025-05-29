@@ -1,8 +1,9 @@
 import type { GlobalState } from './types';
-import {
-  AppState,
+import { AppState,
   AuthState,
   BiometricsState,
+  DomainLinkingState,
+  DomainRenewalState,
   SettingsState,
   StakingState,
   SwapState,
@@ -41,6 +42,14 @@ export const INITIAL_STATE: GlobalState = {
   currentTransfer: {
     state: TransferState.None,
     tokenSlug: DEFAULT_TRANSFER_TOKEN_SLUG,
+  },
+
+  currentDomainRenewal: {
+    state: DomainRenewalState.None,
+  },
+
+  currentDomainLinking: {
+    state: DomainLinkingState.None,
   },
 
   currentSwap: {

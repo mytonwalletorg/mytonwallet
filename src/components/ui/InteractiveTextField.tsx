@@ -25,12 +25,12 @@ import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useLongPress from '../../hooks/useLongPress';
-import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from './Button';
 import DropdownMenu from './DropdownMenu';
 import Input from './Input';
+import MenuBackdrop from './MenuBackdrop';
 import Modal from './Modal';
 import Transition from './Transition';
 
@@ -98,6 +98,8 @@ function InteractiveTextField({
 
   // eslint-disable-next-line no-null/no-null
   const addressNameRef = useRef<HTMLInputElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const contentRef = useRef<HTMLDivElement>(null);
   const lang = useLang();
   const [isSaveAddressModalOpen, openSaveAddressModal, closeSaveAddressModal] = useFlag();
   const [isDeleteSavedAddressModalOpen, openDeletedSavedAddressModal, closeDeleteSavedAddressModal] = useFlag();
@@ -155,8 +157,8 @@ function InteractiveTextField({
 
   const {
     isActionsMenuOpen,
-    anchorPosition,
-    menuPosition,
+    menuAnchor,
+    menuPositionY,
     menuItems,
     handleMenuShow,
     handleMenuItemSelect,
@@ -176,8 +178,6 @@ function InteractiveTextField({
   });
 
   const shouldUseMenu = !spoiler && IS_TOUCH_ENV && menuItems.length > 1;
-
-  const menuBackdrop = useShowTransition(isActionsMenuOpen && shouldUseMenu);
 
   const longPressHandlers = useLongPress({
     onClick: handleMenuShow,
@@ -275,8 +275,8 @@ function InteractiveTextField({
             shouldTranslateOptions
             isOpen={isActionsMenuOpen}
             items={menuItems}
-            menuPosition={menuPosition}
-            anchorPosition={anchorPosition}
+            menuPositionY={menuPositionY}
+            menuAnchor={menuAnchor}
             bubbleClassName={styles.menu}
             buttonClassName={styles.menuItem}
             fontIconClassName={styles.menuIcon}
@@ -371,19 +371,13 @@ function InteractiveTextField({
 
   return (
     <>
-      {menuBackdrop.shouldRender && (
-        <div className={buildClassName(
-          styles.menuCustomBackdrop,
-          menuBackdrop.hasOpenClass && styles.menuCustomBackdropVisible,
-        )} />
-      )}
+      <MenuBackdrop
+        isMenuOpen={isActionsMenuOpen && shouldUseMenu}
+        contentRef={contentRef}
+      />
       <div
-        className={buildClassName(
-          styles.wrapper,
-          className,
-          menuBackdrop.shouldRender && styles.wrapperVisible,
-          menuBackdrop.shouldRender && !menuBackdrop.hasOpenClass && styles.wrapperHide,
-        )}
+        ref={contentRef}
+        className={buildClassName(styles.wrapper, className)}
         /* eslint-disable-next-line react/jsx-props-no-spreading */
         {...(shouldUseMenu && !isActionsMenuOpen && {
           ...longPressHandlers,
@@ -434,22 +428,21 @@ function useDropdownMenu(
     withShare?: boolean;
   },
 ) {
-  const [menuPosition, setMenuPosition] = useState<'top' | 'bottom'>('top');
-  const [anchorPosition, setAnchorPosition] = useState<IAnchorPosition | undefined>();
-  const closeActionsMenu = useLastCallback(() => setAnchorPosition(undefined));
-  const isActionsMenuOpen = Boolean(anchorPosition);
+  const [menuPositionY, setMenuPositionY] = useState<'top' | 'bottom'>('top');
+  const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>();
+  const closeActionsMenu = useLastCallback(() => setMenuAnchor(undefined));
+  const isActionsMenuOpen = Boolean(menuAnchor);
 
-  const menuItems = useMemo<DropdownItem[]>(() => {
+  const menuItems = useMemo<DropdownItem<MenuHandler>[]>(() => {
     const {
       isAddressAlreadySaved, isWalletAddress, isTransaction, withSavedAddresses, withExplorer, withShare,
     } = options;
 
-    const items: DropdownItem[] = [{
+    const items: DropdownItem<MenuHandler>[] = [{
       name: withSavedAddresses || isWalletAddress
         ? 'Copy Address'
         : (isTransaction ? 'Copy Transaction ID' : 'Copy'),
       fontIcon: 'copy',
-      withSeparator: true,
       value: 'copy',
     }];
 
@@ -457,7 +450,6 @@ function useDropdownMenu(
       items.push({
         name: isAddressAlreadySaved ? 'Remove From Saved' : 'Save Address',
         fontIcon: isAddressAlreadySaved ? 'star-filled' : 'star',
-        withSeparator: true,
         value: 'addressBook',
       });
     }
@@ -466,7 +458,6 @@ function useDropdownMenu(
       items.push({
         name: 'Share Link',
         fontIcon: IS_IOS ? 'share-ios' : 'share-android',
-        withSeparator: true,
         value: 'share',
       });
     }
@@ -475,7 +466,6 @@ function useDropdownMenu(
       items.push({
         name: 'View on Explorer',
         fontIcon: 'tonexplorer',
-        withSeparator: true,
         value: 'explorer',
       });
     }
@@ -483,8 +473,8 @@ function useDropdownMenu(
     return items;
   }, [options]);
 
-  const handleMenuItemSelect = useLastCallback((value: string) => {
-    menuHandlers[value as MenuHandler]?.();
+  const handleMenuItemSelect = useLastCallback((value: MenuHandler) => {
+    menuHandlers[value]?.();
     closeActionsMenu();
   });
 
@@ -506,18 +496,18 @@ function useDropdownMenu(
     const menuHeight = menuItems.length * MENU_ITEM_HEIGHT_PX;
     const screenHeight = windowSize.get().height;
     if (bottom + menuHeight + MENU_VERTICAL_OFFSET_PX + COMFORT_MARGIN_PX >= screenHeight) {
-      setMenuPosition('bottom');
-      setAnchorPosition({ x, y: top });
+      setMenuPositionY('bottom');
+      setMenuAnchor({ x, y: top });
     } else {
-      setMenuPosition('top');
-      setAnchorPosition({ x, y: bottom + MENU_VERTICAL_OFFSET_PX });
+      setMenuPositionY('top');
+      setMenuAnchor({ x, y: bottom + MENU_VERTICAL_OFFSET_PX });
     }
   });
 
   return {
     isActionsMenuOpen,
-    anchorPosition,
-    menuPosition,
+    menuAnchor,
+    menuPositionY,
     menuItems,
     handleMenuShow,
     handleMenuItemSelect,

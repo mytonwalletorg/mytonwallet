@@ -230,9 +230,12 @@ function Settings({
   }, [shortBaseSymbol, tonToken, versions]);
 
   const {
-    transitionClassNames: telegramLinkClassNames,
     shouldRender: isTelegramLinkRendered,
-  } = useShowTransition(isTonMagicEnabled);
+    ref: telegramLinkRef,
+  } = useShowTransition({
+    isOpen: isTonMagicEnabled,
+    withShouldRender: true,
+  });
 
   const {
     handleScroll: handleContentScroll,
@@ -520,7 +523,7 @@ function Settings({
                 />
               </div>
               {isTelegramLinkRendered && (
-                <div className={buildClassName(styles.item, telegramLinkClassNames)} onClick={handleOpenTelegramWeb}>
+                <div ref={telegramLinkRef} className={styles.item} onClick={handleOpenTelegramWeb}>
                   <img className={styles.menuIcon} src={telegramImg} alt={lang('Open Telegram Web')} />
                   {lang('Open Telegram Web')}
 
