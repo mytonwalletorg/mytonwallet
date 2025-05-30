@@ -35,10 +35,6 @@ export class TonClient extends TonCoreClient {
     this.initParameters = parameters;
   }
 
-  getWalletInfo(address: string) {
-    return this.callRpc('getWalletInformation', { address });
-  }
-
   getAddressInfo(address: string): Promise<GetAddressInfoResponse> {
     return this.callRpc('getAddressInformation', { address });
   }

@@ -13,6 +13,7 @@ import MenuBackdrop from './MenuBackdrop';
 
 interface Props<T extends string> {
   items: DropdownItem<T>[];
+  rootRef?: React.RefObject<HTMLDivElement>;
   onItemClick: (value: T) => void;
   children: (buttonProps: {
     ref: React.RefObject<HTMLDivElement | HTMLButtonElement>;
@@ -26,6 +27,7 @@ interface Props<T extends string> {
 
 export default function WithContextMenu<T extends string>({
   items,
+  rootRef,
   onItemClick,
   children,
   menuClassName,
@@ -38,7 +40,7 @@ export default function WithContextMenu<T extends string>({
 
   const { isPortrait } = useDeviceScreen();
   const getTriggerElement = useLastCallback(() => buttonRef.current);
-  const getRootElement = useLastCallback(() => document.body);
+  const getRootElement = useLastCallback(() => rootRef?.current ?? document.body);
   const getMenuElement = useLastCallback(() => menuRef.current);
   const getLayout: () => Layout = useLastCallback(() => ({
     withPortal: true,

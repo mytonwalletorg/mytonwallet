@@ -46,6 +46,7 @@ import WithContextMenu from '../../../ui/WithContextMenu';
 import styles from './LandscapeActions.module.scss';
 
 interface OwnProps {
+  containerRef: React.RefObject<HTMLDivElement>;
   stakingStatus: StakingStateStatus;
   isLedger?: boolean;
   theme: Theme;
@@ -74,6 +75,7 @@ export const STAKING_TAB_TEXT_VARIANTS: Record<StakingStateStatus, string> = {
 let activeTransferKey = 0;
 
 function LandscapeActions({
+  containerRef,
   stakingStatus,
   isLedger,
   theme,
@@ -218,8 +220,9 @@ function LandscapeActions({
         </div>
         <WithContextMenu
           items={SEND_CONTEXT_MENU_ITEMS}
-          onItemClick={handleSendMenuItemClick}
+          rootRef={containerRef}
           menuClassName={styles.menu}
+          onItemClick={handleSendMenuItemClick}
         >
           {({ ref, ...restButtonProps }) => (
             <div

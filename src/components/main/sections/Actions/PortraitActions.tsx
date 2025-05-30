@@ -21,19 +21,21 @@ interface OwnProps {
   isTestnet?: boolean;
   isLedger?: boolean;
   stakingStatus: StakingStateStatus;
-  onEarnClick: NoneToVoidFunction;
   isSwapDisabled?: boolean;
   isStakingDisabled?: boolean;
   isOnRampDisabled?: boolean;
+  containerRef: React.RefObject<HTMLDivElement>;
+  onEarnClick: NoneToVoidFunction;
 }
 
 function PortraitActions({
   isTestnet,
   stakingStatus,
-  onEarnClick,
   isStakingDisabled,
   isSwapDisabled,
   isOnRampDisabled,
+  containerRef,
+  onEarnClick,
 }: OwnProps) {
   const {
     startTransfer, startSwap, openReceiveModal,
@@ -82,9 +84,10 @@ function PortraitActions({
           {lang(addBuyButtonName)}
         </Button>
         <WithContextMenu
+          rootRef={containerRef}
           items={SEND_CONTEXT_MENU_ITEMS}
-          onItemClick={handleSendMenuItemClick}
           menuClassName={styles.menu}
+          onItemClick={handleSendMenuItemClick}
         >
           {(buttonProps, isMenuOpen) => (
             <Button

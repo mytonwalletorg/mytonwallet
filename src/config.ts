@@ -304,7 +304,7 @@ export const MYCOIN_STAKING_POOL = 'EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTV
 export const ETHENA_STAKING_VAULT = 'EQChGuD1u0e7KUWHH5FaYh_ygcLXhsdG2nSHPXHW8qqnpZXW';
 export const ETHENA_STAKING_MIN_AMOUNT = 1_000_000; // 1 USDe
 // eslint-disable-next-line max-len
-export const ETHENA_ELIGIBILITY_CHECK_URL = 'https://t.me/id_app/start?startapp=6bDa6xupJKTs38B8vSMyGSM5AUFkKPxZWEeAiMSk';
+export const ETHENA_ELIGIBILITY_CHECK_URL = 'https://t.me/id_app/start?startapp=cQeewNnc3pVphUcwY63WruKMQDpgePd1E7eMVoqphMZAdGoU9jwS4qRqrM1kSeaqrAiiDiC3EYAJPwZDGWqxZpw5vtGxmHma59XEt';
 
 // In cross-chain swaps, only a few TON/TRON tokens are available.
 // It’s not optimal to request swap history for all the others.

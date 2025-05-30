@@ -235,6 +235,7 @@ function Main({
           )}
           {!isViewMode && (
             <PortraitActions
+              containerRef={portraitContainerRef}
               isTestnet={isTestnet}
               stakingStatus={stakingStatus}
               isStakingDisabled={isStakingDisabled}
@@ -256,7 +257,14 @@ function Main({
         <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
           <Card onTokenCardClose={handleTokenCardClose} onYieldClick={handleEarnClick} />
-          {!isViewMode && <LandscapeActions stakingStatus={stakingStatus} isLedger={isLedger} theme={theme} />}
+          {!isViewMode && (
+            <LandscapeActions
+              containerRef={landscapeContainerRef}
+              stakingStatus={stakingStatus}
+              isLedger={isLedger}
+              theme={theme}
+            />
+          )}
         </div>
         <div className={styles.main}>
           <Content onStakedTokenClick={handleEarnClick} />

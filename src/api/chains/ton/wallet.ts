@@ -25,7 +25,7 @@ export const isAddressInitialized = withCacheAsync(
 
 export const isActiveSmartContract = withCacheAsync(async (network: ApiNetwork, address: string) => {
   const { isInitialized, version } = await getWalletInfo(network, address);
-  return isInitialized ? Boolean(version) : undefined;
+  return isInitialized ? !version : undefined;
 }, (value) => value !== undefined);
 
 export function publicKeyToAddress(
