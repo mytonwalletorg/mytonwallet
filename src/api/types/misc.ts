@@ -267,7 +267,7 @@ ApiTransactionActivity, 'id' | 'timestamp' | 'isIncoming' | 'normalizedAddress' 
   isIncoming?: boolean;
 };
 
-export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
+export type ApiBaseCurrency = 'USD' | 'EUR' | 'UAH' | 'RUB' | 'CNY' | 'BTC' | 'TON';
 
 export enum ApiLiquidUnstakeMode {
   Default,
