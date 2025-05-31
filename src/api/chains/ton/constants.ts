@@ -267,6 +267,7 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     hash: '64a42ad66688097422901ae6188670f0d6292ad3bdb4139289666f24187e86cb',
     isSwapAllowed: true,
   },
+  // Example: https://tonscan.org/address/EQAYqo4u7VF0fa4DPAebk4g9lBytj2VFny7pzXR0trjtXQaO
   dedustVaultJetton: {
     name: 'dedustVaultJetton',
     hash: '5bc82f0c5972ccc6732e98cbe31ea4795da818f9e06c991331568182a8362307',
@@ -292,9 +293,16 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     hash: '16cc513c380e329f45d54f294787e2030e289799eca138961c1cd7e26e882c7c',
     isSwapAllowed: true,
   },
+  // Example: https://tonscan.org/address/EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3
   stonRouterV2_2: {
     name: 'stonRouterV2_2',
     hash: '094b5084111addda1b6fac7007c8a8f85ff4ccc63475815ab3dfa3b5b4c6b102',
+    isSwapAllowed: true,
+  },
+  // Example: https://tonscan.org/address/EQBSNX_5mSikBVttWhIaIb0f8jJU7fL6kvyyFVppd7dWRO6M
+  stonRouterV2_2_alt: {
+    name: 'stonRouterV2_2_alt',
+    hash: 'd41e7563afa05ee008655e190920d3f53de9cab4c2d4e10ee1d0f158e95e52e5',
     isSwapAllowed: true,
   },
   stonPoolV2_2: {
@@ -302,6 +310,7 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     hash: '11eaf6db706e63adf9327897aaa845c77a631856abfc14375837f19b617cacb4',
     isSwapAllowed: true,
   },
+  // Example: https://tonscan.org/address/EQBiLHuQjDj4fNyCD7Ch5HwpNGldlb5g-LMwQ1kStQ4NM5kv
   stonPtonWalletV2: {
     name: 'stonPtonWalletV2',
     hash: '2761042202032258de9eb1b672e1ec2e4f13b2af00700195801ada33f7ced1b6',

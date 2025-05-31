@@ -1,0 +1,11 @@
+What's New in v3.7
+
+· Multisend · Send multiple transfers at once via CSV—ideal for contests, payrolls, or bulk payouts.
+
+· Pinned Collections · Pin favorite collectibles—like Telegram Gifts—for fast access from the main screen.
+
+· Quick Token Actions · Tap and hold any asset to instantly send, stake, hide, etc.
+
+· Advanced TON DNS · Manage and renew your .ton domains directly in-app, with expiration tracking and bulk actions.
+
+· Performance Boosts · Enjoy a faster, smoother, and more energy-efficient wallet experience.
