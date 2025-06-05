@@ -42,8 +42,7 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenError, setTokenError] = useState<string | undefined>();
 
-  // eslint-disable-next-line no-null/no-null
-  const toAddressRef = useRef<HTMLInputElement>(null);
+  const toAddressRef = useRef<HTMLInputElement>();
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
 
   useHistoryBack({
@@ -159,7 +158,7 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
           <AddressInput
             label={lang('Recipient Address')}
             value={toAddress}
-            error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
+            error={hasToAddressError ? lang('Incorrect address') : undefined}
             isFocused={isAddressFocused}
             isQrScannerSupported={false}
             withPasteButton={false}

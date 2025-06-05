@@ -189,7 +189,6 @@ function buildNftTransferMessage(nft: ApiNft, fromAddress: string, toAddress: st
 }
 
 function buildNotcoinVoucherExchange(fromAddress: string, nftAddress: string, nftIndex: number) {
-  // eslint-disable-next-line no-bitwise
   const first4Bits = Address.parse(nftAddress).hash.readUint8() >> 4;
   const toAddress = NOTCOIN_EXCHANGERS[first4Bits];
 

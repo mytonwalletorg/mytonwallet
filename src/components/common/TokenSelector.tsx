@@ -81,7 +81,7 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
   isMultichain: boolean;
-  availableChains?: { [K in ApiChain]?: unknown };
+  availableChains?: Partial<Record<ApiChain, unknown>>;
   isSensitiveDataHidden?: true;
 }
 
@@ -123,12 +123,8 @@ function TokenSelector({
   const lang = useLang();
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
-
-  // eslint-disable-next-line no-null/no-null
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // eslint-disable-next-line no-null/no-null
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>();
+  const searchInputRef = useRef<HTMLInputElement>();
 
   useHistoryBack({
     isActive,
@@ -467,8 +463,7 @@ function TokenSelector({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isContentActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isContentActive: boolean, isFrom: boolean, currentKey: SearchState) {
     switch (currentKey) {
       case SearchState.Initial:
         return renderTokenGroups();
@@ -639,7 +634,7 @@ function compareTokens(a: TokenSortFactors, b: TokenSortFactors) {
 function filterSupportedTokens<T extends TokenType>(
   tokens: T[],
   isFilterActive: boolean,
-  availableChains: { [K in ApiChain]?: unknown },
+  availableChains: Partial<Record<ApiChain, unknown>>,
   selectedChain?: ApiChain,
 ): T[] {
   if (!isFilterActive && !selectedChain) {

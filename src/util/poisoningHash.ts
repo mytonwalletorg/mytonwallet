@@ -3,11 +3,11 @@ import type { ApiTransaction } from '../api/types';
 import { TRANSACTION_ADDRESS_SHIFT } from '../config';
 import { shortenAddress } from './shortenAddress';
 
-const cache: Map<string, {
+const cache = new Map<string, {
   timestamp: number;
   amount: bigint;
   address: string;
-}> = new Map();
+}>();
 
 function getKey(address: string) {
   return shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)!;

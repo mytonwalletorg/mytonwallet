@@ -4,15 +4,14 @@
   max-width: 100%;
   margin-bottom: 1.25rem;
   padding: 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-default);
 
   text-align: left;
   text-decoration: none;
 
-  background: var(--color-background-first);
-  border: none;
-  border-radius: var(--border-radius-default);
-
   appearance: none !important;
+  background: var(--color-background-first);
 
   & .icon:focus-visible,
   & .icon:hover {
@@ -26,23 +25,21 @@
 
 .rootStatic {
   margin-bottom: 1.3125rem;
-
-  background: transparent;
   border: 1px solid var(--color-separator-input-stroke);
+  background: transparent;
 }
 
 .thumbnail {
   width: 4.5rem;
   height: 4.5rem;
   margin-right: 0.75rem;
+  border-radius: var(--border-radius-tiny);
 
   object-fit: cover;
-  border-radius: var(--border-radius-tiny);
 }
 
 .info {
   overflow: hidden;
-
   min-width: 0;
   max-width: 100%;
 }
@@ -57,7 +54,7 @@
   line-height: 1.125rem;
   color: var(--color-gray-1);
   text-overflow: ellipsis;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .icon {
@@ -81,5 +78,5 @@
   font-weight: 600;
   color: var(--color-gray-2);
   text-overflow: ellipsis;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }

@@ -56,9 +56,9 @@ import { buildTxId } from '../../../../util/activities';
 import { toMilliseconds, toSeconds } from '../../../../util/datetime';
 import { toDecimal } from '../../../../util/decimals';
 import { getDnsDomainZone } from '../../../../util/dns';
+import { fixIpfsUrl, getProxiedLottieUrl } from '../../../../util/fetch';
 import { omitUndefined } from '../../../../util/iteratees';
 import { logDebug } from '../../../../util/logs';
-import { fixIpfsUrl } from '../../../../util/metadata';
 import safeExec from '../../../../util/safeExec';
 import { pause } from '../../../../util/schedulers';
 import { buildMtwCardsNftMetadata, readComment } from '../util/metadata';
@@ -288,6 +288,7 @@ function parseCallContract(action: CallContractAction, options: ParseOptions): A
   let type: ApiTransactionType | undefined;
   if (EXCESS_OP_CODES.includes(opCode)) {
     type = 'excess';
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   } else if (opCode === OpCode.Bounced) {
     type = 'bounced';
   } else if ([JettonStakingOpCode.UnstakeRequest, JettonStakingOpCode.ClaimRewards].includes(opCode)) {
@@ -703,14 +704,14 @@ function parseLiquidityWithdraw(action: DexWithdrawLiquidityAction, options: Par
   return [
     {
       ...partialExtended,
-      amount: BigInt(details.amount_1!),
+      amount: BigInt(details.amount_1),
       slug: getAssetSlug(addressBook, details.asset_1),
     },
     {
       ...partialExtended,
       id: additionalId,
       txId: additionalId,
-      amount: BigInt(details.amount_2!),
+      amount: BigInt(details.amount_2),
       slug: getAssetSlug(addressBook, details.asset_2),
     },
   ];
@@ -764,6 +765,7 @@ function parseToncenterNft(
 
     const { name, description, extra } = nftMetadata;
     let { image } = nftMetadata;
+    const lottie = extra?.lottie ? getProxiedLottieUrl(extra.lottie) : undefined;
 
     const nftAddress = toBase64Address(rawNftAddress, true);
     const collectionMetadata = rawCollectionAddress
@@ -784,14 +786,16 @@ function parseToncenterNft(
         index: Number(index),
         name: domain,
         address: nftAddress,
-        // eslint-disable-next-line no-underscore-dangle
+
         thumbnail: extra?._image_medium ?? image!,
         image: image!,
         description,
         isOnSale: false, // TODO (actions) Replace with real value when Toncenter supports it
         collectionAddress: collectionAddress ?? domainZone.resolver,
         collectionName: domainZone.collectionName,
-        metadata: {},
+        metadata: {
+          ...(lottie && { lottie }),
+        },
       });
     }
 
@@ -810,7 +814,7 @@ function parseToncenterNft(
     const isFragmentGift = image?.startsWith(NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX);
     const isMtwCard = collectionAddress === MTW_CARDS_COLLECTION;
     const fixedImage = image ? fixIpfsUrl(image) : undefined;
-    // eslint-disable-next-line no-underscore-dangle
+
     const thumbnail = extra?._image_medium ?? fixedImage!;
 
     const nft: ApiNft = omitUndefined<ApiNft>({

@@ -240,10 +240,13 @@ function TransferListPage({
         </div>
 
         {shouldRenderTxResult && txResult && (
-          <div className={buildClassName(
-            styles.txResult,
-            txResult.failed > 0 ? styles.error : styles.success,
-          )} ref={txResultRef}>
+          <div
+            className={buildClassName(
+              styles.txResult,
+              txResult.failed > 0 ? styles.error : styles.success,
+            )}
+            ref={txResultRef}
+          >
             {txResult.success} transfers succeeded, {txResult.failed} failed
           </div>
         )}

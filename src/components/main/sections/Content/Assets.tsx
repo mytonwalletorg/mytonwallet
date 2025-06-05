@@ -95,8 +95,7 @@ function Assets({
   const lang = useLang();
   const { openSettingsWithState } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const renderedTokens = useCurrentOrPrev(tokens, true);
   const renderedMycoin = useCurrentOrPrev(mycoin, true);
 

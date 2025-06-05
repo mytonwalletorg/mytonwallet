@@ -43,8 +43,8 @@ function SignatureModal({
 
   const lang = useLang();
   const [isModalOpen, openModal, closeModal] = useFlag(false);
-  const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
-  const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
+  const [currentSlide, setCurrentSlide] = useState<SLIDES>(SLIDES.confirm);
+  const [nextKey, setNextKey] = useState<SLIDES | undefined>(SLIDES.password);
 
   useLayoutEffect(() => {
     if (dataHex) {
@@ -140,8 +140,8 @@ function SignatureModal({
       </>
     );
   }
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
       case SLIDES.confirm:
         return renderConfirm();

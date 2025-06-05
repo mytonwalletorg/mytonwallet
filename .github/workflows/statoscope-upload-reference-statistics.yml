@@ -7,9 +7,6 @@ on:
 jobs:
   build_and_upload:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -17,10 +14,10 @@ jobs:
         persist-credentials: false
     - name: Reconfigure git to use HTTPS authentication
       uses: GuillaumeFalourd/SSH-to-HTTPS@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js ${{ vars.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ vars.NODE_VERSION }}
     - name: Install
       run: npm ci
     - name: Build

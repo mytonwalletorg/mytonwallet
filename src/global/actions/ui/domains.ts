@@ -1,15 +1,38 @@
 import { DomainLinkingState, DomainRenewalState } from '../../types';
 
-import { addActionHandler } from '../../index';
+import { waitFor } from '../../../util/schedulers';
+import { closeAllOverlays } from '../../helpers/misc';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { INITIAL_STATE } from '../../initialState';
 import { updateCurrentDomainLinking, updateCurrentDomainRenewal } from '../../reducers';
-import { selectIsHardwareAccount } from '../../selectors';
+import { selectCurrentAccountState, selectIsHardwareAccount } from '../../selectors';
+import { switchAccount } from '../api/auth';
 
-addActionHandler('openDomainRenewalModal', (global, actions, { addresses }) => {
-  return updateCurrentDomainRenewal(global, {
+addActionHandler('openDomainRenewalModal', async (global, actions, { accountId, network, addresses }) => {
+  if (accountId) {
+    await Promise.all([
+      closeAllOverlays(),
+      switchAccount(global, accountId, network),
+    ]);
+  }
+  // After switching account, wait for nft domains to be fetched
+  if (!(await waitFor(() => Boolean(selectCurrentAccountState(getGlobal())?.nfts?.byAddress), 1000, 30))) {
+    return;
+  }
+
+  global = getGlobal();
+
+  const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
+  addresses = (addresses || []).filter((address) => byAddress?.[address]);
+  if (!addresses.length) {
+    return;
+  }
+
+  global = updateCurrentDomainRenewal(global, {
     state: DomainRenewalState.Initial,
     addresses,
   });
+  setGlobal(global);
 });
 
 addActionHandler('startDomainsRenewal', (global) => {

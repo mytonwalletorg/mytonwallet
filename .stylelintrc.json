@@ -14,16 +14,16 @@
     "stylelint-declaration-block-no-ignored-properties",
     "stylelint-high-performance-animation",
     "stylelint-group-selectors",
-    "stylelint-order",
-    "./plugins/wholePixel.js"
+    "@stylistic/stylelint-plugin",
+    "@mytonwallet/stylelint-whole-pixel"
   ],
   "rules": {
-    "max-empty-lines": 1,
-    "number-leading-zero": "always",
+    "@stylistic/max-empty-lines": 1,
+    "@stylistic/number-leading-zero": "always",
     "selector-attribute-quotes": "always",
     "scss/operator-no-unspaced": null,
     "no-descending-specificity": null,
-    "color-hex-case": "upper",
+    "@stylistic/color-hex-case": "upper",
     "selector-pseudo-class-no-unknown": [
       true,
       {
@@ -69,10 +69,10 @@
       "except": ["after-single-line-comment", "first-nested"],
       "ignore": ["after-comment", "inside-block"]
     }],
-    "no-eol-whitespace": true,
-    "indentation": [2, {
+    "@stylistic/no-eol-whitespace": true,
+    "@stylistic/indentation": [2, {
       "ignore": ["value"]
     }],
-    "no-missing-end-of-source-newline": true
+    "@stylistic/no-missing-end-of-source-newline": true
   }
 }

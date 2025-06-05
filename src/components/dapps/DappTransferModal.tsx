@@ -162,8 +162,7 @@ function DappTransferModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: TransferState) {
     switch (currentKey) {
       case TransferState.Initial:
         return renderTransferInitialWithSkeleton();
@@ -216,6 +215,7 @@ function DappTransferModal({
       noBackdropClose
       dialogClassName={buildClassName(styles.modalDialog, needsExtraHeight && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       forceFullNative={needsExtraHeight || renderingKey === TransferState.Password}
       onClose={closeDappTransfer}
       onCloseAnimationEnd={handleResetTransfer}

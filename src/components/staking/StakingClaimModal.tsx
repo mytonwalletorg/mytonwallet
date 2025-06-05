@@ -153,8 +153,7 @@ function StakingClaimModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: StakingState) {
     switch (currentKey) {
       case StakingState.ClaimConnectHardware:
         return (

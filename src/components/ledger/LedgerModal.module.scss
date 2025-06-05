@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .modalDialog {
   height: 35rem;
@@ -23,7 +23,6 @@
 .container {
   display: flex;
   flex-direction: column;
-
   height: 100%;
   padding: 0 1rem max(var(--safe-area-bottom, 1rem), 1rem);
 
@@ -39,7 +38,6 @@
 .content {
   display: flex;
   flex-direction: column;
-
   padding: 0 1rem 1rem;
 }
 
@@ -68,7 +66,6 @@
 .ledgerIcon {
   width: 100%;
   max-width: 23.4375rem;
-
   object-fit: contain;
 }
 
@@ -77,9 +74,9 @@
   flex-direction: column;
 
   padding: 0.75rem;
+  border-radius: var(--border-radius-default);
 
   background: var(--color-gray-button-background-light);
-  border-radius: var(--border-radius-default);
 
   &_gap {
     gap: 0.5rem;
@@ -87,7 +84,6 @@
 
   &_success {
     color: var(--color-transaction-amount-green-text);
-
     background: var(--color-transaction-amount-green-bg);
   }
 
@@ -99,7 +95,6 @@
 .textIcon {
   display: flex;
   align-self: flex-start;
-
   font-size: 1.25rem;
   line-height: 1;
 }
@@ -129,7 +124,6 @@
 .actionBlock {
   display: flex;
   gap: 1rem;
-
   margin-top: auto;
 
   &_single {
@@ -155,11 +149,11 @@
   max-height: 13.25rem;
   margin-bottom: 2rem;
   padding: 0.5rem;
-
-  background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
 
-  @include adapt-padding-to-scrollbar(0.5rem, !important);
+  background-color: var(--color-background-first);
+
+  @include mixins.adapt-padding-to-scrollbar(0.5rem, !important);
 
   &_two {
     grid-template-columns: repeat(6, 1fr);
@@ -179,6 +173,8 @@
   height: 3.75rem;
   margin: 0;
   padding: 0 0.5rem;
+  border: none;
+  border-radius: var(--border-radius-tiny);
 
   font-size: 0.75rem;
   font-weight: 600;
@@ -190,14 +186,11 @@
   background-clip: padding-box, padding-box;
   background-origin: border-box;
   background-size: cover, cover;
-  border: none;
-  border-radius: var(--border-radius-tiny);
 
   transition: opacity 200ms;
 
   &_current {
     cursor: default;
-
     opacity: 1;
   }
 
@@ -228,18 +221,17 @@
   max-width: 100% !important;
   height: 3.75rem !important;
   padding: 0.5rem !important;
+  border-radius: 0.5rem !important;
 
   font-size: 0.75rem !important;
   line-height: 1 !important;
   color: var(--color-add-wallet-text) !important;
 
   background-color: var(--color-add-wallet-background) !important;
-  border-radius: 0.5rem !important;
 
   &:focus-visible,
   &:hover {
     color: var(--color-add-wallet-text-hover) !important;
-
     background-color: var(--color-add-wallet-background-hover) !important;
   }
 
@@ -265,12 +257,11 @@
 
   @supports (-webkit-line-clamp: 2) {
     display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 
     line-height: 0.8125rem;
     white-space: normal;
-
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
   }
 }
 
@@ -287,7 +278,6 @@
 
 .accountCurrencyIcon {
   margin-right: 0.125rem;
-
   font-size: 0.5rem;
   line-height: 0.5rem;
 }
@@ -303,7 +293,6 @@
 
   width: 1rem;
   height: 1rem;
-
   border-radius: var(--border-radius-default);
 
   /* stylelint-disable-next-line plugin/whole-pixel */
@@ -326,6 +315,7 @@
 
   margin: 0.75rem auto 0;
   padding: 0.75rem;
+  border-radius: var(--border-radius-normal);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -333,7 +323,6 @@
   text-align: center;
 
   background-color: var(--color-transaction-amount-red-bg);
-  border-radius: var(--border-radius-normal);
 }
 
 .declinedLabelDetailed {
@@ -351,7 +340,7 @@
 
   margin-top: 1.25rem;
   padding: 1rem;
+  border-radius: var(--border-radius-default);
 
   background: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 }

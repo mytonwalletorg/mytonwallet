@@ -3,7 +3,6 @@ import extension from 'webextension-polyfill';
 import { createDappPromise, rejectAllDappPromises } from '../common/dappPromises';
 import storage from '../storages/extension';
 
-// eslint-disable-next-line no-restricted-globals
 const { chrome } = self;
 
 let currentWindowId: number | undefined;

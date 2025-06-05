@@ -1,5 +1,5 @@
 import type { FocusEvent } from 'react';
-import React, { memo, useMemo } from '../../lib/teact/teact';
+import React, { type ElementRef, memo, useMemo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -24,7 +24,7 @@ interface OwnProps {
   withPasteButton: boolean;
   address: string;
   addressName: string;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: ElementRef<HTMLInputElement>;
   onInput: (value: string) => void;
   onFocus: () => void;
   onBlur: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;

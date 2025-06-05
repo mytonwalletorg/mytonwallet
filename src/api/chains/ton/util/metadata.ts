@@ -17,7 +17,6 @@ import type {
   ApiParsedPayload,
   ApiTransaction,
 } from '../../../types';
-import type { DnsCategory } from '../constants';
 import type { JettonMetadata } from '../types';
 
 import {
@@ -28,14 +27,14 @@ import {
   NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
   NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX,
 } from '../../../../config';
+import { fetchJsonWithProxy, fixIpfsUrl, getProxiedLottieUrl } from '../../../../util/fetch';
 import isEmptyObject from '../../../../util/isEmptyObject';
 import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
-import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
-import { JettonStakingOpCodes } from '../contracts/JettonStaking/imports/constants';
 import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
 import { buildTokenSlug } from '../../../common/tokens';
 import { base64ToString, sha256 } from '../../../common/utils';
+import { DnsCategory, JettonStakingOpCode } from '../constants';
 import {
   DNS_CATEGORY_HASH_MAP,
   DnsOpCode,
@@ -52,6 +51,9 @@ import { fetchNftItems } from './tonapiio';
 import {
   getDnsItemDomain, getJettonMinterData, resolveTokenAddress, toBase64Address,
 } from './tonCore';
+
+type OpCodes = OpCode | JettonOpCode | NftOpCode | LiquidStakingOpCode | VestingV1OpCode | SingleNominatorOpCode
+  | DnsOpCode | OtherOpCode | JettonStakingOpCode;
 
 const OFFCHAIN_CONTENT_PREFIX = 0x01;
 const SNAKE_PREFIX = 0x00;
@@ -143,7 +145,7 @@ export async function parseJettonOnchainMetadata(slice: Slice): Promise<JettonMe
 }
 
 export async function fetchJettonOffchainMetadata(uri: string): Promise<JettonMetadata> {
-  const metadata = await fetchJsonMetadata(uri);
+  const metadata = await fetchJsonWithProxy(uri);
   return pick(metadata, [
     'name',
     'description',
@@ -175,7 +177,7 @@ export async function parsePayloadSlice(
   shouldLoadItems?: boolean,
   transactionDebug?: ApiTransaction,
 ): Promise<ApiParsedPayload | undefined> {
-  let opCode: number | undefined;
+  let opCode: OpCodes | undefined;
   try {
     opCode = slice.loadUint(32);
 
@@ -395,7 +397,7 @@ export async function parsePayloadSlice(
           ? await getDnsItemDomain(network, toAddress)
           : '';
 
-        if (category === 'wallet') {
+        if (category === DnsCategory.Wallet) {
           if (slice.remainingRefs > 0) {
             const dataSlice = slice.loadRef().beginParse();
             slice.endParse();
@@ -433,7 +435,7 @@ export async function parsePayloadSlice(
           return {
             type: 'dns:change-record',
             queryId,
-            record: category === 'unknown' ? {
+            record: category === DnsCategory.Unknown ? {
               type: 'unknown',
               key: hash,
               value: value.toBoc().toString('base64'),
@@ -447,7 +449,7 @@ export async function parsePayloadSlice(
           return {
             type: 'dns:change-record',
             queryId,
-            record: category === 'unknown' ? {
+            record: category === DnsCategory.Unknown ? {
               type: 'unknown',
               key: hash,
             } : {
@@ -465,7 +467,7 @@ export async function parsePayloadSlice(
           swapId,
         };
       }
-      case JettonStakingOpCodes.UNSTAKE_JETTONS: {
+      case JettonStakingOpCode.UnstakeRequest: {
         const amount = slice.loadCoins();
         const isForce = slice.loadBoolean();
         return {
@@ -479,7 +481,7 @@ export async function parsePayloadSlice(
   } catch (err) {
     if (DEBUG) {
       const debugTxString = transactionDebug
-        && `${transactionDebug.txId} ${new Date(transactionDebug.timestamp)}`;
+        && `${transactionDebug.txId} ${new Date(transactionDebug.timestamp).toISOString()}`;
       const opCodeHex = `0x${opCode?.toString(16).padStart(8, '0')}`;
       logDebugError('parsePayload', opCodeHex, debugTxString, '\n', err);
     }
@@ -514,7 +516,7 @@ export function readComment(slice: Slice) {
     return undefined;
   }
 
-  const opCode = slice.loadUint(32);
+  const opCode = slice.loadUint(32) as OpCode;
   if (opCode !== OpCode.Comment || (!slice.remainingBits && !slice.remainingRefs)) {
     return undefined;
   }
@@ -639,14 +641,16 @@ export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft |
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const isWhitelisted = trust === 'whitelist';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
     const isFragmentGift = image?.startsWith(NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX);
 
     const metadata = {
-      ...(isWhitelisted && { lottie }),
+      ...(isWhitelisted && lottie && { lottie: getProxiedLottieUrl(lottie) }),
       ...(collectionAddress === MTW_CARDS_COLLECTION && buildMtwCardsNftMetadata(rawMetadata)),
       ...(isFragmentGift && { fragmentUrl: image!.replace(NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX, 'https://$1') }),
     };

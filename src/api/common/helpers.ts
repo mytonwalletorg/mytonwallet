@@ -3,6 +3,7 @@ import type { ApiDbSseConnection } from '../db';
 import type { StorageKey } from '../storages/types';
 import type {
   ApiActivity,
+  ApiDappsState,
   ApiLocalTransactionParams,
   ApiTonAccount,
   ApiTonWallet,
@@ -221,10 +222,10 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
   }
 
   if (version === 5) {
-    const dapps = await storage.getItem('dapps');
+    const dapps = await storage.getItem('dapps') as ApiDappsState;
     if (dapps) {
-      for (const accountDapps of Object.values(dapps) as any[]) {
-        for (const dapp of Object.values(accountDapps) as any[]) {
+      for (const accountDapps of Object.values(dapps)) {
+        for (const dapp of Object.values(accountDapps)) {
           dapp.connectedAt = 1;
         }
       }
@@ -294,13 +295,13 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
 
   if (version === 8) {
     if (getEnvironment().isSseSupported) {
-      const dapps = await storage.getItem('dapps');
+      const dapps = await storage.getItem('dapps') as ApiDappsState;
 
       if (dapps) {
         const items: ApiDbSseConnection[] = [];
 
-        for (const accountDapps of Object.values(dapps) as any[]) {
-          for (const dapp of Object.values(accountDapps) as any[]) {
+        for (const accountDapps of Object.values(dapps)) {
+          for (const dapp of Object.values(accountDapps)) {
             if (dapp.sse?.appClientId) {
               items.push({ clientId: dapp.sse?.appClientId });
             }

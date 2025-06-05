@@ -65,7 +65,8 @@ function SettingsAbout({
           headerClassName,
           'with-notch-on-scroll',
           isScrolled && 'is-scrolled',
-        )}>
+        )}
+        >
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>

@@ -25,7 +25,7 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
     );
     connector = createConnector(worker, onUpdate);
 
-    createWindowProvider(worker!);
+    createWindowProvider(worker);
   }
 
   if (!isInitialized) {
@@ -49,7 +49,7 @@ export async function callApi<T extends keyof AllMethods>(fnName: T, ...args: Al
     const result = await (connector.request({
       name: fnName,
       args,
-    }) as AllMethodResponse<T>);
+    }) as Promise<AllMethodResponse<T>>);
 
     logDebugApi(`callApi: ${fnName}`, args, result);
 

@@ -14,6 +14,8 @@
   height: 2.5rem;
   margin: 0;
   padding: 0 0.75rem;
+  border: none;
+  border-radius: 1.25rem;
 
   font-size: 0.9375rem;
   font-weight: 700;
@@ -22,15 +24,12 @@
   white-space: nowrap;
 
   background: var(--color-accent-button-background);
-  border: none;
-  border-radius: 1.25rem;
 
   transition: background-color 150ms, color 150ms, opacity 300ms !important;
 
   &:hover,
   &:focus-visible {
     color: var(--color-accent-button-text-hover);
-
     background: var(--color-accent-button-background-hover);
   }
 

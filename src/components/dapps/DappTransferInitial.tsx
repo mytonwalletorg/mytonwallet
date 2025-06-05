@@ -201,7 +201,7 @@ function DappTransferInitial({
               key={activity.id}
               activity={activity}
               isFuture
-              isLast={index === activities!.length - 1}
+              isLast={index === activities.length - 1}
               tokensBySlug={tokensBySlug}
               swapTokensBySlug={swapTokensBySlug}
               appTheme={appTheme}

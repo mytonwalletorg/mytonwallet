@@ -8,8 +8,8 @@ import {
 import { Op } from './JettonConstants';
 
 export type JettonMinterContent = {
-  type:0 | 1;
-  uri:string;
+  type: 0 | 1;
+  uri: string;
 };
 
 export type JettonMinterConfig = { admin: Address; content: Cell; wallet_code: Cell };
@@ -23,7 +23,7 @@ export function jettonMinterConfigToCell(config: JettonMinterConfig): Cell {
     .endCell();
 }
 
-export function jettonContentToCell(content:JettonMinterContent) {
+export function jettonContentToCell(content: JettonMinterContent) {
   return beginCell()
     .storeUint(content.type, 8)
     .storeStringTail(content.uri) // Snake logic under the hood
@@ -43,7 +43,6 @@ export class JettonMinter implements Contract {
     return new JettonMinter(contractAddress(workchain, init), init);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
     await provider.internal(via, {
       value,
@@ -119,13 +118,12 @@ export class JettonMinter implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendDiscovery(
     provider: ContractProvider,
     via: Sender,
     owner: Address,
     include_address: boolean,
-    value:bigint = toNano('0.1'),
+    value: bigint = toNano('0.1'),
   ) {
     await provider.internal(via, {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -140,7 +138,6 @@ export class JettonMinter implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendChangeAdmin(provider: ContractProvider, via: Sender, newOwner: Address) {
     await provider.internal(via, {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -155,7 +152,6 @@ export class JettonMinter implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendChangeContent(provider: ContractProvider, via: Sender, content: Cell) {
     await provider.internal(via, {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -164,7 +160,6 @@ export class JettonMinter implements Contract {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getWalletAddress(provider: ContractProvider, owner: Address): Promise<Address> {
     const res = await provider.get('get_wallet_address', [{
       type: 'slice', cell: beginCell().storeAddress(owner).endCell(),
@@ -172,12 +167,11 @@ export class JettonMinter implements Contract {
     return res.stack.readAddress();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getJettonData(provider: ContractProvider) {
     const res = await provider.get('get_jetton_data', []);
     const totalSupply = res.stack.readBigNumber();
     const mintable = res.stack.readBoolean();
-    const adminAddress = res.stack.readAddress();
+    const adminAddress = res.stack.readCellOpt();
     const content = res.stack.readCell();
     const walletCode = res.stack.readCell();
     return {

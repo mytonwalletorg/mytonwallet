@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
+import React, { type ElementRef, memo, useMemo, useRef } from '../../../../lib/teact/teact';
 
 import type { ApiBaseCurrency, ApiStakingState, ApiYieldType } from '../../../../api/types';
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
@@ -35,7 +34,7 @@ import SensitiveData from '../../../ui/SensitiveData';
 import styles from './Token.module.scss';
 
 interface OwnProps {
-  ref?: RefObject<HTMLButtonElement>;
+  ref?: ElementRef<HTMLButtonElement>;
   token: UserToken;
   // Undefined means that it's not a staked token
   stakingStatus?: StakingStateStatus;
@@ -99,10 +98,8 @@ function Token({
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
 
-  // eslint-disable-next-line no-null/no-null
-  let buttonRef = useRef<HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  let buttonRef = useRef<HTMLButtonElement>();
+  const menuRef = useRef<HTMLDivElement>();
   const isVesting = Boolean(vestingStatus?.length);
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
   const value = Big(renderedAmount).mul(price).toString();
@@ -310,7 +307,8 @@ function Token({
               cols={fiatAmountCols}
               rows={2}
               cellSize={8}
-              align="right" className={buildClassName(styles.change, changeClassName)}
+              align="right"
+              className={buildClassName(styles.change, changeClassName)}
             >
               {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
               <i className={styles.dot} aria-hidden />
@@ -386,7 +384,8 @@ function Token({
             cols={amountCols}
             rows={2}
             cellSize={8}
-            align="right" className={buildClassName(
+            align="right"
+            className={buildClassName(
               styles.secondaryValue,
               stakingStatus && styles.secondaryValue_staked,
               isVesting && styles.secondaryValue_vesting,

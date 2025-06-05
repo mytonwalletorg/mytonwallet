@@ -51,7 +51,8 @@ function TransactionAmount({
           isIncoming && !isScam && styles.operationPositive,
           isScam && styles.operationScam,
           'rounded-font',
-        )}>
+        )}
+      >
         {wholePart.trim().replace('\u202F', '')}
         {fractionPart && <span className={styles.amountFraction}>.{fractionPart.trim()}</span>}
         <span className={styles.amountSymbol}>{tokenSymbol || TONCOIN.symbol}</span>

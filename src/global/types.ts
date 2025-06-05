@@ -90,7 +90,7 @@ export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWal
 
 interface AuthAccount {
   accountId: string;
-  addressByChain: { [K in ApiChain]?: string };
+  addressByChain: Partial<Record<ApiChain, string>>;
   network?: ApiNetwork;
 }
 
@@ -319,7 +319,7 @@ export type UserToken = {
 };
 
 export type UserSwapToken = Omit<UserToken, 'change24h' | 'chain'> & {
-  chain: ApiChain | string;
+  chain: ApiChain | (string & {});
   isPopular: boolean;
 };
 
@@ -334,20 +334,18 @@ export type AccountType = 'mnemonic' | 'hardware' | 'view';
 export interface Account {
   title?: string;
   type: AccountType;
-  addressByChain: { [K in ApiChain]?: string };
-  domainByChain?: { [K in ApiChain]?: string };
+  addressByChain: Partial<Record<ApiChain, string>>;
+  domainByChain?: Partial<Record<ApiChain, string>>;
   ledger?: {
     index: number;
     driver: ApiLedgerDriver;
   };
 }
 
-export interface AssetPairs {
-  [slug: string]: {
-    isReverseProhibited?: boolean;
-    isMultichain?: boolean;
-  };
-}
+export type AssetPairs = Record<string, {
+  isReverseProhibited?: boolean;
+  isMultichain?: boolean;
+}>;
 
 export interface AccountState {
   balances?: {
@@ -365,9 +363,7 @@ export interface AccountState {
     isHistoryEndReachedBySlug?: Record<string, boolean>;
     localActivities?: ApiActivity[];
   };
-  byChain?: {
-    [chain in ApiChain]?: { isFirstTransactionsLoaded?: boolean };
-  };
+  byChain?: Partial<Record<ApiChain, { isFirstTransactionsLoaded?: boolean }>>;
   nfts?: {
     byAddress?: Record<string, ApiNft>;
     orderedAddresses?: string[];
@@ -1174,7 +1170,7 @@ export interface ActionPayloads {
 
   setIsSensitiveDataHidden: { isHidden: boolean };
 
-  openDomainRenewalModal: { addresses: string[] };
+  openDomainRenewalModal: { accountId?: string; network?: ApiNetwork; addresses: string[] };
   startDomainsRenewal: undefined;
   checkDomainsRenewalDraft: { nfts: ApiNft[] };
   submitDomainsRenewal: { password: string };

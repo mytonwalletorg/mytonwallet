@@ -1,54 +1,47 @@
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 .emptyList {
   display: flex;
   align-items: center;
-
   padding: 1.5rem 1.5rem 2rem;
-
   color: var(--color-gray-2);
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     gap: 1rem;
   }
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     flex-direction: column;
     justify-content: center;
-
     height: 100%;
     padding: 1.875rem 1rem 2rem;
   }
 }
 
 .emptyListContent {
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     text-align: center;
   }
 }
 
 .emptyListTitle {
   margin: 0;
-
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-black);
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     margin: 1.25rem 0 0;
-
     font-size: 1.0625rem;
   }
 }
 
 .emptyListText {
   margin: 0.625rem 0;
-
   font-size: 0.8125rem;
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     margin: 1.0625rem 0 1.125rem;
-
     font-size: 0.9375rem;
     text-align: center;
   }
@@ -56,10 +49,9 @@
 
 .emptyListLoading {
   justify-content: center;
-
   padding-top: 8rem;
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     padding-bottom: 8rem;
   }
 }
@@ -70,6 +62,8 @@
   display: inline-block;
 
   padding: 0.375rem 0.5rem;
+  border: none;
+  border-radius: var(--border-radius-tiny);
 
   font-size: 0.8125rem;
   font-weight: 700;
@@ -78,8 +72,6 @@
   text-decoration: none;
 
   background-color: var(--color-accent-button-background);
-  border: none;
-  border-radius: var(--border-radius-tiny);
 
   transition: background-color 150ms, color 150ms;
 
@@ -87,7 +79,6 @@
   &:focus-visible {
     color: var(--color-accent-button-text-hover);
     text-decoration: none;
-
     background-color: var(--color-accent-button-background-hover);
   }
 
@@ -100,10 +91,9 @@
     transition: none !important;
   }
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     margin: 0 auto;
     padding: 0.5rem 1rem;
-
     font-size: 0.9375rem;
   }
 }
@@ -182,9 +172,7 @@
 
     &:global(.ghost-target)::before {
       transform: translateY(-15%) scale(0.8);
-
       opacity: 0;
-
       transition: none;
     }
   }
@@ -205,7 +193,6 @@
   aspect-ratio: 1;
   width: 100%;
   max-width: 100%;
-
   border-radius: var(--border-radius-normal);
 }
 
@@ -233,9 +220,9 @@
 
   width: 100%;
   height: 100%;
+  border-radius: var(--border-radius-normal);
 
   object-fit: cover;
-  border-radius: var(--border-radius-normal);
 
   transition: transform 300ms, opacity 300ms !important;
 
@@ -280,6 +267,7 @@
 
   width: 100%;
   padding: 0.3125rem 0.5rem;
+  border: none;
 
   font-size: 0.75rem;
   font-weight: 800;
@@ -289,19 +277,21 @@
   overflow-wrap: break-word;
 
   background: var(--color-red-button-background);
-  border: none;
+
+  &:first-letter {
+    text-transform: uppercase;
+  }
 }
 
 .infoWrapper {
   padding: 0 0.25rem;
-
   line-height: 1.0625rem;
 }
 
 .title {
   font-weight: 700;
   color: var(--color-black);
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .collection {
@@ -324,9 +314,7 @@
 
 .notcoinVoucherButton {
   margin: 0.75rem auto;
-
   background-color: black !important;
-
   transition: opacity 250ms ease;
 
   &:hover {

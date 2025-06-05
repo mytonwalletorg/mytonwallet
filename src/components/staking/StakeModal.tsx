@@ -172,8 +172,7 @@ function StakeModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: StakingState) {
     switch (currentKey) {
       case StakingState.StakeInitial:
         return (
@@ -220,6 +219,7 @@ function StakeModal({
       noBackdropClose
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="stake"
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       forceFullNative={renderingKey === StakingState.StakePassword}
       onClose={cancelStaking}
       onCloseAnimationEnd={updateNextKey}

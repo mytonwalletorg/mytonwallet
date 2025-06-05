@@ -848,21 +848,12 @@ Coins have been unstaked!: Монеты выведены!
 Confirm Upgrading: Подтвердить улучшение
 How does it work?: Как это работает?
 Multisend: Мультиотправка
-Expires in %1$d days:
-  zeroValue: Истекает сегодня
-  oneValue: Истекает завтра
-  fewValue: Истекает через %1$d дня
-  manyValue: Истекает через %1$d дней
 Renew All: Продлить все
 Renew: Продлить
 Renew Domain: Продлить домен
 Renew Domains: Продлить домены
 Some domains are about to expire: Некоторые домены скоро истекают
-$domain_expire:
-  zeroValue: "%domain% истекает сегодня"
-  oneValue: "%domain% истекает завтра"
-  fewValue: "%domain% истекает через %days% дня"
-  manyValue: "%domain% истекает через %days% дней"
+$domain_expire: "**%domain%** истекает %days%"
 '%token% Staking': Стейкинг %token%
 Add Tab: Добавить вкладку
 Remove Tab: Удалить вкладку
@@ -890,22 +881,27 @@ Confirm Renewing: Подтвердить продление
 Confirm Linking: Подтвердить привязку
 $domains_expire:
   zeroValue: "Нет доменов, истекающих %days%"
-  oneValue: "%domain% домен истекает %days%"
-  fewValue: "%domain% домена истекают %days%"
-  manyValue: "%domain% доменов истекают %days%"
+  oneValue: "**%domain% домен** истекает %days%"
+  fewValue: "**%domain% домена** истекают %days%"
+  manyValue: "**%domain% доменов** истекают %days%"
 $in_days:
   zeroValue: сегодня
   oneValue: завтра
   fewValue: "через %1$d дня"
   manyValue: "через %1$d дней"
-$domain_was_expired: "%domain% истёк"
+$domain_was_expired: "**%domain%** истёк"
 $domains_was_expired:
   zeroValue: "Нет истёкших доменов"
-  oneValue: "%domain% домен истёк"
-  fewValue: "%domain% домена истекло"
-  manyValue: "%domain% доменов истекло"
-
+  oneValue: "**%domain% домен** истёк"
+  fewValue: "**%domain% домена** истекло"
+  manyValue: "**%domain% доменов** истекло"
 Reload: Обновить
 Copy Link: Копировать ссылку
 Check eligibility for max APY: Проверить доступность макс. APY
 Check eligibility: Проверить доступность
+$expired_many: Истекли
+$expires_in %days%:
+  zeroValue: Истекает %days%
+  oneValue: Истекает %days%
+  fewValue: Истекают %days%
+  manyValue: Истекают %days%

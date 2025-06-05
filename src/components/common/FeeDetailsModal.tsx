@@ -44,7 +44,6 @@ function FeeDetailsModal({ isOpen, onClose, title, ...restProps }: OwnProps) {
       title={title ?? lang('Blockchain Fee Details')}
       contentClassName={styles.content}
     >
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <FeeDetailsContent onClose={onClose} {...restProps} />
     </Modal>
   );

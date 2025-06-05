@@ -8,14 +8,13 @@
   width: auto;
   margin: 0;
   padding: 0.4375rem 0.25rem;
+  border: none;
 
   font-weight: 500;
   color: var(--color-black);
 
-  background: none;
-  border: none;
-
   appearance: none;
+  background: none;
 
   &,
   &:active,
@@ -25,7 +24,6 @@
 
   :global(html:not(.animation-level-0)) &:not(&_active):active .content {
     color: var(--color-accent) !important;
-
     background-color: var(--color-interactive-tab-active) !important;
 
     @supports (background-color: color-mix(in lab, var(--color-accent) 8%, transparent)) {
@@ -35,7 +33,6 @@
 
   &_active {
     cursor: default;
-
     color: var(--color-accent);
 
     i {
@@ -62,10 +59,9 @@
   align-items: center;
 
   padding: 0.375rem 0.75rem;
+  border-radius: var(--border-radius-small);
 
   white-space: nowrap;
-
-  border-radius: var(--border-radius-small);
 
   transition: background-color 150ms, color 150ms;
 
@@ -85,10 +81,10 @@
   box-sizing: content-box;
   width: calc(100% - 1.5rem);
   height: var(--tab-platform-height, 0.125rem);
+  border-radius: var(--border-radius-micro) var(--border-radius-micro) 0 0;
 
   opacity: 0;
   background-color: var(--color-accent);
-  border-radius: var(--border-radius-micro) var(--border-radius-micro) 0 0;
 
   &_animate {
     transition: transform var(--slide-transition);
@@ -104,20 +100,15 @@
 
   & > :global(.menuItemName) {
     overflow: hidden;
-
     max-width: 100%;
-
     text-overflow: ellipsis;
   }
 }
 
 .icon {
   transform: scale(1.2);
-
   margin-right: 0.375rem;
-
   color: var(--color-gray-2);
-
   transition: color 150ms;
 
   :global(html.animation-level-0) & {

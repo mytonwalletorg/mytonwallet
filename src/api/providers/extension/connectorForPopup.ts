@@ -5,7 +5,6 @@ import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import { logDebugError } from '../../../util/logs';
 import { createExtensionConnector } from '../../../util/PostMessageConnector';
 // Relative import is needed for `NormalModuleReplacementPlugin`
-// eslint-disable-next-line import/no-useless-path-segments
 import { POPUP_PORT } from '../extension/config';
 
 let connector: Connector;

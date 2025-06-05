@@ -12,9 +12,8 @@ import {
 import { dnsCategoryToBigInt } from '../util/dns';
 import { DnsCategory, DnsOpCode } from '../constants';
 
-export type DnsItemConfig = {};
+export type DnsItemConfig = object;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function dnsItemConfigToCell(config: DnsItemConfig): Cell {
   return beginCell().endCell();
 }
@@ -35,14 +34,12 @@ export class DnsItem implements Contract {
     return new DnsItem(contractAddress(workchain, init), init);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getDomain(provider: ContractProvider) {
     const res = await provider.get('get_domain', []);
     const domain = res.stack.readString();
     return domain;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getTelemintDomain(provider: ContractProvider) {
     const res = await provider.get('get_domain_full', []);
     const domain = res.stack.readString();
@@ -51,7 +48,6 @@ export class DnsItem implements Contract {
     return parts.join('.');
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getNftData(provider: ContractProvider) {
     const res = await provider.get('get_nft_data', []);
     const index = res.stack.readBigNumber();
@@ -65,7 +61,6 @@ export class DnsItem implements Contract {
     };
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getLastFillUpTime(provider: ContractProvider): Promise<bigint> {
     const result = await provider.get('get_last_fill_up_time', []);
     return result.stack.readBigNumber();

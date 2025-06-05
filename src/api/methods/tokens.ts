@@ -42,7 +42,7 @@ export function fetchTokenBalancesByAddress(address: string, network: ApiNetwork
 
 export function getAmountForTokenTransfer(tokenAddress: string, willClaimMintless: boolean) {
   const chain = chains.ton;
-  const token = getTokenByAddress(tokenAddress)!;
+  const token = getTokenByAddress(tokenAddress);
 
   return chain.getToncoinAmountForTransfer(token, willClaimMintless);
 }

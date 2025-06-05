@@ -1,5 +1,5 @@
 import type { InAppBrowserObject } from '@awesome-cordova-plugins/in-app-browser';
-import { useCallback, useMemo } from '../../../lib/teact/teact';
+import { type ElementRef, useCallback, useMemo } from '../../../lib/teact/teact';
 
 import type { WebViewBridgeMessage } from '../helpers';
 
@@ -18,13 +18,13 @@ type UseWebViewBridgeReturnType<Event> = [
 ];
 
 export const useWebViewBridge = <
-  BridgeObject extends { [key: string]: any } = {},
-  Event extends object = {},
+  BridgeObject extends Record<string, any> = object,
+  Event extends object = object,
 >(
-    inAppBrowserRef: React.RefObject<CustomInAppBrowserObject>,
-    bridgeObj?: BridgeObject,
-    timeout?: number,
-  ): UseWebViewBridgeReturnType<Event> => {
+  inAppBrowserRef: ElementRef<CustomInAppBrowserObject>,
+  bridgeObj?: BridgeObject,
+  timeout?: number,
+): UseWebViewBridgeReturnType<Event> => {
   const bridgeInjectionCode = useMemo(
     () => (bridgeObj ? objectToInjection(bridgeObj, timeout) : ''),
     [bridgeObj, timeout],

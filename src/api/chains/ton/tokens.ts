@@ -6,9 +6,8 @@ import type { AnyPayload, JettonMetadata, TonTransferParams } from './types';
 
 import { TON_USDT_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { fetchJsonWithProxy } from '../../../util/fetch';
+import { fetchJsonWithProxy, fixIpfsUrl } from '../../../util/fetch';
 import { logDebugError } from '../../../util/logs';
-import { fixIpfsUrl } from '../../../util/metadata';
 import { fetchJettonMetadata, fixBase64ImageData, parsePayloadBase64 } from './util/metadata';
 import { fetchJettonBalances } from './util/tonapiio';
 import {
@@ -148,7 +147,7 @@ export async function buildTokenTransfer(options: {
   let { payload } = options;
 
   const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, tokenAddress);
-  const token = getTokenByAddress(tokenAddress)!;
+  const token = getTokenByAddress(tokenAddress);
 
   const {
     isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress)),
@@ -198,7 +197,7 @@ export async function buildTokenTransfer(options: {
 
 export async function getTokenBalanceWithMintless(network: ApiNetwork, accountAddress: string, tokenAddress: string) {
   const tokenWalletAddress = await resolveTokenWalletAddress(network, accountAddress, tokenAddress);
-  const token = getTokenByAddress(tokenAddress)!;
+  const token = getTokenByAddress(tokenAddress);
 
   const {
     isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress)),

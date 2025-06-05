@@ -72,7 +72,7 @@ function AddAccountModal({
   } = getActions();
 
   const lang = useLang();
-  const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
+  const [renderingKey, setRenderingKey] = useState<RenderingState>(RenderingState.Initial);
 
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
 
@@ -222,8 +222,7 @@ function AddAccountModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: RenderingState) {
     switch (currentKey) {
       case RenderingState.Initial:
         return renderSelector();

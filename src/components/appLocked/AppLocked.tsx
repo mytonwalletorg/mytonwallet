@@ -102,8 +102,7 @@ function useAppLockState(autolockValue: AutolockValueType, isManualLockActive: b
 function useContentSlide(
   isNonNativeBiometricAuthEnabled: boolean, isLocked: boolean, lockReason?: 'autolock' | 'manual',
 ) {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   function getDefaultSlideForBiometricAuth() {
     return (
@@ -291,11 +290,13 @@ function AppLocked({
 
   function renderTransitionContent(isActive: boolean) {
     return (
-      <div className={buildClassName(
-        styles.appLocked,
-        innerContentTopPosition !== undefined && styles.appLockedFixed,
-        getDoesUsePinPad() && slideForBiometricAuth === SLIDES.passwordForm && styles.withPinPad,
-      )}>
+      <div
+        className={buildClassName(
+          styles.appLocked,
+          innerContentTopPosition !== undefined && styles.appLockedFixed,
+          getDoesUsePinPad() && slideForBiometricAuth === SLIDES.passwordForm && styles.withPinPad,
+        )}
+      >
         {
           slideForBiometricAuth === SLIDES.button && isNonNativeBiometricAuthEnabled
             ? (

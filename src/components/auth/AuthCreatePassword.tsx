@@ -78,7 +78,6 @@ const AuthCreatePassword = ({
   );
 };
 
-// eslint-disable-next-line consistent-return
 function getFormId(method: AuthMethod) {
   switch (method) {
     case 'createAccount':

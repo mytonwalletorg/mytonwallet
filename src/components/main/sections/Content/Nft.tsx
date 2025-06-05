@@ -1,4 +1,5 @@
 import React, {
+  type ElementRef,
   memo, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
@@ -62,8 +63,7 @@ function Nft({
 
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const {
     isLottie, shouldPlay, noLoop, markHover, unmarkHover,
@@ -85,6 +85,7 @@ function Nft({
 
   const {
     isContextMenuOpen,
+    contextMenuAnchor,
     handleBeforeContextMenu,
     handleContextMenu,
     handleContextMenuHide,
@@ -121,6 +122,10 @@ function Nft({
     openDomainRenewalModal({ addresses: [nft.address] });
   }
 
+  const handleOpenContextMenu = useLastCallback(() => {
+    setMenuAnchor(contextMenuAnchor);
+  });
+
   const handleOpenMenu = useLastCallback(() => {
     const { right: x, y } = ref.current!.getBoundingClientRect();
     setMenuAnchor({ x, y });
@@ -129,12 +134,11 @@ function Nft({
   const handleCloseMenu = useLastCallback(() => {
     setMenuAnchor(undefined);
     handleContextMenuClose();
-    handleContextMenuHide();
   });
 
   useSyncEffect(() => {
     if (isContextMenuOpen) {
-      handleOpenMenu();
+      handleOpenContextMenu();
     } else {
       handleCloseMenu();
     }
@@ -147,7 +151,9 @@ function Nft({
         className={buildClassName(styles.warningBlock, isViewAccount && styles.nonInteractive)}
         onClick={!isViewAccount ? handleRenewDomainClick : undefined}
       >
-        {dnsExpireInDays! < 0 ? lang('Expired') : lang('Expires in %1$d days', dnsExpireInDays, 'i')}
+        {dnsExpireInDays! < 0
+          ? 'Expired'
+          : lang('$expires_in %days%', { days: lang('$in_days', dnsExpireInDays) }, undefined, 1)}
       </button>
     );
   }
@@ -175,10 +181,12 @@ function Nft({
       {!isSelectionEnabled && (
         <NftMenu
           nft={nft}
+          isContextMenuMode={Boolean(contextMenuAnchor)}
           dnsExpireInDays={dnsExpireInDays}
           menuAnchor={menuAnchor}
           onOpen={handleOpenMenu}
           onClose={handleCloseMenu}
+          onCloseAnimationEnd={handleContextMenuHide}
         />
       )}
       {isLottie ? (
@@ -189,7 +197,7 @@ function Nft({
             shouldStretch
             play={shouldPlay}
             noLoop={noLoop}
-            tgsUrl={nft.metadata!.lottie}
+            tgsUrl={nft.metadata.lottie}
             previewUrl={nft.thumbnail}
             noPreviewTransition
             className={buildClassName(styles.image, isSelected && styles.imageSelected)}
@@ -222,7 +230,7 @@ export default memo(Nft);
 
 function useLottie(
   nft: ApiNft,
-  ref: React.RefObject<HTMLDivElement>,
+  ref: ElementRef<HTMLDivElement>,
   observeIntersection: ObserveFn,
 ): UseLottieReturnType {
   const isLottie = Boolean(nft.metadata?.lottie);

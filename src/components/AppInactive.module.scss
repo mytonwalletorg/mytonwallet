@@ -12,11 +12,11 @@
   max-width: 32rem;
   margin: auto;
   padding: 1.5rem;
+  border-radius: var(--border-radius-default);
 
   text-align: center;
 
   background: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 }
 
 .actions,

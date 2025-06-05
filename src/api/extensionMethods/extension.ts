@@ -22,13 +22,12 @@ type FirefoxProxyInfo = Proxy & {
   connectionIsolationKey?: string;
 };
 
-const proxies: Proxy[] = (PROXY_HOSTS ?? '').split(' ').map(((hostWithPort) => {
+const proxies: Proxy[] = (PROXY_HOSTS ?? '').split(' ').map((hostWithPort) => {
   const [host, port] = hostWithPort.split(':');
   return { type: 'http', host, port };
-}));
+});
 const proxy = sample(proxies);
 
-// eslint-disable-next-line max-len
 const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) {
   return host.endsWith('.ton') || host.endsWith('.adnl') || host.endsWith('.bag')
     ? 'PROXY ${proxy.host}:${proxy.port}'

@@ -1,4 +1,4 @@
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 .root {
   position: fixed;
@@ -17,7 +17,7 @@
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: inset 0 0.025rem 0 0 var(--color-separator);
 
-  @include transition(transform 200ms);
+  @include mixins.transition(transform 200ms);
 
   @supports (backdrop-filter: saturate(180%) blur(20px)) {
     background-color: var(--color-background-tab-bar);
@@ -26,7 +26,6 @@
 
   &.hidden {
     pointer-events: none;
-
     transform: translateY(100%);
   }
 
@@ -44,7 +43,7 @@
     opacity: 0;
     background: var(--color-tint);
 
-    @include transition(opacity 200ms);
+    @include mixins.transition(opacity 200ms);
   }
 
   :global(html.with-menu-backdrop) &::after {

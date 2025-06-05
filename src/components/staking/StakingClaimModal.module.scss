@@ -1,6 +1,6 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
-@include respond-above(xs) {
+@include mixins.respond-above(xs) {
   .modalDialog {
     max-height: 48rem;
   }
@@ -39,6 +39,7 @@
   max-width: 19rem;
   margin: 0.25rem auto 0;
   padding: 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -46,5 +47,4 @@
   text-align: center;
 
   background: var(--color-transaction-amount-green-bg);
-  border-radius: var(--border-radius-buttons);
 }

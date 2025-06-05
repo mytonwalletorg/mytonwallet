@@ -6,10 +6,10 @@ export function openLedgerTab() {
   return createLedgerTab();
 }
 
-export async function closeLedgerTab() {
+export function closeLedgerTab() {
   if (!ledgerTabId) return;
 
-  await chrome.tabs.query({ active: true }, () => {
+  chrome.tabs.query({ active: true }, () => {
     if (!ledgerTabId) return;
 
     void chrome.tabs.remove(ledgerTabId);
@@ -30,7 +30,7 @@ export function onLedgerTabClose(id: number, onClose: () => void) {
 
 async function createLedgerTab() {
   const tab = await chrome.tabs.create({ url: `index.html${DETACHED_TAB_URL}`, active: true });
-  await chrome.windows.update(tab.windowId!, { focused: true });
+  await chrome.windows.update(tab.windowId, { focused: true });
 
   ledgerTabId = tab.id!;
 

@@ -22,9 +22,7 @@ export class DbRepository<T> {
     return this.table.toArray();
   }
 
-  find(where: {
-    [key: string]: any;
-  }) {
+  find(where: Record<string, any>) {
     return tryDbQuery(() => {
       return this.table.where(where).toArray();
     });
@@ -54,9 +52,7 @@ export class DbRepository<T> {
     });
   }
 
-  deleteWhere(where: {
-    [key: string]: any;
-  }) {
+  deleteWhere(where: Record<string, any>) {
     return tryDbQuery(() => {
       return this.table.where(where).delete();
     });

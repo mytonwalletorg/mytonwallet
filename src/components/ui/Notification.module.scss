@@ -29,12 +29,12 @@
   max-width: 23rem;
   margin: 0 1.5rem;
   padding: 1rem ;
+  border-radius: var(--border-radius-big);
 
   color: var(--color-black);
 
   background: var(--color-background-drop-down);
   backdrop-filter: blur(30px);
-  border-radius: var(--border-radius-big);
   box-shadow: 0 0 1.25rem 0.625rem rgba(0, 0, 0, 0.15);
 }
 
@@ -43,12 +43,11 @@
   font-weight: 600;
   line-height: 1rem;
   text-align: center;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .icon {
   margin-right: 0.25rem;
-
   font-size: 1.25rem;
   line-height: 1rem;
   vertical-align: -0.25rem;

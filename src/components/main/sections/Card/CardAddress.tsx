@@ -1,4 +1,4 @@
-import React, { memo, type TeactNode, useMemo, useRef } from '../../../../lib/teact/teact';
+import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiChain } from '../../../../api/types';
@@ -57,13 +57,13 @@ function CardAddress({
       chain,
       label: (lang('View address on %ton_explorer_name%', {
         ton_explorer_name: getExplorerName(chain),
-      }) as TeactNode[]
+      }) as string[]
       ).join(''),
     }));
   }, [addressByChain, domainByChain, chains, lang]);
 
   const handleCopyAddress = useLastCallback((address: string) => {
-    showNotification({ message: lang('Address was copied!') as string, icon: 'icon-copy' });
+    showNotification({ message: lang('Address was copied!'), icon: 'icon-copy' });
     void copyTextToClipboard(address);
   });
 
@@ -73,7 +73,7 @@ function CardAddress({
   });
 
   const handleDomainClick = useLastCallback((e: React.MouseEvent, domain: string) => {
-    showNotification({ message: lang('Domain was copied!') as string, icon: 'icon-copy' });
+    showNotification({ message: lang('Domain was copied!'), icon: 'icon-copy' });
     void copyTextToClipboard(domain);
     closeMenu();
   });
@@ -170,8 +170,8 @@ function CardAddress({
           <span className={styles.addressLabel}>
             <i className={buildClassName(styles.icon, 'icon-eye-filled')} aria-hidden />
             {lang('$view_mode')}
-          </span>)
-        }
+          </span>
+        )}
         <button
           type="button"
           className={buildClassName(styles.address, withTextGradient && 'gradientText')}
@@ -202,8 +202,8 @@ function CardAddress({
         <span className={styles.addressLabel}>
           <i className={buildClassName(styles.icon, 'icon-eye-filled')} aria-hidden />
           {lang('$view_mode')}
-        </span>)
-      }
+        </span>
+      )}
       {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
       <button
         type="button"

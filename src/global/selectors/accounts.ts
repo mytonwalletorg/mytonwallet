@@ -88,7 +88,6 @@ export function selectIsOneAccount(global: GlobalState) {
   return Object.keys(selectAccounts(global) || {}).length === 1;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const selectEnabledTokensCountMemoizedFor = withCache((accountId: string) => memoize((tokens?: UserToken[]) => {
   return (tokens ?? []).filter(({ isDisabled }) => !isDisabled).length;
 }));

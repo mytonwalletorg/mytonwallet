@@ -1,10 +1,12 @@
 import type { TeactNode } from '../../lib/teact/teact';
+import { useMemo } from '../../lib/teact/teact';
 import React, { memo } from '../../lib/teact/teact';
 
 import type { ApiSwapAsset, ApiToken } from '../../api/types';
 import type { UserSwapToken, UserToken } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
+import { unique } from '../../util/iteratees';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 
 import useLang from '../../hooks/useLang';
@@ -15,7 +17,7 @@ import styles from './TransactionBanner.module.scss';
 
 interface OwnProps {
   tokenIn?: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
-  imageUrl?: string;
+  imageUrl?: string | string[];
   text?: string | TeactNode[];
   withChainIcon?: boolean;
   tokenOut?: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
@@ -43,10 +45,16 @@ function TransactionBanner({
     className,
   );
 
+  const imageUrls = useMemo(() => {
+    return unique(Array.isArray(imageUrl) ? imageUrl : [imageUrl]);
+  }, [imageUrl]);
+
   function renderNftIcon() {
     return (
-      <div className={styles.nftIcon}>
-        <img src={imageUrl} alt="" className={styles.image} />
+      <div className={buildClassName(styles.nftIcon, Array.isArray(imageUrl) && imageUrl.length > 1 && styles.stacked)}>
+        {imageUrls.map((image) => (
+          <img src={image} alt="" key={image} className={styles.image} />
+        ))}
         {withChainIcon && tokenIn?.chain && (
           <img
             src={getChainNetworkIcon(tokenIn.chain)}

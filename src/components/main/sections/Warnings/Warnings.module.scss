@@ -1,4 +1,4 @@
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 .portraitContainer, .container {
   margin-bottom: 0.75rem;
@@ -8,14 +8,12 @@
   position: relative;
   left: 50%;
   transform: translateX(-50%);
-
   width: 100vw;
 }
 
 .container {
   overflow: hidden;
   flex-shrink: 0;
-
   border-radius: var(--border-radius-default);
 }
 
@@ -38,6 +36,7 @@
 
   margin: 0.5rem 0 0.75rem;
   padding: 0.75rem;
+  border-radius: var(--border-radius-default);
 
   font-size: 1rem;
   font-weight: 700;
@@ -45,13 +44,11 @@
   color: var(--color-red-warning-text);
 
   background-color: var(--color-red-warning-background);
-  border-radius: var(--border-radius-default);
 
   transition: 150ms color, 150ms opacity !important;
 
   &_landscape {
     margin-top: 0;
-
     font-size: 0.9375rem;
   }
 
@@ -88,6 +85,7 @@
 }
 
 .text {
+  max-width: 100%;
   margin: 0.25rem 0 0;
   padding: 0;
 
@@ -95,6 +93,11 @@
   font-weight: 600;
   line-height: 0.75rem;
   color: var(--color-red-warning-text-70);
+  overflow-wrap: anywhere;
+}
+
+.light {
+  font-weight: 500;
 }
 
 .closeButton {
@@ -111,13 +114,13 @@
   width: 1.25rem !important;
   height: 1.25rem !important;
   padding: 0 !important;
+  border: none;
+  border-radius: 50% !important;
 
   font-size: 1.25rem !important;
   color: var(--color-red-warning-text) !important;
 
   background-color: var(--color-red-warning-button-background) !important;
-  border: none;
-  border-radius: 50% !important;
 
   transition: background-color 150ms;
 
@@ -150,6 +153,8 @@
 .domainPreviewWrapper {
   position: relative;
 
+  flex-shrink: 0;
+
   width: 2.5rem;
   height: 2.5rem;
   margin-right: 0.625rem;
@@ -163,7 +168,6 @@
 
   width: var(--domain-preview-size);
   height: var(--domain-preview-size);
-
   border: 1px solid var(--color-red-warning-background);
   border-radius: var(--border-radius-domain);
 }

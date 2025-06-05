@@ -161,7 +161,7 @@ function DappConnectModal({
         accountType={accountType}
         isActive={accountId === selectedAccount}
         isLoading={isLoading}
-        // eslint-disable-next-line react/jsx-no-bind
+
         onClick={onClick}
         cardBackgroundNft={cardBackgroundNft}
       />
@@ -235,8 +235,7 @@ function DappConnectModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: DappConnectState) {
     switch (currentKey) {
       case DappConnectState.Info:
         return renderDappInfoWithSkeleton();
@@ -280,6 +279,7 @@ function DappConnectModal({
         isOpen={isOpen}
         dialogClassName={styles.modalDialog}
         nativeBottomSheetKey="dapp-connect"
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
         forceFullNative={renderingKey !== DappConnectState.Info}
         onClose={cancelDappConnectRequestConfirm}
         onCloseAnimationEnd={cancelDappConnectRequestConfirm}

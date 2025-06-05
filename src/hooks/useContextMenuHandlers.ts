@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import { useEffect, useState } from '../lib/teact/teact';
+import { type ElementRef, useEffect, useState } from '../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../lib/teact/teact-dom';
 
 import type { IAnchorPosition } from '../global/types';
@@ -14,7 +13,7 @@ const LONG_TAP_DURATION_MS = 200;
 const IOS_PWA_CONTEXT_MENU_DELAY_MS = 100;
 
 interface OwnProps {
-  elementRef: RefObject<HTMLElement>;
+  elementRef: ElementRef<HTMLElement>;
   isMenuDisabled?: boolean;
   shouldDisableOnLink?: boolean;
   shouldDisableOnLongTap?: boolean;

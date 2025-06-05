@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import type { TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, TeactNode } from '../../lib/teact/teact';
 import React, { beginHeavyAnimation, useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 import { addExtraClass, removeExtraClass, setExtraStyles, toggleExtraClass } from '../../lib/teact/teact-dom';
 import { getGlobal } from '../../global';
@@ -24,7 +23,7 @@ type AnimationName = (
   );
 export type ChildrenFn = (isActive: boolean, isFrom: boolean, currentKey: number, activeKey: number) => TeactNode;
 export type TransitionProps = {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   activeKey: number;
   prevKey?: number;
   nextKey?: number;
@@ -87,8 +86,7 @@ function Transition({
   const { animationLevel } = getGlobal().settings;
   const shouldDisableAnimation = animationLevel === ANIMATION_LEVEL_MIN;
 
-  // eslint-disable-next-line no-null/no-null
-  let containerRef = useRef<HTMLDivElement>(null);
+  let containerRef = useRef<HTMLDivElement>();
   if (ref) {
     containerRef = ref;
   }

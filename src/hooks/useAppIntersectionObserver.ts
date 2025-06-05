@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import type { ElementRef } from '../lib/teact/teact';
 
 import type { ObserveFn } from './useIntersectionObserver';
 
@@ -16,6 +16,6 @@ export function useAppIntersectionObserver() {
   observeIntersection = observe;
 }
 
-export function useGetIsIntersectingWithApp(targetRef: RefObject<HTMLElement>) {
+export function useGetIsIntersectingWithApp(targetRef: ElementRef<HTMLElement>) {
   return useGetIsIntersecting(targetRef, observeIntersection);
 }

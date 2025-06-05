@@ -546,7 +546,7 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
     address: string;
   }
 
-  let addressToAccountsMap: { [address: string]: BalancePollingAccount[] } = {};
+  let addressToAccountsMap: Record<string, BalancePollingAccount[]> = {};
   let activeAccountId: string | undefined;
 
   const localOnUpdate = onUpdate;

@@ -33,7 +33,7 @@ function Footer({ onConnectClick, wallet, isGiveawayFinished }: OwnProps) {
             <Button
               isSimple
               className={styles.button}
-              onClick={onConnectClick!}
+              onClick={onConnectClick}
             >Connect MyTonWallet
             </Button>
           </div>

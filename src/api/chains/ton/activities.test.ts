@@ -33,7 +33,7 @@ describe('parseTrace + calculateActivityDetails', () => {
           amount: -5000000000n,
           slug: 'toncoin',
         },
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         traceResponse: require('./testData/tonTransferTraceResponse.json'),
         expectedFee: 2345629n,
       },
@@ -51,7 +51,7 @@ describe('parseTrace + calculateActivityDetails', () => {
           amount: -90000000n,
           slug: 'ton-eqcxe6mutq',
         },
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         traceResponse: require('./testData/usdtTransferTraceResponse.json'),
         expectedFee: 7220787n,
       },

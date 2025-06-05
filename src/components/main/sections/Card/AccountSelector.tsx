@@ -86,8 +86,7 @@ function AccountSelector({
     setIsSensitiveDataHidden,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>();
 
   const lang = useLang();
   const [isOpen, openAccountSelector, closeAccountSelector] = useFlag(false);
@@ -168,7 +167,9 @@ function AccountSelector({
     openAddAccountModal();
   });
   useEffect(() => {
-    if (isEdit && isInsideSticky) { handleSaveClick(); }
+    if (isEdit && isInsideSticky) {
+      handleSaveClick();
+    }
   }, [isEdit, isInsideSticky]);
 
   const handleAddV5WalletClick = useLastCallback(() => {
@@ -187,7 +188,6 @@ function AccountSelector({
 
   const handleQrScanClick = useLastCallback(() => {
     if (IS_IOS && getIsMobileTelegramApp()) {
-      // eslint-disable-next-line no-alert
       alert('Scanning is temporarily not available');
       return;
     }

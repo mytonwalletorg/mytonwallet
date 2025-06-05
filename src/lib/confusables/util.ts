@@ -1,4 +1,4 @@
-/* eslint-disable max-len, no-misleading-character-class, no-control-regex, operator-linebreak */
+/* eslint-disable @stylistic/max-len, no-misleading-character-class, no-control-regex, @stylistic/operator-linebreak */
 /** @copyright Mathias Bynens <https://mathiasbynens.be/>. MIT license. */
 const RE_SYMBOL_WITH_COMBINING_MARKS =
   /([\0-\u02FF\u0370-\u1AAF\u1B00-\u1DBF\u1E00-\u20CF\u2100-\uD7FF\uE000-\uFE1F\uFE30-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])([\u0300-\u036F\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF\uFE20-\uFE2F]+)/g;
@@ -8,7 +8,7 @@ const RE_LINEBREAK_COMBINING_MARKS =
 const RE_SPACE_CHARS = /[\n\r]/g;
 const RE_FAKE_DOTS = /[\u0702\u0701\u2024\u00B7\u02D9\u0971\u1427\u18DF\u22C5\u2027]/g;
 const RE_EMPTY_CHARS = /[\u200B-\u200D\uFEFF\u2063]/g;
-/* eslint-enable max-len, no-misleading-character-class, no-control-regex, operator-linebreak */
+/* eslint-enable @stylistic/max-len, no-misleading-character-class, no-control-regex, @stylistic/operator-linebreak */
 
 /** Skippable characters that are not confusables */
 export const checkLNPRegex = /^(?:[~`!@#%^&*(){}[\];:"'<,.>?/\\|_+=-]|[a-zA-Z0-9\s])+$/;

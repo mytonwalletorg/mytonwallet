@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 $paddingSize: 0.75rem;
 $iconSize: 2rem;
@@ -15,6 +15,7 @@ $gapSize: 0.75rem;
 
   width: 100%;
   padding: $paddingSize;
+  border: none;
 
   font-size: 1rem;
   font-weight: 600;
@@ -22,9 +23,8 @@ $gapSize: 0.75rem;
   color: var(--color-black);
 
   background-color: var(--color-background-first);
-  border: none;
 
-  @include transition(background-color 150ms);
+  @include mixins.transition(background-color 150ms);
 
   &:not(:first-child)::before {
     content: '';
@@ -67,7 +67,6 @@ $gapSize: 0.75rem;
 
 .rightItem {
   margin-left: auto;
-
   color: var(--color-gray-3);
 }
 

@@ -248,7 +248,7 @@ function TransferConfirm({
         </div>
         <InteractiveTextField
           chain={chain}
-          address={resolvedAddress!}
+          address={resolvedAddress}
           addressName={addressName}
           isScam={isScam}
           copyNotification={lang('Address was copied!')}

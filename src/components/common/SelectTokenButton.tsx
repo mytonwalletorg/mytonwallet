@@ -78,8 +78,7 @@ const BUTTON_WIDTH = 70 / REM;
 const CHARACTER_WIDTH = 10;
 
 function useSelectorWidth(token?: ApiToken) {
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
+  const transitionRef = useRef<HTMLDivElement>();
 
   useLayoutEffect(() => {
     if (!transitionRef.current || !token) return;

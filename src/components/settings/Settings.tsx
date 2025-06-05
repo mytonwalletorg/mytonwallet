@@ -193,8 +193,8 @@ function Settings({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
+
+  const transitionRef = useRef<HTMLDivElement>();
   const { renderingKey } = useModalTransitionKeys(state, isOpen);
   const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isOpen);
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
@@ -202,6 +202,7 @@ function Settings({
 
   const [isDeveloperModalOpen, openDeveloperModal, closeDeveloperModal] = useFlag();
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   const isInitialScreen = renderingKey === SettingsState.Initial;
 
   const activeLang = useMemo(() => LANG_LIST.find((l) => l.langCode === langCode), [langCode]);
@@ -303,7 +304,7 @@ function Settings({
   }
 
   const handleBackClick = useLastCallback(() => {
-    switch (renderingKey) {
+    switch (renderingKey as SettingsState) {
       case SettingsState.HiddenNfts:
       case SettingsState.SelectTokenList:
         setSettingsState({ state: SettingsState.Assets });
@@ -638,7 +639,7 @@ function Settings({
               )}
               <div className={styles.block}>
                 <a
-                  href={`https://t.me/${MTW_TIPS_CHANNEL_NAME[langCode as never] ?? MTW_TIPS_CHANNEL_NAME.en}`}
+                  href={`https://t.me/${MTW_TIPS_CHANNEL_NAME[langCode] ?? MTW_TIPS_CHANNEL_NAME.en}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.item}
@@ -754,8 +755,7 @@ function Settings({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isSlideActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isSlideActive: boolean, isFrom: boolean, currentKey: SettingsState) {
     switch (currentKey) {
       case SettingsState.Initial:
         return renderSettings();

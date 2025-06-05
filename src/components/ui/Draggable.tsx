@@ -1,7 +1,7 @@
-import type { RefObject } from 'react';
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
+  type ElementRef,
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 
@@ -45,8 +45,8 @@ type OwnProps = {
   knobStyle?: string;
   isDisabled?: boolean;
   offset?: Offset;
-  parentRef?: RefObject<HTMLDivElement>;
-  scrollRef?: RefObject<HTMLDivElement>;
+  parentRef?: ElementRef<HTMLDivElement>;
+  scrollRef?: ElementRef<HTMLDivElement>;
   className?: string;
   onClick: (e: React.MouseEvent | React.TouchEvent) => void;
 };
@@ -77,11 +77,8 @@ function Draggable({
   onClick,
 }: OwnProps) {
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const buttonRef = useRef<HTMLDivElement>(null);
-
+  const ref = useRef<HTMLDivElement>();
+  const buttonRef = useRef<HTMLDivElement>();
   const scrollIntervalId = useRef<number>();
 
   const [state, setState] = useState<DraggableState>({

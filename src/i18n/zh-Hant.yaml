@@ -835,17 +835,12 @@ Coins have been unstaked!: 代幣已解鎖！
 Confirm Upgrading: 確認升級
 How does it work?: 它是如何運作的？
 Multisend: 批量發送
-Expires in %1$d days:
-  zeroValue: 今日到期
-  otherValue: 將於 %1$d 天後到期
 Renew All: 全部續費
 Renew: 續費
 Renew Domain: 續費域名
 Renew Domains: 續費域名
 Some domains are about to expire: 部分域名即將到期
-$domain_expire:
-  zeroValue: "%domain% 今天到期"
-  otherValue: "%domain% 將在 %days% 天後到期"
+$domain_expire: "**%domain%** 將於%days%到期"
 '%token% Staking': '%token% 質押'
 Add Tab: 新增分頁
 Remove Tab: 移除分頁
@@ -871,19 +866,23 @@ Confirm Renewing: 確認續約
 Confirm Linking: 確認連結
 $domains_expire:
   zeroValue: "沒有網域將於%days%到期"
-  oneValue: "%domain%個網域將於%days%到期"
-  otherValue: "%domain%個網域將於%days%到期"
+  oneValue: "**%domain%個網域** 將於%days%到期"
+  otherValue: "**%domain%個網域** 將於%days%到期"
 $in_days:
   zeroValue: "今天"
   oneValue: "明天"
   otherValue: "%1$d天後"
-$domain_was_expired: "%domain% 已過期"
+$domain_was_expired: "**%domain%** 已過期"
 $domains_was_expired:
   zeroValue: "沒有網域過期"
-  oneValue: "%domain%個網域已過期"
-  otherValue: "%domain%個網域已過期"
-
+  oneValue: "**%domain%個網域** 已過期"
+  otherValue: "**%domain%個網域** 已過期"
 Reload: 重新載入
 Copy Link: 複製連結
 Check eligibility for max APY: 檢查最大 APY 資格
 Check eligibility: 檢查資格
+$expired_many: 已過期
+$expires_in %days%:
+  zeroValue: "將於%days%到期"
+  oneValue: "將於%days%到期"
+  otherValue: "將於%days%到期"

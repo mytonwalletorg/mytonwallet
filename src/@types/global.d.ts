@@ -18,7 +18,12 @@ declare namespace React {
   }
 
   // Teact feature
+  // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types, @typescript-eslint/no-empty-object-type
   interface CSSProperties extends String {}
+
+  interface ClassAttributes<T> extends RefAttributes<T> {
+    ref?: ((instance: T | undefined) => void) | React.RefObject<T | undefined> | undefined; // Teact ref
+  }
 
   interface Attributes {
     // Optimization for DOM nodes reordering. Requires `teactFastList` for parent
@@ -89,6 +94,7 @@ declare module '*.txt' {
 
 declare module 'opus-recorder' {
   export interface IOpusRecorder extends Omit<MediaRecorder, 'start' | 'ondataavailable'> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-new
     new(options: AnyLiteral): IOpusRecorder;
 
     start(stream?: MediaStreamAudioSourceNode): void;
@@ -154,7 +160,7 @@ type Falsy = false | 0 | '' | null | undefined;
 interface BooleanConstructor {
   new<T>(value: T | Falsy): value is T;
   <T>(value: T | Falsy): value is T;
-  readonly prototype: Boolean;
+  readonly prototype: boolean;
 }
 
 interface Array<T> {
@@ -178,7 +184,7 @@ interface FileSystemSyncAccessHandle {
 
   truncate: (size: number) => Promise<undefined>;
   getSize: () => Promise<number>;
-  flush: () => Promise<undefined> ;
+  flush: () => Promise<undefined>;
   close: () => Promise<undefined>;
 }
 

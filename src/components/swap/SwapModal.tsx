@@ -171,6 +171,7 @@ function SwapModal({
 
   const handleTokenSelect = useLastCallback((token: UserSwapToken | UserToken) => {
     addSwapToken({ token: token as UserSwapToken });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const setToken = renderingKey === SwapState.SelectTokenTo ? setSwapTokenOut : setSwapTokenIn;
     setToken({ tokenSlug: token.slug });
   });
@@ -198,8 +199,7 @@ function SwapModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: SwapState) {
     switch (currentKey) {
       case SwapState.Initial:
         return (
@@ -283,6 +283,7 @@ function SwapModal({
 
   const forceFullNative = FULL_SIZE_NBS_STATES.includes(renderingKey)
     // Crosschain exchanges have additional information that may cause the height of the modal to be insufficient
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     || (renderingKey === SwapState.Complete && renderedSwapType !== SwapType.OnChain);
 
   return (

@@ -1,4 +1,4 @@
-import React, { memo, useLayoutEffect } from '../../lib/teact/teact';
+import React, { type ElementRef, memo, useLayoutEffect } from '../../lib/teact/teact';
 import { toggleExtraClass } from '../../lib/teact/teact-dom';
 
 import buildClassName from '../../util/buildClassName';
@@ -9,7 +9,7 @@ import styles from './MenuBackdrop.module.scss';
 
 interface OwnProps {
   isMenuOpen?: boolean;
-  contentRef: React.RefObject<HTMLElement>;
+  contentRef: ElementRef<HTMLElement>;
   contentClassName?: string;
 }
 

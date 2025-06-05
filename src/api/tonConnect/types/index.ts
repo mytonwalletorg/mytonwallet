@@ -14,7 +14,6 @@ export interface TransactionPayloadMessage {
   stateInit?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum CONNECT_EVENT_ERROR_CODES {
   UNKNOWN_ERROR = 0,
   BAD_REQUEST_ERROR = 1,
@@ -25,7 +24,6 @@ export enum CONNECT_EVENT_ERROR_CODES {
   METHOD_NOT_SUPPORTED = 400,
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum SEND_TRANSACTION_ERROR_CODES {
   UNKNOWN_ERROR = 0,
   BAD_REQUEST_ERROR = 1,
@@ -34,7 +32,6 @@ export enum SEND_TRANSACTION_ERROR_CODES {
   METHOD_NOT_SUPPORTED = 400,
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum SIGN_DATA_ERROR_CODES {
   UNKNOWN_ERROR = 0,
   BAD_REQUEST_ERROR = 1,

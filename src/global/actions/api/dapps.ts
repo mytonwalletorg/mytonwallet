@@ -92,7 +92,7 @@ addActionHandler(
     const ledgerApi = await import('../../../util/ledger');
 
     try {
-      const signature = await ledgerApi.signLedgerProof(connectAccountId!, proof!);
+      const signature = await ledgerApi.signLedgerProof(connectAccountId, proof!);
       if (IS_DELEGATED_BOTTOM_SHEET) {
         callActionInMain('submitDappConnectHardware', { accountId: connectAccountId, signature });
 

@@ -29,11 +29,11 @@
 
   width: 2rem;
   height: 0.75rem;
+  border-radius: var(--border-radius-tiny);
 
   text-indent: -999px;
 
   background-color: var(--color-gray-4);
-  border-radius: var(--border-radius-tiny);
 
   transition: background-color 100ms ease-in;
 
@@ -46,10 +46,10 @@
 
     width: 1.125rem;
     height: 1.125rem;
-
-    background-color: var(--color-background-first);
     border: 0.125rem solid var(--color-gray-4);
     border-radius: 0.75rem;
+
+    background-color: var(--color-background-first);
 
     transition: border-color 100ms ease-in, transform 100ms ease-in;
 
@@ -69,6 +69,5 @@
 
 .input:checked + .widget:after {
   transform: translateX(calc(100% - 0.25rem));
-
   border-color: var(--color-accent);
 }

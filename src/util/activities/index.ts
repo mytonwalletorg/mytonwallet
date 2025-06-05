@@ -8,9 +8,10 @@ import { getIsTransactionWithPoisoning } from '../poisoningHash';
 
 type UnusualTxType = 'backend-swap' | 'local' | 'additional';
 
-const TRANSACTION_TYPE_TITLES: {
-  [K in ApiTransactionType & keyof any]?: [past: string, present: string, future: string]
-} = {
+const TRANSACTION_TYPE_TITLES: Partial<Record<
+  ApiTransactionType & keyof any,
+  [past: string, present: string, future: string]
+>> = {
   stake: ['Staked', 'Staking', '$stake_action'],
   unstake: ['Unstaked', 'Unstaking', '$unstake_action'],
   unstakeRequest: ['Unstake Requested', 'Requesting Unstake', '$request_unstake_action'],
@@ -71,7 +72,6 @@ export function buildTxId(hash: string, subId?: number | string, type?: UnusualT
   return `${hash}:${subId ?? ''}:${type}`;
 }
 
-// eslint-disable-next-line consistent-return
 export function getActivityTokenSlugs(activity: ApiActivity): string[] {
   switch (activity.kind) {
     case 'transaction': {

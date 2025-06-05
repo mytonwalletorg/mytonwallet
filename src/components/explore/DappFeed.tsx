@@ -27,17 +27,17 @@ type DappWithLastOpenedDate = ApiDapp & { lastOpenedAt?: number };
 const MAX_DAPPS_FOR_PILL_MODE = 3;
 const HIDDEN_FROM_FEED_DAPP_ORIGINS = new Set(['https://checkin.mytonwallet.org']);
 
-function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: StateProps) {
+function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin }: StateProps) {
   const { openSettingsWithState, closeExplore } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+
+  const containerRef = useRef<HTMLDivElement>();
   const dapps: DappWithLastOpenedDate[] = useMemo(() => {
     return dappsFromState
       .slice()
       .filter((dapp) => !HIDDEN_FROM_FEED_DAPP_ORIGINS.has(dapp.origin))
-      .map((dapp) => ({ ...dapp, lastOpenedAt: dappLastOpenedDatesByOrigin[dapp.origin] }))
+      .map((dapp) => ({ ...dapp, lastOpenedAt: dappLastOpenedDatesByOrigin?.[dapp.origin] }))
       .sort(compareDapps);
   }, [dappLastOpenedDatesByOrigin, dappsFromState]);
 

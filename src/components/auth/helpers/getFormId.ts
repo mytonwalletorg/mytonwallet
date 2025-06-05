@@ -1,6 +1,5 @@
 import type { AuthMethod } from '../../../global/types';
 
-// eslint-disable-next-line consistent-return
 export function getFormId(method: AuthMethod) {
   switch (method) {
     case 'createAccount':

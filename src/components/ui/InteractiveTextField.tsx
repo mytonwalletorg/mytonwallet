@@ -96,10 +96,8 @@ function InteractiveTextField({
 }: OwnProps & StateProps) {
   const { showNotification, addSavedAddress } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const addressNameRef = useRef<HTMLInputElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const contentRef = useRef<HTMLDivElement>(null);
+  const addressNameRef = useRef<HTMLInputElement>();
+  const contentRef = useRef<HTMLDivElement>();
   const lang = useLang();
   const [isSaveAddressModalOpen, openSaveAddressModal, closeSaveAddressModal] = useFlag();
   const [isDeleteSavedAddressModalOpen, openDeletedSavedAddressModal, closeDeleteSavedAddressModal] = useFlag();
@@ -378,7 +376,6 @@ function InteractiveTextField({
       <div
         ref={contentRef}
         className={buildClassName(styles.wrapper, className)}
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
         {...(shouldUseMenu && !isActionsMenuOpen && {
           ...longPressHandlers,
           tabIndex: 0,
@@ -483,7 +480,7 @@ function useDropdownMenu(
 
     let x: number;
     if (e.type.startsWith('touch')) {
-      const { changedTouches, touches } = (e as React.TouchEvent);
+      const { changedTouches, touches } = e as React.TouchEvent;
       if (touches.length > 0) {
         x = touches[0].clientX;
       } else {

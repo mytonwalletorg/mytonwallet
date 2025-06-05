@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { ApiBalanceBySlug, ApiChain } from '../../api/types';
 import type { AccountSettings, GlobalState, UserToken } from '../types';
 
@@ -31,7 +30,6 @@ function getIsNewAccount(balancesBySlug: ApiBalanceBySlug, tokenInfo: GlobalStat
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const selectAccountTokensMemoizedFor = withCache((accountId: string) => memoize((
   balancesBySlug: ApiBalanceBySlug,
   tokenInfo: GlobalState['tokenInfo'],

@@ -2,7 +2,6 @@ import type { Storage } from './types';
 
 import { IS_EXTENSION } from '../../config';
 
-// eslint-disable-next-line no-restricted-globals
 const storage = IS_EXTENSION ? self.chrome.storage.local : undefined;
 
 export default ((storage && {

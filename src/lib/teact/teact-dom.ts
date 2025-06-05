@@ -45,7 +45,7 @@ const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 const FILTERED_ATTRIBUTES = new Set(['key', 'ref', 'teactFastList', 'teactOrderKey']);
 const HTML_ATTRIBUTES = new Set(['dir', 'role', 'form']);
 const CONTROLLABLE_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
-const MAPPED_ATTRIBUTES: { [k: string]: string } = {
+const MAPPED_ATTRIBUTES: Record<string, string> = {
   autoCapitalize: 'autocapitalize',
   autoComplete: 'autocomplete',
   autoCorrect: 'autocorrect',
@@ -59,7 +59,6 @@ const headsByElement = new WeakMap<Element, VirtualDomHead>();
 const extraClasses = new WeakMap<Element, Set<string>>();
 const extraStyles = new WeakMap<Element, Record<string, string>>();
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 let DEBUG_virtualTreeSize = 1;
 
 function render($element: VirtualElement | undefined, parentEl: HTMLElement) {
@@ -344,7 +343,6 @@ function createNode($element: VirtualElementReal, currentContext: CurrentContext
 
   processControlled(tag, props);
 
-  // eslint-disable-next-line no-restricted-syntax
   for (const key in props) {
     if (!props.hasOwnProperty(key)) continue;
 
@@ -803,7 +801,6 @@ function setAttribute(element: DOMElement, key: string, value: any, namespace?: 
   } else if (key === 'style') {
     updateStyle(element, value);
   } else if (key === 'dangerouslySetInnerHTML') {
-    // eslint-disable-next-line no-underscore-dangle
     element.innerHTML = value.__html;
   } else if (key.startsWith('on')) {
     addEventListener(element, key, value, key.endsWith('Capture'));
@@ -920,7 +917,6 @@ function applyExtraStyles(element: DOMElement) {
   Object.assign(element.style, standardStyles);
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function DEBUG_addToVirtualTreeSize($current: VirtualElementParent | VirtualDomHead) {
   DEBUG_virtualTreeSize += $current.children.length;
 
@@ -931,7 +927,6 @@ function DEBUG_addToVirtualTreeSize($current: VirtualElementParent | VirtualDomH
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function DEBUG_checkKeyUniqueness(children: VirtualElementChildren) {
   const firstChild = children[0];
   if (firstChild && 'props' in firstChild && firstChild.props.key !== undefined) {

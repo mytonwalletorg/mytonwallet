@@ -47,13 +47,11 @@ const IconWithTooltip: FC<OwnProps> = ({
   });
   const colorClassName = type === 'warning' && styles[`color-${type}`];
 
-  // eslint-disable-next-line no-null/no-null
-  const iconRef = useRef<HTMLDivElement | null>(null);
-  // eslint-disable-next-line no-null/no-null
-  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const iconRef = useRef<HTMLDivElement>();
+  const tooltipRef = useRef<HTMLDivElement>();
 
-  const tooltipStyle = useRef<string | undefined>();
-  const arrowStyle = useRef<string | undefined>();
+  const tooltipStyle = useRef<string>();
+  const arrowStyle = useRef<string>();
 
   const randomTooltipKey = useUniqueId();
 

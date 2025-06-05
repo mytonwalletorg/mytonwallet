@@ -1,12 +1,11 @@
-export default function isEmptyObject(obj: Object) {
+export default function isEmptyObject(obj: object) {
   return !isKeyCountGreater(obj, 0);
 }
 
-export function isKeyCountGreater(obj: Object, countToOutnumber: number) {
+export function isKeyCountGreater(obj: object, countToOutnumber: number) {
   if (countToOutnumber < 0) return true;
   let keyCount = 0;
 
-  // eslint-disable-next-line no-restricted-syntax
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       keyCount++;

@@ -107,12 +107,10 @@ function Main({
     updatePendingSwaps,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const cardRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const portraitContainerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const landscapeContainerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>();
+  const portraitContainerRef = useRef<HTMLDivElement>();
+  const landscapeContainerRef = useRef<HTMLDivElement>();
+
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
@@ -191,7 +189,7 @@ function Main({
       return undefined;
     }
 
-    return captureEvents(portraitContainerRef.current!, {
+    return captureEvents(portraitContainerRef.current, {
       excludedClosestSelector: '.token-card',
       onSwipe: (e, direction) => {
         if (direction === SwipeDirection.Right) {

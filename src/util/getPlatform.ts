@@ -8,8 +8,8 @@ export function getPlatform() {
   const iosPlatforms = ['iPhone', 'iPad', 'iPod'];
   if (
     iosPlatforms.indexOf(platform) !== -1
-        // For new IPads with M1 chip and IPadOS platform returns "MacIntel"
-        || (platform === 'MacIntel' && ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2))
+    // For new IPads with M1 chip and IPadOS platform returns "MacIntel"
+    || (platform === 'MacIntel' && ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2))
   ) {
     return 'iOS';
   }

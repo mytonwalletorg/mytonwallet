@@ -1,6 +1,8 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .suggestions {
+  scrollbar-width: none !important;
+
   position: absolute;
   z-index: 2;
   left: 0;
@@ -14,15 +16,13 @@
   min-width: 10rem;
   margin: 0;
   padding: 0;
+  border-radius: var(--border-radius-default);
 
   color: var(--color-black);
   list-style: none;
 
   background: var(--color-background-drop-down);
-  border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
-
-  scrollbar-width: none !important;
 
   &.bottom {
     top: calc(100% + 0.5rem);
@@ -49,9 +49,9 @@
   font-weight: 600;
   line-height: 1.25rem;
 
-  @include transition(background-color 150ms);
+  @include mixins.transition(background-color 150ms);
 
-  @include separator();
+  @include mixins.separator();
 
   &.active {
     background-color: var(--color-interactive-drop-down-menu-hover);
@@ -65,7 +65,6 @@
 
   @media (pointer: coarse) {
     padding: 0.875rem 1rem;
-
     font-size: 1rem;
   }
 }

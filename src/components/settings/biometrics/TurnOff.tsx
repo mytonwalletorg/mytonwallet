@@ -45,8 +45,7 @@ function TurnOff({
     disableBiometrics({ password, isPasswordNumeric });
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: BiometricsState) {
     switch (currentKey) {
       case BiometricsState.TurnOffBiometricConfirmation:
         return (

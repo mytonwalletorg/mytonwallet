@@ -1,8 +1,7 @@
-@import '../../../styles/mixins';
+@use "../../../styles/mixins";
 
 .modalDialog {
   overflow: hidden;
-
   height: 38.5rem;
 
   @supports (height: var(--safe-area-bottom)) {
@@ -45,13 +44,11 @@
 
 .fadeOut {
   opacity: 1;
-
   animation: fade-out-opacity 0.15s ease forwards;
 }
 
 .fadeIn {
   opacity: 0;
-
   animation: fade-in-opacity 0.15s ease forwards;
 }
 

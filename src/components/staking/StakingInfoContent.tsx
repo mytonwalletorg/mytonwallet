@@ -126,7 +126,7 @@ function StakingInfoContent({
     isOpen: isLoading && isActive,
     withShouldRender: true,
   });
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug)!, [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens])!;
   const forceUpdate = useForceUpdate();
   const { height } = useWindowSize();
   const appTheme = useAppTheme(theme);
@@ -364,11 +364,13 @@ function StakingInfoContent({
                 />
                 {stakingType === 'ethena' && !canBeClaimed && !!unstakeRequestAmount && renderUnstakeDescription()}
                 {!isViewMode && (
-                  <div className={buildClassName(
-                    styles.stakingInfoButtons,
-                    stakingType === 'ethena' && styles.stakingInfoButtonsAdaptiveWidth,
-                    !!unclaimedRewards && styles.stakingInfoButtonsWithMargin,
-                  )}>
+                  <div
+                    className={buildClassName(
+                      styles.stakingInfoButtons,
+                      stakingType === 'ethena' && styles.stakingInfoButtonsAdaptiveWidth,
+                      !!unclaimedRewards && styles.stakingInfoButtonsWithMargin,
+                    )}
+                  >
                     <Button
                       className={styles.stakingInfoButton}
                       isPrimary
@@ -395,7 +397,7 @@ function StakingInfoContent({
                         {lang('Unstake %amount%', {
                           amount: isSensitiveDataHidden
                             ? `*** ${symbol}`
-                            : formatCurrency(toDecimal(unstakeRequestAmount!, decimals!), symbol!, FRACTION_DIGITS),
+                            : formatCurrency(toDecimal(unstakeRequestAmount!, decimals), symbol!, FRACTION_DIGITS),
                         })}
                       </Button>
                     )}

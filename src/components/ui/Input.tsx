@@ -1,7 +1,7 @@
 import type {
   ChangeEvent, FormEvent, KeyboardEvent, RefObject,
 } from 'react';
-import type { TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, TeactNode } from '../../lib/teact/teact';
 import React, { memo, useState } from '../../lib/teact/teact';
 
 import { requestMutation } from '../../lib/fasterdom/fasterdom';
@@ -13,7 +13,7 @@ import useLang from '../../hooks/useLang';
 import styles from './Input.module.scss';
 
 type OwnProps = {
-  ref?: RefObject<HTMLInputElement | HTMLTextAreaElement>;
+  ref?: ElementRef<HTMLInputElement | HTMLTextAreaElement>;
   id?: string;
   type?: 'text' | 'password';
   label?: TeactNode;

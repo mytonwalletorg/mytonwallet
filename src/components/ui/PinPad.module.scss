@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .root {
   display: flex;
@@ -15,7 +15,7 @@
     padding-bottom: max(1rem, var(--safe-area-bottom));
   }
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
   }
 }
@@ -37,7 +37,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
   margin-bottom: 1.5rem;
 }
 
@@ -75,9 +74,9 @@
 .dot {
   width: 0.75rem;
   height: 0.75rem;
+  border-radius: 50%;
 
   background-color: var(--fill-color);
-  border-radius: 50%;
 
   transition: background-color 200ms, transform 300ms;
 
@@ -110,7 +109,6 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-
   width: 100%;
 }
 
@@ -151,10 +149,10 @@
 
     aspect-ratio: 1;
     height: 100%;
+    border-radius: 50%;
 
     opacity: 0;
     background: var(--color-tint);
-    border-radius: 50%;
 
     transition: opacity 200ms;
   }
@@ -168,7 +166,6 @@
 
 .buttonHidden {
   pointer-events: none;
-
   opacity: 0;
 }
 
@@ -218,7 +215,6 @@
 @keyframes dotLoadingAnimation {
   0% {
     transform: translateX(0) scale(1);
-
     opacity: 1;
   }
   25% {

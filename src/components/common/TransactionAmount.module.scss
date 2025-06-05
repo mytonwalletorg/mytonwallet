@@ -2,9 +2,7 @@
   --border-radius-value: var(--border-radius-default);
 
   overflow: hidden;
-
   margin: 1rem auto;
-
   border-radius: var(--border-radius-default);
 
   &.withStatus {
@@ -17,11 +15,10 @@
 
   max-width: 100%;
   padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-default);
 
   font-size: 3rem;
   font-weight: 600;
-
-  border-radius: var(--border-radius-default);
 
   @media (prefers-color-scheme: dark) {
     :global(.theme-system) & {
@@ -31,7 +28,6 @@
 
   &.withStatus {
     margin-bottom: 0.25rem;
-
     border-bottom-right-radius: var(--border-radius-mini);
     border-bottom-left-radius: var(--border-radius-mini);
   }
@@ -60,22 +56,19 @@
 
 .operationPositive {
   color: var(--color-transaction-amount-green-text);
-
   background-color: var(--color-transaction-amount-green-bg);
 }
 
 .operationScam {
   color: var(--color-transaction-amount-red-text);
-
   background-color: var(--color-transaction-amount-red-bg);
 }
 
 .status {
   margin: 0 auto;
   padding: 0.8125rem 0.75rem;
+  border-radius: var(--border-radius-mini) var(--border-radius-mini) var(--border-radius-default) var(--border-radius-default);
 
   font-size: 1.0625rem;
   font-weight: 700;
-
-  border-radius: var(--border-radius-mini) var(--border-radius-mini) var(--border-radius-default) var(--border-radius-default);
 }

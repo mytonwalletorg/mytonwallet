@@ -148,20 +148,20 @@ export type ApiJettonStakePayload = {
 };
 
 export type ApiParsedPayload = ApiCommentPayload
-| ApiEncryptedCommentPayload
-| ApiNftTransferPayload
-| ApiNftOwnershipAssignedPayload
-| ApiTokensTransferPayload
-| ApiTokensTransferNonStandardPayload
-| ApiUnknownPayload
-| ApiTokensBurnPayload
-| ApiLiquidStakingDepositPayload
-| ApiLiquidStakingWithdrawalPayload
-| ApiLiquidStakingWithdrawalNftPayload
-| ApiTokenBridgePaySwap
-| ApiDnsChangeRecord
-| ApiVestingAddWhitelistPayload
-| ApiSingleNominatorWithdrawPayload
-| ApiSingleNominatorChangeValidatorPayload
-| ApiLiquidStakingVotePayload
-| ApiJettonStakePayload;
+  | ApiEncryptedCommentPayload
+  | ApiNftTransferPayload
+  | ApiNftOwnershipAssignedPayload
+  | ApiTokensTransferPayload
+  | ApiTokensTransferNonStandardPayload
+  | ApiUnknownPayload
+  | ApiTokensBurnPayload
+  | ApiLiquidStakingDepositPayload
+  | ApiLiquidStakingWithdrawalPayload
+  | ApiLiquidStakingWithdrawalNftPayload
+  | ApiTokenBridgePaySwap
+  | ApiDnsChangeRecord
+  | ApiVestingAddWhitelistPayload
+  | ApiSingleNominatorWithdrawPayload
+  | ApiSingleNominatorChangeValidatorPayload
+  | ApiLiquidStakingVotePayload
+  | ApiJettonStakePayload;

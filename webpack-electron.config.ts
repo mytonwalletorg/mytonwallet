@@ -24,7 +24,7 @@ export default {
   },
 
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.js', '.cjs', '.mjs', '.ts', '.tsx'],
   },
 
   plugins: [
@@ -38,7 +38,7 @@ export default {
   module: {
     rules: [
       {
-        test: /\.(ts|tsx|js)$/,
+        test: /\.(ts|tsx|js|mjs|cjs)$/,
         loader: 'babel-loader',
         exclude: /node_modules/,
       },

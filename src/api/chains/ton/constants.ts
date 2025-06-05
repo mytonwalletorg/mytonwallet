@@ -2,7 +2,7 @@ import type { ApiTonWalletVersion, ContractInfo, ContractName } from './types';
 
 import { JettonStakingGas } from './contracts/JettonStaking/imports/constants';
 
-export const TON_BIP39_PATH = "m/44'/607'/0'";
+export const TON_BIP39_PATH = 'm/44\'/607\'/0\'';
 
 export const ONE_TON = 1_000_000_000n;
 export const TOKEN_TRANSFER_AMOUNT = 50000000n; // 0.05 TON

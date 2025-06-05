@@ -133,8 +133,7 @@ function TransferModal({
     submitTransferHardware();
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: TransferState) {
     switch (currentKey) {
       case TransferState.Initial:
         return (
@@ -169,7 +168,7 @@ function TransferModal({
               imageUrl={nfts?.[0]?.thumbnail}
               withChainIcon={isMultichainAccount}
               text={isNftTransfer
-                ? (nfts!.length > 1 ? lang('%amount% NFTs', { amount: nfts!.length }) : nfts![0]?.name || 'NFT')
+                ? (nfts.length > 1 ? lang('%amount% NFTs', { amount: nfts.length }) : nfts[0]?.name || 'NFT')
                 : formatCurrency(toDecimal(amount!, decimals), symbol)}
               className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
               secondText={shortenAddress(toAddress!)}
@@ -228,6 +227,7 @@ function TransferModal({
       noBackdropClose
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="transfer"
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       forceFullNative={screenHeight <= SCREEN_HEIGHT_FOR_FORCE_FULLSIZE_NBS || renderingKey === TransferState.Password}
       onClose={handleModalCloseWithReset}
       onCloseAnimationEnd={handleModalClose}

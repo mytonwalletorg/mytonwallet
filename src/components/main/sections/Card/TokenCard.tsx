@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import type { TeactNode } from '../../../../lib/teact/teact';
+import type { ElementRef } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
@@ -41,7 +40,7 @@ import styles from './Card.module.scss';
 import tonUrl from '../../../../assets/coins/ton.svg';
 
 interface OwnProps {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   token: UserToken;
   classNames?: string;
   isUpdating?: boolean;
@@ -162,7 +161,7 @@ function TokenCard({
   const changePercent = change ? Math.abs(round((change / initialPrice!) * 100, 2)) : 0;
 
   const withChange = Boolean(change !== undefined);
-  const historyStartDay = history?.length ? new Date(history![0][0] * 1000) : undefined;
+  const historyStartDay = history?.length ? new Date(history[0][0] * 1000) : undefined;
   const withExplorerButton = Boolean(token.cmcSlug || tokenAddress);
   const shouldHideChartPeriodSwitcher = !history?.length && token.priceUsd === 0;
 
@@ -175,7 +174,7 @@ function TokenCard({
     const title = (lang(
       'Open on %ton_explorer_name%',
       { ton_explorer_name: getExplorerName(token.chain) },
-    ) as TeactNode[]).join('');
+    ) as string[]).join('');
 
     return (
       <>
@@ -284,14 +283,14 @@ function TokenCard({
               imgClassName={styles.chartImg}
               width={CHART_DIMENSIONS.width}
               height={CHART_DIMENSIONS.height}
-              prices={history!}
+              prices={history}
               selectedIndex={selectedHistoryIndex}
               onSelectIndex={setSelectedHistoryIndex}
               isUpdating={isUpdating}
             />
 
             <div className={styles.tokenHistoryPrice}>
-              {formatCurrency(history![0][1], currencySymbol, 2, true)}
+              {formatCurrency(history[0][1], currencySymbol, 2, true)}
               <div className={styles.tokenPriceDate}>{formatShortDay(lang.code!, historyStartDay!)}</div>
             </div>
           </>

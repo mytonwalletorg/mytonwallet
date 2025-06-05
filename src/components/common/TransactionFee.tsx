@@ -27,8 +27,7 @@ export default function TransactionFee({ terms, token, precision, isLoading, cla
         <Transition activeKey={isLoading ? 1 : 0} name="fade" className={styles.field_transition}>
           {isLoading
             ? <LoadingDots isActive className={styles.field_loading} />
-            : <Fee terms={terms} token={token} precision={precision} />
-          }
+            : <Fee terms={terms} token={token} precision={precision} />}
         </Transition>
       </div>
     </div>

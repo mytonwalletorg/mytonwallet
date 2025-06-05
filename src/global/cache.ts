@@ -210,7 +210,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     if (cached.byAccountId) {
       Object.values(cached.byAccountId).forEach((accountState) => {
         if (accountState.balances?.bySlug) {
-          accountState.balances.bySlug = pick(accountState.balances!.bySlug, ['toncoin']);
+          accountState.balances.bySlug = pick(accountState.balances.bySlug, ['toncoin']);
         }
         if ((accountState as any).transactions) {
           delete (accountState as any).transactions;
@@ -336,7 +336,6 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
         const { balances } = cached.byAccountId[accountId];
         if (balances) {
-          // eslint-disable-next-line @typescript-eslint/no-loop-func
           balances.bySlug = Object.entries(balances.bySlug).reduce((acc, [slug, balance]) => {
             acc[slug] = BigInt(balance);
             return acc;

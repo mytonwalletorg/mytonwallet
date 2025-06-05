@@ -93,12 +93,12 @@ addActionHandler('fetchStakingFee', async (global, actions, payload) => {
     return;
   }
 
-  const state = selectAccountStakingState(global, currentAccountId)!;
+  const state = selectAccountStakingState(global, currentAccountId);
 
   const result = await callApi(
     'checkStakeDraft',
     currentAccountId,
-    amount!,
+    amount,
     state,
   );
   if (!result || 'error' in result) {
@@ -122,7 +122,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
 
   setGlobal(updateCurrentStaking(global, { isLoading: true, error: undefined }));
 
-  const state = selectAccountStakingState(global, currentAccountId)!;
+  const state = selectAccountStakingState(global, currentAccountId);
 
   if (isUnstaking) {
     const result = await callApi('checkUnstakeDraft', currentAccountId, amount!, state);
@@ -195,7 +195,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
 
   global = getGlobal();
 
-  const state = selectAccountStakingState(global, currentAccountId!)!;
+  const state = selectAccountStakingState(global, currentAccountId!);
 
   if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
@@ -288,7 +288,7 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
   const { amount, tokenAmount } = global.currentStaking;
   const { currentAccountId } = global;
 
-  const state = selectAccountStakingState(global, currentAccountId!)!;
+  const state = selectAccountStakingState(global, currentAccountId!);
 
   global = updateCurrentStaking(global, {
     isLoading: true,
@@ -513,7 +513,7 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
 
   global = getGlobal();
 
-  const stakingState = selectAccountStakingState(global, accountId)! as ApiEthenaStakingState | ApiJettonStakingState;
+  const stakingState = selectAccountStakingState(global, accountId) as ApiEthenaStakingState | ApiJettonStakingState;
   const isEthenaStaking = stakingState.type === 'ethena';
 
   const result = await callApi(
@@ -566,7 +566,7 @@ addActionHandler('submitStakingClaimHardware', async (global, actions) => {
   global = getGlobal();
 
   const accountId = global.currentAccountId!;
-  const stakingState = selectAccountStakingState(global, accountId)! as ApiJettonStakingState | ApiEthenaStakingState;
+  const stakingState = selectAccountStakingState(global, accountId) as ApiJettonStakingState | ApiEthenaStakingState;
   const isEthenaStaking = stakingState.type === 'ethena';
 
   let result: string | { error: ApiTransactionError } | undefined;

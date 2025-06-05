@@ -514,7 +514,7 @@ async function buildJettonState(
     token: tokenAddress,
   } = poolConfig;
 
-  const { decimals, slug: tokenSlug } = getTokenByAddress(tokenAddress)!;
+  const { decimals, slug: tokenSlug } = getTokenByAddress(tokenAddress);
 
   const tonClient = getTonClient(network);
   const pool = tonClient.open(StakingPool.createFromAddress(Address.parse(poolAddress)));

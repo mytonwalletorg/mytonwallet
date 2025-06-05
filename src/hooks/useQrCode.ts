@@ -1,5 +1,6 @@
 import type QRCodeStyling from 'qr-code-styling';
 import {
+  type ElementRef,
   useEffect, useLayoutEffect, useRef, useState,
 } from '../lib/teact/teact';
 import { removeExtraClass } from '../lib/teact/teact-dom';
@@ -13,7 +14,7 @@ import formatTransferUrl from '../util/ton/formatTransferUrl';
 const QR_SIZE = 600;
 
 interface UseQRCodeHook {
-  qrCodeRef: React.RefObject<HTMLDivElement>;
+  qrCodeRef: ElementRef<HTMLDivElement>;
   isInitialized: boolean;
 }
 
@@ -37,8 +38,7 @@ export default function useQrCode({
   const [isInitialized, setIsInitialized] = useState(!!qrCode);
   const logoUrl = IS_CORE_WALLET ? './coreWallet/logo.svg' : './logo.svg';
 
-  // eslint-disable-next-line no-null/no-null
-  const qrCodeRef = useRef<HTMLDivElement>(null);
+  const qrCodeRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
     if (isInitialized) return;
@@ -69,7 +69,7 @@ export default function useQrCode({
 
     if (qrCodeRef.current) {
       qrCode?.append(qrCodeRef.current);
-      // eslint-disable-next-line no-underscore-dangle
+
       qrCode._options.image = hideLogo
         ? undefined
         : (chain ? getChainNetworkIcon(chain) : logoUrl);

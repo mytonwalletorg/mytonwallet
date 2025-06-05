@@ -27,7 +27,6 @@ import { ANIMATION_DURATION } from '../ui/Menu';
 import styles from './MediaViewer.module.scss';
 
 type OwnProps = {
-  // eslint-disable-next-line react/no-unused-prop-types
   mediaId?: string;
   onClose: NoneToVoidFunction;
 };

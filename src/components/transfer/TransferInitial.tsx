@@ -255,7 +255,8 @@ function TransferInitial({
     return (
       <span ref={currencyRef} className={styles.amountInCurrency}>
         ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol, undefined, true)}
-      </span>);
+      </span>
+    );
   }, [currencyRef, renderingAmountInCurrency, shortBaseSymbol]);
 
   const updateDieselState = useLastCallback(() => {
@@ -479,12 +480,12 @@ function TransferInitial({
         onPaste={handlePaste}
       >
         {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} withMediaViewer />}
-        {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
+        {Boolean(nfts?.length) && nfts.length > 1 && <NftChips nfts={nfts} isStatic={isStatic} />}
 
         <AddressInput
           label={lang('Recipient Address')}
           value={toAddress}
-          error={hasAddressError ? (lang('Incorrect address') as string) : undefined}
+          error={hasAddressError ? lang('Incorrect address') : undefined}
           isStatic={isStatic}
           isFocused={isAddressFocused}
           isQrScannerSupported={isQrScannerSupported}

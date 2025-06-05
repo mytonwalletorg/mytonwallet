@@ -15,11 +15,9 @@
   color: var(--color-transaction-amount-text);
 
   background-color: var(--color-transaction-amount-bg);
-  border-radius: 1rem;
 
   &.purple {
     color: var(--color-transaction-amount-purple-text);
-
     background-color: var(--color-transaction-amount-purple-bg);
 
     .tokenIcon,
@@ -30,7 +28,6 @@
 
   &.green {
     color: var(--color-transaction-amount-green-text);
-
     background-color: var(--color-transaction-amount-green-bg);
 
     .tokenIcon,
@@ -51,16 +48,24 @@
 
 .nftIcon {
   position: relative;
-
   width: 1.25rem;
   height: 1.25rem;
+
+  &.stacked {
+    display: flex;
+    width: auto;
+  }
 }
 
 .image {
   width: 1.25rem;
   height: 1.25rem;
-
   border-radius: 50%;
+
+  &:not(:first-child) {
+    margin-left: -0.625rem;
+    box-shadow: 0 0 0 0.0625rem var(--color-transaction-amount-bg);
+  }
 }
 
 .chainIcon {
@@ -70,16 +75,14 @@
 
   width: 0.6875rem;
   height: 0.6875rem;
-
   border-radius: 50%;
+
   box-shadow: 0 0 0 0.0625rem var(--color-background-first);
 }
 
 .text {
   overflow: hidden;
-
   max-width: 100%;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }

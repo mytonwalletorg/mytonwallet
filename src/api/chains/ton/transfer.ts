@@ -389,7 +389,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       shouldEncrypt,
     });
 
-    const { networkFee } = await emulateTransactionWithFallback(network, wallet!, transaction, isInitialized);
+    const { networkFee } = await emulateTransactionWithFallback(network, wallet, transaction, isInitialized);
 
     const isEnoughBalance = isFullTonTransfer
       ? toncoinBalance > networkFee
@@ -400,7 +400,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     }
 
     const client = getTonClient(network);
-    const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet!, transaction);
+    const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet, transaction);
 
     void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
@@ -702,17 +702,17 @@ export async function submitMultiTransfer({
       totalAmount += BigInt(message.amount);
     });
 
-    const { balance } = await getWalletInfo(network, wallet!);
+    const { balance } = await getWalletInfo(network, wallet);
 
     const gaslessType = isGasless ? version === 'W5' ? 'w5' : 'diesel' : undefined;
     const withW5Gasless = gaslessType === 'w5';
 
     const { seqno, transaction } = await signMultiTransaction({
-      network, wallet: wallet!, messages, version, privateKey, expireAt, withW5Gasless,
+      network, wallet, messages, version, privateKey, expireAt, withW5Gasless,
     });
 
     if (!isGasless) {
-      const { networkFee } = await emulateTransactionWithFallback(network, wallet!, transaction, isInitialized);
+      const { networkFee } = await emulateTransactionWithFallback(network, wallet, transaction, isInitialized);
       if (balance < totalAmount + networkFee) {
         return { error: ApiTransactionError.InsufficientBalance };
       }
@@ -720,7 +720,7 @@ export async function submitMultiTransfer({
 
     const client = getTonClient(network);
     const { msgHash, boc, paymentLink, msgHashNormalized } = await sendExternal(
-      client, wallet!, transaction, gaslessType,
+      client, wallet, transaction, gaslessType,
     );
 
     if (!isGasless) {
@@ -1011,7 +1011,7 @@ async function getDiesel({
   const storedTonWallet = await fetchStoredTonWallet(accountId);
   const wallet = await getTonWallet(accountId, storedTonWallet);
 
-  const token = getTokenByAddress(tokenAddress)!;
+  const token = getTokenByAddress(tokenAddress);
   if (!token.isGaslessEnabled && !token.isStarsEnabled) return DIESEL_NOT_AVAILABLE;
 
   const { address, version } = storedTonWallet;
@@ -1047,7 +1047,7 @@ async function getDiesel({
   const canPayDiesel = tokenBalance >= tokenAmount;
   const isAwaitingNotExpiredPrevious = Boolean(
     rawDiesel.pendingCreatedAt
-      && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT_SEC * SEC,
+    && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT_SEC * SEC,
   );
 
   // When both TON and diesel are insufficient, we want to show the TON fee

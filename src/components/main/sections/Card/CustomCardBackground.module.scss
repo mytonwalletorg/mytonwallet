@@ -30,10 +30,10 @@
     left: 0;
 
     padding: 1px;
+    border-radius: var(--border-radius-card);
 
     background: radial-gradient(24.09% 50.19% at 74.09% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
     linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
-    border-radius: var(--border-radius-card);
 
     /* Trim so that the gradient appears only on the borders */
     mask:
@@ -58,10 +58,10 @@
 
   width: 100%;
   height: 100%;
+  border-radius: var(--border-radius-card);
 
   object-fit: cover;
   object-position: center;
-  border-radius: var(--border-radius-card);
 }
 
 // Card's border with shine
@@ -92,7 +92,6 @@
 :global(.MtwCard__black)::before {
   /* stylelint-disable-next-line plugin/whole-pixel */
   padding: 1.5px !important;
-
   background-image: radial-gradient(30.47% 83.28% at 79.45% 3.2%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
                     linear-gradient(258.65deg, #141518 33.29%, #292929 48.38%) !important;
 }
@@ -113,7 +112,6 @@
   overflow: hidden;
 
   width: 62%;
-
   border-radius: var(--border-radius-card) 0 0 var(--border-radius-card);
 
   &::before,
@@ -131,14 +129,12 @@
   :global(.MtwCard__standard.MtwCard__lightText) & {
     &::before {
       z-index: 2;
-
       background: radial-gradient(161.19% 173.04% at -61.19% 50%, rgba(0, 0, 0, 0.16) 35%, rgba(0, 0, 0, 0) 100%);
       mix-blend-mode: normal;
     }
 
     &::after {
       z-index: 1;
-
       background: radial-gradient(161.19% 173.04% at -61.19% 50%, #000000 35%, rgba(0, 0, 0, 0) 100%);
       mix-blend-mode: overlay;
     }
@@ -147,14 +143,12 @@
   :global(.MtwCard__standard.MtwCard__darkText) & {
     &::before {
       z-index: 2;
-
       background: radial-gradient(161.19% 173.04% at -61.19% 50%, rgba(255, 255, 255, 0.16) 35%, rgba(255, 255, 255, 0) 100%);
       mix-blend-mode: normal;
     }
 
     &::after {
       z-index: 1;
-
       background: radial-gradient(161.19% 173.04% at -61.19% 50%, #FFFFFF 35%, rgba(255, 255, 255, 0) 100%);
       mix-blend-mode: overlay;
     }

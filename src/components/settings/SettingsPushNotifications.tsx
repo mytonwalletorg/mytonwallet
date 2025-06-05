@@ -104,7 +104,7 @@ function SettingsPushNotifications({
         withCheckbox
         isLoading={isDisabled}
         isActive={Boolean(enabledAccounts && enabledAccounts[accountId])}
-        // eslint-disable-next-line react/jsx-no-bind
+
         onClick={onClick}
         cardBackgroundNft={cardBackgroundNft}
       />

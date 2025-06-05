@@ -199,7 +199,7 @@ function LedgerConnect({
         <Dropdown
           label={lang('Connection Type')}
           items={renderingAvailableTransports}
-          selectedValue={selectedTransport!}
+          selectedValue={selectedTransport}
           theme="light"
           arrow="chevron"
           disabled={isConnecting}

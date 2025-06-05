@@ -16,7 +16,6 @@ const COMMON_PLUGINS = [
   '@capacitor/push-notifications',
   '@capacitor/share',
   '@capacitor/status-bar',
-  '@capawesome/capacitor-torch',
   '@capgo/capacitor-native-biometric',
   '@capgo/native-audio',
   '@mauricewegner/capacitor-navigation-bar',

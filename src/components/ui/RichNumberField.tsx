@@ -52,8 +52,7 @@ function RichNumberField({
   valueClassName,
   children,
 }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const contentRef = useRef<HTMLInputElement | null>(null);
+  const contentRef = useRef<HTMLInputElement>();
   const prevValueRef = useRef<string>('');
   const { updateFontScale, isFontChangedRef } = useFontScale(contentRef, true);
 

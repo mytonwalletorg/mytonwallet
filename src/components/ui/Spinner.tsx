@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import React, { memo } from '../../lib/teact/teact';
+import React, { type ElementRef, memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
@@ -8,7 +7,7 @@ import useLang from '../../hooks/useLang';
 import styles from './Spinner.module.scss';
 
 type OwnProps = {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   color?: 'white';
   className?: string;
 };

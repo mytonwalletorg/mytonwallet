@@ -38,9 +38,6 @@ project(':capacitor-share').projectDir = new File('../../node_modules/@capacitor
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../../node_modules/@capacitor/status-bar/android')
 
-include ':capawesome-capacitor-torch'
-project(':capawesome-capacitor-torch').projectDir = new File('../../node_modules/@capawesome/capacitor-torch/android')
-
 include ':capgo-capacitor-native-biometric'
 project(':capgo-capacitor-native-biometric').projectDir = new File('../../node_modules/@capgo/capacitor-native-biometric/android')
 

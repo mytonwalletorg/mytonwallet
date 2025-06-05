@@ -1,8 +1,7 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .wrapper {
   position: relative;
-
   margin-bottom: 1.25rem;
 }
 
@@ -12,26 +11,25 @@
   width: 100%;
   height: 3rem;
   padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-default);
 
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.25;
   color: var(--color-black);
-  word-break: break-word;
-
-  background-color: var(--color-background-first);
-  border: none;
-  border-radius: var(--border-radius-default);
-  outline: none;
+  overflow-wrap: anywhere;
 
   -webkit-appearance: none;
+  background-color: var(--color-background-first);
+  outline: none;
 
-  @include transition("border-color 150ms, box-shadow 150ms");
+  @include mixins.transition("border-color 150ms, box-shadow 150ms");
 
   &::placeholder {
     color: var(--color-gray-3);
 
-    @include transition(color 150ms);
+    @include mixins.transition(color 150ms);
   }
 
   // Hide hint for Safari password strength meter
@@ -70,7 +68,6 @@
 
   &.disabled {
     cursor: not-allowed !important;
-
     opacity: 0.6;
   }
 
@@ -102,7 +99,6 @@
   &:-webkit-autofill-strong-password-viewable,
   &:-webkit-autofill-and-obscured {
     box-shadow: inset 0 0 0 10rem var(--color-background-first);
-
     transition: none !important;
 
     -webkit-text-fill-color: var(--color-black);
@@ -123,7 +119,7 @@
     line-height: 2rem;
     white-space: nowrap;
 
-    @include transition(color 150ms);
+    @include mixins.transition(color 150ms);
 
     /* Fix for ContentEditable multiline "issues" */
     br {
@@ -132,21 +128,18 @@
 
     * {
       display: inline;
-
       white-space: nowrap;
     }
 
     &:empty::before {
       content: "0";
-
       color: var(--color-gray-4);
 
-      @include transition(color 150ms);
+      @include mixins.transition(color 150ms);
     }
 
     &.disabled {
       cursor: default !important;
-
       opacity: 1;
     }
 
@@ -164,7 +157,6 @@
 
   &_large {
     height: 3.75rem;
-
     font-size: calc(3rem * var(--base-font-size, 1));
     line-height: 3rem;
   }
@@ -177,11 +169,8 @@
 
 textarea.input {
   resize: none;
-
   overflow: hidden;
-
   padding: 0.875rem 0.75rem 0.8125rem;
-
   line-height: 1.3125rem;
 }
 
@@ -194,12 +183,12 @@ textarea.input {
 
   max-width: 100%;
   padding: 0.125rem;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-default);
   outline: none;
 
-  @include transition(box-shadow 150ms);
+  @include mixins.transition(box-shadow 150ms);
 
   &.error,
   &_hasFocus.error {
@@ -224,6 +213,7 @@ textarea.input {
   right: 0.75rem;
 
   padding: 0;
+  border: none;
 
   font-size: 1.5rem;
   line-height: 1;
@@ -231,10 +221,9 @@ textarea.input {
 
   opacity: 0.5;
   background: none;
-  border: none;
   outline: none;
 
-  @include transition(opacity 150ms);
+  @include mixins.transition(opacity 150ms);
 
   &:focus {
     opacity: 1;
@@ -265,7 +254,7 @@ textarea.input {
   color: var(--color-accent);
   white-space: nowrap;
 
-  @include transition(color 150ms);
+  @include mixins.transition(color 150ms);
 
   &.error {
     color: var(--color-red);
@@ -273,7 +262,6 @@ textarea.input {
 
   &_error {
     float: right;
-
     font-weight: 600;
   }
 
@@ -287,7 +275,6 @@ textarea.input {
     position: absolute;
     right: 0;
     bottom: -1.375rem;
-
     font-size: 0.75rem;
   }
 
@@ -321,7 +308,6 @@ textarea.input {
 
 .inputContainer {
   position: relative;
-
   width: 100%;
 }
 

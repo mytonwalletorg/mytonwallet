@@ -45,7 +45,16 @@ interface OpenUrlMessageData {
   subtitle?: string;
 }
 
-type MessageData = StakingMessageData | OpenActivityMessageData | ShowTxMessageData | OpenUrlMessageData;
+interface ExpiringDnsMessageData {
+  action: 'expiringDns';
+  address: string;
+  domain: string;
+  domainAddress: string;
+  daysUntilExpiration: string;
+}
+
+type MessageData = StakingMessageData | OpenActivityMessageData | ShowTxMessageData | OpenUrlMessageData
+  | ExpiringDnsMessageData;
 
 let nextUpdatePushNotifications = 0;
 
@@ -96,6 +105,7 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
     showAnyAccountTokenActivity,
     openAnyAccountStakingInfo,
     switchAccountAndOpenUrl,
+    openDomainRenewalModal,
   } = getActions();
   const global = getGlobal();
   const notificationData = notification.notification.data as MessageData;
@@ -123,6 +133,9 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
   } else if (action === 'staking') {
     const { stakingId } = notificationData;
     openAnyAccountStakingInfo({ accountId, network, stakingId });
+  } else if (action === 'expiringDns') {
+    const { domainAddress } = notificationData;
+    openDomainRenewalModal({ accountId, network, addresses: [domainAddress] });
   }
 }
 

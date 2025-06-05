@@ -1,6 +1,5 @@
 import { ELECTRON_HOST_URL, IS_PACKAGED_ELECTRON } from '../config';
 
-// eslint-disable-next-line no-restricted-globals
 const cacheApi = self.caches;
 
 export async function fetch(cacheName: string, key: string) {

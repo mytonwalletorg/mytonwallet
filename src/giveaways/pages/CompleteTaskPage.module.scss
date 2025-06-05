@@ -7,6 +7,7 @@
   align-items: center;
 
   padding: 0.8125rem 0.75rem;
+  border-radius: 0.75rem;
 
   font-size: 1.1875rem;
   font-weight: 700;
@@ -14,12 +15,10 @@
   color: var(--color-accent);
 
   background-color: var(--color-beidge-background);
-  border-radius: 0.75rem;
 }
 
 .linkText {
   margin-right: 0.125rem;
-
   line-height: 1.1875rem;
 }
 

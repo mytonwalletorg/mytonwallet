@@ -98,7 +98,6 @@ class RLottie {
     let instance = instancesByRenderId.get(renderId);
 
     if (!instance) {
-      // eslint-disable-next-line prefer-rest-params
       instance = new RLottie(...args);
       instancesByRenderId.set(renderId, instance);
     } else {
@@ -248,7 +247,7 @@ class RLottie {
     const frame = this.getFrame(this.prevFrameIndex) || this.getFrame(Math.round(this.approxFrameIndex));
 
     if (frame && frame !== WAITING) {
-      ctx.drawImage(frame, containerInfo.coords!.x, containerInfo.coords!.y);
+      ctx.drawImage(frame, containerInfo.coords.x, containerInfo.coords.y);
     }
   }
 

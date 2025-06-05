@@ -199,7 +199,7 @@ function LinkingDomainModal({
             <AddressInput
               label={currentLinkedWalletAddress ? lang('Linked Wallet') : lang('Wallet')}
               value={walletAddress}
-              error={hasAddressError ? (lang('Incorrect address') as string) : undefined}
+              error={hasAddressError ? lang('Incorrect address') : undefined}
               isFocused={isAddressFocused}
               isQrScannerSupported={isQrScannerSupported}
               withPasteButton={withPasteButton}
@@ -309,8 +309,7 @@ function LinkingDomainModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: DomainLinkingState) {
     switch (currentKey) {
       case DomainLinkingState.Initial:
         return renderInitialContent();

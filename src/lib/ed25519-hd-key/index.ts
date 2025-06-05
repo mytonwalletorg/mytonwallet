@@ -14,7 +14,7 @@ const HARDENED_OFFSET = 0x80000000;
 
 const pathRegex = /^m(\/[0-9]+')+$/;
 function replaceDerive(val: string) {
-  return val.replace("'", '');
+  return val.replace('\'', '');
 }
 
 export const getMasterKeyFromSeed = (seed: Hex): Keys => {
@@ -62,7 +62,7 @@ export const isValidPath = (path: string): boolean => {
     .split('/')
     .slice(1)
     .map(replaceDerive)
-    // eslint-disable-next-line no-restricted-globals
+
     .some(isNaN as any);
 };
 

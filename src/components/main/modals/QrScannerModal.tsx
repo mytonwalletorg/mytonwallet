@@ -1,6 +1,5 @@
 import type { StartScanOptions } from '@capacitor-mlkit/barcode-scanning';
 import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
-import { Torch } from '@capawesome/capacitor-torch';
 import React, { memo, useRef, useState } from '../../../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../../../lib/teact/teact-dom';
 import { getActions } from '../../../global';
@@ -10,10 +9,10 @@ import { vibrateOnSuccess } from '../../../util/haptics';
 import { pause } from '../../../util/schedulers';
 import { DPR, IS_DELEGATING_BOTTOM_SHEET, IS_IOS } from '../../../util/windowEnvironment';
 
-import useEffectOnce from '../../../hooks/useEffectOnce';
 import useEffectWithPrevDeps from '../../../hooks/useEffectWithPrevDeps';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
+import useShowTransition from '../../../hooks/useShowTransition';
 
 import Modal from '../../ui/Modal';
 
@@ -40,23 +39,14 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
   const [isFlashlightAvailable, setIsFlashlightAvailable] = useState(false);
   const [isFlashlightEnabled, setIsFlashlightEnabled] = useState(false);
   const [isScannerStarted, setIsScannerStarted] = useState(false);
+  const { ref: flashlightRef, shouldRender: flashlightShouldRender } = useShowTransition({
+    isOpen: isFlashlightAvailable,
+    withShouldRender: true,
+  });
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const scanSquareRef = useRef<HTMLDivElement>(null);
 
-  useEffectOnce(() => {
-    void Torch
-      .isAvailable()
-      .then((result) => {
-        setIsFlashlightAvailable(result.available);
-      });
-    void Torch
-      .isEnabled()
-      .then((result) => {
-        setIsFlashlightEnabled(result.enabled);
-      });
-  });
+  const scanSquareRef = useRef<HTMLDivElement>();
 
   const onCloseAnimationEnd = useLastCallback(async () => {
     removeExtraClass(document.documentElement, styles.documentRoot);
@@ -65,6 +55,7 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
 
   const handleClose = useLastCallback(() => {
     setIsScannerStarted(false);
+    setIsFlashlightEnabled(false);
     onClose();
   });
 
@@ -103,6 +94,20 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
 
     setIsScannerStarted(true);
     await BarcodeScanner.startScan(options);
+
+    // Wait until the scanner is started, after that we can determine if flashlight is available
+    if (!isFlashlightAvailable) {
+      void BarcodeScanner
+        .isTorchAvailable()
+        .then((result) => {
+          setIsFlashlightAvailable(result.available);
+        });
+    }
+    void BarcodeScanner
+      .isTorchEnabled()
+      .then((result) => {
+        setIsFlashlightEnabled(result.enabled);
+      });
   });
 
   useEffectWithPrevDeps(([prevIsOpen]) => {
@@ -127,9 +132,9 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
 
   const handleFlashlightClick = useLastCallback(async () => {
     if (isFlashlightEnabled) {
-      await Torch.disable();
+      await BarcodeScanner.disableTorch();
     } else {
-      await Torch.enable();
+      await BarcodeScanner.enableTorch();
     }
     setIsFlashlightEnabled(!isFlashlightEnabled);
   });
@@ -158,8 +163,9 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
           <i className={buildClassName(modalStyles.closeIcon, 'icon-close')} aria-hidden />
         </div>
 
-        {isFlashlightAvailable && (
+        {flashlightShouldRender && (
           <div
+            ref={flashlightRef}
             className={flashlightButtonClassName}
             onClick={handleFlashlightClick}
             aria-label={lang('Toggle Flashlight')}
@@ -194,7 +200,7 @@ function sortCoordinatesClockwise(coordinates: Square): Square {
   return [...topHalf, ...bottomHalf];
 }
 
-function getDomNodeDimensions(node: HTMLDivElement | null): Square | undefined {
+function getDomNodeDimensions(node: HTMLDivElement | undefined): Square | undefined {
   if (!node) {
     return undefined;
   }

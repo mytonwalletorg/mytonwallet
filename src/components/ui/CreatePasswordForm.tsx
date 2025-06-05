@@ -36,8 +36,7 @@ function CreatePasswordForm({
   const lang = useLang();
   const isMobile = IS_IOS || IS_ANDROID;
 
-  // eslint-disable-next-line no-null/no-null
-  const firstInputRef = useRef<HTMLInputElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>();
 
   const [isJustSubmitted, setIsJustSubmitted] = useState<boolean>(false);
   const [firstPassword, setFirstPassword] = useState<string>('');

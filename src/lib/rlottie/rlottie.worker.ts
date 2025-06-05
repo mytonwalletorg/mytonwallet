@@ -2,13 +2,14 @@ import type { CancellableCallback } from '../../util/PostMessageConnector';
 
 import { ungzip } from '../../util/compression';
 import { createPostMessageInterface } from '../../util/createPostMessageInterface';
+import { fetchWithTimeout } from '../../util/fetch';
 import { logDebugError } from '../../util/logs';
 
 declare const Module: any;
 
 declare function allocate(...args: any[]): string;
 
-declare function intArrayFromString(str: String): string;
+declare function intArrayFromString(str: string): string;
 
 declare const self: WorkerGlobalScope;
 
@@ -18,7 +19,7 @@ try {
   throw new Error('Failed to import rlottie-wasm.js');
 }
 
-let rLottieApi: Record<string, Function>;
+let rLottieApi: Record<string, AnyFunction>;
 const rLottieApiPromise = new Promise<void>((resolve) => {
   Module.onRuntimeInitialized = () => {
     rLottieApi = {
@@ -97,13 +98,13 @@ async function changeData(
 }
 
 async function extractJson(tgsUrl: string) {
-  const response = await fetch(tgsUrl);
-  const contentType = response.headers.get('Content-Type');
+  const response = await fetchWithTimeout(tgsUrl);
 
   if (!response.ok) {
     return LOTTIE_JSON_STUB;
   }
 
+  const contentType = response.headers.get('Content-Type')?.split(';')[0];
   if (contentType === 'application/json') {
     return response.text();
   }
@@ -113,7 +114,7 @@ async function extractJson(tgsUrl: string) {
     const inflated = await ungzip(arrayBuffer);
     return new TextDecoder().decode(inflated);
   } catch (err: any) {
-    logDebugError('[extractJson] ungzip error:', err?.message, err);
+    logDebugError('[extractJson] decompression error:', err?.message, err);
 
     return LOTTIE_JSON_STUB;
   }

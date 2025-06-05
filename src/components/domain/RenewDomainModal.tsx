@@ -51,6 +51,8 @@ const FULL_NATIVE_STATES = new Set([
   DomainRenewalState.ConfirmHardware,
 ]);
 
+const THUMBNAILS_COUNT = 3;
+
 function RenewDomainModal({
   currentDomainRenewal: {
     addresses,
@@ -89,6 +91,9 @@ function RenewDomainModal({
   const forceFullNative = FULL_NATIVE_STATES.has(renderingKey);
   const feeTerms = useMemo(() => (realFee ? { native: realFee } : undefined), [realFee]);
   const newExpireTimestamp = Date.now() + YEAR;
+  const domainNftThumbnails = useMemo(() => {
+    return domainNfts.map((nft) => nft?.thumbnail).filter(Boolean).slice(0, THUMBNAILS_COUNT);
+  }, [domainNfts]);
 
   useInterval(forceUpdate, isOpen ? MINUTE : undefined, true);
   useEffect(() => {
@@ -177,11 +182,11 @@ function RenewDomainModal({
           skipAuthScreen
         >
           <TransactionBanner
-            imageUrl={domainNfts?.[0]?.thumbnail}
+            imageUrl={domainNftThumbnails}
             text={
-              domainNfts!.length === 1 && Boolean(domainNfts![0]?.name)
-                ? domainNfts![0]?.name
-                : lang('$domains_amount %1$d', domainNfts!.length, 'i')
+              domainNfts.length === 1 && Boolean(domainNfts[0]?.name)
+                ? domainNfts[0]?.name
+                : lang('$domains_amount %1$d', domainNfts.length, 'i')
             }
             className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
           />
@@ -228,8 +233,7 @@ function RenewDomainModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: DomainRenewalState) {
     switch (currentKey) {
       case DomainRenewalState.Initial:
         return (

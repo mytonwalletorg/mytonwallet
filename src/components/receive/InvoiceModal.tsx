@@ -63,8 +63,7 @@ function InvoiceModal({
     changeInvoiceToken({ tokenSlug: token.slug });
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
       case SLIDES.Initial:
         return (

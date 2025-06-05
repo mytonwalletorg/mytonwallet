@@ -9,10 +9,12 @@ import { getCountDaysToDate } from '../../../../util/dateFormat';
 import { filterExpiringDomains, getDomainsExpirationDate, getTonDnsExpirationDate } from '../../../../util/dns';
 import { stopEvent } from '../../../../util/domEvents';
 
+import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useForceUpdate from '../../../../hooks/useForceUpdate';
 import useLang from '../../../../hooks/useLang';
-import useShowTransition from '../../../../hooks/useShowTransition';
+
+import Collapsible from '../../../ui/Collapsible';
 
 import styles from './Warnings.module.scss';
 
@@ -37,32 +39,28 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
       .filter(({ address }) => !ignoredAddressForRenewal.includes(address));
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [byAddress, ignoredAddressForRenewal, orderedAddresses]);
+  const isShown = nftForRenewal.length > 0;
+  const renderedNftForRenewal = useCurrentOrPrev(isShown ? nftForRenewal : undefined, true);
 
   const expireInDays = useMemo(() => {
-    const date = getDomainsExpirationDate(nftForRenewal, undefined, dnsExpiration);
+    const date = getDomainsExpirationDate(renderedNftForRenewal ?? [], undefined, dnsExpiration);
 
     return date ? getCountDaysToDate(date) : undefined;
-  }, [nftForRenewal, dnsExpiration]);
+  }, [renderedNftForRenewal, dnsExpiration]);
 
   const expiredDomains = useMemo(() => {
-    if (!expireInDays || expireInDays >= 0) return [];
+    if (!expireInDays || expireInDays >= 0 || !renderedNftForRenewal) return [];
 
     const now = Date.now();
 
-    return nftForRenewal.filter((nft) => {
+    return renderedNftForRenewal.filter((nft) => {
       const date = getTonDnsExpirationDate(nft, dnsExpiration);
       return date && date < now;
     });
-  }, [dnsExpiration, expireInDays, nftForRenewal]);
-
-  const { shouldRender, ref } = useShowTransition({
-    isOpen: nftForRenewal.length > 0,
-    withShouldRender: true,
-    noOpenTransition: true,
-  });
+  }, [dnsExpiration, expireInDays, renderedNftForRenewal]);
 
   function handleClick() {
-    const addresses = nftForRenewal.map(({ address }) => address);
+    const addresses = (renderedNftForRenewal ?? []).map(({ address }) => address);
     openDomainRenewalModal({ addresses });
   }
 
@@ -78,7 +76,7 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
   }
 
   function renderPreview() {
-    const previewNfts = nftForRenewal.slice(0, 3);
+    const previewNfts = (renderedNftForRenewal ?? []).slice(0, 3);
     return (
       <div className={styles.domainPreviewWrapper}>
         {previewNfts.map((nft, index) => {
@@ -102,7 +100,10 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
     if (nftForRenewal.length === 1) {
       return expireInDays < 0
         ? lang('$domain_was_expired', { domain: nftForRenewal[0].name })
-        : lang('$domain_expire', { domain: nftForRenewal[0].name, days: expireInDays }, undefined, expireInDays);
+        : lang('$domain_expire', {
+          domain: nftForRenewal[0].name,
+          days: lang('$in_days', expireInDays, 'i'),
+        });
     }
 
     return expireInDays < 0
@@ -113,30 +114,29 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
       }, undefined, nftForRenewal.length);
   }
 
-  if (!shouldRender) return undefined;
-
   return (
-    <div
-      ref={ref}
-      className={buildClassName(
-        styles.wrapper,
-        styles.wrapperFlex,
-        isLandscape && styles.wrapper_landscape,
-      )}
-      onClick={handleClick}
-    >
-      {renderPreview()}
-      <div>
-        {nftForRenewal.length === 1 ? lang('Renew Domain') : lang('Renew Domains')}
-        <i className={buildClassName(styles.icon, 'icon-chevron-right')} aria-hidden />
-        <p className={styles.text}>
-          {renderWarningMessage()}
-        </p>
+    <Collapsible isShown={isShown}>
+      <div
+        className={buildClassName(
+          styles.wrapper,
+          styles.wrapperFlex,
+          isLandscape && styles.wrapper_landscape,
+        )}
+        onClick={handleClick}
+      >
+        {renderPreview()}
+        <div>
+          {(renderedNftForRenewal ?? []).length === 1 ? lang('Renew Domain') : lang('Renew Domains')}
+          <i className={buildClassName(styles.icon, 'icon-chevron-right')} aria-hidden />
+          <p className={buildClassName(styles.text, styles.light)}>
+            {renderWarningMessage()}
+          </p>
+        </div>
+        <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>
+          <i className="icon-close" aria-hidden />
+        </button>
       </div>
-      <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>
-        <i className="icon-close" aria-hidden />
-      </button>
-    </div>
+    </Collapsible>
   );
 }
 

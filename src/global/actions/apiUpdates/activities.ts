@@ -186,7 +186,7 @@ function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivit
       && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
       && !(
         global.settings.areTinyTransfersHidden
-        && getIsTinyOrScamTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
+        && getIsTinyOrScamTransaction(activity, global.tokenInfo?.bySlug[activity.slug])
       )
       && !getIsTransactionWithPoisoning(activity);
   });

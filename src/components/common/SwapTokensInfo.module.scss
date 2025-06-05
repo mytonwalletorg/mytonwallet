@@ -20,9 +20,9 @@
   align-items: center;
 
   padding: 0.875rem 1rem;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 
   &.noIcon {
     grid-template-areas: "token token amount"
@@ -64,6 +64,7 @@
   height: 0.9375rem;
   margin-inline-start: 0.25rem;
   padding: 0.1875rem;
+  border-radius: 0.25rem;
 
   font-size: 0.625rem;
   font-weight: 700;
@@ -71,7 +72,6 @@
   color: var(--color-gray-2);
 
   background-color: var(--color-activity-gray-background);
-  border-radius: 0.25rem;
 }
 
 .infoRowChain {
@@ -123,7 +123,6 @@
 
 .infoRowCurrencyValue {
   margin-inline-start: 0.25rem;
-
   font-weight: 650;
 }
 
@@ -139,9 +138,9 @@
 
   width: 2.5rem;
   height: 2.5rem;
+  border-radius: 50%;
 
   background-color: var(--color-background-window);
-  border-radius: 50%;
 }
 
 .infoSeparatorIcon {

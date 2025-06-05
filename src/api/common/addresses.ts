@@ -7,8 +7,8 @@ import { callBackendGet } from './backend';
 
 let knownAddresses: ApiKnownAddresses = {};
 let scamMarkers: RegExp[] = [];
-let trustedSites: Set<string> = new Set();
-let trustedCollections: Set<string> = new Set();
+let trustedSites = new Set<string>();
+let trustedCollections = new Set<string>();
 
 export async function tryUpdateKnownAddresses() {
   try {

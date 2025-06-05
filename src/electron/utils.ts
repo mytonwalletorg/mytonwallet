@@ -1,6 +1,6 @@
 import type { BrowserWindow } from 'electron';
 import { app } from 'electron';
-import Store from 'electron-store';
+import { Conf } from 'electron-conf/main';
 import fs from 'fs';
 
 import {
@@ -9,8 +9,8 @@ import {
 
 const ALLOWED_URL_ORIGINS = [BASE_URL!, BETA_URL, PRODUCTION_URL].map((url) => (new URL(url).origin));
 
-export let mainWindow: BrowserWindow; // eslint-disable-line import/no-mutable-exports
-export const store: Store = new Store();
+export let mainWindow: BrowserWindow;
+export const store = new Conf();
 
 export const WINDOW_STATE_FILE = 'window-state.json';
 

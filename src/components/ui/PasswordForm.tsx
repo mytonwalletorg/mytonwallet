@@ -41,7 +41,7 @@ import modalStyles from './Modal.module.scss';
 import styles from './PasswordForm.module.scss';
 
 type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap'
-| 'unfreeze' | 'passcode' | 'unlock' | 'claim' | 'turnOnBiometrics' | 'mintCard';
+  | 'unfreeze' | 'passcode' | 'unlock' | 'claim' | 'turnOnBiometrics' | 'mintCard';
 
 interface OwnProps {
   isActive: boolean;
@@ -134,8 +134,7 @@ function PasswordForm({
 
   const showOnlyConfirmScreen = skipAuthScreen && hasInMemoryPassword;
 
-  // eslint-disable-next-line no-null/no-null
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>();
   const [password, setPassword] = useState<string>('');
   const [localError, setLocalError] = useState<string>('');
   const [wrongAttempts, setWrongAttempts] = useState(0);

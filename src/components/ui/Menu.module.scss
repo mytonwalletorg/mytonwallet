@@ -1,6 +1,5 @@
 .wrapper {
   user-select: none;
-
   position: relative;
 
   &.inPortal {
@@ -13,6 +12,8 @@
   --offset-y: calc(100% + 0.5rem);
   --offset-x: -0.25rem;
 
+  scrollbar-width: none !important;
+
   position: absolute;
   z-index: var(--z-menu-bubble);
   transform: scale(0.5);
@@ -21,16 +22,14 @@
   display: block;
 
   margin: 0;
+  border-radius: var(--border-radius-default);
 
   list-style: none;
 
   background-color: var(--color-background-drop-down);
-  border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
 
   transition: var(--dropdown-transition) !important;
-
-  scrollbar-width: none !important;
 
   &:global(.open) {
     transform: scale(1);
@@ -86,8 +85,8 @@
   --offset-x: 0;
   --offset-y: calc(100% - 0.5rem);
 
-  transform: scaleY(0.5) !important;
   transform-origin: top !important;
+  transform: scaleY(0.5) !important;
 
   overflow: auto;
 

@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .button,
 .item {
@@ -6,9 +6,10 @@
 
   align-items: center;
 
+  border: none;
+
   color: var(--color-gray-button-text);
 
-  border: none;
   outline: none;
 
   transition: background-color 150ms, color 150ms;
@@ -20,7 +21,6 @@
 
 .wide {
   display: flex;
-
   width: 100%;
 
   &.interactive {
@@ -30,7 +30,6 @@
 
 .label {
   margin-inline-end: auto;
-
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-black);
@@ -41,9 +40,9 @@
 
   margin: 0;
   padding: 0.75rem !important;
+  border-radius: var(--border-radius-small);
 
   background-color: transparent;
-  border-radius: var(--border-radius-small);
 
   &:not(.interactive) {
     cursor: default;
@@ -70,9 +69,7 @@
 
   .light & {
     margin: -1rem;
-
     color: var(--color-gray-3);
-
     background: none;
 
     &:hover,
@@ -84,7 +81,6 @@
 
 .disabled {
   cursor: not-allowed !important;
-
   opacity: 0.6;
 
   .button {
@@ -98,12 +94,10 @@
 
 .buttonIcon {
   margin-right: -0.0625rem;
-
   font-size: 0.75rem;
 
   .light & {
     margin-right: -0.3125rem;
-
     font-size: 1rem;
     color: var(--color-gray-3);
   }
@@ -136,13 +130,11 @@
 
   &_selected {
     color: var(--color-selected-drop-down-item, var(--color-input-button-text));
-
     background-color: var(--color-interactive-drop-down-menu-active) !important;
   }
 
   &_with_icon {
     padding: 0.6875rem 1rem 0.6875rem 0.75rem;
-
     text-align: left;
 
     @media (pointer: coarse) {
@@ -160,14 +152,13 @@
     background-color: var(--color-interactive-drop-down-menu-hover) !important;
   }
 
-  @include separator();
+  @include mixins.separator();
 }
 
 .itemIcon {
   width: 1.375rem;
   height: 1.375rem;
   margin-inline-end: 0.625rem;
-
   border-radius: 50%;
 
   @media (pointer: coarse) {
@@ -183,7 +174,6 @@
 
   width: 0.75rem !important;
   height: 0.75rem !important;
-
   border-radius: 50%;
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 0 0 0.1rem var(--color-background-first);
@@ -196,7 +186,6 @@
 
 .fontIcon {
   margin-inline-end: 0.625rem;
-
   font-size: 1.375rem;
   color: var(--color-gray-3);
 
@@ -248,7 +237,6 @@
 
 .dropdownButtonWrapper {
   display: flex;
-
   width: 5rem;
   height: 1rem;
 }

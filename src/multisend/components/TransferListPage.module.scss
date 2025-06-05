@@ -54,7 +54,6 @@
   :global(html.is-macos) &,
   :global(html.is-ios) & {
     padding: 0 1rem;
-
     font-weight: 600;
     text-transform: uppercase;
   }
@@ -62,15 +61,13 @@
 
 .transfersList {
   margin: 0 0 1rem 0;
-
-  background: var(--color-background-first);
   border-radius: var(--border-radius-default);
+  background: var(--color-background-first);
 }
 
 .actionButtons {
   display: flex;
   gap: 1rem;
-
   margin-top: auto;
   padding-top: 1rem;
 
@@ -86,25 +83,21 @@
 .txResult {
   margin-top: 1rem;
   padding: 1rem;
+  border-radius: var(--border-radius-default);
 
   font-weight: 500;
   text-align: center;
-
-  border-radius: var(--border-radius-default);
 }
 
 .success {
   color: var(--color-green);
-
   background-color: rgba(var(--color-green-rgb), 0.1);
 }
 
 .error {
   padding: 0.75rem;
-
   font-size: 0.875rem;
   color: var(--color-red);
-
   background-color: var(--color-transaction-amount-red-bg);
 }
 

@@ -15,17 +15,16 @@
   height: 2.25rem;
   margin: 0;
   padding: 0;
-
-  color: var(--color-white);
-
-  background: rgba(0, 0, 0, 0.26);
   border: none;
   border-top-right-radius: var(--border-radius-normal);
   border-bottom-left-radius: var(--border-radius-normal);
 
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  color: var(--color-white);
 
   appearance: none;
+  background: rgba(0, 0, 0, 0.26);
+
+  transition: opacity 0.2s ease, transform 0.2s ease;
 
   @media (hover: hover) {
     &:hover .icon,
@@ -43,9 +42,7 @@
 
   :global(.ghost-target) & {
     transform: translateY(-15%) scale(0.8);
-
     opacity: 0;
-
     transition: none;
   }
 }
@@ -53,7 +50,6 @@
 .icon {
   position: relative;
   z-index: 2;
-
   transition: opacity 300ms;
 }
 
@@ -61,6 +57,12 @@
   --offset-y-bottom-value: 0rem;
   --offset-y-value: 2rem;
   --offset-x-value: 0.25rem;
+}
+
+.contextMenu {
+  --offset-y-bottom-value: 0rem;
+  --offset-y-value: 0rem;
+  --offset-x-value: 0rem;
 }
 
 .menuBubble {
@@ -96,4 +98,8 @@
       color: var(--color-accent);
     }
   }
+}
+
+.menuItemDescription:first-letter {
+  text-transform: uppercase;
 }

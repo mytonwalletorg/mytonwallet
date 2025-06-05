@@ -853,21 +853,12 @@ Coins have been unstaked!: Монети виведено!
 Confirm Upgrading: Підтвердити оновлення
 How does it work?: Як це працює?
 Multisend: Мультинадсилання
-Expires in %1$d days:
-  zeroValue: Закінчується сьогодні
-  oneValue: Закінчується завтра
-  fewValue: Закінчується через %1$d дні
-  manyValue: Закінчується через %1$d днів
 Renew All: Продовжити все
 Renew: Продовжити
 Renew Domain: Продовжити домен
 Renew Domains: Продовжити домени
 Some domains are about to expire: Деякі домени скоро закінчуються
-$domain_expire:
-  zeroValue: "%domain% закінчується сьогодні"
-  oneValue: "%domain% закінчується завтра"
-  fewValue: "%domain% закінчується через %days% дні"
-  manyValue: "%domain% закінчується через %days% днів"
+$domain_expire: "**%domain%** закінчується %days%"
 '%token% Staking': Стейкінг %token%
 Add Tab: Додати вкладку
 Remove Tab: Видалити вкладку
@@ -895,22 +886,27 @@ Confirm Renewing: Підтвердити поновлення
 Confirm Linking: Підтвердити прив'язку
 $domains_expire:
   zeroValue: "Немає доменів, які закінчуються %days%"
-  oneValue: "%domain% домен закінчується %days%"
-  fewValue: "%domain% домени закінчуються %days%"
-  manyValue: "%domain% доменів закінчуються %days%"
+  oneValue: "**%domain% домен** закінчується %days%"
+  fewValue: "**%domain% домени** закінчуються %days%"
+  manyValue: "**%domain% доменів** закінчуються %days%"
 $in_days:
   zeroValue: сьогодні
   oneValue: завтра
   fewValue: "через %1$d дні"
   manyValue: "через %1$d днів"
-$domain_was_expired: "%domain% закінчився"
+$domain_was_expired: "**%domain%** закінчився"
 $domains_was_expired:
   zeroValue: "Немає закінчених доменів"
-  oneValue: "%domain% домен закінчився"
-  fewValue: "%domain% домени закінчилися"
-  manyValue: "%domain% доменів закінчилися"
-
+  oneValue: "**%domain% домен** закінчився"
+  fewValue: "**%domain% домени** закінчилися"
+  manyValue: "**%domain% доменів** закінчилися"
 Reload: Оновити
 Copy Link: Копіювати посилання
 Check eligibility for max APY: Перевірити доступність макс. APY
 Check eligibility: Перевірити доступність
+$expired_many: Закінчилися
+$expires_in %days%:
+  zeroValue: "Закінчується %days%"
+  oneValue: "Закінчується %days%"
+  fewValue: "Закінчуються %days%"
+  manyValue: "Закінчуються %days%"

@@ -39,12 +39,9 @@ function Tab({
   onMenuItemClick,
   icon,
 }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const tabRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const contentRef = useRef<HTMLDivElement>(null);
+  const tabRef = useRef<HTMLDivElement>();
+  const menuRef = useRef<HTMLDivElement>();
+  const contentRef = useRef<HTMLDivElement>();
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>();
   const hasMenu = Boolean(menuItems?.length);
   const isMenuOpen = Boolean(menuAnchor);
@@ -140,7 +137,7 @@ function Tab({
         <DropdownMenu
           isOpen={isMenuOpen}
           ref={menuRef}
-          items={menuItems!}
+          items={menuItems}
           withPortal
           buttonClassName={styles.menuItem}
           menuPositionX="right"

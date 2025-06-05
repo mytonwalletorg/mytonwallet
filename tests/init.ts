@@ -1,10 +1,9 @@
+import 'dotenv/config';
+
 import { Crypto } from '@peculiar/webcrypto';
 import { Buffer } from 'buffer/';
 import { CompressionStream, DecompressionStream } from 'node:stream/web';
 import { TextDecoder, TextEncoder } from 'node:util';
-
-require('dotenv')
-  .config();
 
 jest.mock('../src/lib/rlottie/RLottie');
 
@@ -43,15 +42,12 @@ Object.defineProperty(global, 'IntersectionObserver', {
   writable: true,
   configurable: true,
   value: class {
-    // eslint-disable-next-line class-methods-use-this
     observe() {
     }
 
-    // eslint-disable-next-line class-methods-use-this
     unobserve() {
     }
 
-    // eslint-disable-next-line class-methods-use-this
     disconnect() {
     }
   },
@@ -76,4 +72,4 @@ Object.assign(global, {
 });
 
 // Importing dynamically, because the file execution fails without the above mocks
-import('./initGlobal');
+void import('./initGlobal');

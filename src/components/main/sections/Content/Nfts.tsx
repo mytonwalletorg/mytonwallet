@@ -67,8 +67,7 @@ function Nfts({
   const { clearNftsSelection } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const { isPortrait, isLandscape } = useDeviceScreen();
   const hasSelection = Boolean(selectedAddresses?.length);
   const [isScrolled, setIsScrolled] = useState(false);

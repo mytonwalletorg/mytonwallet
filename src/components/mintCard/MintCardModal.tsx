@@ -148,8 +148,7 @@ function MintCardModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: MintCardState) {
     switch (currentKey) {
       case MintCardState.Initial:
         return (<CardRoster cardsInfo={cardsInfo!} />);

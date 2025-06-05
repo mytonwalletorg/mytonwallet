@@ -1,4 +1,4 @@
-import React, { memo, type RefObject } from '../../lib/teact/teact';
+import React, { type ElementRef, memo } from '../../lib/teact/teact';
 
 import type { Theme } from '../../global/types';
 
@@ -13,7 +13,7 @@ import Logo from './Logo';
 import styles from './AppLocked.module.scss';
 
 interface OwnProps {
-  ref: RefObject<HTMLDivElement | null>;
+  ref: ElementRef<HTMLDivElement>;
   theme: Theme;
   innerContentTopPosition?: number;
   handleChangeSlideForBiometricAuth: NoneToVoidFunction;

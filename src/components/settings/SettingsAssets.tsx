@@ -79,8 +79,7 @@ function SettingsAssets({
 
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>();
 
   useHistoryBack({ isActive, onBack });
 

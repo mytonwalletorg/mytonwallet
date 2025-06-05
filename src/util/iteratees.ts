@@ -5,9 +5,7 @@ type OrderDirection =
   'asc'
   | 'desc';
 
-interface OrderCallback<T> {
-  (member: T): any;
-}
+type OrderCallback<T> = (member: T) => unknown;
 
 export function buildCollectionByKey<T extends AnyLiteral>(collection: T[], key: keyof T): CollectionByKey<T> {
   return collection.reduce((byKey: CollectionByKey<T>, member: T) => {
@@ -24,14 +22,14 @@ export function groupBy<T extends AnyLiteral>(collection: T[], key: keyof T): Gr
     if (!byKey[groupKey]) {
       byKey[groupKey] = [member];
     } else {
-      byKey[groupKey]!.push(member);
+      byKey[groupKey].push(member);
     }
 
     return byKey;
   }, {});
 }
 
-export function mapValues<R extends any, M extends any>(
+export function mapValues<R, M>(
   byKey: CollectionByKey<M>,
   callback: (member: M, key: string, index: number, originalByKey: CollectionByKey<M>) => R,
 ): CollectionByKey<R> {
@@ -70,7 +68,7 @@ export function omitUndefined<T extends object>(object: T): T {
   return Object.keys(object).reduce((result, stringKey) => {
     const key = stringKey as keyof T;
     if (object[key] !== undefined) {
-      result[key as keyof T] = object[key];
+      result[key] = object[key];
     }
     return result;
   }, {} as T);
@@ -108,15 +106,15 @@ export function orderBy<T>(
   });
 }
 
-export function unique<T extends any>(array: T[]): T[] {
+export function unique<T>(array: T[]): T[] {
   return Array.from(new Set(array));
 }
 
-export function compact<T extends any>(array: T[]) {
+export function compact<T>(array: T[]) {
   return array.filter(Boolean);
 }
 
-export function areSortedArraysEqual(array1: any[], array2: any[]) {
+export function areSortedArraysEqual<T>(array1: T[], array2: T[]) {
   if (array1.length !== array2.length) {
     return false;
   }
@@ -124,7 +122,7 @@ export function areSortedArraysEqual(array1: any[], array2: any[]) {
   return array1.every((item, i) => item === array2[i]);
 }
 
-export function split<T extends any>(array: T[], chunkSize: number) {
+export function split<T>(array: T[], chunkSize: number) {
   const result: T[][] = [];
   for (let i = 0; i < array.length; i += chunkSize) {
     result.push(array.slice(i, i + chunkSize));
@@ -194,7 +192,7 @@ export function findDifference<T>(array1: T[], array2: T[]): T[] {
   return array1.filter((element) => !set2.has(element));
 }
 
-export function filterValues<M extends any>(
+export function filterValues<M>(
   byKey: CollectionByKey<M>,
   callback: (member: M, key: string, index: number, originalByKey: CollectionByKey<M>) => boolean,
 ): CollectionByKey<M> {

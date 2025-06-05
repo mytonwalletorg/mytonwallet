@@ -1,6 +1,6 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
-@include respond-above(xs) {
+@include mixins.respond-above(xs) {
   .modalDialog {
     max-height: 48rem;
   }
@@ -27,16 +27,15 @@
   --color-black: var(--color-vesting-blue);
 
   padding: 0 1rem 1rem;
-
+  border-radius: var(--border-radius-default);
   background: var(--color-background-blue-second) url(../../assets/vesting_bg.png) no-repeat 0 0;
   background-size: 91%;
-  border-radius: var(--border-radius-default);
 
   :global(.theme-dark) & {
     background-image: url("../../assets/vesting_bg_dark.png");
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     :global(.is-android) & {
       border-top-left-radius: 0;
       border-top-right-radius: 0;
@@ -100,7 +99,6 @@
 .button {
   width: 100%;
   max-width: 100% !important;
-
   font-size: 0.9375rem !important;
 }
 
@@ -113,6 +111,7 @@
   max-width: 17rem;
   margin: 1.25rem auto 0;
   padding: 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 500;
@@ -120,7 +119,6 @@
   text-align: center;
 
   background: var(--color-vesting-background);
-  border-radius: var(--border-radius-buttons);
 }
 
 .unfreezeTimeIcon {
@@ -142,7 +140,7 @@
   min-height: 0;
   padding: 1.25rem 1rem 1rem;
 
-  @include adapt-padding-to-scrollbar(1rem);
+  @include mixins.adapt-padding-to-scrollbar(1rem);
 }
 
 .actionsTitle {
@@ -160,13 +158,12 @@
   flex-grow: 1;
 
   margin-top: 0.5rem;
-
   border-radius: var(--border-radius-default);
 }
 
 .block {
-  background: var(--color-background-first);
   border-radius: var(--border-radius-default);
+  background: var(--color-background-first);
 
   & + & {
     margin-top: 1rem;
@@ -205,7 +202,6 @@
 
   &:not(:global(.ready)) {
     pointer-events: none;
-
     opacity: 0.5;
   }
 
@@ -230,7 +226,6 @@
 
 .partInteractive {
   cursor: var(--custom-cursor, pointer);
-
   transition: background-color 150ms;
 
   @media (hover: hover) {
@@ -258,28 +253,25 @@
   width: 2.25rem;
   height: 2.25rem;
   margin-right: 0.625rem;
+  border-radius: 50%;
 
   font-size: 1.5rem;
 
   background: var(--color-gradient-activity-gray-green-bg);
-  border-radius: 50%;
 
   &:global(.frozen) {
     font-size: 1.6875rem;
     color: var(--color-activity-blue);
-
     background: var(--color-activity-blue-background);
   }
 
   &:global(.unfrozen) {
     color: var(--color-activity-green-text);
-
     background: var(--color-activity-green-background);
   }
 
   &:global(.missed) {
     color: var(--color-activity-red-text);
-
     background: var(--color-activity-red-background);
   }
 
@@ -290,7 +282,6 @@
 
     &::before {
       color: transparent;
-
       background: var(--color-gradient-main-blue2-green);
       background-clip: text;
       background-size: 100%;
@@ -301,7 +292,6 @@
 .partValue {
   margin-inline-start: auto;
   padding-inline-start: 0.75rem;
-
   font-size: 0.9375rem;
 
   &:global(.frozen) {
@@ -318,7 +308,6 @@
 
   &:global(.ready) {
     color: transparent;
-
     background: var(--color-gradient-main-blue2-green);
     background-clip: text;
     background-size: 100%;

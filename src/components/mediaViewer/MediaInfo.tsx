@@ -14,7 +14,7 @@ import useLang from '../../hooks/useLang';
 import styles from './MediaViewer.module.scss';
 
 type OwnProps = {
-  // eslint-disable-next-line react/no-unused-prop-types
+
   mediaId?: string;
 };
 

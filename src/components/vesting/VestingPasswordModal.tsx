@@ -125,8 +125,7 @@ function VestingPasswordModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: VestingUnfreezeState) {
     switch (currentKey) {
       case VestingUnfreezeState.ConnectHardware:
         return (

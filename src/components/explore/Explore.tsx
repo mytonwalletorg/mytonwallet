@@ -81,13 +81,11 @@ function Explore({
     closeSiteCategory,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>();
   const suggestionsTimeoutRef = useRef<number | undefined>(undefined);
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const trendingContainerRef = useRef<HTMLDivElement>(null);
+  const transitionRef = useRef<HTMLDivElement>();
+  const trendingContainerRef = useRef<HTMLDivElement>();
+
   const lang = useLang();
   const { isLandscape, isPortrait } = useDeviceScreen();
   const [searchValue, setSearchValue] = useState<string>('');
@@ -330,8 +328,7 @@ function Explore({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isContentActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isContentActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
       case SLIDES.main:
         return (
@@ -362,14 +359,14 @@ function Explore({
         );
 
       case SLIDES.category: {
-        const currentSiteCategory = allSites[renderingKey!];
+        const currentSiteCategory = allSites[renderingKey];
         if (!currentSiteCategory) return undefined;
 
         return (
           <SiteList
             key={renderingKey}
             isActive={isContentActive}
-            categoryId={renderingKey!}
+            categoryId={renderingKey}
             sites={currentSiteCategory}
           />
         );

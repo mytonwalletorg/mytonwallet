@@ -1,7 +1,6 @@
-import type { RefObject } from 'react';
 import type { BottomSheetKeys } from '@mytonwallet/native-bottom-sheet';
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
-import type { TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, RefObject, TeactNode } from '../../lib/teact/teact';
 import React, {
   beginHeavyAnimation,
   useEffect, useLayoutEffect, useRef, useState,
@@ -58,7 +57,7 @@ type OwnProps = {
   onClose: NoneToVoidFunction;
   onCloseAnimationEnd?: NoneToVoidFunction;
   onEnter?: NoneToVoidFunction;
-  dialogRef?: RefObject<HTMLDivElement>;
+  dialogRef?: ElementRef<HTMLDivElement>;
 };
 
 export const CLOSE_DURATION = 350;
@@ -96,12 +95,9 @@ function Modal({
 }: OwnProps): TeactJsx {
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const modalRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const localDialogRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const swipeDownDateRef = useRef<number>(null);
+  const modalRef = useRef<HTMLDivElement>();
+  const localDialogRef = useRef<HTMLDivElement>();
+  const swipeDownDateRef = useRef<number>();
   dialogRef ||= localDialogRef;
 
   const { isPortrait } = useDeviceScreen();
@@ -268,7 +264,7 @@ function Modal({
 
 export default freezeWhenClosed(Modal);
 
-function getCanCloseModal(lastScrollRef: { current: number | null }, el?: HTMLElement) {
+function getCanCloseModal(lastScrollRef: RefObject<number | undefined>, el?: HTMLElement) {
   if (windowSize.getIsKeyboardVisible() || getIsSwipeToCloseDisabled()) {
     return false;
   }

@@ -33,7 +33,7 @@ import DropdownMenu from '../../../ui/DropdownMenu';
 import styles from './NftCollectionHeader.module.scss';
 
 type MenuHandler = 'sendAll' | 'fragment' | 'getgems' | 'tonExplorer' | 'hideAll' | 'burnAll' | 'selectAll'
-| 'removeTab' | 'addTab' | 'renew';
+  | 'removeTab' | 'addTab' | 'renew';
 
 interface StateProps {
   currentCollectionAddress?: string;
@@ -66,10 +66,8 @@ function NftCollectionHeader({
   const lang = useLang();
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition>();
   const isMenuOpen = Boolean(menuAnchor);
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLButtonElement>();
+  const menuRef = useRef<HTMLDivElement>();
 
   const isTelegramGifts = currentCollectionAddress === TELEGRAM_GIFTS_SUPER_COLLECTION;
 
@@ -120,7 +118,11 @@ function NftCollectionHeader({
       !isViewMode && currentCollectionAddress === TON_DNS_COLLECTION && {
         name: collectionNfts.length > 1 ? 'Renew All' : 'Renew',
         value: 'renew',
-        description: lang('Expires in %1$d days', dnsExpireInDays, 'i') as string,
+        description: dnsExpireInDays && dnsExpireInDays < 0
+          ? (collectionNfts.length > 1 ? '$expired_many' : 'Expired')
+          : lang('$expires_in %days%', {
+            days: lang('$in_days', dnsExpireInDays),
+          }, undefined, collectionNfts.length) as string,
       } satisfies DropdownItem<MenuHandler>,
       !IS_CORE_WALLET && {
         name: 'Hide All',
@@ -227,6 +229,7 @@ function NftCollectionHeader({
       }
 
       case 'removeTab': {
+        closeNftCollection();
         removeCollectionTab({ collectionAddress: currentCollectionAddress! });
 
         break;
@@ -278,6 +281,7 @@ function NftCollectionHeader({
         getLayout={getLayout}
         buttonClassName={styles.menuItem}
         bubbleClassName={styles.menu}
+        itemDescriptionClassName={styles.menuItemDescription}
         items={menuItems}
         onSelect={handleMenuItemClick}
         onClose={handleMenuClose}

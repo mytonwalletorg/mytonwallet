@@ -1,5 +1,5 @@
 type HandlerName = 'onEnter' | 'onBackspace' | 'onDelete' | 'onEsc' | 'onUp' | 'onDown' | 'onLeft' | 'onRight'
-| 'onTab';
+  | 'onTab';
 type EventHandler = (e: KeyboardEvent) => boolean | void;
 type HandlerWithOptions = {
   handler: (e: KeyboardEvent) => void;

@@ -170,7 +170,6 @@ export class StakingPool implements Contract {
     return beginCell().storeUint(JettonStakingOpCodes.STAKE_JETTONS, 32).storeUint(lockPeriod, 32).endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getData(provider: ContractProvider) {
     const { stack } = await provider.get('get_nft_data', []);
     return {
@@ -182,7 +181,6 @@ export class StakingPool implements Contract {
     };
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getStorageData(provider: ContractProvider): Promise<StakingPoolConfig> {
     const { stack } = await provider.get('get_storage_data', []);
     const res: any = {
@@ -222,7 +220,6 @@ export class StakingPool implements Contract {
     return res as StakingPoolConfig;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getWalletAddress(
     provider: ContractProvider,
     ownerAddress: Address,

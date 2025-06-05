@@ -47,10 +47,8 @@ function useAddressInput({
   } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const addressBookTimeoutRef = useRef<number>(null);
-  // eslint-disable-next-line no-null/no-null
-  const addressInputRef = useRef<HTMLInputElement>(null);
+  const addressBookTimeoutRef = useRef<number>();
+  const addressInputRef = useRef<HTMLInputElement>();
 
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
@@ -149,7 +147,6 @@ function useAddressInput({
 
   const handleQrScanClick = useLastCallback(() => {
     if (IS_IOS && getIsMobileTelegramApp()) {
-      // eslint-disable-next-line no-alert
       alert('Scanning is temporarily not available');
       return;
     }

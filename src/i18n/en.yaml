@@ -844,19 +844,12 @@ Coins have been unstaked!: Coins have been unstaked!
 Confirm Upgrading: Confirm Upgrading
 How does it work?: How does it work?
 Multisend: Multisend
-Expires in %1$d days:
-  zeroValue: Expires today
-  oneValue: Expires tomorrow
-  otherValue: Expires in %1$d days
 Renew All: Renew All
 Renew: Renew
 Renew Domain: Renew Domain
 Renew Domains: Renew Domains
 Some domains are about to expire: Some domains are about to expire
-$domain_expire:
-  zeroValue: "%domain% expires today"
-  oneValue: "%domain% expires tomorrow"
-  otherValue: "%domain% expires in %days% days"
+$domain_expire: "**%domain%** expires %days%"
 '%token% Staking': '%token% Staking'
 Add Tab: Add Tab
 Remove Tab: Remove Tab
@@ -881,19 +874,20 @@ Confirm Renewing: Confirm Renewing
 Confirm Linking: Confirm Linking
 $domains_expire:
   zeroValue: "No domains expires %days%"
-  oneValue: "%domain% domain expires %days%"
-  otherValue: "%domain% domains expire %days%"
+  oneValue: "**%domain% domain** expires %days%"
+  otherValue: "**%domain% domains** expire %days%"
 $in_days:
   zeroValue: today
   oneValue: tomorrow
   otherValue: in %1$d days
-$domain_was_expired: "%domain% is expired"
+$domain_was_expired: "**%domain%** is expired"
 $domains_was_expired:
   zeroValue: "No domains is expired"
-  oneValue: "%domain% domain is expired"
-  otherValue: "%domain% domains are expired"
-
+  oneValue: "**%domain% domain** is expired"
+  otherValue: "**%domain% domains** are expired"
 Reload: Reload
 Copy Link: Copy Link
 Check eligibility for max APY: Check eligibility for max APY
 Check eligibility: Check eligibility
+$expired_many: Expired
+$expires_in %days%: Expires %days%

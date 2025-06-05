@@ -53,7 +53,7 @@ function TransferMultiNftProcess({
             <div className={styles.infoBox}>{lang('$multi_send_nft_warning', { duration })}</div>
           </>
         )}
-        {nfts!.length === 1 ? <NftInfo nft={nfts![0]} /> : <NftChips nfts={nfts!} />}
+        {nfts.length === 1 ? <NftInfo nft={nfts[0]} /> : <NftChips nfts={nfts} />}
         {!isInProgress && (
           <div className={modalStyles.buttons}>
             <Button onClick={onClose} isPrimary>{lang('Close')}</Button>

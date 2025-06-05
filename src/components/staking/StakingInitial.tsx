@@ -132,7 +132,7 @@ function StakingInitial({
       decimals,
     });
   } else if (stakingState?.type === 'ethena') {
-    const { annualYieldStandard, annualYieldVerified } = stakingState!;
+    const { annualYieldStandard, annualYieldVerified } = stakingState;
     annualYieldText = `${annualYieldStandard}%–${annualYieldVerified}%`;
   }
 

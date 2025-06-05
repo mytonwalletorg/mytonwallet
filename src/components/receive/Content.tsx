@@ -85,7 +85,6 @@ function Content({
     return <TonActions isStatic isLedger={isLedger} />;
   }
 
-  // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case TON_TAB_ID:

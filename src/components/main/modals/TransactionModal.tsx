@@ -130,8 +130,8 @@ function TransactionModal({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
-  const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.initial);
-  const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
+  const [currentSlide, setCurrentSlide] = useState<SLIDES>(SLIDES.initial);
+  const [nextKey, setNextKey] = useState<SLIDES | undefined>(SLIDES.password);
   const animationLevel = getGlobal().settings.animationLevel;
   const animationDuration = animationLevel === ANIMATION_LEVEL_MIN
     ? 0
@@ -211,9 +211,9 @@ function TransactionModal({
     ref: unstakeTimerRef,
   } = useShowTransition({
     isOpen: transaction?.type === 'unstakeRequest'
-    && startOfStakingCycle !== undefined
-    && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
-    && transaction.timestamp >= startOfStakingCycle,
+      && startOfStakingCycle !== undefined
+      && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
+      && transaction.timestamp >= startOfStakingCycle,
     withShouldRender: true,
   });
 
@@ -514,7 +514,7 @@ function TransactionModal({
             <InteractiveTextField
               chain={chain}
               addressName={addressName}
-              address={address!}
+              address={address}
               isScam={isScam && !isIncoming}
               copyNotification={lang('Address was copied!')}
               className={styles.copyButtonWrapper}
@@ -533,8 +533,7 @@ function TransactionModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
       case SLIDES.initial:
         return (

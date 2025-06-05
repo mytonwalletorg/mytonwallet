@@ -843,17 +843,12 @@ Coins have been unstaked!: เหรียญถูกถอนแล้ว!
 Confirm Upgrading: ยืนยันการอัปเกรด
 How does it work?: ทำงานอย่างไร?
 Multisend: ส่งหลายรายการ
-Expires in %1$d days:
-  zeroValue: หมดอายุวันนี้
-  otherValue: จะหมดอายุใน %1$d วัน
 Renew All: ต่ออายุทั้งหมด
 Renew: ต่ออายุ
 Renew Domain: ต่ออายุโดเมน
 Renew Domains: ต่ออายุโดเมน
 Some domains are about to expire: โดเมนบางรายการกำลังจะหมดอายุ
-$domain_expire:
-  zeroValue: "%domain% หมดอายุวันนี้"
-  otherValue: "%domain% หมดอายุในอีก %days% วัน"
+$domain_expire: "**%domain%** หมดอายุ %days%"
 '%token% Staking': การวางเดิมพัน %token%
 Add Tab: เพิ่มแท็บ
 Remove Tab: ลบแท็บ
@@ -879,16 +874,19 @@ Confirm Renewing: ยืนยันการต่ออายุ
 Confirm Linking: ยืนยันการเชื่อมโยง
 $domains_expire:
   zeroValue: "ไม่มีโดเมนหมดอายุ %days%"
-  otherValue: "%domain% โดเมนหมดอายุ %days%"
+  otherValue: "**%domain%** โดเมนหมดอายุ %days%"
 $in_days:
   zeroValue: วันนี้
   otherValue: "ใน %1$d วัน"
-$domain_was_expired: "%domain% หมดอายุแล้ว"
+$domain_was_expired: "**%domain%** หมดอายุแล้ว"
 $domains_was_expired:
   zeroValue: "ไม่มีโดเมนที่หมดอายุ"
-  otherValue: "%domain% โดเมนหมดอายุแล้ว"
-
+  otherValue: "**%domain%** โดเมนหมดอายุแล้ว"
 Reload: โหลดใหม่
 Copy Link: คัดลอกลิงค์
 Check eligibility for max APY: ตรวจสอบสิทธิ์สำหรับ APY สูงสุด
 Check eligibility: ตรวจสอบสิทธิ์
+$expired_many: หมดอายุแล้ว
+$expires_in %days%:
+  zeroValue: จะหมดอายุ %days%
+  otherValue: จะหมดอายุ %days%

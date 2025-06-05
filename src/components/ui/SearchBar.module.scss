@@ -2,9 +2,8 @@ $addon-size: 2.25rem;
 
 .wrapper {
   position: relative;
-
-  background-color: var(--color-background-first);
   border-radius: var(--border-radius-buttons);
+  background-color: var(--color-background-first);
 }
 
 .iconAddon {
@@ -31,15 +30,14 @@ $addon-size: 2.25rem;
   width: 100%;
   padding: 0.625rem;
   padding-left: $addon-size;
+  border: none;
 
   font-size: max(16px, 1rem);
   color: var(--color-black);
 
-  background: transparent;
-  border: none;
-  outline: none;
-
   appearance: none;
+  background: transparent;
+  outline: none;
 
   &::placeholder {
     font-weight: 600;

@@ -845,19 +845,12 @@ Coins have been unstaked!: Coins wurden entstaked!
 Confirm Upgrading: Upgrade bestätigen
 How does it work?: Wie funktioniert das?
 Multisend: Multisend
-Expires in %1$d days:
-  zeroValue: Läuft heute ab
-  oneValue: Läuft morgen ab
-  otherValue: Läuft in %1$d Tagen ab
 Renew All: Alle erneuern
 Renew: Erneuern
 Renew Domain: Domain erneuern
 Renew Domains: Domains erneuern
 Some domains are about to expire: Einige Domains laufen bald ab
-$domain_expire:
-  zeroValue: "%domain% läuft heute ab"
-  oneValue: "%domain% läuft morgen ab"
-  otherValue: "%domain% läuft in %days% Tagen ab"
+$domain_expire: "**%domain%** läuft %days% ab"
 '%token% Staking': '%token% Staking'
 Add Tab: Tab hinzufügen
 Remove Tab: Tab entfernen
@@ -884,19 +877,24 @@ Confirm Renewing: Erneuerung bestätigen
 Confirm Linking: Verknüpfung bestätigen
 $domains_expire:
   zeroValue: "Keine Domains laufen %days% ab"
-  oneValue: "%domain% Domain läuft %days% ab"
-  otherValue: "%domain% Domains laufen %days% ab"
+  oneValue: "**%domain% Domain** läuft %days% ab"
+  otherValue: "**%domain% Domains** laufen %days% ab"
 $in_days:
   zeroValue: heute
   oneValue: morgen
   otherValue: "in %1$d Tagen"
-$domain_was_expired: "%domain% ist abgelaufen"
+$domain_was_expired: "**%domain%** ist abgelaufen"
 $domains_was_expired:
   zeroValue: "Keine Domains sind abgelaufen"
-  oneValue: "%domain% Domain ist abgelaufen"
-  otherValue: "%domain% Domains sind abgelaufen"
-
+  oneValue: "**%domain% Domain** ist abgelaufen"
+  otherValue: "**%domain% Domains** sind abgelaufen"
 Reload: Neu laden
 Copy Link: Link kopieren
 Check eligibility for max APY: Verfügbarkeit für max. APY prüfen
 Check eligibility: Verfügbarkeit prüfen
+$expired_many: Abgelaufen
+$expires_in %days%:
+  zeroValue: Läuft %days% ab
+  oneValue: Läuft %days% ab
+  otherValue: Laufen %days% ab
+

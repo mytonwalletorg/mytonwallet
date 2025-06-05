@@ -1,4 +1,4 @@
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 .accountTitle {
   position: absolute;
@@ -18,14 +18,12 @@
   @media (hover: hover) {
     top: 1.125rem;
     left: 1rem;
-
     padding: 0 0.6875rem 0 0;
   }
 }
 
 .accountTitleInteractive {
   cursor: var(--custom-cursor, pointer);
-
   transition: color 300ms;
 
   &:focus-visible,
@@ -52,7 +50,6 @@
 .accountTitleInner {
   overflow: hidden;
   grid-area: title;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -97,10 +94,9 @@
     }
   }
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     width: 1.75rem;
     height: 1.75rem;
-
     font-size: 1.75rem;
   }
 }
@@ -115,6 +111,7 @@
 
   width: 1.75rem;
   height: 1.75rem;
+  border-radius: 50%;
 
   font-size: 1.125rem;
   line-height: 1.75rem;
@@ -122,7 +119,6 @@
   text-align: center;
 
   opacity: 0.8;
-  border-radius: 50%;
 
   transition: opacity 150ms;
 
@@ -143,13 +139,16 @@
   right: 0.5rem;
   left: 0.5rem;
 
-  background-color: var(--color-card-button);
   border-radius: var(--border-radius-small);
+
+  background-color: var(--color-card-button);
 }
 
 .input {
   width: 100%;
   padding: 0.5rem 4rem 0.5625rem 0.5rem;
+  border: none;
+  border-radius: var(--border-radius-small);
 
   font-size: 1.0625rem;
   font-weight: 700;
@@ -157,8 +156,6 @@
   color: var(--main-text, var(--color-card-text));
 
   background: none;
-  border: none;
-  border-radius: var(--border-radius-small);
   outline: none;
   caret-color: currentColor;
 }
@@ -169,6 +166,7 @@
   right: 0.375rem;
 
   padding: 0.5rem 0.75rem 0.4375rem;
+  border-radius: var(--border-radius-tiny);
 
   font-size: 0.8125rem;
   font-weight: 700;
@@ -176,7 +174,6 @@
   color: var(--main-text, var(--color-card-text));
 
   background-color: var(--color-card-button);
-  border-radius: var(--border-radius-tiny);
 
   transition: background-color 150ms;
 
@@ -216,13 +213,11 @@
 
   &:global(.shown) .dialog {
     transform: translateY(-1rem);
-
     opacity: 0;
   }
 
   &:global(.shown.open) .dialog {
     transform: translateY(0);
-
     opacity: 1;
   }
 }
@@ -241,6 +236,8 @@
   --main-text: var(--color-card-text);
   --second-text: var(--color-card-second-text);
 
+  scrollbar-width: none !important;
+
   position: relative;
   z-index: 2;
 
@@ -252,18 +249,15 @@
 
   max-height: 16rem;
   padding: 0.5rem !important;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-drop-down);
-  border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
 
   transition: var(--dropdown-transition), scrollbar-color 300ms !important;
 
-  scrollbar-width: none !important;
-
   &_compact {
     grid-template-columns: 1fr 1fr;
-
     max-width: calc(66% + 1rem);
   }
 
@@ -297,6 +291,8 @@
   height: 3.75rem;
   margin: 0;
   padding: 0 0.5rem;
+  border: none;
+  border-radius: var(--border-radius-tiny);
 
   font-size: 0.75rem;
   font-weight: 600;
@@ -307,8 +303,6 @@
   background-clip: padding-box, padding-box;
   background-origin: border-box;
   background-size: cover, cover;
-  border: none;
-  border-radius: var(--border-radius-tiny);
 
   &_current {
     cursor: default;
@@ -347,12 +341,11 @@
 
   @supports (-webkit-line-clamp: 2) {
     display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 
     word-wrap: break-word;
     white-space: normal;
-
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
   }
 }
 
@@ -378,18 +371,17 @@
   max-width: 100% !important;
   height: 3.75rem !important;
   padding: 0.5rem !important;
+  border-radius: 0.5rem !important;
 
   font-size: 0.75rem !important;
   line-height: 1 !important;
   color: var(--color-add-wallet-text) !important;
 
   background-color: var(--color-add-wallet-background) !important;
-  border-radius: 0.5rem !important;
 
   &:focus-visible,
   &:hover {
     color: var(--color-add-wallet-text-hover) !important;
-
     background-color: var(--color-add-wallet-background-hover) !important;
   }
 
@@ -401,7 +393,6 @@
 
 .createAccountIcon {
   margin-top: 0.375rem;
-
   font-size: 1.5rem !important;
 }
 
@@ -412,7 +403,6 @@
 
   &.inStickyCard {
     position: static;
-
     margin-left: auto;
     padding-left: 1rem;
   }
@@ -424,9 +414,8 @@
   width: fit-content;
   height: 1.5rem;
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     gap: 0.5625rem;
-
     height: 1.75rem;
   }
 

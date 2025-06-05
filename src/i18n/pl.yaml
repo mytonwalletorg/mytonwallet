@@ -850,21 +850,12 @@ Coins have been unstaked!: Monety wycofane!
 Confirm Upgrading: Potwierdź ulepszenie
 How does it work?: Jak to działa?
 Multisend: Multiwysyłka
-Expires in %1$d days:
-  zeroValue: Wygasa dzisiaj
-  oneValue: Wygasa jutro
-  fewValue: Wygasa za %1$d dni
-  manyValue: Wygasa za %1$d dni
 Renew All: Odnów wszystkie
 Renew: Odnów
 Renew Domain: Odnów domenę
 Renew Domains: Odnów domeny
 Some domains are about to expire: Niektóre domeny wkrótce wygasną
-$domain_expire:
-  zeroValue: "%domain% wygasa dziś"
-  oneValue: "%domain% wygasa jutro"
-  fewValue: "%domain% wygasa za %days% dni"
-  manyValue: "%domain% wygasa za %days% dni"
+$domain_expire: "**%domain%** wygasa %days%"
 '%token% Staking': Stakowanie %token%
 Add Tab: Dodaj kartę
 Remove Tab: Usuń kartę
@@ -892,22 +883,27 @@ Confirm Renewing: Potwierdź odnowienie
 Confirm Linking: Potwierdź łączenie
 $domains_expire:
   zeroValue: "Żadne domeny nie wygasają %days%"
-  oneValue: "%domain% domena wygasa %days%"
-  fewValue: "%domain% domeny wygasną %days%"
-  manyValue: "%domain% domeny wygasną %days%"
+  oneValue: "**%domain% domena** wygasa %days%"
+  fewValue: "**%domain% domeny** wygasną %days%"
+  manyValue: "**%domain% domeny** wygasną %days%"
 $in_days:
   zeroValue: dziś
   oneValue: jutro
   fewValue: "za %1$d dni"
   manyValue: "za %1$d dni"
-$domain_was_expired: "%domain% wygasł"
+$domain_was_expired: "**%domain%** wygasł"
 $domains_was_expired:
   zeroValue: "Żadne domeny nie wygasły"
-  oneValue: "%domain% domena wygasła"
-  fewValue: "%domain% domeny wygasły"
-  manyValue: "%domain% domeny wygasły"
-
+  oneValue: "**%domain% domena** wygasła"
+  fewValue: "**%domain% domeny** wygasły"
+  manyValue: "**%domain% domeny** wygasły"
 Reload: Przeładuj
 Copy Link: Kopiuj link
 Check eligibility for max APY: Sprawdź dostępność maks. APY
 Check eligibility: Sprawdź dostępność
+$expired_many: Wygasły
+$expires_in %days%:
+  zeroValue: Wygasa %days%
+  oneValue: Wygasa %days%
+  fewValue: Wygasają %days%
+  manyValue: Wygasają %days%

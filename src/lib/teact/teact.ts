@@ -14,7 +14,7 @@ export { getIsHeavyAnimating, beginHeavyAnimation, onFullyIdle } from './heavyAn
 
 export type Props = AnyLiteral;
 export type FC<P extends Props = any> = (props: P) => any;
-// eslint-disable-next-line @typescript-eslint/naming-convention
+
 export type FC_withDebug =
   FC
   & { DEBUG_contentComponentName?: string };
@@ -283,9 +283,8 @@ function buildChildElement(child: any): VirtualElement {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const DEBUG_components: AnyLiteral = { TOTAL: { name: 'TOTAL', renders: 0 } };
-// eslint-disable-next-line @typescript-eslint/naming-convention
+
 const DEBUG_memos: Record<string, { key: string; calls: number; misses: number; hitRate: number }> = {};
 const DEBUG_MEMOS_CALLS_THRESHOLD = 20;
 
@@ -413,7 +412,6 @@ export function renderComponent(componentInstance: ComponentInstance) {
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     let DEBUG_startAt: number | undefined;
     if (DEBUG) {
       const componentName = DEBUG_resolveComponentName(Component);
@@ -757,7 +755,6 @@ function scheduleEffect(
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       let DEBUG_startAt: number | undefined;
       if (DEBUG) {
         DEBUG_startAt = performance.now();
@@ -794,7 +791,6 @@ function scheduleEffect(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     let DEBUG_startAt: number | undefined;
     if (DEBUG) {
       DEBUG_startAt = performance.now();
@@ -869,7 +865,6 @@ export function useMemo<T>(
   const { cursor, byCursor } = renderingInstance.hooks.memos;
   let { value } = byCursor[cursor] || {};
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   let DEBUG_state: typeof DEBUG_memos[string] | undefined;
   if (DEBUG && debugHitRateKey) {
     const instanceKey = `${debugHitRateKey}#${renderingInstance.id}`;
@@ -941,7 +936,7 @@ export function useCallback<F extends AnyFunction>(newCallback: F, dependencies:
 export function useRef<T>(initial: T): RefObject<T>;
 export function useRef<T>(): RefObject<T | undefined>; // TT way (empty is `undefined`)
 export function useRef<T>(initial: null): RefObject<T | null>; // React way (empty is `null`)
-// eslint-disable-next-line no-null/no-null
+
 export function useRef<T>(initial?: T | null) {
   if (!renderingInstance.hooks) {
     renderingInstance.hooks = {};
@@ -1014,9 +1009,7 @@ export function memo<T extends FC_withDebug>(Component: T, debugKey?: string) {
   return TeactMemoWrapper as T;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export function DEBUG_resolveComponentName(Component: FC_withDebug) {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { name, DEBUG_contentComponentName } = Component;
 
   if (name === 'TeactNContainer') {

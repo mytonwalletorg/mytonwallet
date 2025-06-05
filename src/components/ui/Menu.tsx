@@ -1,4 +1,4 @@
-import type { FC, RefObject, TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, FC, TeactNode } from '../../lib/teact/teact';
 import React, { beginHeavyAnimation, useEffect, useRef } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -19,7 +19,7 @@ export type { MenuPositionOptions } from '../../hooks/useMenuPosition';
 
 type OwnProps = {
   children: TeactNode;
-  menuRef?: RefObject<HTMLDivElement | null>;
+  menuRef?: ElementRef<HTMLDivElement>;
   isOpen: boolean;
   id?: string;
   className?: string;
@@ -59,10 +59,8 @@ const Menu: FC<OwnProps> = ({
   onMouseLeave,
   ...positionOptions
 }) => {
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  let bubbleRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
+  let bubbleRef = useRef<HTMLDivElement>();
   if (menuRef) {
     bubbleRef = menuRef;
   }

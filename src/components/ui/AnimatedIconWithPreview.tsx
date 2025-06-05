@@ -84,7 +84,6 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
       {iconPreviewClass && !isAnimationReady && (
         <i className={buildClassName(styles.preview, iconPreviewClass)} aria-hidden />
       )}
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       {!noAnimation && <AnimatedIcon size={size} {...otherProps} onLoad={markAnimationReady} noTransition />}
     </div>
   );

@@ -178,8 +178,7 @@ function App({
 
   useAppIntersectionObserver();
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: AppState) {
     switch (currentKey) {
       case AppState.Auth:
         return <Auth />;

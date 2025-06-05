@@ -116,10 +116,8 @@ function SwapInitial({
   } = getActions();
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const inputInRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const inputOutRef = useRef<HTMLDivElement>(null);
+  const inputInRef = useRef<HTMLDivElement>();
+  const inputOutRef = useRef<HTMLDivElement>();
 
   const currentTokenInSlug = tokenInSlug ?? TONCOIN.slug;
   const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;

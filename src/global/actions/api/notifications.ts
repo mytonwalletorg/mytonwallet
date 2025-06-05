@@ -13,7 +13,8 @@ import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   createNotificationAccount,
-  deleteAllNotificationAccounts, deleteNotificationAccount,
+  deleteAllNotificationAccounts,
+  deleteNotificationAccount,
   updateNotificationAccount,
 } from '../../reducers/notifications';
 import { selectAccounts } from '../../selectors';
@@ -101,7 +102,7 @@ addActionHandler('registerNotifications', async (global, actions, { userToken, p
 
 addActionHandler('deleteNotificationAccount', async (global, actions, { accountId, withAbort }) => {
   const { userToken, enabledAccounts } = global.pushNotifications;
-  const pushNotificationsAccount = enabledAccounts[accountId]!;
+  const pushNotificationsAccount = enabledAccounts[accountId];
 
   if (!userToken) {
     return;

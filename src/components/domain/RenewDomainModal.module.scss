@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 $modalHeight: 36.5rem;
 
@@ -16,7 +16,6 @@ $modalHeight: 36.5rem;
 
 .modalTitle {
   overflow: visible;
-
   line-height: 1 !important;
 }
 
@@ -45,7 +44,6 @@ $modalHeight: 36.5rem;
 
 .transactionBanner {
   align-self: center;
-
   margin-bottom: 2rem;
 }
 
@@ -64,7 +62,6 @@ $modalHeight: 36.5rem;
 
 .button {
   position: relative;
-
   width: 100%;
   max-width: 100% !important;
 }
@@ -75,7 +72,6 @@ $modalHeight: 36.5rem;
 
   display: flex;
   justify-content: center;
-
   margin-top: -0.25rem;
 }
 

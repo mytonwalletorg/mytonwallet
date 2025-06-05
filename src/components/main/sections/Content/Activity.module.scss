@@ -1,6 +1,6 @@
 @use "sass:math";
 
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 /* stylelint-disable-next-line plugin/whole-pixel */
 $iconExtraBorderWidth: 0.03898rem; // The sub-pixel part of the icon border width
@@ -41,7 +41,7 @@ $subheaderReleaseHeight: 1.25rem;
     box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
   }
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     $iconColumnWidth: 3rem;
 
     grid-template-columns: $iconColumnWidth 1fr;
@@ -94,6 +94,7 @@ $subheaderReleaseHeight: 1.25rem;
 
   width: 2.25rem;
   height: 2.25rem;
+  border-radius: 50%;
 
   font-size: $fontSize * $desktopIconScale;
   line-height: 2.25rem;
@@ -101,12 +102,10 @@ $subheaderReleaseHeight: 1.25rem;
   text-align: center;
 
   background-color: var(--color-activity-gray-background);
-  border-radius: 50%;
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     width: 2.375rem;
     height: 2.375rem;
-
     font-size: $fontSize;
     line-height: 2.375rem;
   }
@@ -117,7 +116,7 @@ $subheaderReleaseHeight: 1.25rem;
 
     font-size: $fontSize * $desktopIconScale;
 
-    @include is-mobile() {
+    @include mixins.is-mobile() {
       font-size: $fontSize;
     }
   }
@@ -141,9 +140,9 @@ $subheaderReleaseHeight: 1.25rem;
   bottom: -$borderWidth;
 
   padding: $borderWidth;
+  border-radius: 50%;
 
   background: var(--color-background-first);
-  border-radius: 50%;
 }
 
 .iconWaiting,
@@ -152,16 +151,16 @@ $subheaderReleaseHeight: 1.25rem;
   bottom: -0.125rem;
   inset-inline-end: -0.125rem;
 
+  border-radius: 50%;
+
   font-size: $subIconSize;
   line-height: 1;
 
   background-color: var(--color-background-first);
-  border-radius: 50%;
 }
 
 .iconError {
   transform: scale(math.div($subIconSize + $iconExtraBorderWidth * 2, $subIconSize));
-
   color: var(--color-activity-red-text);
 }
 
@@ -191,9 +190,8 @@ $subheaderReleaseHeight: 1.25rem;
   font-size: 0.9375rem;
   font-weight: 600;
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     margin-block-end: 0.125rem;
-
     font-size: 1rem;
   }
 }
@@ -208,7 +206,7 @@ $subheaderReleaseHeight: 1.25rem;
   font-weight: 500;
   color: var(--color-gray-2);
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     font-size: 0.8125rem;
   }
 }
@@ -216,7 +214,7 @@ $subheaderReleaseHeight: 1.25rem;
 .header > .atMiddle {
   transform: translateY(0.5rem);
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     transform: translateY(0.625rem);
   }
 }
@@ -224,7 +222,6 @@ $subheaderReleaseHeight: 1.25rem;
 .operationName,
 .address {
   overflow: hidden;
-
   text-overflow: ellipsis;
 }
 
@@ -247,7 +244,6 @@ $subheaderReleaseHeight: 1.25rem;
 
 .amount {
   color: var(--color-gray-1);
-
   background: none !important;
 }
 
@@ -268,7 +264,7 @@ $subheaderReleaseHeight: 1.25rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     font-size: 0.875rem;
   }
 }
@@ -327,10 +323,10 @@ $subheaderReleaseHeight: 1.25rem;
 .nftImage {
   width: 3.5rem;
   height: 3.5rem;
-
-  object-fit: cover;
   border-top-right-radius: var(--border-radius-default);
   border-bottom-right-radius: var(--border-radius-default);
+
+  object-fit: cover;
 }
 
 .nftData {
@@ -341,7 +337,6 @@ $subheaderReleaseHeight: 1.25rem;
 .nftName,
 .nftCollection {
   overflow: hidden;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -350,7 +345,7 @@ $subheaderReleaseHeight: 1.25rem;
   font-size: 0.9375rem;
   font-weight: 700;
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     font-size: 1rem;
   }
 }
@@ -360,7 +355,7 @@ $subheaderReleaseHeight: 1.25rem;
   font-weight: 500;
   color: var(--color-gray-2);
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     font-size: 0.8125rem;
   }
 
@@ -378,21 +373,19 @@ $subheaderReleaseHeight: 1.25rem;
 
   max-width: 100%;
   margin-top: $topMargin;
+  border-radius: var(--border-radius-default);
 
   color: var(--color-activity-gray-text);
 
   background-color: var(--color-activity-gray-background);
-  border-radius: var(--border-radius-default);
 
   &:not(.received) {
     margin-inline-start: auto;
-
     border-top-right-radius: var(--border-radius-mini);
   }
 
   &.received {
     margin-inline-end: auto;
-
     border-top-left-radius: var(--border-radius-mini);
   }
 
@@ -431,19 +424,16 @@ $subheaderReleaseHeight: 1.25rem;
 .color {
   &Positive {
     color: var(--color-activity-green-text);
-
     background-color: var(--color-activity-green-background);
   }
 
   &Stake {
     color: var(--color-activity-purple-text);
-
     background-color: var(--color-activity-purple-background);
   }
 
   &Negative {
     color: var(--color-activity-red-text);
-
     background-color: var(--color-activity-red-background);
   }
 }

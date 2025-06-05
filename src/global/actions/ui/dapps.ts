@@ -48,7 +48,7 @@ addActionHandler('submitDappTransferConfirm', async (global, actions) => {
   } else if (inMemoryPassword) {
     global = updateCurrentDappTransfer(global, { isLoading: true });
     setGlobal(global);
-    await actions.submitDappTransferPassword({ password: inMemoryPassword });
+    actions.submitDappTransferPassword({ password: inMemoryPassword });
   } else {
     global = updateCurrentDappTransfer(global, { state: TransferState.Password });
     setGlobal(global);

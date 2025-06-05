@@ -58,10 +58,10 @@ function LedgerModal({
     resetHardwareWalletConnect,
   } = getActions();
 
-  const [currentSlide, setCurrentSlide] = useState<number>(
+  const [currentSlide, setCurrentSlide] = useState<LedgerModalState>(
     LedgerModalState.Connect,
   );
-  const [nextKey] = useState<number | undefined>(
+  const [nextKey] = useState<LedgerModalState | undefined>(
     LedgerModalState.SelectWallets,
   );
 
@@ -83,8 +83,7 @@ function LedgerModal({
     resetHardwareWalletConnect();
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: LedgerModalState) {
     switch (currentKey) {
       case LedgerModalState.Connect:
         return (

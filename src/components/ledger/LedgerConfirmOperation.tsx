@@ -111,8 +111,7 @@ function LedgerConfirmOperation({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActiveSlide: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActiveSlide: boolean, isFrom: boolean, currentKey: ConfirmTransactionState) {
     switch (currentKey) {
       case ConfirmTransactionState.Waiting:
         return renderWaitingConfirm(isActiveSlide);

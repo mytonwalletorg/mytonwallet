@@ -31,7 +31,9 @@ function AddressBookItem({
   onClick,
   onDeleteClick,
 }: OwnProps) {
-  const handleClick = () => { onClick(address); };
+  const handleClick = () => {
+    onClick(address);
+  };
 
   const handleDeleteClick = (e: MouseEvent) => {
     stopEvent(e);

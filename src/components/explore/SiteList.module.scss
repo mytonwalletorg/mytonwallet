@@ -1,11 +1,9 @@
-@import "../../styles/mixins/index";
+@use "../../styles/mixins";
 
 .root {
   position: relative;
-
   overflow: hidden;
   overflow-y: scroll;
-
   height: 100%;
 
   :global(html.with-safe-area-top) & {
@@ -17,19 +15,19 @@
     --header-padding-top: 2.3125rem;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     min-height: 100%;
     padding-bottom: calc(max(var(--safe-area-bottom), 1rem) + var(--bottombar-height) + 1rem);
   }
 }
 
 .list {
-  background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
+  background-color: var(--color-background-first);
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     margin: 0.375rem 1rem 0;
 
-    @include adapt-margin-to-scrollbar(1rem);
+    @include mixins.adapt-margin-to-scrollbar(1rem);
   }
 }

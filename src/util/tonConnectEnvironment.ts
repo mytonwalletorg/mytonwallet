@@ -14,7 +14,7 @@ type DevicePlatform = DeviceInfo['platform'];
 */
 export function tonConnectGetDeviceInfo(maxMessages = W5_MAX_MESSAGES): DeviceInfo {
   return {
-    platform: getPlatform()!,
+    platform: getPlatform(),
     appName: APP_NAME,
     appVersion: packageJson.version,
     maxProtocolVersion: TONCONNECT_PROTOCOL_VERSION,

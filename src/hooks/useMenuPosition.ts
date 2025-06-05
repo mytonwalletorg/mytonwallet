@@ -1,4 +1,4 @@
-import { useLayoutEffect } from '../lib/teact/teact';
+import { type ElementRef, useLayoutEffect } from '../lib/teact/teact';
 import { addExtraClass, removeExtraClass, setExtraStyles } from '../lib/teact/teact-dom';
 
 import type { IAnchorPosition } from '../types';
@@ -29,6 +29,14 @@ interface MenuDimensions {
   marginTop: number;
 }
 
+interface GatherBoundsParams {
+  getTriggerElement?: () => (HTMLElement | null | undefined);
+  getRootElement: () => (HTMLElement | null | undefined);
+  getMenuElement: () => (HTMLElement | null | undefined);
+  layout: Layout;
+  anchor: IAnchorPosition;
+}
+
 interface PositionResult {
   positionX: 'left' | 'right';
   positionY: 'top' | 'bottom';
@@ -48,16 +56,14 @@ interface StaticPositionOptions {
 
 interface DynamicPositionOptions {
   anchor: IAnchorPosition;
-  getTriggerElement: () => HTMLElement | undefined | null;
+  getTriggerElement?: () => HTMLElement | undefined | null;
   getRootElement: () => HTMLElement | undefined | null;
   getMenuElement: () => HTMLElement | undefined | null;
   getLayout?: () => Layout;
   withMaxHeight?: boolean;
 }
 
-export type MenuPositionOptions =
-  StaticPositionOptions
-  | DynamicPositionOptions;
+export type MenuPositionOptions = StaticPositionOptions | DynamicPositionOptions;
 
 export interface Layout {
   extraPaddingX?: number;
@@ -88,8 +94,8 @@ const EMPTY_RECT = {
 
 export default function useMenuPosition(
   isOpen: boolean,
-  containerRef: React.RefObject<HTMLDivElement>,
-  bubbleRef: React.RefObject<HTMLDivElement>,
+  containerRef: ElementRef<HTMLDivElement>,
+  bubbleRef: ElementRef<HTMLDivElement>,
   options: MenuPositionOptions,
 ) {
   const optionsRef = useStateRef(options);
@@ -99,9 +105,7 @@ export default function useMenuPosition(
 
     const options2 = optionsRef.current;
 
-    if (!('getTriggerElement' in options2)) {
-      applyStaticOptions(containerRef, bubbleRef, options2);
-    } else {
+    if (isDynamicPositionOptions(options2)) {
       requestForcedReflow(() => {
         const staticOptions = processDynamically(options2);
 
@@ -109,13 +113,15 @@ export default function useMenuPosition(
           applyStaticOptions(containerRef, bubbleRef, staticOptions);
         };
       });
+    } else {
+      applyStaticOptions(containerRef, bubbleRef, options2);
     }
   }, [isOpen, containerRef, bubbleRef, optionsRef]);
 }
 
 function applyStaticOptions(
-  containerRef: React.RefObject<HTMLDivElement>,
-  bubbleRef: React.RefObject<HTMLDivElement>,
+  containerRef: ElementRef<HTMLDivElement>,
+  bubbleRef: ElementRef<HTMLDivElement>,
   {
     anchor,
     positionX = 'left',
@@ -162,23 +168,26 @@ function applyStaticOptions(
   });
 }
 
-function gatherBounds(
-  getTriggerElement: () => HTMLElement | null | undefined,
-  getRootElement: () => HTMLElement | null | undefined,
-  getMenuElement: () => HTMLElement | null | undefined,
-  layout: Layout,
-): {
+function gatherBounds({
+  getTriggerElement,
+  getRootElement,
+  getMenuElement,
+  layout,
+  anchor,
+}: GatherBoundsParams): {
     triggerRect: DOMRect;
     rootRect: Bounds;
     menuDimensions: MenuDimensions;
   } {
-  const triggerEl = getTriggerElement()!;
+  const triggerEl = getTriggerElement?.();
   const rootEl = getRootElement();
   const menuEl = getMenuElement();
 
   const { extraMarginTop = 0, menuElMinWidth = 0 } = layout;
 
-  const triggerRect = triggerEl.getBoundingClientRect();
+  const triggerRect = triggerEl
+    ? triggerEl.getBoundingClientRect()
+    : { ...EMPTY_RECT, left: anchor.x, top: anchor.y, right: anchor.x, bottom: anchor.y } as DOMRect;
   const rootRect = rootEl ? rootEl.getBoundingClientRect() : EMPTY_RECT;
 
   let menuDimensions: MenuDimensions;
@@ -219,7 +228,6 @@ function determineHorizontalPosition(
     }
   } else {
     // Prefer right-leaning (opening rightward): try 'left' position first
-    // eslint-disable-next-line no-lonely-if
     if (x + menuWidth <= rootRect.right - POSITIONING.VISUAL_COMFORT_SPACE) {
       positionX = 'left';
       x += POSITIONING.HORIZONTAL_OFFSET;
@@ -353,7 +361,7 @@ function applyBoundaryConstraints(
     if (positionX === 'left') {
       x = Math.min(x, rootRect.width - menuDimensions.width - POSITIONING.VISUAL_COMFORT_SPACE);
     } else {
-      x = Math.max(x, POSITIONING.VISUAL_COMFORT_SPACE);
+      x = Math.max(x, POSITIONING.VISUAL_COMFORT_SPACE + menuDimensions.width);
     }
   }
 
@@ -403,12 +411,13 @@ function processDynamically(
 ) {
   const layout = getLayout?.() || {};
 
-  const { triggerRect, rootRect, menuDimensions } = gatherBounds(
+  const { triggerRect, rootRect, menuDimensions } = gatherBounds({
     getTriggerElement,
     getRootElement,
     getMenuElement,
     layout,
-  );
+    anchor,
+  });
 
   const { positionX, x } = determineHorizontalPosition(
     anchor,
@@ -460,4 +469,8 @@ function processDynamically(
     style,
     bubbleStyle,
   };
+}
+
+function isDynamicPositionOptions(options: MenuPositionOptions): options is DynamicPositionOptions {
+  return 'getRootElement' in options;
 }

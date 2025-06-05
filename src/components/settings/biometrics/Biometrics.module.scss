@@ -23,23 +23,20 @@
   align-self: center;
 
   padding: 0.5625rem 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.3125rem;
   text-align: center;
-
-  border-radius: var(--border-radius-buttons);
 }
 
 .step {
   color: var(--light-gray-1);
-
   background-color: var(--color-gray-button-background-light);
 }
 
 .error {
   color: var(--color-transaction-amount-red-text);
-
   background-color: var(--color-transaction-amount-red-bg);
 }

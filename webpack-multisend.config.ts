@@ -76,7 +76,7 @@ export default function createConfig(
     module: {
       rules: [
         {
-          test: /\.(ts|tsx|js)$/,
+          test: /\.(ts|tsx|js|mjs|cjs)$/,
           loader: 'babel-loader',
           exclude: /node_modules/,
         },
@@ -134,7 +134,7 @@ export default function createConfig(
     },
 
     resolve: {
-      extensions: ['.js', '.ts', '.tsx'],
+      extensions: ['.js', '.cjs', '.mjs', '.ts', '.tsx'],
       fallback: {
         stream: require.resolve('stream-browserify'),
         process: require.resolve('process/browser'),
@@ -161,7 +161,7 @@ export default function createConfig(
       new ProvidePlugin({
         process: 'process/browser',
       }),
-      /* eslint-disable no-null/no-null */
+
       new EnvironmentPlugin({
         APP_ENV: 'production',
       }),
@@ -177,7 +177,7 @@ export default function createConfig(
         saveStatsTo: path.resolve('./public/statoscope-build-statistics.json'),
         normalizeStats: true,
         open: 'file',
-        extensions: [new WebpackContextExtension()], // eslint-disable-line @typescript-eslint/no-use-before-define
+        extensions: [new WebpackContextExtension()],
       }),
     ],
     devtool: APP_ENV === 'development' ? 'source-map' : 'hidden-source-map',

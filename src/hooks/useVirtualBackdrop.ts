@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import type { ElementRef } from '../lib/teact/teact';
 import { useEffect } from '../lib/teact/teact';
 
 import styles from '../components/ui/Menu.module.scss';
@@ -7,7 +7,7 @@ import styles from '../components/ui/Menu.module.scss';
 // without adding extra elements to the DOM
 export default function useVirtualBackdrop(
   isOpen: boolean,
-  menuRef: RefObject<HTMLElement>,
+  menuRef: ElementRef<HTMLDivElement>,
   onClose?: () => void | undefined,
 ) {
   useEffect(() => {

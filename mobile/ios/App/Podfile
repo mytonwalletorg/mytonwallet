@@ -23,7 +23,6 @@ def capacitor_pods
   pod 'CapacitorPushNotifications', :path => '../../../node_modules/@capacitor/push-notifications'
   pod 'CapacitorShare', :path => '../../../node_modules/@capacitor/share'
   pod 'CapacitorStatusBar', :path => '../../../node_modules/@capacitor/status-bar'
-  pod 'CapawesomeCapacitorTorch', :path => '../../../node_modules/@capawesome/capacitor-torch'
   pod 'CapgoCapacitorNativeBiometric', :path => '../../../node_modules/@capgo/capacitor-native-biometric'
   pod 'CapgoNativeAudio', :path => '../../../node_modules/@capgo/native-audio'
   pod 'MauricewegnerCapacitorNavigationBar', :path => '../../../node_modules/@mauricewegner/capacitor-navigation-bar'

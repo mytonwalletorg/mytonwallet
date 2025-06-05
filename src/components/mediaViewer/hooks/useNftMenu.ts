@@ -20,8 +20,8 @@ import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
 export type NftMenuHandler = 'send' | 'tondns' | 'fragment' | 'getgems' | 'tonExplorer' | 'collection' | 'hide'
-| 'unhide' | 'not_scam' | 'burn' | 'select' | 'installCard' | 'resetCard' | 'installAccentColor' | 'resetAccentColor'
-| 'renew' | 'linkDomain';
+  | 'unhide' | 'not_scam' | 'burn' | 'select' | 'installCard' | 'resetCard' | 'installAccentColor' | 'resetAccentColor'
+  | 'renew' | 'linkDomain';
 
 const ON_SALE_ITEM: DropdownItem<NftMenuHandler> = {
   name: 'Cannot be sent',
@@ -282,10 +282,12 @@ export default function useNftMenu({
     const isCard = !IS_CORE_WALLET && nft.collectionAddress === MTW_CARDS_COLLECTION;
 
     return compact([
-      isOnSale ? ON_SALE_ITEM : SEND_ITEM,
+      !isViewMode && (isOnSale ? ON_SALE_ITEM : SEND_ITEM),
       !isViewMode && isTonDns && !isOnSale && dnsExpireInDays !== undefined && {
         ...RENEW_ITEM,
-        description: lang('Expires in %1$d days', dnsExpireInDays, 'i') as string,
+        description: dnsExpireInDays < 0
+          ? 'Expired'
+          : lang('$expires_in %days%', { days: lang('$in_days', dnsExpireInDays) }, undefined, 1),
       },
       !isViewMode && isTonDns && !isOnSale && (linkedAddress ? CHANGE_LINKED_ADDRESS : LINK_TO_ADDRESS),
       !IS_CORE_WALLET && ((!isScam && !isNftBlacklisted) || isNftWhitelisted) && HIDE_ITEM,

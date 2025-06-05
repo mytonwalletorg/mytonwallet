@@ -1,4 +1,4 @@
-import type { TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, TeactNode } from '../../lib/teact/teact';
 import React, { useRef } from '../../lib/teact/teact';
 
 import type { Layout } from '../../hooks/useMenuPosition';
@@ -13,10 +13,10 @@ import MenuBackdrop from './MenuBackdrop';
 
 interface Props<T extends string> {
   items: DropdownItem<T>[];
-  rootRef?: React.RefObject<HTMLDivElement>;
+  rootRef?: ElementRef<HTMLDivElement>;
   onItemClick: (value: T) => void;
   children: (buttonProps: {
-    ref: React.RefObject<HTMLDivElement | HTMLButtonElement>;
+    ref: ElementRef<HTMLDivElement | HTMLButtonElement>;
     onMouseDown: (e: React.MouseEvent) => void;
     onContextMenu: (e: React.MouseEvent) => void;
     className?: string;
@@ -33,10 +33,8 @@ export default function WithContextMenu<T extends string>({
   menuClassName,
   menuPositionY = 'bottom',
 }: Props<T>) {
-  // eslint-disable-next-line no-null/no-null
-  const buttonRef = useRef<HTMLDivElement | HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLDivElement | HTMLButtonElement>();
+  const menuRef = useRef<HTMLDivElement>();
 
   const { isPortrait } = useDeviceScreen();
   const getTriggerElement = useLastCallback(() => buttonRef.current);

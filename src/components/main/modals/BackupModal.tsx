@@ -51,8 +51,8 @@ function BackupModal({
   const { setIsBackupRequired, setIsPinAccepted, clearIsPinAccepted } = getActions();
 
   const lang = useLang();
-  const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
-  const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
+  const [currentSlide, setCurrentSlide] = useState<SLIDES>(SLIDES.confirm);
+  const [nextKey, setNextKey] = useState<SLIDES | undefined>(SLIDES.password);
   const [checkIndexes, setCheckIndexes] = useState<number[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -118,8 +118,7 @@ function BackupModal({
     onClose();
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     const mnemonic = mnemonicRef.current;
 
     switch (currentKey) {
@@ -155,7 +154,7 @@ function BackupModal({
       case SLIDES.mnemonic:
         return mnemonic && isMnemonicPrivateKey(mnemonic) ? (
           <MnemonicPrivateKey
-            privateKeyHex={mnemonic![0]}
+            privateKeyHex={mnemonic[0]}
             onClose={onClose}
           />
         ) : (

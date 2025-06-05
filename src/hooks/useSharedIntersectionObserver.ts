@@ -1,4 +1,4 @@
-import { useEffect } from '../lib/teact/teact';
+import { type ElementRef, useEffect } from '../lib/teact/teact';
 
 import type { CallbackManager } from '../util/callbacks';
 
@@ -8,7 +8,7 @@ import { useStateRef } from './useStateRef';
 const elementObserverMap = new Map<HTMLElement, [IntersectionObserver, CallbackManager]>();
 
 export default function useSharedIntersectionObserver(
-  refOrElement: React.RefObject<HTMLElement> | HTMLElement | undefined,
+  refOrElement: ElementRef<HTMLElement> | HTMLElement | undefined,
   onIntersectionChange: (entry: IntersectionObserverEntry) => void,
   isDisabled = false,
 ) {
@@ -41,8 +41,8 @@ export default function useSharedIntersectionObserver(
     return () => {
       callbackManager!.removeCallback(callback);
       if (!callbackManager!.hasCallbacks()) {
-        observer!.unobserve(el);
-        observer!.disconnect();
+        observer.unobserve(el);
+        observer.disconnect();
         elementObserverMap.delete(el);
       }
     };

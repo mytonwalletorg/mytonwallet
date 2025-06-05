@@ -68,7 +68,7 @@ function GiveawayInfo({ giveaway, wallet }: OwnProps) {
 
   const endDateText = `${formatFullDay('en', endsAt)} ${formatTime(endsAt)}`;
 
-  const isExpired = status === 'finished' || isGiveawayExpired(endsAt);
+  const isExpired = status === GiveawayStatus.Finished || isGiveawayExpired(endsAt);
 
   const iconType = isExpired ? CalendarIconState.FAILED : CalendarIconState.NORMAL;
 

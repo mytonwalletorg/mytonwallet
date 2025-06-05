@@ -39,9 +39,9 @@ import { IS_EXTENSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { bigintDivideToNumber } from '../../util/bigint';
+import { fetchJsonWithProxy } from '../../util/fetch';
 import { pick } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
-import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
 import { tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 import chains from '../chains';
@@ -125,7 +125,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     } : undefined;
 
     if (!addressItem) {
-      throw new errors.BadRequestError("Missing 'ton_addr'");
+      throw new errors.BadRequestError('Missing \'ton_addr\'');
     }
 
     if (proof && !proof.domain.includes('.')) {
@@ -182,7 +182,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
 
       let proofReplyItem: TonProofItemReplySuccess;
       if (password) {
-        proofReplyItem = await signTonProof(accountId, account as ApiAccountWithMnemonic, password, address, proof!);
+        proofReplyItem = await signTonProof(accountId, account as ApiAccountWithMnemonic, password, address, proof);
       } else {
         proofReplyItem = buildTonProofReplyItem(proof, signature!);
       }
@@ -359,7 +359,6 @@ export async function sendTransaction(
       vestingAddress,
     });
 
-    // eslint-disable-next-line prefer-const
     const response: string | ApiSignedTransfer[] = await promise;
 
     if (validUntil && validUntil < (Date.now() / 1000)) {
@@ -473,7 +472,6 @@ async function checkIsHisVestingWallet(network: ApiNetwork, ownerPublicKey: Uint
   return info.contractInfo?.name === 'vesting' && areDeepEqual(ownerPublicKey, publicKey);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function signData(request: ApiDappRequest, message: SignDataRpcRequest) {
   return {
     error: {
@@ -660,7 +658,7 @@ function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): T
 
 export async function fetchDappMetadata(manifestUrl: string, origin?: string): Promise<ApiDappMetadata> {
   try {
-    const data = await fetchJsonMetadata(manifestUrl);
+    const data = await fetchJsonWithProxy(manifestUrl);
 
     const { url, name, iconUrl } = await data;
     const safeIconUrl = (iconUrl.startsWith('data:') || iconUrl === '') ? BLANK_GIF_DATA_URL : iconUrl;

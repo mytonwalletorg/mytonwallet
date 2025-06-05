@@ -40,7 +40,7 @@ function GiveawayInfoPage({
 
   function renderPaidPageContent() {
     const decimals = jettonMetadata && 'decimals' in jettonMetadata
-      ? Number(jettonMetadata.decimals!)
+      ? Number(jettonMetadata.decimals)
       : DEFAULT_DECIMALS;
 
     return (

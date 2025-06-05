@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .tokenSelectInputWrapper {
   position: relative;
@@ -9,13 +9,13 @@
   height: 2.25rem;
   min-height: 2.25rem;
   margin: 0 0.75rem 0.5rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 1.25rem;
   line-height: 1;
   color: var(--color-gray-2);
 
   background-color: var(--color-close-button-background);
-  border-radius: var(--border-radius-buttons);
 
   @supports (backdrop-filter: saturate(180%) blur(20px)) {
     background-color: var(--color-close-button-background);
@@ -45,9 +45,9 @@
   height: 2rem;
   margin: 0;
   padding: 0;
+  border: none;
 
   background-color: transparent;
-  border: none;
 }
 
 .tokenSelectSearchResetIcon {
@@ -60,13 +60,13 @@
 
   width: 1rem;
   height: 1rem;
+  border: none;
+  border-radius: 50%;
 
   font-size: 1rem;
   color: var(--color-close-button-background);
 
   background-color: var(--color-gray-2);
-  border: none;
-  border-radius: 50%;
 }
 
 .tokenSelectInput {
@@ -74,16 +74,15 @@
 
   width: 100%;
   padding: 0 2.125rem 0 0.25rem;
+  border: none;
 
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-black);
 
-  background: transparent;
-  border: none;
-  outline: none;
-
   appearance: none;
+  background: transparent;
+  outline: none;
 
   &::placeholder {
     font-weight: 600;
@@ -100,13 +99,11 @@
 
 .tokenSelectContent {
   overflow-y: scroll;
-
   height: 100%;
   padding: 0 0.25rem 0 0;
-
   background-color: var(--color-background-first);
 
-  @include adapt-padding-to-scrollbar(0.25rem);
+  @include mixins.adapt-padding-to-scrollbar(0.25rem);
 }
 
 .tokenGroupContainer {
@@ -117,9 +114,7 @@
 .tokenGroupHeader {
   display: flex;
   justify-content: space-between;
-
   padding: 0.5rem 1rem;
-
   background: var(--color-background-first-disabled);
 }
 
@@ -186,7 +181,6 @@
 
 .logoContainer {
   position: relative;
-
   width: 2.25rem;
   height: 2.25rem;
 }
@@ -195,10 +189,8 @@
 .tokenLogoSymbol {
   width: 2.25rem;
   height: 2.25rem;
-
-  font-size: 0;
-
   border-radius: 100%;
+  font-size: 0;
 }
 
 .tokenLogo {
@@ -237,9 +229,9 @@
 
   width: 1.125rem;
   height: 1.125rem;
+  border-radius: 100%;
 
   background-color: var(--color-separator-input-stroke);
-  border-radius: 100%;
 
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 0 0 0.0938rem var(--color-background-drop-down);
@@ -256,7 +248,6 @@
   --border-radius-value: 0.25rem;
 
   align-items: end;
-
   text-align: end;
 }
 
@@ -277,17 +268,15 @@
 .tokenNameSkeleton {
   width: 5rem;
   height: 0.875rem;
-
-  background-color: var(--color-separator-input-stroke);
   border-radius: var(--border-radius-tiny);
+  background-color: var(--color-separator-input-stroke);
 }
 
 .tokenValueSkeleton {
   width: 3rem;
   height: 0.6875rem;
-
-  background-color: var(--color-separator-input-stroke);
   border-radius: var(--border-radius-tiny);
+  background-color: var(--color-separator-input-stroke);
 }
 
 .tokenNotFound {

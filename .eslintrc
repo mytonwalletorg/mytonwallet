@@ -1,3 +1,0 @@
-{
-  "extends": ["@mytonwallet/eslint-config/frontend"]
-}

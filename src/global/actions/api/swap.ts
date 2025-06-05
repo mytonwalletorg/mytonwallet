@@ -119,7 +119,7 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     toAmount,
     toMinAmount: amountOutMin!,
     slippage,
-    fromAddress: account?.addressByChain[tokenIn.chain as ApiChain] || account?.addressByChain.ton!,
+    fromAddress: (account?.addressByChain[tokenIn.chain as ApiChain] || account?.addressByChain.ton)!,
     shouldTryDiesel: shouldSwapBeGasless({ ...global.currentSwap, swapType, nativeTokenInBalance }),
     dexLabel: currentDexLabel!,
     networkFee: realNetworkFee ?? networkFee!,
@@ -499,12 +499,12 @@ addActionHandler('setSwapTokenIn', (global, actions, { tokenSlug: newTokenInSlug
     tokenInSlug,
     tokenOutSlug,
   } = global.currentSwap;
-  const newTokenIn = global.swapTokenInfo!.bySlug[newTokenInSlug];
+  const newTokenIn = global.swapTokenInfo.bySlug[newTokenInSlug];
   const adjustedAmountIn = amountIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
 
   // Don't set the same token in both inputs
   const newTokenOutSlug = newTokenInSlug === tokenOutSlug ? tokenInSlug : tokenOutSlug;
-  const newTokenOut = newTokenOutSlug ? global.swapTokenInfo!.bySlug[newTokenOutSlug] : undefined;
+  const newTokenOut = newTokenOutSlug ? global.swapTokenInfo.bySlug[newTokenOutSlug] : undefined;
   const adjustedAmountOut = amountOut && newTokenOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
 
   global = updateCurrentSwap(global, {
@@ -523,12 +523,12 @@ addActionHandler('setSwapTokenOut', (global, actions, { tokenSlug: newTokenOutSl
     tokenInSlug,
     tokenOutSlug,
   } = global.currentSwap;
-  const newTokenOut = global.swapTokenInfo!.bySlug[newTokenOutSlug!];
+  const newTokenOut = global.swapTokenInfo.bySlug[newTokenOutSlug];
   const adjustedAmountOut = amountOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
 
   // Don't set the same token in both inputs
   const newTokenInSlug = newTokenOutSlug === tokenInSlug ? tokenOutSlug : tokenInSlug;
-  const newTokenIn = newTokenInSlug ? global.swapTokenInfo!.bySlug[newTokenInSlug] : undefined;
+  const newTokenIn = newTokenInSlug ? global.swapTokenInfo.bySlug[newTokenInSlug] : undefined;
   const adjustedAmountIn = amountIn && newTokenIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
 
   global = updateCurrentSwap(global, {
@@ -569,7 +569,7 @@ addActionHandler('estimateSwap', async () => {
     }
 
     const pairsBySlug = global.currentSwap.pairs?.bySlug ?? {};
-    const isPairValid = global.currentSwap.tokenOutSlug! in pairsBySlug;
+    const isPairValid = (global.currentSwap.tokenOutSlug!) in pairsBySlug;
     if (!isPairValid) {
       return {
         ...getSwapEstimateResetParams(global),
@@ -586,8 +586,8 @@ addActionHandler('estimateSwap', async () => {
 });
 
 async function estimateDexSwap(global: GlobalState): Promise<SwapEstimateResult> {
-  const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
-  const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
+  const tokenIn = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
+  const tokenOut = global.swapTokenInfo.bySlug[global.currentSwap.tokenOutSlug!];
   const nativeTokenIn = getChainConfig(getChainBySlug(tokenIn.slug)).nativeToken;
 
   const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
@@ -657,8 +657,8 @@ async function estimateDexSwap(global: GlobalState): Promise<SwapEstimateResult>
 }
 
 async function estimateCexSwap(global: GlobalState, shouldStop: () => boolean): Promise<SwapEstimateResult> {
-  const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
-  const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
+  const tokenIn = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
+  const tokenOut = global.swapTokenInfo.bySlug[global.currentSwap.tokenOutSlug!];
 
   const from = resolveSwapAssetId(tokenIn);
   const to = resolveSwapAssetId(tokenOut);
@@ -704,7 +704,7 @@ async function estimateCexSwap(global: GlobalState, shouldStop: () => boolean): 
     }
 
     const toAddress = {
-      ton: account?.addressByChain.ton!,
+      ton: account!.addressByChain.ton!,
       tron: TRX_SWAP_COUNT_FEE_ADDRESS,
     }[tokenIn.chain];
 
@@ -1002,7 +1002,7 @@ function chooseSwapEstimate(
   }
 
   // Otherwise, select automatically
-  const tokenIn = tokenInSlug ? global.swapTokenInfo!.bySlug[tokenInSlug] : undefined;
+  const tokenIn = tokenInSlug ? global.swapTokenInfo.bySlug[tokenInSlug] : undefined;
   const tokenInBalance = tokenInSlug ? selectCurrentAccountTokenBalance(global, tokenInSlug) : undefined;
   const nativeTokenIn = tokenInSlug ? findChainConfig(getChainBySlug(tokenInSlug))?.nativeToken : undefined;
   const nativeTokenInBalance = nativeTokenIn && selectCurrentAccountTokenBalance(global, nativeTokenIn.slug);

@@ -17,7 +17,6 @@ addHooks({
   onDappsChanged: tonConnectSse.resetupSseConnection,
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   connectUpdater(onUpdate);
   const environment = setEnvironment(args);

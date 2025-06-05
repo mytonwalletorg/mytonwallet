@@ -15,6 +15,9 @@ let captchaLoadedPromise = new Promise((resolve) => {
 
 let address = undefined;
 let bridge = undefined;
+let tonConnectBody = undefined;
+let tronAddress = undefined;
+let captchaToken = undefined;
 
 window.onloadTurnstileCallback = captchaLoadedResolve;
 
@@ -25,7 +28,6 @@ connector.onStatusChange(handleConnectorStatusChange);
 
 const checkinBtn = $('checkin-btn');
 
-setupButtons();
 setTimeout(connect, 1000);
 
 function $(id) {
@@ -44,7 +46,7 @@ async function connect() {
   if (walletInfo) {
     bridge = TonConnectSDK.isWalletInfoCurrentlyEmbedded(walletInfo) ? 'js-embedded' : 'js-injected';
 
-    connector.connect({ jsBridgeKey: JSBRIDGE_KEY });
+    connector.connect({ jsBridgeKey: JSBRIDGE_KEY }, { tonProof: 'nfc-summit' });
     return;
   }
 
@@ -53,6 +55,8 @@ async function connect() {
   const universalLink = connector.connect({
     universalLink: UNIVERSAL_LINK,
     bridgeUrl: BRIDGE_URL,
+  }, {
+    tonProof: 'nfc-summit',
   });
 
   checkinBtn.classList.remove('disabled');
@@ -68,11 +72,25 @@ async function handleConnectorStatusChange(walletInfo) {
 
   console.log({ walletInfo });
 
+  const tonProof = walletInfo?.connectItems?.tonProof?.proof;
+
+  tonConnectBody = {
+    address: walletInfo?.account?.address,
+    network: walletInfo?.account?.chain,
+    public_key: walletInfo?.account?.publicKey,
+    proof: {
+      ...tonProof,
+      state_init: walletInfo?.account?.walletStateInit,
+    }
+  };
+
   address = TonConnectSDK.toUserFriendlyAddress(walletInfo?.account?.address);
 
-  await captchaLoadedPromise;
+  // await captchaLoadedPromise;
 
-  createCaptchaWidget();
+  // createCaptchaWidget();
+
+  showSlide('tron');
 }
 
 function createCaptchaWidget() {
@@ -88,42 +106,56 @@ function createCaptchaWidget() {
         return;
       }
 
-      showSlide('processing');
+      captchaToken = token;
 
-      setTimeout(() => {
-        submitCheckin(token);
-      }, 500);
+      showSlide('tron');
     },
   });
 
   showSlide('cf-turnstile');
 }
 
+$('tron-btn').addEventListener('click', (e) => {
+  e.preventDefault();
+
+  tronAddress = $('tron-address').value;
+
+  showSlide('processing');
+
+  setTimeout(() => {
+    submitCheckin();
+  }, 500);
+});
+
 function showSlide(id) {
   Array.from($('slide-container').children)
     .forEach((child) => {
       child.classList.toggle('faded', child.id !== id);
     });
+
+  const slideHeight = $(id).clientHeight;
+  const currentHeight = $('slide-container').clientHeight;
+  if (currentHeight < slideHeight) {
+    $('slide-container').style.height = `${slideHeight}px`;
+  } else {
+    setTimeout(() => {
+      $('slide-container').style.height = `${slideHeight}px`;
+    }, 200);
+  }
 }
 
-async function submitCheckin(captchaToken) {
+async function submitCheckin() {
   const queryParams = new URLSearchParams(window.location.search);
-
-  if (queryParams.get('r') === 'connect-bot') {
-    processConnectBot();
-    return;
-  }
-
-  const response = await fetch('https://api.mytonwallet.org/checkin', {
+  const base = 'https://api.mytonwallet.org';
+  // const base = 'http://localhost:3000';
+  const response = await fetch(`${base}/checkin/nfc-summit`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       captchaToken,
-      address,
-      bridge,
-      platform: getPlatform(),
-      lang: navigator.language,
-      ...Object.fromEntries(queryParams.entries()),
+      secret: queryParams.get('secret'),
+      tron_address: tronAddress,
+      ...tonConnectBody,
     }),
   }).catch((err) => {
     showError(err.toString());
@@ -144,43 +176,11 @@ async function submitCheckin(captchaToken) {
     return;
   }
 
-  handleSuccess(data.refAddress, data.referrals);
+  handleSuccess();
 }
 
-function processConnectBot() {
-  const botUrl = `https://t.me/${BOT_USERNAME}/?start=auth-${address}`;
-
-  if (window.open(botUrl)) {
-    window.close();
-  }
-
-  $('connect-bot-btn').addEventListener('click', () => {
-    window.open(botUrl);
-    window.close();
-  });
-
-  showSlide('connect-bot');
-}
-
-function handleSuccess(refAddress, referrals) {
-  showSlide('ref-container');
-
-  const refContainerEl = $('ref-container');
-  const linkEl = refContainerEl.querySelector('a');
-  linkEl.addEventListener('click', handleCopy);
-  linkEl.append(
-    REF_LINK_PREFIX.replace('https://', ''),
-    document.createElement('br'),
-    address.slice(0, 24),
-    document.createElement('br'),
-    address.slice(24),
-  );
-
-  $('show-referral-stats').classList.remove('faded');
-  $('invited-me').textContent = shortenAddress(refAddress);
-  for (const { friendlyAddress } of referrals) {
-    $('invited-by-me').append(document.createElement('br'), shortenAddress(friendlyAddress));
-  }
+function handleSuccess() {
+  showSlide('success');
 }
 
 function showError(msg) {
@@ -188,29 +188,6 @@ function showError(msg) {
   errorEl.textContent = msg;
 
   showSlide('error');
-}
-
-function setupButtons() {
-  if (navigator.clipboard) {
-    const copyBtnEl = $('copy-btn');
-    copyBtnEl.addEventListener('click', handleCopy);
-    copyBtnEl.classList.remove('hidden');
-  }
-
-  if (navigator.canShare) {
-    const shareBtnEl = $('share-btn');
-    shareBtnEl.addEventListener('click', handleShare);
-    shareBtnEl.classList.remove('hidden');
-  }
-
-  // Hack to allow `useWebViewBridge` intercept the link
-  document.querySelector('#join-giveaway a').addEventListener('click', (e) => {
-    e.preventDefault();
-
-    window.open(e.currentTarget.href);
-  });
-
-  $('show-referral-stats').addEventListener('click', showReferralStats);
 }
 
 function handleCopy(e) {
@@ -267,18 +244,10 @@ function getPlatform() {
   return undefined;
 }
 
-function showReferralStats() {
-  $('show-referral-stats').classList.add('hidden');
-
-  const referralStatsEl = $('referral-stats');
-  referralStatsEl.classList.remove('hidden');
-  requestAnimationFrame(() => {
-    referralStatsEl.classList.remove('faded');
-  });
-}
-
 function shortenAddress(address, shift = 6, fromRight = shift) {
   if (!address) return undefined;
 
   return `${address.slice(0, shift)}…${address.slice(-fromRight)}`;
 }
+
+showSlide('checkin');

@@ -63,8 +63,7 @@ function RichNumberInput({
   isStatic = false,
   size = 'large',
 }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>();
   const lang = useLang();
 
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
@@ -172,7 +171,6 @@ function RichNumberInput({
         </label>
       )}
       <div className={inputWrapperFullClass}>
-        {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
         <div
           ref={inputRef}
           contentEditable={!disabled && !isLoading}
@@ -207,7 +205,7 @@ function clearText(text?: string) {
       .replace(/[^\d.]/g, '') // Remove incorrect symbols
       .replace(/^0+(?=([1-9]|0\.))/, '') // Trim extra zeros at beginning
       .replace(/^0+$/, '0') // Trim extra zeros (if only zeros are entered)
-    ?? ''
+      ?? ''
   );
 }
 

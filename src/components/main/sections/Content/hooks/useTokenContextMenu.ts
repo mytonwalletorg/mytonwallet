@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import { useMemo } from '../../../../../lib/teact/teact';
+import { type ElementRef, useMemo } from '../../../../../lib/teact/teact';
 import { getActions } from '../../../../../global';
 
 import type { ApiStakingState } from '../../../../../api/types';
@@ -17,9 +16,9 @@ import useContextMenuHandlers from '../../../../../hooks/useContextMenuHandlers'
 import useLastCallback from '../../../../../hooks/useLastCallback';
 
 export type MenuHandler = 'add' | 'send' | 'swap' | 'stake' | 'hide' | 'settings'
-| 'unstake' | 'stakeMore' | 'claimRewards';
+  | 'unstake' | 'stakeMore' | 'claimRewards';
 
-function useTokenContextMenu(ref: RefObject<HTMLButtonElement>, options: {
+function useTokenContextMenu(ref: ElementRef<HTMLButtonElement>, options: {
   isPortrait?: boolean;
   withContextMenu?: boolean;
   token: UserToken;

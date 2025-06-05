@@ -119,11 +119,13 @@ function SwapWaitTokens({
                   className={styles.changellyDescriptionBold}
                 >
                   {lang('Changelly Live Chat')}
-                </a>),
+                </a>
+              ),
               email: (
                 <span className={styles.changellyDescriptionBold}>
                   {CHANGELLY_SUPPORT_EMAIL}
-                </span>),
+                </span>
+              ),
             })}
           </span>
           {cexTransactionId && (
@@ -164,11 +166,13 @@ function SwapWaitTokens({
               {getChainNetworkName(tokenIn?.chain)}
             </span>
           ),
-          time: <Countdown
-            timestamp={timestamp}
-            deadline={CHANGELLY_WAITING_DEADLINE}
-            onCompleted={handleTimeout}
-          />,
+          time: (
+            <Countdown
+              timestamp={timestamp}
+              deadline={CHANGELLY_WAITING_DEADLINE}
+              onCompleted={handleTimeout}
+            />
+          ),
         })}
         </span>
         <InteractiveTextField

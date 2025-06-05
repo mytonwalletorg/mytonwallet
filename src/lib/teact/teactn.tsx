@@ -56,10 +56,8 @@ let currentGlobal = {
   isInited: false,
 } as GlobalState;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 let DEBUG_currentRandomId: number | undefined;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const DEBUG_invalidateGlobalOnTickEnd = throttleWithTickEnd(() => {
   DEBUG_currentRandomId = Math.random();
 });
@@ -159,7 +157,6 @@ function handleAction(name: string, payload?: ActionPayload, options?: ActionOpt
 }
 
 function updateContainers() {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   let DEBUG_startAt: number | undefined;
   if (DEBUG) {
     DEBUG_startAt = performance.now();
@@ -188,7 +185,7 @@ function updateContainers() {
       if (Object.values(newMappedProps).some(Number.isNaN)) {
         // eslint-disable-next-line no-console
         console.warn(
-          // eslint-disable-next-line max-len
+          // eslint-disable-next-line @stylistic/max-len
           `[TeactN] Some of \`${container.DEBUG_componentName}\` mappers contain NaN values. This may cause redundant updates because of incorrect equality check.`,
         );
       }

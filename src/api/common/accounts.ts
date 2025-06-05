@@ -16,7 +16,6 @@ import { storage } from '../storages';
 
 const MIN_ACCOUNT_NUMBER = 0;
 
-// eslint-disable-next-line import/no-mutable-exports
 export let loginResolve: AnyFunction;
 const loginPromise = new Promise<void>((resolve) => {
   loginResolve = resolve;
@@ -65,8 +64,8 @@ export async function fetchStoredTronWallet(accountId: string): Promise<ApiTronW
   return (await fetchStoredTronAccount(accountId)).tron;
 }
 
-export function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
-  const account = getAccountValue(accountId, 'accounts');
+export async function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
+  const account = await getAccountValue(accountId, 'accounts');
   if (account) return account;
   throw new Error(`Account ${accountId} doesn't exist`);
 }
@@ -161,7 +160,7 @@ export function waitLogin() {
 }
 
 export function getAddressesFromAccount(account: ApiAccountAny) {
-  const addressByChain: { [K in ApiChain]?: string } = {};
+  const addressByChain: Partial<Record<ApiChain, string>> = {};
 
   if ('ton' in account && account.ton) addressByChain.ton = account.ton.address;
   if ('tron' in account && account.tron) addressByChain.tron = account.tron.address;

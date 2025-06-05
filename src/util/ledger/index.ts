@@ -12,7 +12,6 @@ import { Builder } from '@ton/core/dist/boc/Builder';
 import { Cell } from '@ton/core/dist/boc/Cell';
 import { SendMode } from '@ton/core/dist/types/SendMode';
 
-import type { Workchain } from '../../api/chains/ton';
 import type { ApiSubmitTransferOptions } from '../../api/methods/types';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
@@ -45,6 +44,7 @@ import {
   UNSTAKE_COMMENT,
   WALLET_IS_BOUNCEABLE,
   WORKCHAIN,
+  Workchain,
 } from '../../api/chains/ton/constants';
 import {
   buildJettonClaimPayload,
@@ -126,8 +126,8 @@ let currentLedgerTransport: LedgerTransport | undefined;
 let hidImportPromise: Promise<{
   transport: HIDTransportClass;
   listLedgerDevices: ListLedgerDevicesFunction;
-}>;
-let bleImportPromise: Promise<BleConnectorClass>;
+}> | undefined;
+let bleImportPromise: Promise<BleConnectorClass> | undefined;
 let BleConnector: BleConnectorClass;
 let MtwHidTransport: HIDTransportClass;
 let listLedgerDevices: ListLedgerDevicesFunction;
@@ -671,7 +671,7 @@ export async function submitLedgerTransfer(
     const signedCell = await tonTransport!.signTransaction(path, {
       to: Address.parse(toAddress),
       sendMode,
-      seqno: seqno!,
+      seqno,
       timeout: getTransferExpirationTime(),
       bounce: isBounceable,
       amount: BigInt(amount),
@@ -681,7 +681,7 @@ export async function submitLedgerTransfer(
 
     const message: ApiSignedTransfer = {
       base64: signedCell.toBoc().toString('base64'),
-      seqno: seqno!,
+      seqno,
       localActivity: {
         amount: options.amount,
         fromAddress: fromAddress!,
@@ -744,7 +744,7 @@ export async function submitLedgerNftTransfer(options: {
   let forwardAmount = NFT_TRANSFER_FORWARD_AMOUNT;
 
   if (isNotcoinBurn) {
-    ({ forwardPayload, toAddress } = buildNotcoinVoucherExchange(nftAddress, nft!.index));
+    ({ forwardPayload, toAddress } = buildNotcoinVoucherExchange(nftAddress, nft.index));
     forwardAmount = 50000000n;
   } else if (comment) {
     forwardPayload = buildCommentPayload(comment);
@@ -758,7 +758,7 @@ export async function submitLedgerNftTransfer(options: {
     const signedCell = await tonTransport!.signTransaction(path, {
       to: Address.parse(nftAddress),
       sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      seqno: seqno!,
+      seqno,
       timeout: getTransferExpirationTime(),
       bounce: true,
       amount: NFT_TRANSFER_AMOUNT,
@@ -777,7 +777,7 @@ export async function submitLedgerNftTransfer(options: {
 
     const message: ApiSignedTransfer = {
       base64: signedCell.toBoc().toString('base64'),
-      seqno: seqno!,
+      seqno,
       localActivity: {
         amount: 0n, // Regular NFT transfers should have no amount in the activity list
         fromAddress: fromAddress!,
@@ -800,7 +800,6 @@ export async function submitLedgerNftTransfer(options: {
 }
 
 function buildNotcoinVoucherExchange(nftAddress: string, nftIndex: number) {
-  // eslint-disable-next-line no-bitwise
   const first4Bits = Address.parse(nftAddress).hash.readUint8() >> 4;
   const toAddress = NOTCOIN_EXCHANGERS[first4Bits];
 
@@ -970,7 +969,7 @@ export async function signLedgerTransactions(accountId: string, messages: ApiTra
         seqno: params.seqno,
         localActivity: {
           amount: message.amount,
-          fromAddress: fromAddress!,
+          fromAddress,
           toAddress: message.toAddress,
           comment: message.payload?.type === 'comment' ? message.payload.comment : undefined,
           fee: 0n,
@@ -1047,7 +1046,6 @@ export async function getNextLedgerWallets(
   let index = lastExistingIndex + 1;
 
   try {
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const walletInfo = await getLedgerWalletInfo(network, index);
 
@@ -1081,7 +1079,7 @@ export async function getLedgerWalletInfo(network: ApiNetwork, accountIndex: num
   return {
     index: accountIndex,
     address,
-    publicKey: publicKey!.toString('hex'),
+    publicKey: publicKey.toString('hex'),
     balance,
     version: DEFAULT_WALLET_VERSION,
     driver: 'HID',
@@ -1122,7 +1120,7 @@ async function getLedgerAccountPath(accountId: string) {
 
 function getLedgerAccountPathByIndex(index: number, isTestnet?: boolean, workchain: Workchain = WORKCHAIN) {
   const network = isTestnet ? 1 : 0;
-  const chain = workchain === -1 ? 255 : 0;
+  const chain = workchain === Workchain.MasterChain ? 255 : 0;
   return [44, 607, network, chain, index, 0];
 }
 
@@ -1134,6 +1132,7 @@ export async function getTonAppInfo() {
   const version = await tonTransport!.getVersion();
   const isUnsafeSupported = compareVersions(version, VERSION_WITH_UNSAFE) >= 0;
   const isJettonIdSupported = compareVersions(version, VERSION_WITH_JETTON_ID) >= 0
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     && transport!.deviceModel?.id !== 'nanoS';
   return { version, isUnsafeSupported, isJettonIdSupported };
 }
@@ -1149,7 +1148,7 @@ function handleLedgerErrors(err: any) {
 
 async function tryDetectDevice(
   listDeviceFn: () => Promise<ICapacitorUSBDevice[]>,
-  createTransportFn?: NoneToVoidFunction,
+  createTransportFn?: () => Promise<unknown> | void,
 ) {
   try {
     for (let i = 0; i < DEVICE_DETECT_ATTEMPTS; i++) {

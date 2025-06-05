@@ -41,7 +41,6 @@
 
   display: flex;
   justify-content: center;
-
   margin-top: -0.25rem;
 }
 
@@ -53,10 +52,9 @@
   min-width: auto !important;
   height: auto !important;
   padding: 0.75rem 1.25rem !important;
+  border-radius: 0 !important;
 
   line-height: 1rem !important;
-
-  border-radius: 0 !important;
 
   &:first-child {
     border-top-left-radius: var(--border-radius-buttons) !important;

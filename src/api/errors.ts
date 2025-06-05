@@ -1,4 +1,3 @@
-// eslint-disable-next-line max-classes-per-file
 import type { ApiAnyDisplayError } from './types';
 import { ApiCommonError, ApiTransactionError } from './types';
 

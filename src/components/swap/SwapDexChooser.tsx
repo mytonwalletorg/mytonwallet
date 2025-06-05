@@ -314,7 +314,7 @@ function formatDexItemAmount(toAmount: string, tokenOut: UserSwapToken): TeactNo
   return (
     <>
       {formattedWholePart}
-      <span className={styles.dexValueFractional}>{fractionStr}&thinsp;{tokenOut!.symbol}</span>
+      <span className={styles.dexValueFractional}>{fractionStr}&thinsp;{tokenOut.symbol}</span>
     </>
   );
 }

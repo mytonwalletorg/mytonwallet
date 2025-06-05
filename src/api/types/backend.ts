@@ -54,20 +54,20 @@ export type ApiSwapEstimateResponse = ApiSwapEstimateRequest & {
 };
 
 export type ApiSwapBuildRequest = Pick<ApiSwapEstimateResponse,
-'from'
-| 'to'
-| 'fromAddress'
-| 'dexLabel'
-| 'fromAmount'
-| 'toAmount'
-| 'toMinAmount'
-| 'slippage'
-| 'shouldTryDiesel'
-| 'swapVersion'
-| 'networkFee'
-| 'swapFee'
-| 'ourFee'
-| 'dieselFee'
+  'from'
+  | 'to'
+  | 'fromAddress'
+  | 'dexLabel'
+  | 'fromAmount'
+  | 'toAmount'
+  | 'toMinAmount'
+  | 'slippage'
+  | 'shouldTryDiesel'
+  | 'swapVersion'
+  | 'networkFee'
+  | 'swapFee'
+  | 'ourFee'
+  | 'dieselFee'
 > & {
   walletVersion?: ApiTonWalletVersion;
 };
@@ -136,7 +136,7 @@ export type ApiSwapHistoryItem = {
 
 // Cross-chain centralized swap
 type ApiSwapCexTransactionStatus = 'new' | 'waiting' | 'confirming' | 'exchanging' | 'sending' | 'finished'
-| 'failed' | 'refunded' | 'hold' | 'overdue' | 'expired';
+  | 'failed' | 'refunded' | 'hold' | 'overdue' | 'expired';
 
 export type ApiSwapCexEstimateRequest = {
   from: string;
@@ -189,9 +189,7 @@ export type ApiStakingCommonData = {
     collection?: string;
     apy: number;
     available: bigint;
-    loyaltyApy: {
-      [key in ApiLoyaltyType]: number;
-    };
+    loyaltyApy: Record<ApiLoyaltyType, number>;
   };
   round: {
     start: number;

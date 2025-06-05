@@ -145,9 +145,9 @@ function SettingsSecurity({
     handleScroll: handleContentScroll,
   } = useScrolledState();
 
-  const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.password);
+  const [currentSlide, setCurrentSlide] = useState<SLIDES>(SLIDES.password);
   const previousSlide = usePrevious(currentSlide);
-  const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.settings);
+  const [nextKey, setNextKey] = useState<SLIDES | undefined>(SLIDES.settings);
   const [passwordError, setPasswordError] = useState<string>();
   const [password, setPassword] = useState<string>();
   const [backupType, setBackupType] = useState<'key' | 'words' | undefined>(undefined);
@@ -236,7 +236,7 @@ function SettingsSecurity({
     setInMemoryPassword({ password: enteredPassword });
     if (isNativeBiometricAuthEnabled) {
       disableNativeBiometrics();
-      await enableNativeBiometrics({ password: enteredPassword });
+      enableNativeBiometrics({ password: enteredPassword });
     }
     if (getDoesUsePinPad()) {
       openSettingsSlide();
@@ -352,7 +352,7 @@ function SettingsSecurity({
   useEffect(() => {
     if (!password) return;
 
-    void callApi('fetchMnemonic', currentAccountId!, password!).then((mnemonic) => {
+    void callApi('fetchMnemonic', currentAccountId, password).then((mnemonic) => {
       setHasMnemonicWallet(Boolean(mnemonic && !isMnemonicPrivateKey(mnemonic)));
     });
   }, [hasMnemonicWallet, currentAccountId, password]);
@@ -522,15 +522,14 @@ function SettingsSecurity({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isSlideActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isSlideActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
       case SLIDES.settings:
         return renderSettings();
       case SLIDES.password:
         if (getHasInMemoryPassword()) {
           setCurrentSlide(SLIDES.settings);
-          void getInMemoryPassword().then((memoizedPassword) => setPassword(memoizedPassword!));
+          void getInMemoryPassword().then((memoizedPassword) => setPassword(memoizedPassword));
 
           return undefined;
         }
@@ -768,7 +767,7 @@ function SettingsSecurity({
             isBackupSlideActive={currentKey === SLIDES.secretWords || currentKey === SLIDES.safetyRules}
             isInsideModal={isInsideModal}
             enteredPassword={password}
-            currentAccountId={currentAccountId!}
+            currentAccountId={currentAccountId}
             onBackClick={openBackupPage}
             onSubmit={onSettingsClose}
           />
@@ -780,7 +779,7 @@ function SettingsSecurity({
             isBackupSlideActive={currentKey === SLIDES.privateKey || currentKey === SLIDES.safetyRules}
             isInsideModal={isInsideModal}
             enteredPassword={password}
-            currentAccountId={currentAccountId!}
+            currentAccountId={currentAccountId}
             onBackClick={openBackupPage}
             onSubmit={onSettingsClose}
           />

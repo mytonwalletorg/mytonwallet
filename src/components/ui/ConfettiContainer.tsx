@@ -38,8 +38,7 @@ const DEFAULT_CONFETTI_SIZE = 10;
 const CONFETTI_COLORS = ['#E8BC2C', '#D0049E', '#02CBFE', '#5723FD', '#FE8C27', '#6CB859'];
 
 function ConfettiContainer({ lastRequestedAt }: StateProps) {
-  // eslint-disable-next-line no-null/no-null
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>();
   const confettiRef = useRef<Confetti[]>([]);
   const isRafStartedRef = useRef(false);
   const windowSize = useWindowSize();
@@ -66,7 +65,7 @@ function ConfettiContainer({ lastRequestedAt }: StateProps) {
     const { width: canvasWidth, height: canvasHeight } = canvas;
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    const confettiToRemove: Set<Confetti> = new Set([]);
+    const confettiToRemove = new Set<Confetti>([]);
     confettiRef.current.forEach((c, i) => {
       const {
         pos,
@@ -168,7 +167,7 @@ export default memo(withGlobal((global): StateProps => {
   };
 })(ConfettiContainer));
 
-function generateConfetti(confettiRef: { current: Confetti[] }, width : number, height: number, amount: number) {
+function generateConfetti(confettiRef: { current: Confetti[] }, width: number, height: number, amount: number) {
   for (let i = 0; i < amount; i++) {
     const leftSide = i % 2;
     const pos = {

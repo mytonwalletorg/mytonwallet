@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 // It's necessary to use `transform: none` instead of `transform: translateY(0)`, because the latter cancels
 // `background-attachment: fixed` in the child elements. Fixed background attachment is used, for example, to
@@ -22,21 +22,17 @@
 
   .dialog {
     transform: translateY(-1rem);
-
     opacity: 0;
-
     transition: transform var(--transition), opacity var(--transition);
 
     :global(html.animation-level-0) & {
       transform: none;
-
       transition: var(--no-animation-transition);
     }
   }
 
   &:global(.open) .dialog {
     transform: none;
-
     opacity: 1;
   }
 
@@ -46,7 +42,6 @@
 
   .backdrop {
     opacity: 0;
-
     transition: opacity var(--transition);
 
     :global(html.animation-level-0) & {
@@ -65,7 +60,6 @@
   .container {
     overflow: hidden;
     align-items: flex-end;
-
     padding: 0;
   }
 
@@ -80,9 +74,9 @@
     max-width: 28rem;
     max-height: calc(95 * var(--vh, 1vh));
     margin: 0;
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 
     background: var(--color-background-window);
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 
     transition: transform var(--transition);
 
@@ -132,9 +126,9 @@
 
       height: 100%;
       max-height: calc(100% - var(--safe-area-top));
+      border-radius: 0;
 
       opacity: 0;
-      border-radius: 0;
 
       > :global(.Transition-slideLayers),
       > :global(.Transition-slideLayersBackwards) {
@@ -144,16 +138,13 @@
 
     &:global(.open) .dialog {
       transform: none;
-
       opacity: 1;
-
       transition: transform var(--transition), opacity var(--transition);
     }
 
     &:global(.closing) {
       .dialog {
         transform: translateY(3%);
-
         transition: transform 200ms ease-in, opacity 100ms 100ms ease-out !important;
       }
     }
@@ -179,16 +170,13 @@
   :global(html.is-native-bottom-sheet) & {
     .container {
       align-items: flex-start;
-
       background: var(--color-background-window);
     }
 
     .dialog {
       max-height: none;
-
       border-radius: 0;
       box-shadow: none;
-
       transition: none;
     }
 
@@ -242,15 +230,14 @@
   max-width: 26rem;
   max-height: 100%;
   margin: 2rem auto;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-window);
-  border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
 
   .content > :global(.Transition-slideLayers),
   .content > :global(.Transition-slideLayersBackwards) {
     overflow: hidden;
-
     border-radius: var(--border-radius-default);
   }
 
@@ -335,7 +322,7 @@
     transition: var(--no-animation-transition) !important;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     :global(html.is-telegram-app) & {
       visibility: hidden;
     }
@@ -345,7 +332,6 @@
 .menuIcon {
   font-size: 1.125rem;
   line-height: 1;
-
   transition: color 150ms;
 
   :global(html.animation-level-0) & {
@@ -361,18 +347,17 @@
   height: 1.875rem !important;
   margin-left: auto;
   padding: 0 !important;
+  border-radius: 50% !important;
 
   color: var(--color-close-button-text) !important;
 
   background-color: var(--color-close-button-background) !important;
-  border-radius: 50% !important;
 
   transition: background-color 150ms;
 
   &:hover,
   &:focus-visible {
     color: var(--color-close-button-text-hover) !important;
-
     background-color: var(--color-close-button-background-hover) !important;
   }
 
@@ -385,7 +370,7 @@
     transition: var(--no-animation-transition) !important;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     :global(html.is-telegram-app) & {
       visibility: hidden;
     }
@@ -395,7 +380,6 @@
 .closeIcon {
   font-size: 1.875rem;
   line-height: 1;
-
   transition: color 150ms;
 
   :global(html.animation-level-0) & {
@@ -430,7 +414,7 @@
   font-size: 0.9375rem;
 
   b, strong {
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -442,7 +426,6 @@
   margin-right: 0.5rem;
   margin-bottom: 1.25rem;
   margin-left: 0.5rem;
-
   font-size: 0.9375rem;
 
   &_centered {
@@ -528,7 +511,6 @@
 
   display: flex;
   flex-direction: column;
-
   min-width: 0;
   max-width: 100%;
 }
@@ -536,7 +518,6 @@
 .transitionContentWrapper {
   display: flex;
   flex-direction: column;
-
   height: 100%;
   min-height: 0;
 }

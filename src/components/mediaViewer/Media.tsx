@@ -19,7 +19,7 @@ import styles from './MediaViewer.module.scss';
 import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
-  // eslint-disable-next-line react/no-unused-prop-types
+
   mediaId: string;
 }
 
@@ -40,8 +40,7 @@ function Media({
 }: OwnProps & StateProps) {
   const lang = useLang();
   const src = image || thumbnail;
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement>();
   const { isPortrait } = useDeviceScreen();
 
   useEffect(() => {

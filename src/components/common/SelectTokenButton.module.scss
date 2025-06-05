@@ -1,6 +1,5 @@
 .wrapper {
   align-self: center;
-
   width: auto;
   height: 3rem;
 }
@@ -21,12 +20,12 @@
 
   height: 3rem;
   padding: 0.75rem !important;
+  border: none;
+  border-radius: var(--border-radius-small);
 
   color: var(--color-input-button-text);
 
   background-color: var(--color-input-button-background);
-  border: none;
-  border-radius: var(--border-radius-small);
   outline: none;
 
   transition: background-color 150ms;
@@ -64,7 +63,6 @@
 
 .chevronIcon {
   margin-top: -0.0625rem;
-
   font-size: 1rem;
   color: var(--color-gray-3);
 }

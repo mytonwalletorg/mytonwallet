@@ -709,7 +709,7 @@ addActionHandler('openMediaViewer', (global, actions, {
 }) => {
   const accountState = selectCurrentAccountState(global);
   const { byAddress } = accountState?.nfts || {};
-  const nft = byAddress?.[mediaId!];
+  const nft = byAddress?.[mediaId];
 
   if (!nft) return undefined;
 

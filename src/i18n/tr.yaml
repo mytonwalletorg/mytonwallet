@@ -841,19 +841,12 @@ Coins have been unstaked!: Coin’ler çıkarıldı!
 Confirm Upgrading: Yükseltmeyi Onayla
 How does it work?: Nasıl çalışır?
 Multisend: Çoklu Gönder
-Expires in %1$d days:
-  zeroValue: Bugün sona eriyor
-  oneValue: "%1$d gün içinde sona eriyor"
-  otherValue: "%1$d gün içinde sona eriyor"
 Renew All: Tümünü yenile
 Renew: Yenile
 Renew Domain: Alan adını yenile
 Renew Domains: Alan adlarını yenile
 Some domains are about to expire: Bazı alan adlarının süresi dolmak üzere
-$domain_expire:
-  zeroValue: "%domain% bugün sona eriyor"
-  oneValue: "%domain% yarın sona eriyor"
-  otherValue: "%domain% %days% gün sonra sona eriyor"
+$domain_expire: "**%domain%** %days% sona eriyor"
 '%token% Staking': '%token% Stake Etme'
 Add Tab: Sekme Ekle
 Remove Tab: Sekmeyi Kaldır
@@ -880,19 +873,23 @@ Confirm Renewing: Yenilemeyi Onayla
 Confirm Linking: Bağlamayı Onayla
 $domains_expire:
   zeroValue: "Hiçbir alan adı %days% sona ermiyor"
-  oneValue: "%domain% alan adı %days% sona eriyor"
-  otherValue: "%domain% alan adı %days% sona eriyor"
+  oneValue: "**%domain% alan adı** %days% sona eriyor"
+  otherValue: "**%domain% alan adı** %days% sona eriyor"
 $in_days:
   zeroValue: bugün
   oneValue: yarın
   otherValue: "%1$d gün içinde"
-$domain_was_expired: "%domain% süresi doldu"
+$domain_was_expired: "**%domain%** süresi doldu"
 $domains_was_expired:
   zeroValue: "Süresi dolan alan adı yok"
-  oneValue: "%domain% alan adının süresi doldu"
-  otherValue: "%domain% alan adının süresi doldu"
-
+  oneValue: "**%domain% alan adının** süresi doldu"
+  otherValue: "**%domain% alan adının** süresi doldu"
 Reload: Yeniden yükle
 Copy Link: Bağlantıyı kopyala
 Check eligibility for max APY: Maks. APY için uygunluğu kontrol et
 Check eligibility: Uygunluğu kontrol et
+$expired_many: Süresi Doldu
+$expires_in %days%:
+  zeroValue: "%days% sona eriyor"
+  oneValue: "%days% sona eriyor"
+  otherValue: "%days% sona erecekler"
