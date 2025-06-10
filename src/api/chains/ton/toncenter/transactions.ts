@@ -88,6 +88,7 @@ export function parseRawTransaction(
       fwd_fee: fwdFee,
       opcode,
       hash: msgHash,
+      bounced,
     } = msg;
 
     if (!destination) {
@@ -115,6 +116,7 @@ export function parseRawTransaction(
       hash,
       opCode: Number(opcode) || undefined,
       msgHash,
+      type: bounced ? 'bounced' : undefined,
     });
 
     transactions.push(tx);

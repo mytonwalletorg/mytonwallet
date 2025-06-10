@@ -13,7 +13,7 @@ import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { stopEvent } from '../../util/domEvents';
-import { handleOpenUrl, openUrl } from '../../util/openUrl';
+import { handleUrlClick, openUrl } from '../../util/openUrl';
 import { shareUrl } from '../../util/share';
 import { MEANINGFUL_CHAR_LENGTH, shortenAddress } from '../../util/shortenAddress';
 import { getExplorerAddressUrl, getExplorerName, getHostnameFromUrl } from '../../util/url';
@@ -325,7 +325,7 @@ function InteractiveTextField({
             aria-label={explorerTitle}
             target="_blank"
             rel="noreferrer noopener"
-            onClick={handleOpenUrl}
+            onClick={handleUrlClick}
           >
             <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
           </a>

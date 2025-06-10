@@ -82,6 +82,7 @@ export function parseTrace(options: {
         isIncoming,
         fee,
         msgHash,
+        type,
       } = tx;
 
       const index = _index ?? i;
@@ -103,7 +104,7 @@ export function parseTrace(options: {
         byTransactionIndex[index].networkFee = fee;
         totalSent += bigintAbs(amount);
         totalNetworkFee += fee;
-      } else if (toAddress === walletAddress && isIncoming) {
+      } else if (toAddress === walletAddress && isIncoming && type !== 'bounced') {
         byTransactionIndex[index].received += bigintAbs(amount);
         totalReceived += bigintAbs(amount);
       }

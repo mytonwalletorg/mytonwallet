@@ -50,7 +50,7 @@ export const useWebViewBridge = <
           switch (message.name) {
             case 'window:open': {
               const { url } = message.args;
-              openDeeplinkOrUrl(url, true, true);
+              void openDeeplinkOrUrl(url, { isExternal: true, isFromInAppBrowser: true });
               result = true;
               break;
             }

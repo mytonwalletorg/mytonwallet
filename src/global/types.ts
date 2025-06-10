@@ -33,6 +33,7 @@ import type {
   ApiTokenType,
   ApiTokenWithPrice,
   ApiUpdate,
+  ApiUpdateDappCloseLoading,
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
@@ -551,9 +552,6 @@ export type GlobalState = {
     payinAddress?: string;
     payoutAddress?: string;
     payinExtraId?: string;
-    pairs?: {
-      bySlug: Record<string, AssetPairs>;
-    };
     limits?: {
       fromMin?: string;
       fromMax?: string;
@@ -659,6 +657,12 @@ export type GlobalState = {
 
   swapTokenInfo: {
     bySlug: Record<string, ApiSwapAsset>;
+    /** Whether the API has loaded and provided the tokens */
+    isLoaded?: true;
+  };
+
+  swapPairs?: {
+    bySlug: Record<string, AssetPairs>;
   };
 
   tokenPriceHistory: {
@@ -1079,7 +1083,7 @@ export interface ActionPayloads {
   apiUpdateDappConnect: ApiUpdateDappConnect;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
   apiUpdateDappLoading: ApiUpdateDappLoading;
-  apiUpdateDappCloseLoading: undefined;
+  apiUpdateDappCloseLoading: ApiUpdateDappCloseLoading;
   apiUpdateWalletVersions: ApiUpdateWalletVersions;
 
   // Swap
@@ -1099,7 +1103,6 @@ export interface ActionPayloads {
   setSwapAmountIn: { amount?: string; isMaxAmount?: boolean };
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
-  loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
   clearSwapPairsCache: undefined;
   estimateSwap: undefined;
   setSwapScreen: { state: SwapState };

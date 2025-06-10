@@ -12,7 +12,7 @@ import { formatShortDay, SECOND } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { vibrate } from '../../../../util/haptics';
-import { handleOpenUrl } from '../../../../util/openUrl';
+import { handleUrlClick } from '../../../../util/openUrl';
 import { round } from '../../../../util/round';
 import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';
@@ -186,7 +186,7 @@ function TokenCard({
           target="_blank"
           rel="noreferrer"
           className={styles.tokenExplorerButton}
-          onClick={handleOpenUrl}
+          onClick={handleUrlClick}
         >
           <i className="icon-tonexplorer-small" aria-hidden />
         </a>

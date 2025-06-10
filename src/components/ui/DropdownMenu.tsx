@@ -29,7 +29,7 @@ interface OwnProps<T extends string> {
   fontIconClassName?: string;
   itemDescriptionClassName?: string;
   shouldCleanup?: boolean;
-  onSelect?: (value: T) => void;
+  onSelect?: (value: T, e?: React.MouseEvent) => void;
   onClose: NoneToVoidFunction;
   getTriggerElement?: () => HTMLElement | undefined | null;
   getRootElement?: () => HTMLElement | undefined | null;
@@ -96,7 +96,7 @@ function DropdownMenu<T extends string>({
 
   const handleItemClick = (e: React.MouseEvent, value: T) => {
     e.stopPropagation();
-    onSelect?.(value);
+    onSelect?.(value, e);
     onClose();
   };
 

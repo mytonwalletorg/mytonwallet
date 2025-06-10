@@ -572,17 +572,19 @@
   }
 
   &:first-child {
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+    border-top-left-radius: var(--border-radius-default);
+    border-top-right-radius: var(--border-radius-default);
   }
 
   &:last-child {
-    border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
+    border-bottom-right-radius: var(--border-radius-default);
+    border-bottom-left-radius: var(--border-radius-default);
     box-shadow: none;
   }
+}
 
-  &:first-child:last-child, &:first-child:has(+ :global(.collapsible)) {
-    border-radius: var(--border-radius-default);
-  }
+.itemAutoLock {
+  border-radius: 0 0 var(--border-radius-default) var(--border-radius-default) !important;
 }
 
 a.item:hover {

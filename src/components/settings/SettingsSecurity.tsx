@@ -458,7 +458,7 @@ function SettingsSecurity({
                     selectedValue={autolockValue}
                     theme="light"
                     shouldTranslateOptions
-                    className={buildClassName(styles.item, styles.item_small)}
+                    className={buildClassName(styles.item, styles.item_small, styles.itemAutoLock)}
                     onChange={handleAutolockChange}
                   />
                 </Collapsible>

@@ -264,6 +264,7 @@ export function updateSwapTokens(
         ...currentTokens,
         ...partial,
       },
+      isLoaded: true,
     },
   };
 }

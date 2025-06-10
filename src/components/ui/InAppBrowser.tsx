@@ -17,6 +17,8 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import { useDappBridge } from '../explore/hooks/useDappBridge';
 
+import { getIsAnyNativeBottomSheetModalOpen } from './Modal';
+
 interface StateProps {
   title?: string;
   subtitle?: string;
@@ -102,6 +104,13 @@ function InAppBrowser({
           resolve();
         }
       });
+    };
+
+    const originalShow = inAppBrowser.show;
+    inAppBrowser.show = () => {
+      if (!getIsAnyNativeBottomSheetModalOpen()) {
+        originalShow?.();
+      }
     };
 
     const originalClose = inAppBrowser.close;

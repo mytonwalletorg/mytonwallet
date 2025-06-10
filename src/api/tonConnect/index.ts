@@ -207,6 +207,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     safeExec(() => {
       onPopupUpdate({
         type: 'dappCloseLoading',
+        connectionType: 'connect',
       });
     });
 
@@ -427,6 +428,7 @@ export async function sendTransaction(
     safeExec(() => {
       onPopupUpdate({
         type: 'dappCloseLoading',
+        connectionType: 'sendTransaction',
       });
     });
 

@@ -7,7 +7,7 @@ import type {
   OnApiUpdate,
 } from '../../types';
 
-import { TRX } from '../../../config';
+import { SWAP_CROSSCHAIN_SLUGS, TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { getChainConfig } from '../../../util/chain';
 import { compareActivities } from '../../../util/compareActivities';
@@ -16,10 +16,11 @@ import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';
 import { fetchStoredAccounts, fetchStoredTronWallet, getActiveAccountId } from '../../common/accounts';
 import { isAlive, isUpdaterAlive } from '../../common/helpers';
+import { swapReplaceCexActivities } from '../../common/swap';
 import { buildTokenSlug } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
-import { getTokenTransactionSlice, mergeTransactions } from './transactions';
+import { getTokenTransactionSlice, mergeActivities } from './transactions';
 import { getTrc20Balance, getWalletBalance } from './wallet';
 
 const BALANCE_INTERVAL = 1.1 * SEC;
@@ -163,18 +164,22 @@ async function loadInitialActivities(
   const bySlug: Record<string, ApiActivity[]> = {};
 
   const chunks = await Promise.all(tokenSlugs.map(async (slug) => {
-    const transactions = await getTokenTransactionSlice(
+    let activities: ApiActivity[] = await getTokenTransactionSlice(
       accountId, slug, undefined, undefined, FIRST_TRANSACTIONS_LIMIT,
     );
 
-    result[slug] = transactions[0]?.timestamp;
-    bySlug[slug] = transactions;
+    if (SWAP_CROSSCHAIN_SLUGS.has(slug)) {
+      activities = await swapReplaceCexActivities(accountId, activities, slug, true);
+    }
 
-    return transactions;
+    result[slug] = activities[0]?.timestamp;
+    bySlug[slug] = activities;
+
+    return activities;
   }));
 
   const [trxChunk, ...tokenChunks] = chunks;
-  const mainActivities = mergeTransactions(trxChunk, tokenChunks.flat())
+  const mainActivities = mergeActivities(trxChunk, tokenChunks.flat())
     .flat()
     .sort(compareActivities);
 
@@ -203,27 +208,32 @@ async function loadNewActivities(
 
   const chunks = await Promise.all(tokenSlugs.map(async (slug) => {
     let newestActivityTimestamp = newestActivityTimestamps[slug];
-    const transactions = await getTokenTransactionSlice(
+    let activities: ApiActivity[] = await getTokenTransactionSlice(
       accountId, slug, undefined, newestActivityTimestamp, FIRST_TRANSACTIONS_LIMIT,
     );
-    newestActivityTimestamp = transactions[0]?.timestamp ?? newestActivityTimestamp;
+
+    if (SWAP_CROSSCHAIN_SLUGS.has(slug)) {
+      activities = await swapReplaceCexActivities(accountId, activities, slug, true);
+    }
+
+    newestActivityTimestamp = activities[0]?.timestamp ?? newestActivityTimestamp;
     result[slug] = newestActivityTimestamp;
-    return transactions;
+    return activities;
   }));
 
   const [trxChunk, ...tokenChunks] = chunks;
-  const transactions = mergeTransactions(trxChunk, tokenChunks.flat())
+  const activities = mergeActivities(trxChunk, tokenChunks.flat())
     .flat()
     .sort(compareActivities);
 
-  transactions.slice().reverse().forEach((transaction) => {
-    txCallbacks.runCallbacks(transaction);
+  activities.slice().reverse().forEach((activity) => {
+    txCallbacks.runCallbacks(activity);
   });
 
   onUpdate({
     type: 'newActivities',
     chain: 'tron',
-    activities: transactions,
+    activities,
     accountId,
   });
 

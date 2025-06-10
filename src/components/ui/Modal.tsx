@@ -3,7 +3,10 @@ import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import type { ElementRef, RefObject, TeactNode } from '../../lib/teact/teact';
 import React, {
   beginHeavyAnimation,
-  useEffect, useLayoutEffect, useRef, useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from '../../lib/teact/teact';
 
 import { ANIMATION_END_DELAY, IS_EXTENSION, IS_TELEGRAM_APP } from '../../config';
@@ -68,6 +71,13 @@ const [getModalCloseSignal, setModalCloseSignal] = createSignal<number>(Date.now
 
 export function closeModal() {
   setModalCloseSignal(Date.now());
+}
+
+// Track open modals with nativeBottomSheetKey
+const openNativeBottomSheetModals = new Set<BottomSheetKeys>();
+
+export function getIsAnyNativeBottomSheetModalOpen(): boolean {
+  return openNativeBottomSheetModals.size > 0;
 }
 
 function Modal({
@@ -144,14 +154,34 @@ function Modal({
     isOpen ? beginHeavyAnimation(animationDuration) : undefined
   ), [animationDuration, isOpen]);
 
+  // Track modal state for modals with nativeBottomSheetKey
+  useEffect(() => {
+    if (!nativeBottomSheetKey) return;
+
+    if (isOpen) {
+      openNativeBottomSheetModals.add(nativeBottomSheetKey);
+    } else {
+      openNativeBottomSheetModals.delete(nativeBottomSheetKey);
+    }
+
+    return () => {
+      openNativeBottomSheetModals.delete(nativeBottomSheetKey);
+    };
+  }, [isOpen, nativeBottomSheetKey]);
+
   // Make sure to hide browser before presenting modals
   const [isBrowserHidden, setIsBrowserHidden] = useState(false);
   useEffect(() => {
+    const browser = getInAppBrowser();
     if (!isOpen) {
       setIsBrowserHidden(false); // Reset to re-hide it next time
+      // Before showing browser, make sure that closed modals are updated state properly
+      requestAnimationFrame(() => {
+        browser?.show();
+      });
       return;
     }
-    const browser = getInAppBrowser();
+
     void browser?.hide().then(() => {
       setIsBrowserHidden(true);
     });

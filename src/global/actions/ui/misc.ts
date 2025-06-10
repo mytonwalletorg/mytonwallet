@@ -24,7 +24,7 @@ import {
   PRODUCTION_URL,
 } from '../../../config';
 import { getDoesUsePinPad } from '../../../util/biometrics';
-import { parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
+import { openDeeplinkOrUrl, parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { omit } from '../../../util/iteratees';
@@ -874,3 +874,20 @@ async function connectLedgerAndGetHardwareState() {
 
   return newHardwareState;
 }
+
+addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('switchAccountAndOpenUrl', payload);
+    return;
+  }
+
+  await Promise.all([
+    // The browser is closed before opening the new URL, because otherwise the browser won't apply the new
+    // parameters from `payload`. It's important to wait for `closeAllOverlays` to finish, because until the in-app
+    // browser is closed, it won't open again.
+    closeAllOverlays(),
+    payload.accountId && switchAccount(global, payload.accountId, payload.network),
+  ]);
+
+  await openDeeplinkOrUrl(payload.url, payload);
+});

@@ -225,8 +225,9 @@ function setTransactionDetails(options: {
   let excess = received;
 
   switch (action.type) {
-    case 'ton_transfer': {
-      sentForFee = 0n;
+    case 'ton_transfer':
+    case 'call_contract': {
+      sentForFee -= BigInt(action.details.value);
       break;
     }
     case 'nft_transfer': {

@@ -1,6 +1,7 @@
-const fs = require('fs');
-const { SourceMapConsumer } = require('source-map');
-const path = require('path');
+import fs from 'fs';
+import { SourceMapConsumer } from 'source-map';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const USAGE_GUIDE = `This script is intended to be used manually.
 It makes JavaScript errors from user logs more readable by converting the stacktrace references from minified file addresses to source code addresses.
@@ -20,16 +21,18 @@ Examples:
 
   npm run resolve-stacktrace "Error: Test\n    at t.BitBuilder.writeVarUint (https://mytonwallet.local/941.c17ba5754ec7f174fec2.js:2:25840)\n    at t.BitBuilder.writeCoins (https://mytonwallet.local/941.c17ba5754ec7f174fec2.js:2:26382)"`;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const DEFAULT_MAP_DIRECTORY = path.join(__dirname, '..', 'dist');
 
 const { mapDirectory, stackTrace } = resolveArguments();
-const resolvedStackTrace = resolveStackTrace(mapDirectory, stackTrace);
+const resolvedStackTrace = await resolveStackTrace(mapDirectory, stackTrace);
 process.stdout.write(`${resolvedStackTrace}\n`);
 process.exit(0);
 
 function resolveArguments() {
-  const arguments = process.argv.slice(2);
-  switch (arguments.length) {
+  const args = process.argv.slice(2);
+  switch (args.length) {
     case 0:
       process.stderr.write(`Too few arguments!\n\n${USAGE_GUIDE}\n`)
       process.exit(1);
@@ -37,12 +40,12 @@ function resolveArguments() {
     case 1:
       return {
         mapDirectory: DEFAULT_MAP_DIRECTORY,
-        stackTrace: parseStackTrace(arguments[0]),
+        stackTrace: parseStackTrace(args[0]),
       };
     case 2:
       return {
-        mapDirectory: arguments[0],
-        stackTrace: parseStackTrace(arguments[1]),
+        mapDirectory: args[0],
+        stackTrace: parseStackTrace(args[1]),
       };
     default:
       process.stderr.write(`Too many arguments!\n\n${USAGE_GUIDE}\n`)
@@ -90,22 +93,22 @@ function parsePlainStackTrace(inputText) {
   return null;
 }
 
-function resolveStackTrace(mapDirectory, stackTrace) {
+async function resolveStackTrace(mapDirectory, stackTrace) {
   const consumerCache = {};
 
-  return stackTrace
+  return (await Promise.all(stackTrace
     .split('\n')
-    .map(line => resolveStackTraceLine(mapDirectory, consumerCache, line))
-    .join('\n');
+    .map(line => resolveStackTraceLine(mapDirectory, consumerCache, line)))
+  ).join('\n');
 }
 
-function resolveStackTraceLine(mapDirectory, consumerCache, line) {
+async function resolveStackTraceLine(mapDirectory, consumerCache, line) {
   const parsedLine = parseStackTraceLine(line);
   if (!parsedLine) {
     return line;
   }
 
-  const newTrace = resolveTrace(
+  const newTrace = await resolveTrace(
     mapDirectory,
     consumerCache,
     parsedLine.fileUrl,
@@ -138,7 +141,7 @@ function parseStackTraceLine(line) {
   return { lineIndent, fileUrl, lineNumber: Number(lineNumber), columnNumber: Number(columnNumber) };
 }
 
-function resolveTrace(mapDirectory, consumerCache, fileUrl, lineNumber, columnNumber) {
+async function resolveTrace(mapDirectory, consumerCache, fileUrl, lineNumber, columnNumber) {
   const mapFile = findSourceMapFile(mapDirectory, fileUrl);
   if (!mapFile) {
     return null;
@@ -150,7 +153,8 @@ function resolveTrace(mapDirectory, consumerCache, fileUrl, lineNumber, columnNu
     consumerCache[mapFile] = consumer;
   }
 
-  const sourcePosition = consumerCache[mapFile].originalPositionFor({ line: lineNumber, column: columnNumber });
+  const cache = await consumerCache[mapFile];
+  const sourcePosition = cache.originalPositionFor({ line: lineNumber, column: columnNumber });
   if (sourcePosition.line === null) {
     return null;
   }

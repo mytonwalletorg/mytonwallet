@@ -505,7 +505,8 @@ function TokenSelector({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { baseCurrency, isSensitiveDataHidden } = global.settings;
   const { isLoading, token } = global.settings.importToken ?? {};
-  const { pairs: pairsBySlug, tokenInSlug } = global.currentSwap ?? {};
+  const { tokenInSlug } = global.currentSwap ?? {};
+  const pairsBySlug = global.swapPairs?.bySlug;
   const userTokens = selectAvailableUserForSwapTokens(global);
   const popularTokens = selectPopularTokens(global);
   const swapTokens = selectSwapTokens(global);
@@ -516,7 +517,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     baseCurrency,
     isLoading,
     token,
-    pairsBySlug: pairsBySlug?.bySlug,
+    pairsBySlug,
     tokenInSlug,
     userTokens,
     popularTokens,

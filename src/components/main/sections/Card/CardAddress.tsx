@@ -7,7 +7,7 @@ import type { Account, AccountType } from '../../../../global/types';
 import { selectAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { copyTextToClipboard } from '../../../../util/clipboard';
-import { handleOpenUrl, openUrl } from '../../../../util/openUrl';
+import { handleUrlClick, openUrl } from '../../../../util/openUrl';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import getChainNetworkIcon from '../../../../util/swap/getChainNetworkIcon';
 import { getExplorerAddressUrl, getExplorerName } from '../../../../util/url';
@@ -221,7 +221,7 @@ function CardAddress({
         aria-label={explorerTitle}
         target="_blank"
         rel="noreferrer noopener"
-        onClick={handleOpenUrl}
+        onClick={handleUrlClick}
       >
         <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
       </a>

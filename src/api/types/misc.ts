@@ -9,6 +9,7 @@ export type ApiChain = 'ton' | 'tron';
 export type ApiNetwork = 'mainnet' | 'testnet';
 export type ApiLedgerDriver = 'HID' | 'USB';
 export type ApiTokenType = 'lp_token';
+export type ApiDappConnectionType = 'connect' | 'sendTransaction';
 
 export interface AccountIdParsed {
   id: number;

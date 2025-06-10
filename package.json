@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.7.3",
+  "version": "3.7.4",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -60,7 +60,7 @@
     "multisend:build": "webpack --config webpack-multisend.config.ts && bash ./deploy/copy_to_dist.sh dist-multisend src/multisend/public",
     "multisend:build:dev": "APP_ENV=development webpack --mode development --config webpack-multisend.config.ts",
     "multisend:dev": "APP_ENV=development webpack serve --mode development --config webpack-multisend.config.ts",
-    "resolve-stacktrace": "node ./dev/resolveStackTrace.js",
+    "resolve-stacktrace": "node ./dev/resolveStackTrace.mjs",
     "i18n:build:default": "node ./dev/locales/buildDefault.js",
     "i18n:update": "node ./dev/locales/updateLocales.js",
     "i18n:find-missing": "node ./dev/locales/findMissingKeys.js"

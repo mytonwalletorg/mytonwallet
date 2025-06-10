@@ -1,3 +1,4 @@
+import type React from '../../../lib/teact/teact';
 import { useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
@@ -146,8 +147,12 @@ export default function useNftMenu({
 
   const lang = useLang();
 
-  const handleMenuItemSelect = useLastCallback((value: NftMenuHandler) => {
+  const handleMenuItemSelect = useLastCallback((
+    value: NftMenuHandler,
+    e?: React.MouseEvent,
+  ) => {
     const { isTestnet } = getGlobal().settings;
+    const isExternal = e?.shiftKey || e?.ctrlKey || e?.metaKey;
 
     switch (value) {
       case 'send': {
@@ -163,7 +168,7 @@ export default function useNftMenu({
       case 'tonExplorer': {
         const url = getExplorerNftUrl(nft!.address, isTestnet)!;
 
-        void openUrl(url);
+        void openUrl(url, { isExternal });
         break;
       }
 
@@ -173,14 +178,14 @@ export default function useNftMenu({
           ? `${getgemsBaseUrl}collection/${nft!.collectionAddress}/${nft!.address}`
           : `${getgemsBaseUrl}nft/${nft!.address}`;
 
-        void openUrl(getgemsUrl);
+        void openUrl(getgemsUrl, { isExternal });
         break;
       }
 
       case 'tondns': {
         const url = `https://dns.ton.org/#${(nft!.name || '').replace(/\.ton$/i, '')}`;
 
-        void openUrl(url);
+        void openUrl(url, { isExternal });
         break;
       }
 
@@ -218,7 +223,7 @@ export default function useNftMenu({
           url = `https://fragment.com/username/${encodeURIComponent(name?.substring(1) || '')}`;
         }
 
-        void openUrl(url);
+        void openUrl(url, { isExternal });
         break;
       }
 

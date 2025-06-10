@@ -1,6 +1,6 @@
 import { TronWeb } from 'tronweb';
 
-import type { ApiNetwork, ApiTransactionActivity } from '../../types';
+import type { ApiActivity, ApiNetwork, ApiTransactionActivity } from '../../types';
 
 import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -71,7 +71,7 @@ export async function getAllTransactionSlice(
 
   const [trxChunk, ...tokenChunks] = chunks;
 
-  return mergeTransactions(trxChunk, tokenChunks.flat())
+  return mergeActivities(trxChunk, tokenChunks.flat())
     .flat()
     .filter(({ timestamp }) => timestamp >= fromTimestamp)
     .sort(compareActivities);
@@ -196,12 +196,16 @@ function parseRawTrc20Transaction(address: string, rawTx: any): ApiTransactionAc
   };
 }
 
-export function mergeTransactions(trxTxs: ApiTransactionActivity[], tokenTxs: ApiTransactionActivity[]) {
+export function mergeActivities(trxTxs: ApiActivity[], tokenTxs: ApiActivity[]) {
   const tokenTxById = buildCollectionByKey(tokenTxs, 'id');
-  const trxTxsCleared: ApiTransactionActivity[] = [];
+  const trxTxsCleared: ApiActivity[] = [];
 
   for (const tx of trxTxs) {
-    const tokenTx = tokenTxById[tx.id];
+    if (tx.kind !== 'transaction') {
+      trxTxsCleared.push(tx);
+      continue;
+    }
+    const tokenTx = tokenTxById[tx.id] as ApiTransactionActivity;
     if (tokenTx) {
       tokenTx.fee = tx.fee;
     } else if (tx.toAddress) {

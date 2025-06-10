@@ -1,7 +1,7 @@
 import type { ApiDomainData } from '../../types';
 import type { TonTransferParams } from './types';
 
-import { splitBatches } from '../../../util/iteratees';
+import { split } from '../../../util/iteratees';
 import { getMaxMessagesInTransaction } from './util';
 import { DnsItem } from './contracts/DnsItem';
 import { fetchStoredTonAccount, fetchStoredTonWallet } from '../../common/accounts';
@@ -33,7 +33,7 @@ export async function checkDnsRenewalDraft(accountId: string, nftAddresses: stri
 export async function* submitDnsRenewal(accountId: string, password: string, nftAddresses: string[]) {
   const account = await fetchStoredTonAccount(accountId);
   const maxMessages = getMaxMessagesInTransaction(account);
-  const nftBatches = splitBatches(nftAddresses, maxMessages);
+  const nftBatches = split(nftAddresses, maxMessages);
 
   for (const nftBatch of nftBatches) {
     const messages: TonTransferParams[] = nftBatch.map(makeRenewMessage);

@@ -7,7 +7,7 @@ import {
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import { handleOpenUrl } from '../../util/openUrl';
+import { handleUrlClick } from '../../util/openUrl';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -180,7 +180,7 @@ function SettingsAbout({
               href="https://mytonwallet.io/terms-of-use"
               target="_blank"
               rel="noreferrer"
-              onClick={handleOpenUrl}
+              onClick={handleUrlClick}
             >{lang('Terms of Use')}
             </a>
             <i className={styles.dotLarge} aria-hidden />
@@ -188,7 +188,7 @@ function SettingsAbout({
               href="https://mytonwallet.io/privacy-policy"
               target="_blank"
               rel="noreferrer"
-              onClick={handleOpenUrl}
+              onClick={handleUrlClick}
             >{lang('Privacy Policy')}
             </a>
           </div>

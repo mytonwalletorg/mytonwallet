@@ -440,12 +440,13 @@ addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionTyp
   setGlobal(global);
 });
 
-addActionHandler('apiUpdateDappCloseLoading', async (global) => {
+addActionHandler('apiUpdateDappCloseLoading', async (global, actions, { connectionType }) => {
   // We only need to apply changes in NBS when Dapp Modal is already open
   if (IS_DELEGATED_BOTTOM_SHEET) {
     if (!(await waitFor(() => {
       global = getGlobal();
-      return (Boolean(global.dappConnectRequest) || global.currentDappTransfer.state !== TransferState.None);
+      return (Boolean(connectionType === 'connect' && global.dappConnectRequest)
+        || (connectionType === 'sendTransaction' && global.currentDappTransfer.state !== TransferState.None));
     }, 300, 5))) {
       return;
     }
@@ -454,9 +455,9 @@ addActionHandler('apiUpdateDappCloseLoading', async (global) => {
   }
 
   // But clear the state if a skeleton is displayed in the Modal
-  if (global.dappConnectRequest?.state === DappConnectState.Info) {
+  if (connectionType === 'connect' && global.dappConnectRequest?.state === DappConnectState.Info) {
     global = clearDappConnectRequest(global);
-  } else if (global.currentDappTransfer.state === TransferState.Initial) {
+  } else if (connectionType === 'sendTransaction' && global.currentDappTransfer.state === TransferState.Initial) {
     global = clearCurrentDappTransfer(global);
   }
   setGlobal(global);

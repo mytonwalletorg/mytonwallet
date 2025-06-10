@@ -69,11 +69,11 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
       if (action.NftItemTransfer) {
         const { sender, recipient, nft: rawNftAddress } = action.NftItemTransfer;
         if (!sender || !recipient) continue;
-        to = toBase64Address(recipient.address, undefined, network);
+        to = recipient.address;
         nftAddress = toBase64Address(rawNftAddress, true, network);
       } else if (action.NftPurchase) {
         const { buyer } = action.NftPurchase;
-        to = toBase64Address(buyer.address, undefined, network);
+        to = buyer.address;
         rawNft = action.NftPurchase.nft;
         if (!rawNft) {
           continue;
@@ -83,7 +83,7 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         continue;
       }
 
-      if (to === address) {
+      if (Address.parse(to).equals(Address.parse(address))) {
         if (!rawNft) {
           [rawNft] = await fetchNftItems(network, [nftAddress]);
         }

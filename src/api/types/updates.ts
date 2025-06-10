@@ -15,6 +15,7 @@ import type {
   ApiBaseCurrency,
   ApiChain,
   ApiCountryCode,
+  ApiDappConnectionType,
   ApiDappTransfer,
   ApiNft,
   ApiStakingState,
@@ -132,13 +133,14 @@ export type ApiUpdateDappDisconnect = {
 
 export type ApiUpdateDappLoading = {
   type: 'dappLoading';
-  connectionType: 'connect' | 'sendTransaction';
+  connectionType: ApiDappConnectionType;
   isSse?: boolean;
   accountId?: string;
 };
 
 export type ApiUpdateDappCloseLoading = {
   type: 'dappCloseLoading';
+  connectionType: ApiDappConnectionType;
 };
 
 export type ApiUpdateDapps = {
