@@ -65,7 +65,7 @@ export type DialogType = {
   noBackdropClose?: boolean;
 };
 
-export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de' | 'th' | 'uk' | 'pl';
+export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de' | 'th' | 'uk' | 'pl' | 'it';
 
 export interface LangItem {
   langCode: LangCode;
