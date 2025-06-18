@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from '../../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 
 import type { TransferRow } from '../types';
 
@@ -8,12 +8,11 @@ import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { trimStringByMaxBytes } from '../../util/text';
 import { validateAndProcessTransfer } from '../utils/transferValidation';
 
-import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
-import AddressInput from '../../components/transfer/AddressInput';
+import AddressInput from '../../components/ui/AddressInput';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import RichNumberInput from '../../components/ui/RichNumberInput';
@@ -42,9 +41,6 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenError, setTokenError] = useState<string | undefined>();
 
-  const toAddressRef = useRef<HTMLInputElement>();
-  const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
-
   useHistoryBack({
     isActive,
     onBack,
@@ -69,7 +65,6 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
   }, [editingTransfer, isActive]);
 
   const isAddressValid = isValidAddressOrDomain(toAddress, 'ton');
-  const hasToAddressError = toAddress.length > 0 && !isAddressValid;
   const isAmountValid = amount && Number(amount) > 0;
   const canSubmit = isAddressValid && isAmountValid && tokenIdentifier.length > 0 && !isSubmitting;
 
@@ -77,18 +72,6 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
     setToAddress(newToAddress);
-  });
-
-  const handleAddressFocus = useLastCallback(() => {
-    markAddressFocused();
-  });
-
-  const handleAddressBlur = useLastCallback(() => {
-    unmarkAddressFocused();
-  });
-
-  const handleAddressClearClick = useLastCallback(() => {
-    setToAddress('');
   });
 
   const handleAmountChange = useLastCallback((value?: string) => {
@@ -157,23 +140,19 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
         <div>
           <AddressInput
             label={lang('Recipient Address')}
+            chain="ton"
             value={toAddress}
-            error={hasToAddressError ? lang('Incorrect address') : undefined}
-            isFocused={isAddressFocused}
-            isQrScannerSupported={false}
-            withPasteButton={false}
             address={toAddress}
             addressName=""
-            inputRef={toAddressRef}
+            currentAccountId=""
             onInput={handleAddressInput}
-            onFocus={handleAddressFocus}
-            onBlur={handleAddressBlur}
-            onClearClick={handleAddressClearClick}
+            onClose={onBack}
           />
         </div>
 
         <div>
           <RichNumberInput
+            id="multisend-amount-input"
             labelText={lang('Amount')}
             value={amount}
             onChange={handleAmountChange}
@@ -182,6 +161,7 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
 
         <div>
           <Input
+            id="multisend-token-input"
             label={lang('Token')}
             value={tokenIdentifier}
             placeholder={lang('Token ticker or address')}
@@ -193,6 +173,7 @@ function ManageTransferPage({ isActive, onBack, onSubmit, onDelete, editingTrans
 
         <div>
           <Input
+            id="multisend-comment-input"
             label={lang('Comment')}
             value={comment}
             placeholder={lang('Optional')}

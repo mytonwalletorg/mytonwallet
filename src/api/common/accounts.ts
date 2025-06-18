@@ -46,9 +46,11 @@ export async function getAccountWithMnemonic() {
     .find(([, { type }]) => type !== 'ledger' && type !== 'view') as [string, ApiAccountWithMnemonic] | undefined;
 }
 
-export async function getNewAccountId(network: ApiNetwork) {
+export async function getNewAccountId(network: ApiNetwork, preferredId?: number) {
   const ids = (await getAccountIds()).map((accountId) => parseAccountId(accountId).id);
-  const id = ids.length === 0 ? MIN_ACCOUNT_NUMBER : Math.max(...ids) + 1;
+  const id = preferredId !== undefined && !ids.includes(preferredId)
+    ? preferredId
+    : ids.length === 0 ? MIN_ACCOUNT_NUMBER : Math.max(...ids) + 1;
   return buildAccountId({ id, network });
 }
 

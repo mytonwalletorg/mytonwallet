@@ -2,8 +2,8 @@ import React, { type ElementRef, memo, useEffect, useMemo, useRef } from '../../
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
-import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { Theme } from '../../../../global/types';
+import type { StakingStateStatus } from '../../../../util/staking';
 import { ActiveTab } from '../../../../global/types';
 
 import {

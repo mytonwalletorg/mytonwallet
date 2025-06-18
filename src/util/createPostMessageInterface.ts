@@ -3,7 +3,6 @@ import type {
   CancellableCallback, OriginMessageData, OriginMessageEvent, WorkerMessageData,
 } from './PostMessageConnector';
 
-import { DETACHED_TAB_URL } from './ledger/tab';
 import { bigintReviver } from './bigint';
 import { logDebugError } from './logs';
 
@@ -56,15 +55,7 @@ export function createExtensionInterface(
       return;
     }
 
-    /**
-     * If the sender's URL includes the DETACHED_TAB_URL, we skip further processing
-     * This condition ensures that we don't interact with tabs that have already been closed.
-     */
     const url = port.sender?.url;
-    if (url?.includes(DETACHED_TAB_URL)) {
-      return;
-    }
-
     const origin = url ? new URL(url).origin : undefined;
 
     const dAppUpdater = (update: ApiUpdate) => {

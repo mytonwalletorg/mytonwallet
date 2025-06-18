@@ -9,7 +9,6 @@ import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
-import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
@@ -59,8 +58,6 @@ function CreatePasswordForm({
   });
 
   useFocusAfterAnimation(firstInputRef, !isActive);
-
-  useHideBottomBar(Boolean(isActive));
 
   useEffect(() => {
     setIsPasswordsNotEqual(false);

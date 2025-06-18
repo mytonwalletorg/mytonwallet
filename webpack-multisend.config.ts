@@ -101,6 +101,7 @@ export default function createConfig(
               loader: 'css-loader',
               options: {
                 modules: {
+                  namedExport: false,
                   exportLocalsConvention: 'camelCase',
                   auto: true,
                   localIdentName: APP_ENV === 'production' ? '[sha1:hash:base64:8]' : '[name]__[local]',

@@ -78,6 +78,7 @@ export interface Layout {
   withPortal?: boolean;
   isDense?: boolean; //  Allows you to place the menu as close to the edges of the area as possible
   preferredPositionX?: 'left' | 'right';
+  preferredPositionY?: 'top' | 'bottom';
 }
 
 const POSITIONING = {
@@ -250,7 +251,13 @@ function determineVerticalPosition(
   menuHeight: number,
   layout: Layout,
 ): { positionY: 'top' | 'bottom'; y: number } {
-  const { topShiftY = 0, extraTopPadding = 0, isDense = false, doNotCoverTrigger = false } = layout;
+  const {
+    topShiftY = 0,
+    extraTopPadding = 0,
+    isDense = false,
+    doNotCoverTrigger = false,
+    preferredPositionY,
+  } = layout;
   let y = anchor.y;
   let positionY: 'top' | 'bottom';
 
@@ -259,7 +266,7 @@ function determineVerticalPosition(
     const hasSpaceBelow = triggerRect.bottom + POSITIONING.TRIGGER_OFFSET + menuHeight <= rootRect.bottom;
     const hasSpaceAbove = triggerRect.top - POSITIONING.TRIGGER_OFFSET - menuHeight >= rootRect.top;
 
-    if (hasSpaceBelow) {
+    if (hasSpaceBelow && preferredPositionY !== 'bottom') {
       positionY = 'top';
       y = triggerRect.bottom + POSITIONING.TRIGGER_OFFSET;
     } else if (hasSpaceAbove) {
@@ -273,16 +280,16 @@ function determineVerticalPosition(
   } else {
     const yWithTopShift = y + topShiftY;
     const hasSpaceBelow = yWithTopShift + triggerRect.height + menuHeight < rootRect.height + rootRect.top;
+    const hasSpaceAbove = y - triggerRect.height - menuHeight >= rootRect.top + extraTopPadding;
 
-    if (isDense || hasSpaceBelow) {
-      positionY = 'top';
-      y = yWithTopShift;
-    } else {
+    if ((preferredPositionY === 'bottom' && hasSpaceAbove) || (!isDense && !hasSpaceBelow)) {
       positionY = 'bottom';
-      const hasSpaceAbove = y - triggerRect.height - menuHeight >= rootRect.top + extraTopPadding;
       if (!hasSpaceAbove) {
         y = rootRect.top + rootRect.height;
       }
+    } else {
+      positionY = 'top';
+      y = yWithTopShift;
     }
   }
 
@@ -357,7 +364,7 @@ function applyBoundaryConstraints(
   }
 
   // Handle portal edge constraints
-  if (withPortal) {
+  if (withPortal && !centerHorizontally) {
     if (positionX === 'left') {
       x = Math.min(x, rootRect.width - menuDimensions.width - POSITIONING.VISUAL_COMFORT_SPACE);
     } else {

@@ -24,7 +24,6 @@ import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
-import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import { useMatchCount } from '../../hooks/useMatchCount';
@@ -152,8 +151,6 @@ function PasswordForm({
       setWrongAttempts(0);
     }
   }, [isActive]);
-
-  useHideBottomBar(isActive);
 
   const submitCallback = useLastCallback(async (enteredPassword: string) => {
     const passwordToReturn = showOnlyConfirmScreen ? memoizedPasswordRef.current! : enteredPassword;

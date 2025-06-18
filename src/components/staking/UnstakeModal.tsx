@@ -5,9 +5,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency, ApiStakingState } from '../../api/types';
-import type {
-  GlobalState, HardwareConnectState, Theme, UserToken,
-} from '../../global/types';
+import type { GlobalState, Theme, UserToken } from '../../global/types';
 import { ApiTransactionDraftError } from '../../api/types';
 import { StakingState } from '../../global/types';
 
@@ -19,7 +17,6 @@ import {
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
-import { getIsLongUnstake } from '../../global/helpers/staking';
 import {
   selectAccountStakingState,
   selectCurrentAccountTokens,
@@ -33,7 +30,7 @@ import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import { getUnstakeTime } from '../../util/staking';
+import { getIsLongUnstake, getUnstakeTime } from '../../util/staking';
 import { getIsMobileTelegramApp } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
@@ -71,9 +68,6 @@ type StateProps = GlobalState['currentStaking'] & {
   stakingInfo: GlobalState['stakingInfo'];
   baseCurrency?: ApiBaseCurrency;
   isNominators?: boolean;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   theme: Theme;
   isMultichainAccount: boolean;
   stakingState?: ApiStakingState;
@@ -105,9 +99,6 @@ function UnstakeModal({
   stakingInfo,
   baseCurrency,
   isNominators,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isMultichainAccount,
   theme,
   amount,
@@ -507,9 +498,6 @@ function UnstakeModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleLedgerConnect}
             onClose={cancelStaking}
           />
@@ -563,21 +551,12 @@ export default memo(withGlobal((global): StateProps => {
   const stakingState = selectAccountStakingState(global, accountId);
   const isNominators = stakingState?.type === 'nominators';
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     ...global.currentStaking,
     tokens,
     stakingInfo: global.stakingInfo,
     baseCurrency,
     isNominators,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     theme: global.settings.theme,
     isMultichainAccount,
     stakingState,

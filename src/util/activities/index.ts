@@ -8,10 +8,9 @@ import { getIsTransactionWithPoisoning } from '../poisoningHash';
 
 type UnusualTxType = 'backend-swap' | 'local' | 'additional';
 
-const TRANSACTION_TYPE_TITLES: Partial<Record<
-  ApiTransactionType & keyof any,
-  [past: string, present: string, future: string]
->> = {
+type TranslationTenses = [past: string, present: string, future: string];
+
+const TRANSACTION_TYPE_TITLES: Partial<Record<ApiTransactionType & keyof any, TranslationTenses>> = {
   stake: ['Staked', 'Staking', '$stake_action'],
   unstake: ['Unstaked', 'Unstaking', '$unstake_action'],
   unstakeRequest: ['Unstake Requested', 'Requesting Unstake', '$request_unstake_action'],
@@ -22,7 +21,6 @@ const TRANSACTION_TYPE_TITLES: Partial<Record<
   mint: ['Minted', 'Minting', '$mint_action'],
   burn: ['Burned', 'Burning', '$burn_action'],
   auctionBid: ['NFT Auction Bid', 'Bidding at NFT Auction', 'NFT Auction Bid'],
-  nftPurchase: ['NFT Bought', 'Buying NFT', '$buy_nft_action'],
   dnsChangeAddress: ['Address Updated', 'Updating Address', '$update_address_action'],
   dnsChangeSite: ['Site Updated', 'Updating Site', '$update_site_action'],
   dnsChangeSubdomains: ['Subdomains Updated', 'Updating Subdomains', '$update_subdomains_action'],
@@ -94,16 +92,21 @@ export function getTransactionTitle(
   translate: LangFn,
 ) {
   const tenseIndex = tense === 'past' ? 0 : tense === 'present' ? 1 : 2;
-  if (type) {
-    const titles = TRANSACTION_TYPE_TITLES[type];
-    if (titles) {
-      return translate(titles[tenseIndex]);
-    }
+  let titles: TranslationTenses;
+
+  if (type === 'nftTrade') {
+    titles = isIncoming
+      ? ['NFT Sold', 'Selling NFT', '$sell_nft_action']
+      : ['NFT Bought', 'Buying NFT', '$buy_nft_action'];
+  } else if (type && TRANSACTION_TYPE_TITLES[type]) {
+    titles = TRANSACTION_TYPE_TITLES[type];
+  } else {
+    titles = isIncoming
+      ? ['Received', 'Receiving', '$receive_action']
+      : ['Sent', 'Sending', '$send_action'];
   }
-  if (isIncoming) {
-    return translate(['Received', 'Receiving', '$receive_action'][tenseIndex]);
-  }
-  return translate(['Sent', 'Sending', '$send_action'][tenseIndex]);
+
+  return translate(titles[tenseIndex]);
 }
 
 export function isScamTransaction(transaction: ApiTransaction) {
@@ -131,7 +134,7 @@ export function shouldShowTransactionAddress(transaction: ApiTransaction) {
   const { type, isIncoming, nft, toAddress, fromAddress } = transaction;
   const shouldHide = isOurStakingTransaction(transaction)
     || type === 'burn'
-    || type === 'nftPurchase'
+    || type === 'nftTrade'
     || (!isIncoming && nft && toAddress === nft.address)
     || (isIncoming && type === 'excess' && fromAddress === BURN_ADDRESS);
 

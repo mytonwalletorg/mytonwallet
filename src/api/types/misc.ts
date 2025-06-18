@@ -64,7 +64,7 @@ export interface ApiAddressInfo {
 export type ApiActivityTimestamps = Record<string, number | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest'
   | 'callContract' | 'excess' | 'contractDeploy' | 'bounced'
-  | 'mint' | 'burn' | 'auctionBid' | 'nftPurchase'
+  | 'mint' | 'burn' | 'auctionBid' | 'nftTrade'
   | 'dnsChangeAddress' | 'dnsChangeSite' | 'dnsChangeSubdomains' | 'dnsChangeStorage' | 'dnsDelete' | 'dnsRenew'
   | 'liquidityDeposit' | 'liquidityWithdraw'
   | undefined;
@@ -208,6 +208,7 @@ export interface ApiBackendStakingState {
   shouldUseNominators?: boolean;
   stakedAt?: number;
   ethena: {
+    /** Boolean - whether the wallet is verified; undefined - the wallet eligibility was never checked */
     isVerified?: boolean;
   };
 }

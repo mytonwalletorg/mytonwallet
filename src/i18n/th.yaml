@@ -796,6 +796,9 @@ Bidding at NFT Auction: กำลังประมูล NFT
 NFT Bought: ซื้อ NFT แล้ว
 Buying NFT: กำลังซื้อ NFT
 $buy_nft_action: การซื้อ NFT
+NFT Sold: ขาย NFT แล้ว
+Selling NFT: กำลังขาย NFT
+$sell_nft_action: ขาย NFT
 Receiving: กำลังรับ
 $receive_action: การรับ
 Change Palette: เปลี่ยนพาเลต

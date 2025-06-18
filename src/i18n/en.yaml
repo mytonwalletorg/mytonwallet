@@ -797,6 +797,9 @@ Bidding at NFT Auction: Bidding at NFT Auction
 NFT Bought: NFT Bought
 Buying NFT: Buying NFT
 $buy_nft_action: Buy NFT
+NFT Sold: NFT Sold
+Selling NFT: Selling NFT
+$sell_nft_action: Sell NFT
 Receiving: Receiving
 $receive_action: Receive
 Change Palette: Change Palette

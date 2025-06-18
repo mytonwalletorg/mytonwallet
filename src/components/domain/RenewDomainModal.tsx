@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
-import type { GlobalState, HardwareConnectState } from '../../global/types';
+import type { GlobalState } from '../../global/types';
 import { DomainRenewalState } from '../../global/types';
 
 import { TONCOIN } from '../../config';
@@ -39,9 +39,6 @@ interface StateProps {
   isMediaViewerOpen?: boolean;
   currentDomainRenewal: GlobalState['currentDomainRenewal'];
   byAddress?: Record<string, ApiNft>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   tonBalance: bigint;
 }
 
@@ -64,9 +61,6 @@ function RenewDomainModal({
   },
   isMediaViewerOpen,
   byAddress,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   tonBalance,
 }: StateProps) {
   const {
@@ -250,9 +244,6 @@ function RenewDomainModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareSubmit}
             onClose={cancelDomainsRenewal}
           />
@@ -301,15 +292,11 @@ export default memo(
       mediaViewer: { mediaId },
     } = global;
     const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
-    const { hardwareState, isLedgerConnected, isTonAppConnected } = global.hardware;
 
     return {
       isMediaViewerOpen: Boolean(mediaId),
       currentDomainRenewal,
       byAddress,
-      hardwareState,
-      isLedgerConnected,
-      isTonAppConnected,
       tonBalance: selectCurrentToncoinBalance(global),
     };
   })(RenewDomainModal),

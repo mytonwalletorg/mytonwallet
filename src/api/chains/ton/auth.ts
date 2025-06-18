@@ -2,25 +2,18 @@ import * as tonWebMnemonic from 'tonweb-mnemonic';
 import * as bip39 from 'bip39';
 import nacl from 'tweetnacl';
 
-import type {
-  ApiAccountWithMnemonic,
-  ApiLedgerAccount,
-  ApiNetwork,
-  ApiTonAccount,
-  ApiTonWallet,
-} from '../../types';
+import type { ApiAccountWithMnemonic, ApiNetwork, ApiTonWallet } from '../../types';
 import type { ApiTonWalletVersion } from './types';
 import type { TonWallet } from './util/tonCore';
 import { ApiAuthError } from '../../types';
 
 import { DEFAULT_WALLET_VERSION } from '../../../config';
 import * as HDKey from '../../../lib/ed25519-hd-key';
-import { parseAccountId } from '../../../util/account';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { omitUndefined } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { getWalletPublicKey, toBase64Address } from './util/tonCore';
-import { fetchStoredAccount, getNewAccountId, setAccountValue } from '../../common/accounts';
+import { fetchStoredAccount } from '../../common/accounts';
 import { getMnemonic } from '../../common/mnemonic';
 import { bytesToHex, hexToBytes } from '../../common/utils';
 import { resolveAddress } from './address';
@@ -144,38 +137,23 @@ function bip39MnemonicToKeyPair(mnemonic: string[]) {
   return nacl.sign.keyPair.fromSeed(privateKey);
 }
 
-export async function importNewWalletVersion(accountId: string, version: ApiTonWalletVersion) {
-  const { network } = parseAccountId(accountId);
-
-  const account = await fetchStoredAccount<ApiTonAccount | ApiLedgerAccount>(accountId);
-  if (!account.ton.publicKey) {
-    throw new Error(`Account ${accountId} has no public key`);
+export function getOtherVersionWallet(
+  network: ApiNetwork,
+  wallet: ApiTonWallet,
+  otherVersion: ApiTonWalletVersion,
+): ApiTonWallet {
+  if (!wallet.publicKey) {
+    throw new Error('The wallet has no public key');
   }
 
-  const publicKey = hexToBytes(account.ton.publicKey);
-  const newAddress = publicKeyToAddress(network, publicKey, version);
-  const newAccountId = await getNewAccountId(network);
-  const newAccount: ApiTonAccount | ApiLedgerAccount = {
-    ...account,
-    ton: {
-      type: 'ton',
-      address: newAddress,
-      publicKey: account.ton.publicKey,
-      version,
-      index: account.ton.index,
-    },
-  };
-
-  const ledger = account.type === 'ledger'
-    ? { index: account.ton.index, driver: account.driver }
-    : undefined;
-
-  await setAccountValue(newAccountId, 'accounts', newAccount);
-
+  const publicKey = hexToBytes(wallet.publicKey);
+  const newAddress = publicKeyToAddress(network, publicKey, otherVersion);
   return {
-    accountId: newAccountId,
+    type: 'ton',
     address: newAddress,
-    ledger,
+    publicKey: wallet.publicKey,
+    version: otherVersion,
+    index: wallet.index,
   };
 }
 

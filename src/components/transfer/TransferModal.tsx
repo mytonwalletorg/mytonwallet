@@ -3,9 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type {
-  GlobalState, HardwareConnectState, SavedAddress, UserToken,
-} from '../../global/types';
+import type { GlobalState, SavedAddress, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
 
 import { BURN_ADDRESS, NFT_BATCH_SIZE } from '../../config';
@@ -48,9 +46,6 @@ interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
   savedAddresses?: SavedAddress[];
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isMediaViewerOpen?: boolean;
   isMultichainAccount: boolean;
 }
@@ -71,7 +66,10 @@ function TransferModal({
     sentNftsCount,
     diesel,
   },
-  tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen, isMultichainAccount,
+  tokens,
+  savedAddresses,
+  isMediaViewerOpen,
+  isMultichainAccount,
 }: StateProps) {
   const {
     submitTransferConfirm,
@@ -179,9 +177,6 @@ function TransferModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleLedgerConnect}
             onClose={handleModalCloseWithReset}
           />
@@ -249,19 +244,10 @@ function TransferModal({
 export default memo(withGlobal((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     currentTransfer: global.currentTransfer,
     tokens: selectCurrentAccountTokens(global),
     savedAddresses: accountState?.savedAddresses,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };

@@ -31,8 +31,8 @@ import {
 } from '../util/iteratees';
 import { clearPoisoningCache, updatePoisoningCache } from '../util/poisoningHash';
 import { onBeforeUnload, throttle } from '../util/schedulers';
+import { getIsActiveStakingState } from '../util/staking';
 import { IS_ELECTRON } from '../util/windowEnvironment';
-import { getIsActiveStakingState } from './helpers/staking';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
 import { selectAccountTokens } from './selectors';
@@ -496,9 +496,9 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 38;
   }
 
-  if (cached.stateVersion === 38) {
+  if (cached.stateVersion >= 38 && cached.stateVersion <= 39) {
     clearActivities();
-    cached.stateVersion = 39;
+    cached.stateVersion = 40;
   }
 
   // When adding migration here, increase `STATE_VERSION`

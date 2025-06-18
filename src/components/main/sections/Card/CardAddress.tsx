@@ -172,6 +172,7 @@ function CardAddress({
             {lang('$view_mode')}
           </span>
         )}
+        {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
         <button
           type="button"
           className={buildClassName(styles.address, withTextGradient && 'gradientText')}

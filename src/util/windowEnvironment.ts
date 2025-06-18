@@ -4,6 +4,7 @@ import {
   IS_CAPACITOR, IS_CORE_WALLET, IS_EXTENSION, IS_FIREFOX_EXTENSION, IS_TELEGRAM_APP, LANG_LIST,
 } from '../config';
 import { requestForcedReflow } from '../lib/fasterdom/fasterdom';
+import { DETACHED_TAB_URL } from './ledger/tab';
 import { getPlatform } from './getPlatform';
 
 const TELEGRAM_MOBILE_PLATFORM = new Set(['android', 'android_x', 'ios']);
@@ -51,7 +52,7 @@ export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;
 export const IS_LEDGER_SUPPORTED = IS_CAPACITOR
   || !(IS_CORE_WALLET || IS_IOS || IS_FIREFOX_EXTENSION || IS_TELEGRAM_APP);
-export const IS_LEDGER_EXTENSION_TAB = global.location.hash.startsWith('#detached');
+export const IS_LEDGER_EXTENSION_TAB = global.location.hash.startsWith(DETACHED_TAB_URL);
 // Disable biometric auth on electron for now until this issue is fixed:
 // https://github.com/electron/electron/issues/24573
 export const IS_BIOMETRIC_AUTH_SUPPORTED = Boolean(

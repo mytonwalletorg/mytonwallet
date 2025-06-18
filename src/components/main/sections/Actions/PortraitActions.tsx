@@ -1,7 +1,7 @@
 import React, { type ElementRef, memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { StakingStateStatus } from '../../../../global/helpers/staking';
+import type { StakingStateStatus } from '../../../../util/staking';
 
 import { IS_CORE_WALLET } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';

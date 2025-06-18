@@ -15,7 +15,6 @@ import {
   TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
-import { buildStakingDropdownItems } from '../../global/helpers/staking';
 import {
   selectAccountStakingState,
   selectAccountStakingStates,
@@ -38,6 +37,7 @@ import calcJettonStakingApr from '../../util/ton/calcJettonStakingApr';
 import { getHostnameFromUrl } from '../../util/url';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { buildStakingDropdownItems } from './helpers/buildStakingDropdownItems';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';

@@ -794,6 +794,9 @@ Bidding at NFT Auction: NFT müzayedesinde teklif verme
 NFT Bought: NFT satın alındı
 Buying NFT: NFT satın alınıyor
 $buy_nft_action: NFT satın alma
+NFT Sold: NFT satıldı
+Selling NFT: NFT satılıyor
+$sell_nft_action: NFT sat
 Receiving: Alınıyor
 $receive_action: Alım
 Change Palette: Paleti Değiştir

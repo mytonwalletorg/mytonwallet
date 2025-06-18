@@ -24,12 +24,12 @@ import {
   TONCOIN,
   VALIDATION_PERIOD_MS,
 } from '../../../config';
-import { getStakingStateStatus } from '../../../global/helpers/staking';
 import {
   selectAccounts,
   selectAccountStakingStates,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
+  selectIsHardwareAccount,
 } from '../../../global/selectors';
 import {
   getIsActivityWithHash,
@@ -41,6 +41,7 @@ import {
   parseTxId,
   shouldShowTransactionAddress,
 } from '../../../util/activities';
+import { getHasInMemoryPassword, getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { bigintAbs } from '../../../util/bigint';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import buildClassName from '../../../util/buildClassName';
@@ -49,6 +50,7 @@ import { getLocalAddressName } from '../../../util/getLocalAddressName';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
+import { getStakingStateStatus } from '../../../util/staking';
 import { getNativeToken } from '../../../util/tokens';
 import { getExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
@@ -83,6 +85,7 @@ type StateProps = {
   transaction?: ApiTransactionActivity;
   tokensBySlug?: Record<string, ApiTokenWithPrice>;
   savedAddresses?: SavedAddress[];
+  isHardwareAccount: boolean;
   isTestnet?: boolean;
   isViewMode: boolean;
   stakingInfo?: ApiStakingCommonData;
@@ -106,6 +109,7 @@ function TransactionModal({
   tokensBySlug,
   savedAddresses,
   isTestnet,
+  isHardwareAccount,
   isViewMode,
   stakingInfo,
   stakingStates,
@@ -182,6 +186,7 @@ function TransactionModal({
   const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
   const transactionHash = chain && id ? parseTxId(id).hash : undefined;
   const doesNftExist = Boolean(nft && nftsByAddress?.[nft.address]);
+  const canDecryptComment = !isViewMode && !isHardwareAccount;
 
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
@@ -248,14 +253,6 @@ function TransactionModal({
     clearPasswordError();
   });
 
-  const openHiddenComment = useLastCallback(() => {
-    if (!encryptedComment) {
-      return;
-    }
-
-    openPasswordSlide();
-  });
-
   const handleSendClick = useLastCallback(() => {
     closeActivityInfo({ id: id! });
     startTransfer({
@@ -309,6 +306,23 @@ function TransactionModal({
 
     closePasswordSlide();
     setDecryptedComment(result);
+  });
+
+  const openHiddenComment = useLastCallback(async () => {
+    if (!encryptedComment) {
+      return;
+    }
+
+    if (getHasInMemoryPassword()) {
+      const password = await getInMemoryPassword();
+
+      if (password) {
+        void handlePasswordSubmit(password);
+        return;
+      }
+    }
+
+    openPasswordSlide();
   });
 
   const handleClose = useLastCallback(() => {
@@ -400,8 +414,8 @@ function TransactionModal({
         <InteractiveTextField
           text={encryptedComment ? decryptedComment : comment}
           spoiler={spoiler}
-          spoilerRevealText={encryptedComment ? (isViewMode ? undefined : lang('Decrypt')) : lang('Display')}
-          spoilerCallback={!isViewMode ? openHiddenComment : undefined}
+          spoilerRevealText={encryptedComment ? (canDecryptComment ? lang('Decrypt') : undefined) : lang('Display')}
+          spoilerCallback={canDecryptComment ? openHiddenComment : undefined}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}
@@ -602,11 +616,13 @@ export default memo(
     const stakingStates = selectAccountStakingStates(global, accountId);
     const { isTestnet, theme, isSensitiveDataHidden } = global.settings;
     const accounts = selectAccounts(global);
+    const isHardwareAccount = selectIsHardwareAccount(global);
 
     return {
       transaction: activity?.kind === 'transaction' ? activity : undefined,
       tokensBySlug: global.tokenInfo?.bySlug,
       savedAddresses,
+      isHardwareAccount,
       isTestnet,
       isViewMode: selectIsCurrentAccountViewMode(global),
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,

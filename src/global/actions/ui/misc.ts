@@ -1,12 +1,10 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
-import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
   AppState,
   AuthState,
   DomainLinkingState,
-  HardwareConnectState,
   SettingsState,
   SwapState,
   TransferState,
@@ -18,8 +16,6 @@ import {
   BETA_URL,
   BOT_USERNAME,
   DEBUG,
-  IS_CAPACITOR,
-  IS_EXTENSION,
   IS_PRODUCTION,
   PRODUCTION_URL,
 } from '../../../config';
@@ -29,17 +25,14 @@ import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { omit } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
-import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
-import { callActionInMain, callActionInNative } from '../../../util/multitab';
+import { callActionInMain } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
-import { pause } from '../../../util/schedulers';
 import { getTelegramApp } from '../../../util/telegram';
 import {
   getIsMobileTelegramApp,
   IS_ANDROID_APP,
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
-  IS_DELEGATING_BOTTOM_SHEET,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { closeAllOverlays, parsePlainAddressQr } from '../../helpers/misc';
@@ -58,7 +51,6 @@ import {
   updateCurrentDomainLinking,
   updateCurrentSwap,
   updateCurrentTransfer,
-  updateHardware,
   updateSettings,
 } from '../../reducers';
 import {
@@ -74,7 +66,6 @@ import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 import { reportAppLockActivityEvent } from '../../../components/appLocked/AppLocked';
 import { closeModal } from '../../../components/ui/Modal';
 
-const OPEN_LEDGER_TAB_DELAY = 500;
 const APP_VERSION_URL = IS_ANDROID_APP ? `${IS_PRODUCTION ? PRODUCTION_URL : BETA_URL}/version.txt` : 'version.txt';
 
 addActionHandler('showActivityInfo', (global, actions, { id }) => {
@@ -317,112 +308,6 @@ addActionHandler('openBackupWalletModal', (global) => {
 
 addActionHandler('closeBackupWalletModal', (global) => {
   return { ...global, isBackupWalletModalOpen: undefined };
-});
-
-addActionHandler('initializeHardwareWalletModal', async (global, actions) => {
-  const ledgerApi = await import('../../../util/ledger');
-  const {
-    isBluetoothAvailable,
-    isUsbAvailable,
-  } = await ledgerApi.detectAvailableTransports();
-  const hasUsbDevice = await ledgerApi.hasUsbDevice();
-  const availableTransports: LedgerTransport[] = [];
-  if (isUsbAvailable) {
-    availableTransports.push('usb');
-  }
-  if (isBluetoothAvailable) {
-    availableTransports.push('bluetooth');
-  }
-
-  if (availableTransports.length === 0) {
-    actions.showNotification({
-      message: 'Ledger is not supported on this device.',
-    });
-  } else if (availableTransports.length === 1) {
-    actions.initializeHardwareWalletConnection({ transport: availableTransports[0] });
-  } else {
-    global = getGlobal();
-    if (!hasUsbDevice) {
-      global = updateHardware(global, { lastUsedTransport: 'bluetooth' });
-    }
-    global = updateHardware(global, { availableTransports });
-    setGlobal(global);
-  }
-});
-
-addActionHandler('initializeHardwareWalletConnection', async (global, actions, params) => {
-  if (IS_DELEGATING_BOTTOM_SHEET && params.shouldDelegateToNative) {
-    callActionInNative('initializeHardwareWalletConnection', { transport: params.transport });
-    return;
-  }
-
-  const setHardwareStateToConnecting = () => {
-    global = getGlobal();
-    global = updateHardware(getGlobal(), {
-      hardwareState: HardwareConnectState.Connecting,
-    });
-    setGlobal(global);
-  };
-
-  setHardwareStateToConnecting();
-  const ledgerApi = await import('../../../util/ledger');
-
-  if (await ledgerApi.connectLedger(params.transport)) {
-    actions.connectHardwareWallet({ transport: params.transport });
-    return;
-  }
-
-  if (!IS_EXTENSION) {
-    global = getGlobal();
-    global = updateHardware(global, {
-      isLedgerConnected: false,
-      hardwareState: HardwareConnectState.Failed,
-    });
-    setGlobal(global);
-    return;
-  }
-
-  global = updateHardware(getGlobal(), {
-    hardwareState: HardwareConnectState.WaitingForBrowser,
-  });
-  setGlobal(global);
-
-  await pause(OPEN_LEDGER_TAB_DELAY);
-  const id = await openLedgerTab();
-  const popup = await chrome.windows.getCurrent();
-
-  onLedgerTabClose(id, async () => {
-    await chrome.windows.update(popup.id!, { focused: true });
-
-    if (!await ledgerApi.connectLedger(params.transport)) {
-      actions.closeHardwareWalletModal();
-      return;
-    }
-
-    setHardwareStateToConnecting();
-    actions.connectHardwareWallet({ transport: params.transport });
-  });
-});
-
-addActionHandler('openHardwareWalletModal', async (global) => {
-  const hardwareState = await connectLedgerAndGetHardwareState();
-
-  global = updateHardware(getGlobal(), { hardwareState });
-
-  setGlobal({ ...global, isHardwareModalOpen: true });
-});
-
-addActionHandler('openSettingsHardwareWallet', async (global) => {
-  const hardwareState = await connectLedgerAndGetHardwareState();
-
-  global = updateHardware(getGlobal(), { hardwareState });
-  global = updateSettings(global, { state: SettingsState.LedgerConnectHardware });
-
-  setGlobal(global);
-});
-
-addActionHandler('closeHardwareWalletModal', (global) => {
-  setGlobal({ ...global, isHardwareModalOpen: false });
 });
 
 addActionHandler('toggleInvestorView', (global, actions, { isEnabled } = {}) => {
@@ -788,13 +673,6 @@ addActionHandler('showIncorrectTimeError', (global, actions) => {
   return { ...global, isIncorrectTimeNotificationReceived: true };
 });
 
-addActionHandler('initLedgerPage', (global) => {
-  global = updateHardware(global, {
-    isRemoteTab: true,
-  });
-  setGlobal({ ...global, appState: AppState.Ledger });
-});
-
 addActionHandler('openLoadingOverlay', (global) => {
   setGlobal({ ...global, isLoadingOverlayOpen: true });
 });
@@ -858,22 +736,6 @@ addActionHandler('closeFullscreen', (global) => {
 addActionHandler('setIsSensitiveDataHidden', (global, actions, { isHidden }) => {
   setGlobal(updateSettings(global, { isSensitiveDataHidden: isHidden ? true : undefined }));
 });
-
-async function connectLedgerAndGetHardwareState() {
-  const ledgerApi = await import('../../../util/ledger');
-  let newHardwareState;
-
-  // If not running in the Capacitor environment, try to instantly connect to the Ledger
-  const isConnected = !IS_CAPACITOR ? await ledgerApi.connectLedger() : false;
-
-  if (!isConnected && IS_EXTENSION) {
-    newHardwareState = HardwareConnectState.WaitingForBrowser;
-  } else {
-    newHardwareState = HardwareConnectState.Connect;
-  }
-
-  return newHardwareState;
-}
 
 addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {

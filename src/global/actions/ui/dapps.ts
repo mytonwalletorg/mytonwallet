@@ -5,7 +5,7 @@ import { getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore
 import { unique } from '../../../util/iteratees';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
-  clearDappConnectRequestError, updateCurrentAccountState, updateCurrentDappTransfer,
+  clearDappConnectRequestError, resetHardware, updateCurrentAccountState, updateCurrentDappTransfer,
 } from '../../reducers';
 import { selectCurrentAccountState, selectIsHardwareAccount } from '../../selectors';
 
@@ -37,8 +37,8 @@ addActionHandler('submitDappTransferConfirm', async (global, actions) => {
   global = getGlobal();
 
   if (selectIsHardwareAccount(global)) {
-    actions.resetHardwareWalletConnect();
-    global = updateCurrentDappTransfer(getGlobal(), { state: TransferState.ConnectHardware });
+    global = resetHardware(global);
+    global = updateCurrentDappTransfer(global, { state: TransferState.ConnectHardware });
     setGlobal(global);
   } else if (inMemoryPassword) {
     global = updateCurrentDappTransfer(global, { isLoading: true });

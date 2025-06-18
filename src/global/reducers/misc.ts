@@ -294,16 +294,6 @@ export function updateAccountState(
   };
 }
 
-export function updateHardware(global: GlobalState, hardwareUpdate: Partial<GlobalState['hardware']>) {
-  return {
-    ...global,
-    hardware: {
-      ...global.hardware,
-      ...hardwareUpdate,
-    },
-  } as GlobalState;
-}
-
 export function updateSettings(global: GlobalState, settingsUpdate: Partial<GlobalState['settings']>) {
   return {
     ...global,

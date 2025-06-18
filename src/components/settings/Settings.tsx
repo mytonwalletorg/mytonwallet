@@ -5,9 +5,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
 import type { ApiDapp, ApiWalletWithVersionInfo } from '../../api/types';
-import type {
-  Account, GlobalState, HardwareConnectState, UserToken,
-} from '../../global/types';
+import type { Account, GlobalState, UserToken } from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { Wallet } from './SettingsWalletVersion';
 import { SettingsState } from '../../global/types';
@@ -50,7 +48,6 @@ import {
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DAPP_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
-  IS_DELEGATING_BOTTOM_SHEET,
   IS_ELECTRON,
   IS_LEDGER_SUPPORTED,
   IS_TOUCH_ENV,
@@ -135,10 +132,6 @@ type StateProps = {
   supportAccountsCount?: number;
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
-  isRemoteTab?: boolean;
   arePushNotificationsAvailable?: boolean;
   isNftBuyingDisabled?: boolean;
   isViewMode: boolean;
@@ -171,10 +164,6 @@ function Settings({
   supportAccountsCount = SUPPORT_ACCOUNTS_COUNT_DEFAULT,
   accounts,
   hardwareWallets,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
-  isRemoteTab,
   arePushNotificationsAvailable,
   isNftBuyingDisabled,
   isViewMode,
@@ -762,7 +751,7 @@ function Settings({
       case SettingsState.PushNotifications:
         return (
           <SettingsPushNotifications
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
           />
@@ -770,7 +759,7 @@ function Settings({
       case SettingsState.Appearance:
         return (
           <SettingsAppearance
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             theme={theme}
             animationLevel={animationLevel}
             handleBackClick={handleBackClick}
@@ -782,7 +771,7 @@ function Settings({
       case SettingsState.Assets:
         return (
           <SettingsAssets
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             isInsideModal={isInsideModal}
             onBack={handleBackClick}
           />
@@ -801,7 +790,7 @@ function Settings({
       case SettingsState.Dapps:
         return (
           <SettingsDapps
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             dapps={dapps}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
@@ -810,7 +799,7 @@ function Settings({
       case SettingsState.Language:
         return (
           <SettingsLanguage
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             langCode={langCode}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
@@ -819,7 +808,7 @@ function Settings({
       case SettingsState.About:
         return (
           <SettingsAbout
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
             theme={theme}
@@ -828,7 +817,7 @@ function Settings({
       case SettingsState.Disclaimer:
         return (
           <SettingsDisclaimer
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
           />
@@ -836,14 +825,14 @@ function Settings({
       case SettingsState.NativeBiometricsTurnOn:
         return (
           <SettingsNativeBiometricsTurnOn
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             handleBackClick={handleBackClick}
           />
         );
       case SettingsState.SelectTokenList:
         return (
           <SettingsTokenList
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             isInsideModal={isInsideModal}
             handleBackClick={handleBackClickToAssets}
           />
@@ -851,7 +840,7 @@ function Settings({
       case SettingsState.WalletVersion:
         return (
           <SettingsWalletVersion
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             currentVersion={currentVersion}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
@@ -862,13 +851,8 @@ function Settings({
         return (
           <div className={styles.slide}>
             <LedgerConnect
-              isActive={isSlideActive}
+              isActive={isActive && isSlideActive}
               isStatic={!isInsideModal}
-              shouldDelegateToNative={IS_DELEGATING_BOTTOM_SHEET && !isInsideModal}
-              state={hardwareState}
-              isLedgerConnected={isLedgerConnected}
-              isTonAppConnected={isTonAppConnected}
-              isRemoteTab={isRemoteTab}
               className={styles.nestedTransition}
               onBackButtonClick={handleBackClick}
               onConnected={handleLedgerConnected}
@@ -880,7 +864,7 @@ function Settings({
         return (
           <div className={styles.slide}>
             <LedgerSelectWallets
-              isActive={isSlideActive}
+              isActive={isActive && isSlideActive}
               isStatic={!isInsideModal}
               accounts={accounts}
               hardwareWallets={hardwareWallets}
@@ -892,7 +876,7 @@ function Settings({
       case SettingsState.HiddenNfts:
         return (
           <SettingsHiddenNfts
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             handleBackClick={handleBackClickToAssets}
             isInsideModal={isInsideModal}
           />
@@ -927,13 +911,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const versions = versionsById?.[global.currentAccountId!];
   const { dapps = MEMO_EMPTY_ARRAY } = selectCurrentAccountState(global) || {};
-  const {
-    hardwareWallets,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-    isRemoteTab,
-  } = global.hardware;
+  const { hardwareWallets } = global.hardware;
 
   return {
     settings: global.settings,
@@ -945,10 +923,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     versions,
     isCopyStorageEnabled,
     supportAccountsCount,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-    isRemoteTab,
     hardwareWallets,
     accounts,
     isNftBuyingDisabled,

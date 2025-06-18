@@ -3,21 +3,8 @@
 @use "../../../../styles/mixins";
 
 .container {
-  --border-radius-value: 0.25rem;
-  --color-dot: var(--color-gray-2);
-
   position: relative;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   width: 100%;
-  padding: 0.75rem 0.875rem 0.75rem 0.75rem;
-
-  color: var(--color-black);
-
-  background: var(--color-background-first);
 
   &:not(:last-of-type) {
     &::after {
@@ -37,6 +24,24 @@
       }
     }
   }
+}
+
+.button {
+  --border-radius-value: 0.25rem;
+  --color-dot: var(--color-gray-2);
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  padding: 0.75rem 0.875rem 0.75rem 0.75rem;
+
+  color: var(--color-black);
+
+  background: var(--color-background-first);
 
   @media (hover: hover) {
     &:focus-visible,
@@ -215,7 +220,7 @@
 
 .tokenIcon {
   margin: 0 0.625rem 0 0;
-  .container:hover > & {
+  .button:hover > & {
     --color-background-first: var(--color-interactive-item-hover);
   }
 }

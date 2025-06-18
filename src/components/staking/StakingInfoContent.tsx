@@ -12,7 +12,6 @@ import {
   SHORT_FRACTION_DIGITS,
   TONCOIN,
 } from '../../config';
-import { buildStakingDropdownItems, getStakingStateStatus } from '../../global/helpers/staking';
 import {
   selectAccountStakingHistory,
   selectAccountStakingState,
@@ -27,8 +26,9 @@ import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { openUrl } from '../../util/openUrl';
-import { getUnstakeTime } from '../../util/staking';
+import { getStakingStateStatus, getUnstakeTime } from '../../util/staking';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { buildStakingDropdownItems } from './helpers/buildStakingDropdownItems';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useForceUpdate from '../../hooks/useForceUpdate';

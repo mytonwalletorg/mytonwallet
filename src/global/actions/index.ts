@@ -18,6 +18,7 @@ import './apiUpdates/dapp';
 import './ui/initial';
 import './ui/misc';
 import './ui/dapps';
+import './ui/hardware';
 import './ui/settings';
 import './ui/nfts';
 import './ui/vesting';

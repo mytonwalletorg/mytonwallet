@@ -795,6 +795,9 @@ Bidding at NFT Auction: Puja en la subasta de NFT
 NFT Bought: NFT comprado
 Buying NFT: Comprando NFT
 $buy_nft_action: Comprar NFT
+NFT Sold: NFT vendido
+Selling NFT: Vendiendo NFT
+$sell_nft_action: Vender NFT
 Receiving: Recibiendo
 $receive_action: Recibir
 Change Palette: Cambiar paleta

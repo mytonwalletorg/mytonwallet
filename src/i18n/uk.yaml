@@ -806,6 +806,9 @@ Bidding at NFT Auction: Ставка на аукціоні NFT
 NFT Bought: Куплено NFT
 Buying NFT: Купівля NFT
 $buy_nft_action: Купівля NFT
+NFT Sold: Продано NFT
+Selling NFT: Продаж NFT
+$sell_nft_action: Продаж NFT
 Receiving: Отримання
 $receive_action: Отримання
 Change Palette: Змінити палітру

@@ -12,8 +12,6 @@
   --offset-y: calc(100% + 0.5rem);
   --offset-x: -0.25rem;
 
-  scrollbar-width: none !important;
-
   position: absolute;
   z-index: var(--z-menu-bubble);
   transform: scale(0.5);
@@ -63,8 +61,12 @@
     transition: var(--no-animation-transition) !important;
   }
 
-  &::-webkit-scrollbar {
-    display: none !important;
+  :global(html:not(.is-ios):not(.is-android)) & {
+    scrollbar-width: none !important;
+
+    &::-webkit-scrollbar {
+      display: none !important;
+    }
   }
 }
 
@@ -125,5 +127,9 @@
     &:global(.open) {
       transform: translate(var(--translate-x, 0), 0) !important;
     }
+  }
+
+  :global(html:not(.is-ios):not(.is-android)) & {
+    overflow-y: auto;
   }
 }

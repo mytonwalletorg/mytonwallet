@@ -6,8 +6,10 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiChain } from '../../api/types';
 import type { IAnchorPosition, SavedAddress } from '../../global/types';
+import type { Layout } from '../../hooks/useMenuPosition';
 import type { DropdownItem } from './Dropdown';
 
+import { closeAllOverlays } from '../../global/helpers/misc';
 import { selectCurrentAccountState, selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
@@ -98,6 +100,7 @@ function InteractiveTextField({
 
   const addressNameRef = useRef<HTMLInputElement>();
   const contentRef = useRef<HTMLDivElement>();
+  const menuRef = useRef<HTMLDivElement>();
   const lang = useLang();
   const [isSaveAddressModalOpen, openSaveAddressModal, closeSaveAddressModal] = useFlag();
   const [isDeleteSavedAddressModalOpen, openDeletedSavedAddressModal, closeDeleteSavedAddressModal] = useFlag();
@@ -149,7 +152,8 @@ function InteractiveTextField({
     void shareUrl(addressUrl!, chain ? getExplorerName(chain) : undefined);
   });
 
-  const handleTonExplorerOpen = useLastCallback(() => {
+  const handleTonExplorerOpen = useLastCallback(async () => {
+    await closeAllOverlays();
     void openUrl(addressUrl!, { title: getExplorerName(chain!), subtitle: getHostnameFromUrl(addressUrl!) });
   });
 
@@ -176,6 +180,9 @@ function InteractiveTextField({
   });
 
   const shouldUseMenu = !spoiler && IS_TOUCH_ENV && menuItems.length > 1;
+  const getRootElement = useLastCallback(() => document.body);
+  const getMenuElement = useLastCallback(() => menuRef.current);
+  const getLayout = useLastCallback((): Layout => ({ withPortal: true, preferredPositionY: menuPositionY }));
 
   const longPressHandlers = useLongPress({
     onClick: handleMenuShow,
@@ -269,12 +276,16 @@ function InteractiveTextField({
         <>
           <i className={iconClassName} aria-hidden />
           <DropdownMenu
+            ref={menuRef}
             withPortal
             shouldTranslateOptions
             isOpen={isActionsMenuOpen}
             items={menuItems}
             menuPositionY={menuPositionY}
             menuAnchor={menuAnchor}
+            getLayout={getLayout}
+            getMenuElement={getMenuElement}
+            getRootElement={getRootElement}
             bubbleClassName={styles.menu}
             buttonClassName={styles.menuItem}
             fontIconClassName={styles.menuIcon}

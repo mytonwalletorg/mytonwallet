@@ -29,13 +29,12 @@ import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
 } from '../../util/fee/transferFee';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
-import { getLocalAddressName } from '../../util/getLocalAddressName';
 import { vibrate } from '../../util/haptics';
+import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { trimStringByMaxBytes } from '../../util/text';
 import { getChainBySlug, getIsServiceToken, getNativeToken } from '../../util/tokens';
 
-import useAddressInput from '../../hooks/useAddressInput';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useInterval from '../../hooks/useInterval';
@@ -44,12 +43,10 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
-import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
+import AddressInput from '../ui/AddressInput';
 import Button from '../ui/Button';
 import FeeLine from '../ui/FeeLine';
 import Transition from '../ui/Transition';
-import AddressBook from './AddressBook';
-import AddressInput from './AddressInput';
 import AmountInputSection from './AmountInputSection';
 import CommentSection from './CommentSection';
 import NftChips from './NftChips';
@@ -160,44 +157,15 @@ function TransferInitial({
 
   const isDisabledDebounce = useRef<boolean>(false);
   const isToncoin = tokenSlug === TONCOIN.slug;
+  const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
 
-  const handleAddressInput = useLastCallback((newToAddress?: string) => {
+  const handleAddressInput = useLastCallback((newToAddress?: string, isValueReplaced?: boolean) => {
+    // If value is replaced, callbacks must be executed immediately, without debounce
+    if (isValueReplaced) {
+      isDisabledDebounce.current = true;
+    }
+
     setTransferToAddress({ toAddress: newToAddress });
-  });
-
-  const {
-    isAddressFocused,
-    isAddressValid,
-    hasAddressError,
-    isQrScannerSupported,
-    withPasteButton,
-    addressInputRef,
-
-    shouldUseAddressBook,
-    isAddressBookOpen,
-    addressBookAccountIds,
-    chainForDeletion,
-    addressForDeletion,
-
-    closeAddressBook,
-    handlePasteClick,
-    handleAddressBlur,
-    handleAddressFocus,
-    handleAddressClear,
-    handleQrScanClick,
-    handleAddressBookItemSelect,
-    handleDeleteSavedAddressClick,
-    handleDeleteSavedAddressModalClose,
-  } = useAddressInput({
-    value: toAddress,
-    chain,
-    callbackDebounceRef: isDisabledDebounce,
-    currentAccountId,
-    accounts,
-    savedAddresses,
-    validateAddress: checkTransferAddress,
-    onChange: handleAddressInput,
-    onClose: cancelTransfer,
   });
 
   const shouldDisableClearButton = !toAddress && !(comment || binPayload) && !shouldEncrypt
@@ -208,14 +176,6 @@ function TransferInitial({
     : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
-
-  const localAddressName = useMemo(() => getLocalAddressName({
-    address: toAddress,
-    chain: getChainBySlug(tokenSlug),
-    currentAccountId,
-    savedAddresses,
-    accounts: accounts!,
-  }), [accounts, currentAccountId, savedAddresses, toAddress, tokenSlug]);
 
   const explainedFee = useMemo(
     () => explainApiTransferFee({
@@ -332,7 +292,8 @@ function TransferInitial({
     if (isStatic) {
       cancelTransfer({ shouldReset: true });
     } else {
-      handleAddressClear();
+      handleAddressInput('');
+      checkTransferAddress({ address: '' });
       setTransferAmount({ amount: undefined });
       setTransferComment({ comment: undefined });
       setTransferShouldEncrypt({ shouldEncrypt: false });
@@ -485,33 +446,20 @@ function TransferInitial({
         <AddressInput
           label={lang('Recipient Address')}
           value={toAddress}
-          error={hasAddressError ? lang('Incorrect address') : undefined}
+          chain={chain}
+          // NFT transfers are available only on the TON blockchain on this moment
+          addressBookChain={isNftTransfer ? 'ton' : undefined}
+          currentAccountId={currentAccountId}
+          accounts={accounts}
+          savedAddresses={savedAddresses}
+          validateAddress={checkTransferAddress}
           isStatic={isStatic}
-          isFocused={isAddressFocused}
-          isQrScannerSupported={isQrScannerSupported}
-          withPasteButton={withPasteButton}
+          withQrScan
           address={resolvedAddress || toAddress}
-          addressName={localAddressName || toAddressName}
-          inputRef={addressInputRef}
+          addressName={toAddressName}
           onInput={handleAddressInput}
-          onFocus={handleAddressFocus}
-          onBlur={handleAddressBlur}
-          onClearClick={handleAddressClear}
-          onQrScanClick={handleQrScanClick}
-          onPasteClick={handlePasteClick}
+          onClose={cancelTransfer}
         />
-
-        {shouldUseAddressBook && (
-          <AddressBook
-            isOpen={isAddressBookOpen}
-            isNftTransfer={isNftTransfer}
-            currentAddress={toAddress}
-            otherAccountIds={addressBookAccountIds}
-            onAddressSelect={handleAddressBookItemSelect}
-            onSavedAddressDelete={handleDeleteSavedAddressClick}
-            onClose={closeAddressBook}
-          />
-        )}
 
         {!isNftTransfer && (
           <AmountInputSection
@@ -572,12 +520,6 @@ function TransferInitial({
           </div>
         </div>
       </form>
-      <DeleteSavedAddressModal
-        isOpen={Boolean(addressForDeletion)}
-        address={addressForDeletion}
-        chain={chainForDeletion}
-        onClose={handleDeleteSavedAddressModalClose}
-      />
       <FeeDetailsModal
         isOpen={isFeeModalOpen}
         onClose={closeFeeModal}

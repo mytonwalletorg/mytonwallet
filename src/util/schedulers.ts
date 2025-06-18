@@ -1,3 +1,5 @@
+import Deferred from './Deferred';
+
 export type Scheduler = typeof requestAnimationFrame | typeof onTickEnd;
 
 export function debounce<F extends AnyToVoidFunction>(
@@ -235,4 +237,50 @@ export async function waitFor(cb: () => boolean, interval: number, attempts: num
   }
 
   return result;
+}
+
+/**
+ * Returns a function that executes every given functions (tasks) with limited concurrency (not more than
+ * `maxConcurrency` at a time). The tasks are executed in the same order that they are given. Unlike throttle, executes
+ * every given task.
+ */
+export function createTaskQueue(maxConcurrency = 1) {
+  const queue: AnyAsyncFunction[] = [];
+  let concurrency = 0;
+
+  const runTasks = async () => {
+    concurrency++;
+    while (queue.length) {
+      const task = queue.shift()!;
+      await task(); // Expected never to throw, because the errors are caught below
+    }
+    concurrency--;
+  };
+
+  /** Schedules execution of the given function right now. The returned promise settles with the task result. */
+  const run = <T>(task: () => MaybePromise<T>): Promise<T> => {
+    const deferred = new Deferred<T>();
+    queue.push(async () => {
+      try {
+        deferred.resolve(await task());
+      } catch (err) {
+        deferred.reject(err);
+      }
+    });
+
+    if (concurrency < maxConcurrency) {
+      void runTasks();
+    }
+
+    return deferred.promise;
+  };
+
+  /** Returns the same task function, but with limited concurrency */
+  const wrap = <Args extends unknown[], Return>(
+    task: (...args: Args) => MaybePromise<Return>,
+  ): (...args: Args) => Promise<Return> => {
+    return (...args: Args) => run(() => task(...args));
+  };
+
+  return { run, wrap };
 }

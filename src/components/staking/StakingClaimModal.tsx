@@ -2,7 +2,7 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiEthenaStakingState, ApiJettonStakingState } from '../../api/types';
-import type { HardwareConnectState, UserToken } from '../../global/types';
+import type { UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
 import { SHORT_FRACTION_DIGITS, TONCOIN } from '../../config';
@@ -47,9 +47,6 @@ interface StateProps {
   address?: string;
   error?: string;
   state?: StakingState;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isHardwareAccount?: boolean;
   isMultichainAccount: boolean;
   isSensitiveDataHidden?: true;
@@ -70,9 +67,6 @@ function StakingClaimModal({
   address,
   error,
   state = StakingState.ClaimPassword,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isHardwareAccount,
   isMultichainAccount,
   isSensitiveDataHidden,
@@ -159,9 +153,6 @@ function StakingClaimModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareSubmit}
             onClose={cancelStakingClaim}
           />
@@ -259,12 +250,6 @@ export default memo(withGlobal((global): StateProps => {
   const tokens = selectCurrentAccountTokens(global);
   const canBeClaimed = stakingState?.type === 'jetton' || stakingState?.type === 'ethena';
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     stakingState: canBeClaimed ? stakingState : undefined,
     isOpen: IS_OPEN_STATES.has(state),
@@ -273,9 +258,6 @@ export default memo(withGlobal((global): StateProps => {
     isLoading,
     error,
     address: addressByChain?.ton,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isHardwareAccount,
     isMultichainAccount: selectIsMultichainAccount(global, accountId!),
     isSensitiveDataHidden: global.settings.isSensitiveDataHidden,

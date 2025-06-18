@@ -2,7 +2,7 @@ import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiStakingState, ApiTokenWithPrice } from '../../api/types';
-import type { GlobalState, HardwareConnectState } from '../../global/types';
+import type { GlobalState } from '../../global/types';
 import { StakingState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
@@ -37,9 +37,6 @@ import styles from './Staking.module.scss';
 type StateProps = GlobalState['currentStaking'] & {
   stakingState?: ApiStakingState;
   tokenBySlug?: Record<string, ApiTokenWithPrice>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isMultichainAccount: boolean;
 };
 
@@ -58,9 +55,6 @@ function StakeModal({
   amount,
   error,
   tokenBySlug,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isMultichainAccount,
 }: StateProps) {
   const {
@@ -189,9 +183,6 @@ function StakeModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleLedgerConnect}
             onClose={cancelStaking}
           />
@@ -244,19 +235,10 @@ export default memo(withGlobal((global): StateProps => {
   const stakingState = selectAccountStakingState(global, accountId);
   const tokenBySlug = global.tokenInfo.bySlug;
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     ...global.currentStaking,
     stakingState,
     tokenBySlug,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isMultichainAccount,
   };
 })(StakeModal));

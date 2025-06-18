@@ -118,9 +118,11 @@ const knownJettonAddresses = KNOWN_JETTONS.map(
 
 let transport: TransportWebHID | TransportWebUSB | BleTransport | HIDTransport | undefined;
 let tonTransport: TonTransport | undefined;
-let isHidSupported = false;
-let isWebUsbSupported = false;
-let isBluetoothSupported = false;
+let transportSupport: {
+  hid: boolean;
+  webUsb: boolean;
+  bluetooth: boolean;
+} | undefined;
 let currentLedgerTransport: LedgerTransport | undefined;
 
 let hidImportPromise: Promise<{
@@ -169,29 +171,34 @@ void ensureHidTransport();
 export async function detectAvailableTransports() {
   await ensureBleConnector();
   await ensureHidTransport();
-  [isHidSupported, isBluetoothSupported, isWebUsbSupported] = await Promise.all([
+  const [hid, bluetooth, webUsb] = await Promise.all([
     IS_ANDROID_APP ? MtwHidTransport.isSupported() : TransportWebHID.isSupported(),
-    BleConnector ? BleConnector.isSupported() : Promise.resolve(false),
+    BleConnector ? BleConnector.isSupported() : false,
     TransportWebUSB.isSupported(),
   ]);
 
+  transportSupport = { hid, bluetooth, webUsb };
+
   return {
-    isUsbAvailable: isHidSupported || isWebUsbSupported,
-    isBluetoothAvailable: isBluetoothSupported,
+    isUsbAvailable: hid || webUsb,
+    isBluetoothAvailable: bluetooth,
   };
 }
 
 export async function hasUsbDevice() {
-  let hasDevice = false;
-  if (isHidSupported) {
-    hasDevice = IS_ANDROID_APP
+  const transportSupport = getTransportSupportOrFail();
+
+  if (transportSupport.hid) {
+    return IS_ANDROID_APP
       ? await hasCapacitorHIDDevice()
       : await hasWebHIDDevice();
-  } else if (isWebUsbSupported) {
-    hasDevice = await hasWebUsbDevice();
   }
 
-  return hasDevice;
+  if (transportSupport.webUsb) {
+    return await hasWebUsbDevice();
+  }
+
+  return false;
 }
 
 function getInternalWalletVersion(version: PossibleWalletVersion) {
@@ -227,6 +234,8 @@ export async function reconnectLedger() {
 }
 
 export async function connectLedger(preferredTransport?: LedgerTransport) {
+  const transportSupport = getTransportSupportOrFail();
+
   if (preferredTransport) currentLedgerTransport = preferredTransport;
 
   try {
@@ -237,9 +246,9 @@ export async function connectLedger(preferredTransport?: LedgerTransport) {
 
       case 'usb':
       default:
-        if (isHidSupported) {
+        if (transportSupport.hid) {
           transport = await connectHID();
-        } else if (isWebUsbSupported) {
+        } else if (transportSupport.webUsb) {
           transport = await connectWebUsb();
         }
         break;
@@ -258,12 +267,9 @@ export async function connectLedger(preferredTransport?: LedgerTransport) {
   }
 }
 
-function waitLedgerTonAppDeadline(): Promise<boolean> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(false);
-    }, PAUSE * ATTEMPTS);
-  });
+async function waitLedgerTonAppDeadline(): Promise<boolean> {
+  await pause(PAUSE * ATTEMPTS);
+  return false;
 }
 
 export async function checkTonApp() {
@@ -1169,11 +1175,20 @@ async function tryDetectDevice(
 }
 
 function hasWebHIDDevice() {
-  return tryDetectDevice(TransportWebHID.list, TransportWebHID.create);
+  return tryDetectDevice(() => TransportWebHID.list(), () => TransportWebHID.create());
 }
 function hasWebUsbDevice() {
-  return tryDetectDevice(TransportWebUSB.list, TransportWebUSB.create);
+  return tryDetectDevice(() => TransportWebUSB.list(), () => TransportWebUSB.create());
 }
 function hasCapacitorHIDDevice() {
   return tryDetectDevice(listLedgerDevices);
+}
+
+function getTransportSupportOrFail() {
+  // detectAvailableTransports must be called before calling this function
+  if (!transportSupport) {
+    throw new Error('detectAvailableTransports not called');
+  }
+
+  return transportSupport;
 }

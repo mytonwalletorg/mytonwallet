@@ -222,7 +222,7 @@ export enum HardwareConnectState {
   Failed,
   ConnectedWithSeveralWallets,
   ConnectedWithSingleWallet,
-  WaitingForBrowser,
+  WaitingForRemoteTab,
 }
 
 export enum StakingState {
@@ -467,6 +467,7 @@ export type GlobalState = {
     isLoading?: boolean;
     mnemonic?: string[];
     mnemonicCheckIndexes?: number[];
+    hardwareSelectedIndices?: number[];
     error?: string;
     password?: string;
     isImportModalOpen?: boolean;
@@ -483,10 +484,8 @@ export type GlobalState = {
   nativeBiometricsError?: string;
 
   hardware: {
-    hardwareState?: HardwareConnectState;
+    hardwareState: HardwareConnectState;
     hardwareWallets?: LedgerWalletInfo[];
-    hardwareSelectedIndices?: number[];
-    isRemoteTab?: boolean;
     isLedgerConnected?: boolean;
     isTonAppConnected?: boolean;
     availableTransports?: LedgerTransport[];
@@ -820,9 +819,8 @@ export interface ActionPayloads {
   openCreateBackUpPage: undefined;
   openCheckWordsPage: undefined;
   closeCheckWordsPage: { isBackupCreated?: boolean } | undefined;
-  initializeHardwareWalletModal: { shouldDelegateToNative?: boolean };
-  initializeHardwareWalletConnection: { transport: LedgerTransport; shouldDelegateToNative?: boolean };
-  connectHardwareWallet: { transport?: LedgerTransport; noRetry?: boolean };
+  initializeHardwareWalletModal: undefined;
+  initializeHardwareWalletConnection: { transport: LedgerTransport };
   createHardwareAccounts: undefined;
   addHardwareAccounts: {
     wallets: ({ accountId: string; address: string; walletInfo: LedgerWalletInfo } | undefined)[];

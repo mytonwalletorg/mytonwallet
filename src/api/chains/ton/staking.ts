@@ -30,6 +30,7 @@ import { parseAccountId } from '../../../util/account';
 import { bigintDivideToNumber, bigintMultiplyToNumber } from '../../../util/bigint';
 import { fromDecimal } from '../../../util/decimals';
 import { getDevSettings } from '../../../util/devSettings';
+import { getIsActiveStakingState } from '../../../util/staking';
 import calcJettonStakingApr from '../../../util/ton/calcJettonStakingApr';
 import {
   buildJettonClaimPayload,
@@ -592,12 +593,12 @@ async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthena
   const balance = bigintMultiplyToNumber(tokenBalance, rate);
   const unstakeRequestAmount = bigintMultiplyToNumber(lockedBalance, rate);
 
-  return {
+  const state: ApiEthenaStakingState = {
     id: 'ethena',
     type: 'ethena',
     tokenSlug: TON_USDE.slug,
     yieldType: 'APY',
-    annualYield: isVerified === false ? apy : apyVerified,
+    annualYield: isVerified ? apyVerified : apy,
     annualYieldStandard: apy,
     annualYieldVerified: apyVerified,
     balance,
@@ -607,7 +608,15 @@ async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthena
     lockedBalance,
     unlockTime: unlockTime && lockedBalance ? unlockTime * 1000 : undefined,
     tsUsdeWalletAddress,
-  } as ApiEthenaStakingState;
+  };
+
+  // When we don't know whether the wallet is verified and the staking is not active,
+  // we want to optimistically show the high APY
+  if (isVerified === undefined && !getIsActiveStakingState(state)) {
+    state.annualYield = apyVerified;
+  }
+
+  return state;
 }
 
 async function getLiquidStakingTokenBalance(accountId: string) {

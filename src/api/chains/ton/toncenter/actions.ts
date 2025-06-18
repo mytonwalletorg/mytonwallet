@@ -424,7 +424,7 @@ function parseJettonBurn(action: JettonBurnAction, options: ParseOptions): ApiTr
 }
 
 function parseNftTransfer(action: NftTransferAction, options: ParseOptions): ApiTransactionActivity | undefined {
-  const { metadata } = options;
+  const { metadata, walletAddress, addressBook } = options;
 
   const {
     nft_item_index: index,
@@ -435,6 +435,7 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Api
     forward_payload: forwardPayload,
     is_purchase: isPurchase,
     price,
+    response_destination: responseDestination,
   } = action.details;
 
   const nft = parseToncenterNft(
@@ -444,15 +445,29 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Api
     index ?? undefined,
   );
 
-  const shouldHide = !nft && rawCollectionAddress ? isHiddenCollection(rawCollectionAddress, metadata) : undefined;
+  let shouldHide = !nft && rawCollectionAddress ? isHiddenCollection(rawCollectionAddress, metadata) : undefined;
+
+  // Hide duplicate NFT transfer actions that appear when listing NFT on Getgems marketplace
+  // These are actions where old_owner and new_owner are not the wallet address,
+  // but wallet address is only in response_destination
+  if (oldOwner && newOwner && responseDestination) {
+    const oldOwnerAddress = addressBook[oldOwner]?.user_friendly;
+    const newOwnerAddress = addressBook[newOwner]?.user_friendly;
+
+    if (oldOwnerAddress !== walletAddress && newOwnerAddress !== walletAddress) {
+      shouldHide = true;
+    }
+  }
+
   const common = parseCommonFields(action, options, oldOwner ?? rawNftAddress, newOwner);
   const comment = (forwardPayload && safeReadComment(forwardPayload)) || undefined;
   let type: ApiTransactionType | undefined = common.toAddress === BURN_ADDRESS ? 'burn' : undefined;
 
   if (isPurchase && price) {
-    type = 'nftPurchase';
-    common.isIncoming = false;
-    common.amount = -BigInt(price);
+    type = 'nftTrade';
+    const isBuying = addressBook[newOwner]?.user_friendly === walletAddress;
+    common.isIncoming = !isBuying;
+    common.amount = isBuying ? -BigInt(price) : BigInt(price);
   }
 
   return {

@@ -145,15 +145,22 @@ function Transaction({
   });
 
   function renderNft() {
+    const isNftIncoming = type === 'nftTrade' ? !isIncoming : isIncoming;
+    const nftColorClass = type === 'nftTrade'
+      ? isNftIncoming
+        ? styles.colorPositive
+        : undefined
+      : operationColorClass;
+
     return (
       <div
         className={buildClassName(
           styles.attachment,
           styles.nft,
           !doesNftExist && styles.nonInteractive,
-          isIncoming && styles.received,
+          isNftIncoming && styles.received,
           comment && styles.nftWithComment,
-          operationColorClass,
+          nftColorClass,
           'transaction-nft',
         )}
         onClick={doesNftExist ? handleNftClick : undefined}
@@ -199,8 +206,8 @@ function Transaction({
       iconName = 'icon-fire';
     } else if (type === 'auctionBid') {
       iconName = 'icon-auction-alt';
-    } else if (type === 'nftPurchase') {
-      iconName = 'icon-purchase';
+    } else if (type === 'nftTrade') {
+      iconName = isIncoming ? 'icon-tag' : 'icon-purchase';
     } else if (type === 'liquidityDeposit') {
       iconName = 'icon-can-in';
     } else if (type === 'liquidityWithdraw') {
@@ -347,9 +354,10 @@ function shouldAttachmentTakeSubheader(
     return 'none';
   }
 
-  const isNoSubheaderLeft = !!isFuture;
+  const isNoSubheaderLeft = !!isFuture || transaction.type === 'nftTrade';
   const isNoSubheaderRight = !shouldShowTransactionAddress(transaction)
-    && !shouldShowTransactionAnnualYield(transaction);
+    && !shouldShowTransactionAnnualYield(transaction)
+    && transaction.type !== 'nftTrade';
 
   return transaction.isIncoming
     ? isNoSubheaderLeft ? isNoSubheaderRight ? 'full' : 'half' : 'none'

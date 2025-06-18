@@ -2,7 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiCardsInfo, ApiMtwCardType } from '../../api/types';
-import type { HardwareConnectState, Theme } from '../../global/types';
+import type { Theme } from '../../global/types';
 import { MintCardState } from '../../global/types';
 
 import { ANIMATED_STICKER_TINY_ICON_PX } from '../../config';
@@ -39,9 +39,6 @@ interface StateProps {
   state?: MintCardState;
   error?: string;
   theme: Theme;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   selectedCardType?: ApiMtwCardType;
 }
 
@@ -52,9 +49,6 @@ function MintCardModal({
   state,
   error,
   theme,
-  isLedgerConnected,
-  isTonAppConnected,
-  hardwareState,
   selectedCardType,
 }: StateProps) {
   const {
@@ -160,9 +154,6 @@ function MintCardModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareSubmit}
             onClose={closeMintCardModal}
           />
@@ -208,11 +199,6 @@ export default memo(withGlobal((global): StateProps => {
   const { currentMintCard } = global;
   const { config } = selectCurrentAccountState(global) || {};
   const { cardsInfo } = config || {};
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
 
   return {
     isOpen: currentMintCard?.state !== undefined,
@@ -220,9 +206,6 @@ export default memo(withGlobal((global): StateProps => {
     isLoading: currentMintCard?.isLoading,
     state: currentMintCard?.state,
     error: currentMintCard?.error,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     theme: global.settings.theme,
     selectedCardType: currentMintCard?.type,
   };

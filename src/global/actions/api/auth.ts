@@ -3,9 +3,7 @@ import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 import type { ApiNetwork } from '../../../api/types';
 import type { GlobalState } from '../../types';
 import { ApiAuthError, ApiCommonError } from '../../../api/types';
-import {
-  AppState, AuthState, BiometricsState, HardwareConnectState,
-} from '../../types';
+import { AppState, AuthState, BiometricsState } from '../../types';
 
 import {
   APP_NAME, IS_TELEGRAM_APP, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT,
@@ -21,8 +19,6 @@ import isEmptyObject from '../../../util/isEmptyObject';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { cloneDeep, compact } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
-import { isLedgerConnectionBroken } from '../../../util/ledger/utils';
-import { logDebugError } from '../../../util/logs';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { clearPoisoningCache } from '../../../util/poisoningHash';
 import { pause } from '../../../util/schedulers';
@@ -48,18 +44,15 @@ import {
   updateBiometrics,
   updateCurrentAccountId,
   updateCurrentAccountState,
-  updateHardware,
   updateSettings,
 } from '../../reducers';
 import {
   selectAccount,
   selectAccountIdByAddress,
   selectAccounts,
-  selectAllHardwareAccounts,
   selectCurrentNetwork,
   selectIsOneAccount,
   selectIsPasswordPresent,
-  selectLedgerAccountIndexToImport,
   selectNetworkAccountsMemoized,
   selectNewestActivityTimestamps,
 } from '../../selectors';
@@ -398,7 +391,7 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
 
   setGlobal(updateAuth(global, { isLoading: true }));
 
-  const { hardwareSelectedIndices = [] } = getGlobal().hardware;
+  const { hardwareSelectedIndices = [] } = getGlobal().auth;
   const network = selectCurrentNetwork(getGlobal());
 
   const ledgerApi = await import('../../../util/ledger');
@@ -655,154 +648,14 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   await switchAccount(global, accountId, newNetwork);
 });
 
-addActionHandler('connectHardwareWallet', async (global, actions, params) => {
-  const accounts = selectAccounts(global) ?? {};
-  const isFirstAccount = isEmptyObject(accounts);
-  const { areSettingsOpen } = global;
-
-  if (IS_DELEGATING_BOTTOM_SHEET && !isFirstAccount && !areSettingsOpen) return;
-
-  global = updateHardware(global, {
-    hardwareState: HardwareConnectState.Connecting,
-    hardwareWallets: undefined,
-    hardwareSelectedIndices: undefined,
-    isLedgerConnected: undefined,
-    isTonAppConnected: undefined,
-  });
-  setGlobal(global);
-
-  const ledgerApi = await import('../../../util/ledger');
-
-  const isLedgerConnected = await ledgerApi.connectLedger(params.transport);
-  global = getGlobal();
-
-  if (!isLedgerConnected) {
-    global = updateHardware(global, {
-      isLedgerConnected: false,
-      hardwareState: HardwareConnectState.Failed,
-    });
-
-    if (params.transport === 'usb' && global.hardware.availableTransports?.includes('bluetooth')) {
-      global = updateHardware(global, { lastUsedTransport: 'bluetooth' });
-    }
-
-    setGlobal(global);
-    return;
-  }
-
-  global = updateHardware(global, {
-    isLedgerConnected: true,
-  });
-  setGlobal(global);
-
-  try {
-    const isTonAppConnected = await ledgerApi.waitLedgerTonApp();
-    global = getGlobal();
-
-    if (!isTonAppConnected) {
-      global = updateHardware(global, {
-        isTonAppConnected: false,
-        hardwareState: HardwareConnectState.Failed,
-      });
-      setGlobal(global);
-      return;
-    }
-
-    global = updateHardware(global, {
-      isTonAppConnected: true,
-    });
-    setGlobal(global);
-
-    global = getGlobal();
-    const { isRemoteTab } = global.hardware;
-    const network = selectCurrentNetwork(global);
-    const lastIndex = selectLedgerAccountIndexToImport(global);
-    const currentHardwareAddresses = (selectAllHardwareAccounts(global) ?? [])
-      .map((account) => account.addressByChain.ton)
-      .filter(Boolean);
-    const hardwareWallets = isRemoteTab ? [] : await ledgerApi.getNextLedgerWallets(
-      network,
-      lastIndex,
-      currentHardwareAddresses,
-    );
-
-    global = getGlobal();
-
-    if ('error' in hardwareWallets) {
-      actions.showError({ error: hardwareWallets.error });
-      throw Error(hardwareWallets.error);
-    }
-
-    const nextHardwareState = isRemoteTab || hardwareWallets.length === 1
-      ? HardwareConnectState.ConnectedWithSingleWallet
-      : HardwareConnectState.ConnectedWithSeveralWallets;
-
-    global = updateHardware(global, {
-      hardwareWallets,
-      hardwareState: nextHardwareState,
-      lastUsedTransport: params.transport,
-    });
-    setGlobal(global);
-  } catch (err: any) {
-    const isLedgerDisconnected = isLedgerConnectionBroken(err.name);
-
-    if (isLedgerDisconnected && !params.noRetry) {
-      actions.connectHardwareWallet({ ...params, noRetry: true });
-      return;
-    }
-
-    global = getGlobal();
-    global = updateHardware(global, {
-      isLedgerConnected: !isLedgerDisconnected,
-      isTonAppConnected: isLedgerDisconnected ? undefined : global.hardware.isTonAppConnected,
-      hardwareState: HardwareConnectState.Failed,
-    });
-    setGlobal(global);
-
-    logDebugError('connectHardwareWallet', err);
-  }
-});
-
-addActionHandler('loadMoreHardwareWallets', async (global, actions, { lastIndex }) => {
-  const network = selectCurrentNetwork(global);
-  const oldHardwareWallets = global.hardware.hardwareWallets ?? [];
-  const ledgerApi = await import('../../../util/ledger');
-  const hardwareWallets = await ledgerApi.getNextLedgerWallets(network, lastIndex);
-
-  global = getGlobal();
-
-  if ('error' in hardwareWallets) {
-    actions.showError({ error: hardwareWallets.error });
-    throw Error(hardwareWallets.error);
-  }
-
-  global = updateHardware(global, {
-    hardwareWallets: oldHardwareWallets.concat(hardwareWallets),
-  });
-  setGlobal(global);
-});
-
 addActionHandler('afterSelectHardwareWallets', (global, actions, { hardwareSelectedIndices }) => {
-  global = updateAuth(global, {
+  setGlobal(updateAuth(global, {
     method: 'importHardwareWallet',
-    error: undefined,
-  });
-
-  global = updateHardware(global, {
     hardwareSelectedIndices,
-  });
+    error: undefined,
+  }));
 
-  setGlobal(global);
   actions.afterCreatePassword({ password: '' });
-});
-
-addActionHandler('resetHardwareWalletConnect', (global) => {
-  global = updateHardware(global, {
-    hardwareState: HardwareConnectState.Connect,
-    isLedgerConnected: undefined,
-    isTonAppConnected: undefined,
-  });
-  setGlobal(global);
 });
 
 addActionHandler('enableBiometrics', async (global, actions, { password }) => {

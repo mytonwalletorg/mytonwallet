@@ -21,7 +21,7 @@ import { logSelfXssWarnings } from './util/logs';
 import { initMultitab } from './util/multitab';
 import { initTelegramApp } from './util/telegram';
 import {
-  IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON, IS_IOS_APP,
+  IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON, IS_IOS_APP, IS_LEDGER_EXTENSION_TAB,
 } from './util/windowEnvironment';
 
 import App from './components/App';
@@ -65,7 +65,12 @@ void (async () => {
   await window.electron?.restoreStorage();
 
   getActions().init();
-  getActions().initApi();
+
+  // Connecting to the API from remote tabs creates excessive polling in the API.
+  // The remote tab doesn't need the API anyway.
+  if (!IS_LEDGER_EXTENSION_TAB) {
+    getActions().initApi();
+  }
 
   if (DEBUG) {
     // eslint-disable-next-line no-console

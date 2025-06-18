@@ -2,7 +2,7 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiActivity, ApiDappTransfer, ApiToken } from '../../api/types';
-import type { GlobalState, HardwareConnectState } from '../../global/types';
+import type { GlobalState } from '../../global/types';
 import { TransferState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
@@ -35,9 +35,6 @@ import styles from './Dapp.module.scss';
 interface StateProps {
   currentDappTransfer: GlobalState['currentDappTransfer'];
   tokensBySlug: Record<string, ApiToken>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isMediaViewerOpen?: boolean;
   isDangerous: boolean;
 }
@@ -53,9 +50,6 @@ function DappTransferModal({
     error,
   },
   tokensBySlug,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isMediaViewerOpen,
   isDangerous,
 }: StateProps) {
@@ -189,9 +183,6 @@ function DappTransferModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isTonAppConnected={isTonAppConnected}
-            isLedgerConnected={isLedgerConnected}
             onConnected={handleLedgerConnect}
             onClose={closeDappTransfer}
           />
@@ -235,19 +226,11 @@ function DappTransferModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
   const { isDangerous } = selectCurrentDappTransferTotals(global);
 
   return {
     currentDappTransfer: global.currentDappTransfer,
     tokensBySlug: global.tokenInfo.bySlug,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     isDangerous,
   };

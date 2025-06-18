@@ -7,9 +7,9 @@ import type { DropdownItem } from '../../../../ui/Dropdown';
 import { ActiveTab, SettingsState } from '../../../../../global/types';
 
 import { DEFAULT_SWAP_FIRST_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG } from '../../../../../config';
-import { getStakingStateStatus } from '../../../../../global/helpers/staking';
 import { vibrate } from '../../../../../util/haptics';
 import { compact } from '../../../../../util/iteratees';
+import { getStakingStateStatus } from '../../../../../util/staking';
 import { getIsServiceToken } from '../../../../../util/tokens';
 
 import useContextMenuHandlers from '../../../../../hooks/useContextMenuHandlers';
@@ -57,7 +57,6 @@ function useTokenContextMenu(ref: ElementRef<HTMLButtonElement>, options: {
   } = useContextMenuHandlers({
     elementRef: ref,
     isMenuDisabled: !withContextMenu,
-    shouldDisablePropagation: true,
   });
   const isServiceToken = getIsServiceToken(token);
   const stakingId = stakingState?.id;

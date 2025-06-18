@@ -7,7 +7,7 @@ export {
   getWalletFromMnemonic,
   getWalletFromPrivateKey,
   getWalletFromAddress,
-  importNewWalletVersion,
+  getOtherVersionWallet,
 } from './auth';
 export {
   getAccountNfts,

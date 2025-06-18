@@ -7,7 +7,6 @@ import type { ApiStakingState } from '../../api/types';
 import { ActiveTab, ContentTab, type Theme } from '../../global/types';
 
 import { IS_CAPACITOR, IS_CORE_WALLET } from '../../config';
-import { getStakingStateStatus } from '../../global/helpers/staking';
 import {
   selectAccountStakingState,
   selectCurrentAccount,
@@ -21,6 +20,7 @@ import { useAccentColor } from '../../util/accentColor';
 import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
+import { getStakingStateStatus } from '../../util/staking';
 import { setStatusBarStyle } from '../../util/switchTheme';
 import {
   IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD,

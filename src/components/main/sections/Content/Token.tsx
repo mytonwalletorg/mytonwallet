@@ -1,10 +1,10 @@
 import React, { type ElementRef, memo, useMemo, useRef } from '../../../../lib/teact/teact';
 
 import type { ApiBaseCurrency, ApiStakingState, ApiYieldType } from '../../../../api/types';
-import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { AppTheme, UserToken } from '../../../../global/types';
 import type { LangFn } from '../../../../hooks/useLang';
 import type { Layout } from '../../../../hooks/useMenuPosition';
+import type { StakingStateStatus } from '../../../../util/staking';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, IS_CORE_WALLET, TOKEN_WITH_LABEL, TON_USDE } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
@@ -61,6 +61,7 @@ interface OwnProps {
 
 const UNFREEZE_DANGER_DURATION = 7 * DAY;
 const CONTEXT_MENU_VERTICAL_SHIFT_PX = 4;
+export const OPEN_CONTEXT_MENU_CLASS_NAME = 'open-context-menu';
 
 function Token({
   ref,
@@ -221,9 +222,9 @@ function Token({
   }
 
   const fullClassName = buildClassName(
-    styles.container,
+    styles.button,
     isActive && styles.active,
-    classNames,
+    isContextMenuOpen && OPEN_CONTEXT_MENU_CLASS_NAME,
   );
 
   function renderInvestorView() {
@@ -231,7 +232,6 @@ function Token({
       <Button
         ref={buttonRef}
         isSimple
-        style={style}
         className={fullClassName}
         onMouseDown={handleBeforeContextMenu}
         onContextMenu={handleContextMenu}
@@ -328,7 +328,6 @@ function Token({
       <Button
         ref={buttonRef}
         isSimple
-        style={style}
         className={fullClassName}
         onMouseDown={handleBeforeContextMenu}
         onContextMenu={handleContextMenu}
@@ -411,7 +410,7 @@ function Token({
   }
 
   return (
-    <>
+    <div className={buildClassName(styles.container, classNames)} style={style}>
       <MenuBackdrop
         isMenuOpen={isBackdropRendered}
         contentRef={buttonRef}
@@ -437,7 +436,7 @@ function Token({
           onCloseAnimationEnd={handleContextMenuHide}
         />
       )}
-    </>
+    </div>
   );
 }
 

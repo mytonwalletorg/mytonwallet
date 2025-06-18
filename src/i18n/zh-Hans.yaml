@@ -788,6 +788,9 @@ Bidding at NFT Auction: NFT 拍卖中出价
 NFT Bought: 已购买 NFT
 Buying NFT: 正在购买 NFT
 $buy_nft_action: 购买 NFT
+NFT Sold: 已售出 NFT
+Selling NFT: 正在出售 NFT
+$sell_nft_action: 出售 NFT
 Receiving: 接收中
 $receive_action: 接收
 Change Palette: 更改调色板
