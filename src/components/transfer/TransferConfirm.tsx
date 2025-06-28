@@ -130,7 +130,7 @@ function TransferConfirm({
     return <NftChips nfts={nfts!} />;
   }
 
-  function renderFee() {
+  function renderAmountWithFee() {
     if (!explainedFee.realFee || !token) {
       return undefined;
     }
@@ -155,6 +155,7 @@ function TransferConfirm({
         amount={toDecimal(amount ?? 0n, token?.decimals)}
         symbol={token?.symbol ?? ''}
         feeText={feeText}
+        fractionDigits={token?.decimals}
       />
     );
   }
@@ -255,7 +256,7 @@ function TransferConfirm({
           className={styles.addressWidget}
         />
 
-        {renderFee()}
+        {renderAmountWithFee()}
         {renderComment()}
 
         {nfts && (isBurning || (isNotcoinBurning && nfts?.length > 1)) && (

@@ -160,6 +160,7 @@ Received: 已收到
 Sent: 已送出
 $transaction_from: 從 %address%
 $transaction_to: 到 %address%
+$transaction_on: 上 %address%
 Wallet is not backed up: 錢包未備份
 Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
@@ -830,7 +831,7 @@ Exit all wallets: 退出所有錢包
 Can't confirm?: 無法登入？
 $safe_staking_ethena_description1: 質押完全去中心化，由**Ethena官方**審計的流動性質押**智能合約**運營。
 $safe_staking_ethena_description2: 質押的USDe將用於Ethena的**交易和投資策略**，自動透明地產生收益。
-$safe_staking_ethena_description3: 您可以**隨時提取**質押資產及收益，根據Ethena標準提現週期，資金將在**7天內**返還至您的賬戶。
+$safe_staking_ethena_description3: 您可隨時**提取存款**及累計利息——根據Ethena標準提款週期，資金將在**7天**後返還至您的主賬戶。
 Unstake %amount%: 解除質押 %amount%
 Request Unstaking: 申請取消質押
 $unstaking_when_receive_ethena: 您將在 **7 天** 後收到已解除質押的存款。
@@ -889,3 +890,19 @@ $expires_in %days%:
   zeroValue: "將於%days%到期"
   oneValue: "將於%days%到期"
   otherValue: "將於%days%到期"
+Message: 訊息
+Binary Data: 二進位資料
+The binary data content is unclear. Sign it only if you trust the service.: 二進位資料內容不明確。請僅在信任該服務的情況下簽署。
+Cell Schema: 單元結構
+Cell Data: 單元資料
+Sign Data: 簽署資料
+Please confirm signature on your Ledger: 請在您的Ledger上確認簽名
+Utilities: 實用工具
+Games: 遊戲
+Entertainment: 娛樂
+Toggle to landscape layout: 切換至橫屏模式
+Toggle to portrait layout: 切換至豎屏模式
+Attributes: 屬性
+Show All: 顯示全部
+Description: 描述
+No additional data.: 無附加數據。

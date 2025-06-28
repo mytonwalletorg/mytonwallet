@@ -1,5 +1,6 @@
 import { useEffect } from '../lib/teact/teact';
 
+import { setCancellableTimeout } from '../util/schedulers';
 import useLastCallback from './useLastCallback';
 
 function useTimeout(callback: () => void, delay?: number, dependencies: readonly any[] = []) {
@@ -10,8 +11,7 @@ function useTimeout(callback: () => void, delay?: number, dependencies: readonly
       return undefined;
     }
 
-    const id = setTimeout(() => savedCallback(), delay);
-    return () => clearTimeout(id);
+    return setCancellableTimeout(delay, savedCallback);
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [delay, savedCallback, ...dependencies]);
 }

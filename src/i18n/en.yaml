@@ -163,6 +163,7 @@ Received: Received
 Sent: Sent
 $transaction_from: from %address%
 $transaction_to: to %address%
+$transaction_on: on %address%
 Wallet is not backed up: Wallet is not backed up
 Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
@@ -839,7 +840,7 @@ Exit all wallets: Exit all wallets
 Can't confirm?: Can't confirm?
 $safe_staking_ethena_description1: Staking is fully decentralized and operated by **Ethena’s official** audited liquid staking **smart contracts**.
 $safe_staking_ethena_description2: The deposited USDe stake is used in Ethena’s **trading and investment strategies** to yield rewards automatically and transparently.
-$safe_staking_ethena_description3: You can **withdraw** your stake with rewards at any time, and it will be returned to your account **within 7 days**, according to Ethena’s standard withdrawal period.
+$safe_staking_ethena_description3: You can **withdraw** your stake with rewards at any time, and it will be returned to your account **in 7 days**, according to Ethena’s standard withdrawal period.
 Unstake %amount%: Unstake %amount%
 Request Unstaking: Request Unstaking
 $unstaking_when_receive_ethena: You will be able to receive your unstaked deposit in **7 days**.
@@ -894,3 +895,19 @@ Check eligibility for max APY: Check eligibility for max APY
 Check eligibility: Check eligibility
 $expired_many: Expired
 $expires_in %days%: Expires %days%
+Message: Message
+Binary Data: Binary Data
+The binary data content is unclear. Sign it only if you trust the service.: The binary data content is unclear. Sign it only if you trust the service.
+Cell Schema: Cell Schema
+Cell Data: Cell Data
+Sign Data: Sign Data
+Please confirm signature on your Ledger: Please confirm signature on your Ledger
+Utilities: Utilities
+Games: Games
+Entertainment: Entertainment
+Toggle to landscape layout: Toggle to landscape layout
+Toggle to portrait layout: Toggle to portrait layout
+Attributes: Attributes
+Show All: Show All
+Description: Description
+No additional data.: No additional data.

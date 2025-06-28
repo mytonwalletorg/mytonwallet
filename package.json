@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.7.5",
+  "version": "3.8.0",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -111,12 +111,11 @@
     "@mytonwallet/eslint-config": "github:mytonwallet-org/eslint-config#03e3491cf5ffd909041c53fa91bebd69a36ca3a8",
     "@mytonwallet/stylelint-whole-pixel": "github:mytonwallet-org/stylelint-whole-pixel#fd07e44d786460f7d469076b1d2cb1b05297896c",
     "@mytonwallet/webpack-watch-file-plugin": "github:mytonwallet-org/webpack-watch-file-plugin#747b7fd29da9a928aa8b63299adfba461d2f1231",
-    "@peculiar/webcrypto": "1.5.0",
     "@playwright/test": "1.52.0",
     "@statoscope/cli": "5.29.0",
     "@statoscope/webpack-plugin": "5.29.0",
     "@stylistic/stylelint-plugin": "3.1.2",
-    "@tonconnect/protocol": "2.2.7",
+    "@tonconnect/protocol": "2.3.0-beta.0",
     "@twa-dev/types": "8.0.2",
     "@twbs/fantasticon": "3.1.0",
     "@types/chrome": "0.0.323",

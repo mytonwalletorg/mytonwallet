@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiStakingHistory, ApiStakingState, ApiTokenWithPrice } from '../../api/types';
-import type { GlobalState, Theme, UserToken } from '../../global/types';
+import type { Theme, UserToken } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
@@ -60,7 +60,6 @@ interface StateProps {
   isViewMode: boolean;
   states?: ApiStakingState[];
   stakingState?: ApiStakingState;
-  stakingInfo?: GlobalState['stakingInfo'];
   totalProfit: bigint;
   stakingHistory?: ApiStakingHistory;
   tokens?: UserToken[];
@@ -77,7 +76,6 @@ const FRACTION_DIGITS = 2;
 function StakingInfoContent({
   states,
   stakingState,
-  stakingInfo,
   isActive,
   isStatic,
   totalProfit,
@@ -107,7 +105,7 @@ function StakingInfoContent({
     type: stakingType,
   } = stakingState ?? {};
 
-  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
+  const unstakeTime = getUnstakeTime(stakingState);
   const canBeClaimed = stakingState ? getStakingStateStatus(stakingState) === 'readyToClaim' : undefined;
 
   const token = useMemo(() => {
@@ -437,7 +435,6 @@ function StakingInfoContent({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountId = global.currentAccountId;
   const {
-    stakingInfo,
     settings: { theme, isSensitiveDataHidden },
     tokenInfo: { bySlug: tokenBySlug },
   } = global;
@@ -452,7 +449,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
     stakingState,
     states,
-    stakingInfo,
     totalProfit,
     stakingHistory,
     tokens: selectCurrentAccountTokens(global),

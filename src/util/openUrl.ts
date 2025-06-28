@@ -2,6 +2,7 @@ import { AppLauncher } from '@capacitor/app-launcher';
 import { getActions, getGlobal } from '../global';
 
 import { IFRAME_WHITELIST, IS_CAPACITOR, SUBPROJECT_URL_MASK } from '../config';
+import { closeAllOverlays } from '../global/helpers/misc';
 import { isTelegramUrl } from './url';
 
 const [, SUBPROJECT_HOST_ENDING] = SUBPROJECT_URL_MASK.split('*');
@@ -23,6 +24,7 @@ export async function openUrl(url: string, options?: OpenUrlOptions) {
     && (IS_CAPACITOR || isSubproject(url) || isInIframeWhitelist(url))
     && !isTelegramUrl(url)
   ) {
+    await closeAllOverlays();
     getActions().openBrowser({
       url,
       title: options?.title,

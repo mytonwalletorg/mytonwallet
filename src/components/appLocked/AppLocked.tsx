@@ -1,6 +1,6 @@
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import React, { memo, useEffect, useMemo, useRef, useState } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type { AutolockValueType, Theme } from '../../global/types';
 
@@ -174,7 +174,7 @@ function AppLocked({
   canRender,
 }: StateProps): TeactJsx {
   const {
-    clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive,
+    clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive, setIsAppLockActive,
   } = getActions();
 
   const [isLocked, lock, unlock, lockReason] = useAppLockState(autolockValue, !!isManualLockActive, canRender);
@@ -209,6 +209,7 @@ function AppLocked({
     setIsManualLockActive({ isActive: undefined, shouldHideBiometrics: undefined });
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.show();
     unfixSlide();
+    setIsAppLockActive({ isActive: false });
   });
 
   const autolockPeriod = useMemo(
@@ -222,6 +223,12 @@ function AppLocked({
     onCloseAnimationEnd: afterUnlockCallback,
   });
 
+  useEffect(() => {
+    if (isLocked !== getGlobal().isAppLockActive) {
+      setIsAppLockActive({ isActive: !!isLocked });
+    }
+  }, [isLocked]);
+
   const forceLockApp = useLastCallback(() => {
     lock();
     showUi();
@@ -231,6 +238,7 @@ function AppLocked({
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.hide();
     void getInAppBrowser()?.hide();
     setSlideForBiometricAuth(getDefaultSlideForBiometricAuth());
+    setIsAppLockActive({ isActive: true });
   });
 
   const handleLock = useLastCallback(() => {

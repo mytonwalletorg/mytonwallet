@@ -168,6 +168,7 @@ Received: Отримано
 Sent: Відправлено
 $transaction_from: від %address%
 $transaction_to: на %address%
+$transaction_on: на %address%
 Wallet is not backed up: Резервну копію гаманця не створено
 Testnet Version: Версія Testnet
 Error reading clipboard: Помилка буфера обміну
@@ -848,7 +849,7 @@ Exit all wallets: Вийти з усіх гаманців
 Can't confirm?: Не вдається увійти?
 $safe_staking_ethena_description1: Стейкінг повністю **децентралізований** і керується офіційними, перевіреними аудитом **смарт-контрактами від Ethena**.
 $safe_staking_ethena_description2: Ваш депозит у USDe використовується в **торгових та інвестиційних стратегіях** Ethena, автоматично й прозоро приносячи прибуток.
-$safe_staking_ethena_description3: Ви можете **вивести депозит** разом із нарахованими відсотками в будь-який момент — кошти повернуться на ваш основний рахунок протягом **7 днів** згідно зі стандартним періодом виведення Ethena.
+$safe_staking_ethena_description3: Ви можете **вивести депозит** разом із нарахованими відсотками у будь-який момент — кошти повернуться на ваш основний рахунок через **7 днів**, згідно зі стандартним періодом виведення Ethena.
 Unstake %amount%: Вивести %amount%
 Request Unstaking: Запросити виведення
 $unstaking_when_receive_ethena: Ви зможете отримати свій депозит через **7 днів**.
@@ -913,3 +914,19 @@ $expires_in %days%:
   oneValue: "Закінчується %days%"
   fewValue: "Закінчуються %days%"
   manyValue: "Закінчуються %days%"
+Message: Повідомлення
+Binary Data: Бінарні дані
+The binary data content is unclear. Sign it only if you trust the service.: Зміст бінарних даних неясний. Підписуйте, лише якщо довіряєте сервісу.
+Cell Schema: Схема комірки
+Cell Data: Дані комірки
+Sign Data: Підписати дані
+Please confirm signature on your Ledger: Будь ласка, підтвердіть підпис на вашому Ledger
+Utilities: Утиліти
+Games: Ігри
+Entertainment: Розваги
+Toggle to landscape layout: Переключити на альбомний режим
+Toggle to portrait layout: Переключити на портретний режим
+Attributes: Атрибути
+Show All: Показати все
+Description: Опис
+No additional data.: Немає додаткових даних.

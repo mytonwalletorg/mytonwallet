@@ -163,6 +163,7 @@ Received: Empfangen
 Sent: Gesendet
 $transaction_from: von %address%
 $transaction_to: an %address%
+$transaction_on: auf %address%
 Wallet is not backed up: Die Wallet ist nicht gesichert.
 Testnet Version: Testnet Version
 Error reading clipboard: Fehler beim Lesen der Zwischenablage
@@ -840,7 +841,7 @@ Exit all wallets: Alle Wallets schließen
 Can't confirm?: Anmeldung nicht möglich?
 $safe_staking_ethena_description1: Staking ist vollständig dezentralisiert und wird durch **offizielle, auditiere** Liquid-Staking-**Smart Contracts** von Ethena betrieben.
 $safe_staking_ethena_description2: Die hinterlegte USDe-Stake wird in Ethenas **Handels- und Investitionsstrategien** eingesetzt, um automatisch und transparent Belohnungen zu erwirtschaften.
-$safe_staking_ethena_description3: Sie können Ihre Stake mit Belohnungen **jederzeit abheben** und sie wird gemäß Ethenas standardmäßiger Abhebungsfrist **innerhalb von 7 Tagen** auf Ihr Konto zurücküberwiesen.
+$safe_staking_ethena_description3: Sie können **Ihre Einzahlung** zusammen mit den aufgelaufenen Zinsen jederzeit abheben — die Mittel werden gemäß Ethenas Standard-Auszahlungsfrist nach **7 Tagen** auf Ihr Hauptkonto zurücküberwiesen.
 Unstake %amount%: "%amount% entstaken"
 Request Unstaking: Entstaken anfordern
 $unstaking_when_receive_ethena: Sie können Ihre abgesteckte Einzahlung in **7 Tagen** erhalten.
@@ -900,4 +901,19 @@ $expires_in %days%:
   zeroValue: Läuft %days% ab
   oneValue: Läuft %days% ab
   otherValue: Laufen %days% ab
-
+Message: Nachricht
+Binary Data: Binärdaten
+The binary data content is unclear. Sign it only if you trust the service.: Der Inhalt der Binärdaten ist unklar. Signieren Sie nur, wenn Sie dem Dienst vertrauen.
+Cell Schema: Zellenschema
+Cell Data: Zelldaten
+Sign Data: Daten signieren
+Please confirm signature on your Ledger: Bitte bestätigen Sie die Signatur auf Ihrem Ledger
+Utilities: Dienstprogramme
+Games: Spiele
+Entertainment: Unterhaltung
+Toggle to landscape layout: Zu Querformat wechseln
+Toggle to portrait layout: Zu Hochformat wechseln
+Attributes: Attribute
+Show All: Alle anzeigen
+Description: Beschreibung
+No additional data.: Keine zusätzlichen Daten.

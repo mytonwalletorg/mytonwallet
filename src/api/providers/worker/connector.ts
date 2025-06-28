@@ -3,10 +3,11 @@ import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 
 import { logDebugApi, logDebugError } from '../../../util/logs';
-import { createConnector } from '../../../util/PostMessageConnector';
+import { createConnector, createExtensionConnector } from '../../../util/PostMessageConnector';
 import { pause } from '../../../util/schedulers';
 import { IS_IOS } from '../../../util/windowEnvironment';
-import { createWindowProvider } from '../../../util/windowProvider';
+import { createWindowProvider, createWindowProviderForExtension } from '../../../util/windowProvider';
+import { POPUP_PORT } from '../extension/config';
 
 const HEALTH_CHECK_TIMEOUT = 150;
 const HEALTH_CHECK_MIN_DELAY = 5000; // 5 sec
@@ -20,16 +21,24 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
   updateCallback = onUpdate;
 
   if (!connector) {
-    worker = new Worker(
-      /* webpackChunkName: "worker" */ new URL('./provider.ts', import.meta.url),
-    );
-    connector = createConnector(worker, onUpdate);
+    // We use process.env.IS_EXTENSION instead of IS_EXTENSION in order to remove the irrelevant code during bundling
+    if (process.env.IS_EXTENSION) {
+      const getInitArgs = typeof initArgs === 'function' ? initArgs : () => initArgs;
+      connector = createExtensionConnector(POPUP_PORT, onUpdate, getInitArgs as () => ApiInitArgs);
 
-    createWindowProvider(worker);
+      createWindowProviderForExtension();
+    } else {
+      worker = new Worker(
+        /* webpackChunkName: "worker" */ new URL('./provider.ts', import.meta.url),
+      );
+      connector = createConnector(worker, onUpdate);
+
+      createWindowProvider(worker);
+    }
   }
 
   if (!isInitialized) {
-    if (IS_IOS) {
+    if (!process.env.IS_EXTENSION && IS_IOS) {
       setupIosHealthCheck();
     }
     isInitialized = true;

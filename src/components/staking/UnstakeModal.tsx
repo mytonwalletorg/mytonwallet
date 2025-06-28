@@ -65,7 +65,6 @@ import styles from './Staking.module.scss';
 type StateProps = GlobalState['currentStaking'] & {
   isViewMode: boolean;
   tokens?: UserToken[];
-  stakingInfo: GlobalState['stakingInfo'];
   baseCurrency?: ApiBaseCurrency;
   isNominators?: boolean;
   theme: Theme;
@@ -96,7 +95,6 @@ function UnstakeModal({
   isLoading,
   error,
   tokens,
-  stakingInfo,
   baseCurrency,
   isNominators,
   isMultichainAccount,
@@ -144,7 +142,7 @@ function UnstakeModal({
   const [unstakeAmount, setUnstakeAmount] = useState(isNominators ? stakingBalance : undefined);
   const [successUnstakeAmount, setSuccessUnstakeAmount] = useState<bigint | undefined>(undefined);
 
-  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
+  const unstakeTime = getUnstakeTime(stakingState);
   const isLongUnstake = stakingState ? getIsLongUnstake(stakingState, unstakeAmount) : undefined;
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
@@ -229,7 +227,7 @@ function UnstakeModal({
         tokenIn={token}
         withChainIcon={isMultichainAccount}
         color="green"
-        text={formatCurrency(toDecimal(unstakeAmount, token.decimals), token.symbol)}
+        text={formatCurrency(toDecimal(unstakeAmount, token.decimals), token.symbol, token.decimals)}
         className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />
     );
@@ -554,7 +552,6 @@ export default memo(withGlobal((global): StateProps => {
   return {
     ...global.currentStaking,
     tokens,
-    stakingInfo: global.stakingInfo,
     baseCurrency,
     isNominators,
     theme: global.settings.theme,

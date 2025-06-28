@@ -253,6 +253,7 @@ function setTransactionDetails(options: {
         network: 'mainnet',
         walletAddress: '',
         metadata: {},
+        nftSuperCollectionsByCollectionAddress: {},
       }).length);
 
       networkFee = totalNetworkFee / activitiesPerAction;

@@ -27,6 +27,16 @@
     }
   }
 
+  &.x-small {
+    width: 1.0625rem !important;
+    height: 1.0625rem !important;
+
+    @include mixins.is-mobile() {
+      width: 1.125rem !important;
+      height: 1.125rem !important;
+    }
+  }
+
   &.small {
     width: 1.25rem !important;
     height: 1.25rem !important;
@@ -35,11 +45,6 @@
   &.middle {
     width: 1.5rem !important;
     height: 1.5rem !important;
-  }
-
-  &.x-middle {
-    width: 1.625rem !important;
-    height: 1.625rem !important;
   }
 }
 
@@ -56,6 +61,10 @@
   font-weight: 800;
   line-height: 1;
   color: var(--color-gray-3);
+
+  &.x-small {
+    font-size: 0.75rem;
+  }
 }
 
 .blockchainIcon {
@@ -85,7 +94,8 @@
     }
   }
 
-  &.small {
+  &.small,
+  &.x-small, {
     top: 0.625rem !important;
     left: 0.625rem !important;
 
@@ -95,8 +105,7 @@
     box-shadow: 0 0 0 0.0625rem var(--color-background-first);
   }
 
-  &.middle,
-  &.x-middle {
+  &.middle {
     top: 0.9375rem !important;
     left: 0.9375rem !important;
     width: 0.625rem !important;

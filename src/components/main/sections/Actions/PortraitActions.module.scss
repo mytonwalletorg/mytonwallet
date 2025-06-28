@@ -91,6 +91,9 @@
 .menu {
   --offset-y-value: 0;
   --offset-y-bottom-value: 0;
+  --offset-x-value: 0;
 
+  right: auto !important;
+  left: 0 !important;
   max-height: max(70vh, 20rem);
 }

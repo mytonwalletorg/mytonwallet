@@ -45,6 +45,8 @@ function TransactionBanner({
     className,
   );
 
+  const isNftTransaction = !!imageUrl;
+
   const imageUrls = useMemo(() => {
     return unique(Array.isArray(imageUrl) ? imageUrl : [imageUrl]);
   }, [imageUrl]);
@@ -69,7 +71,7 @@ function TransactionBanner({
 
   return (
     <div className={fullClassName}>
-      {tokenIn && !imageUrl && (
+      {tokenIn && !isNftTransaction && (
         <TokenIcon
           token={tokenIn}
           withChainIcon={withChainIcon}
@@ -77,14 +79,18 @@ function TransactionBanner({
           className={styles.tokenIcon}
         />
       )}
-      {imageUrl && renderNftIcon()}
+      {isNftTransaction && renderNftIcon()}
       <span className={styles.text}>
         {secondText
           ? text
             ? (
               lang('%amount% to %address%', {
-                amount: <span className={styles.bold}>{text}</span>,
-                address: <span className={styles.bold}>{secondText}</span>,
+                amount: (
+                  <span className={buildClassName(styles.bold, isNftTransaction && styles.nftTitle)}>
+                    {text}
+                  </span>
+                ),
+                address: <span className={buildClassName(styles.bold, styles.address)}>{secondText}</span>,
               })
             )
             : lang('$transaction_to', { address: <span className={styles.bold}>{secondText}</span> })

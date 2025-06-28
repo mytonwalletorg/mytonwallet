@@ -13,7 +13,9 @@ import type {
   ApiMtwCardType,
   ApiNetwork,
   ApiNft,
+  ApiNftAttribute,
   ApiNftMetadata,
+  ApiNftSuperCollection,
   ApiParsedPayload,
   ApiTransaction,
 } from '../../../types';
@@ -25,13 +27,17 @@ import {
   MTW_CARDS_COLLECTION,
   NFT_FRAGMENT_COLLECTIONS,
   NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
-  NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX,
+  TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../../config';
 import { fetchJsonWithProxy, fixIpfsUrl, getProxiedLottieUrl } from '../../../../util/fetch';
 import isEmptyObject from '../../../../util/isEmptyObject';
 import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
-import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
+import {
+  checkHasScamLink,
+  checkIsTrustedCollection,
+  getNftSuperCollectionsByCollectionAddress,
+} from '../../../common/addresses';
 import { buildTokenSlug } from '../../../common/tokens';
 import { base64ToString, sha256 } from '../../../common/utils';
 import { DnsCategory, JettonStakingOpCode } from '../constants';
@@ -257,9 +263,10 @@ export async function parsePayloadSlice(
 
         let nft: ApiNft | undefined;
         if (shouldLoadItems) {
+          const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
           const [rawNft] = await fetchNftItems(network, [address]);
           if (rawNft) {
-            nft = parseTonapiioNft(network, rawNft);
+            nft = parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress);
           }
         }
 
@@ -284,9 +291,10 @@ export async function parsePayloadSlice(
 
         let nft: ApiNft | undefined;
         if (shouldLoadItems) {
+          const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
           const [rawNft] = await fetchNftItems(network, [address]);
           if (rawNft) {
-            nft = parseTonapiioNft(network, rawNft);
+            nft = parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress);
           }
         }
 
@@ -557,10 +565,7 @@ export function readSnakeBytes(slice: Slice) {
 export function buildMtwCardsNftMetadata(metadata: {
   image?: string;
   id?: number;
-  attributes?: {
-    trait_type: string;
-    value: string;
-  }[];
+  attributes?: ApiNftAttribute[];
 }): ApiNftMetadata | undefined {
   const { id, image, attributes } = metadata;
 
@@ -603,7 +608,11 @@ export function buildMtwCardsNftMetadata(metadata: {
   return !isEmptyObject(result) ? result : undefined;
 }
 
-export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {
+export function parseTonapiioNft(
+  network: ApiNetwork,
+  rawNft: NftItem,
+  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
+): ApiNft | undefined {
   if (!rawNft.metadata) {
     return undefined;
   }
@@ -621,12 +630,16 @@ export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft |
     } = rawNft;
 
     const {
-      name, image, description, render_type: renderType, lottie,
+      name, image, description, render_type: renderType, attributes, lottie,
     } = rawMetadata as {
       name?: string;
       image?: string;
       description?: string;
       render_type?: string;
+      attributes?: {
+        trait_type: string;
+        value: string;
+      }[];
       lottie?: string;
     };
 
@@ -647,9 +660,10 @@ export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft |
     const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
-    const isFragmentGift = image?.startsWith(NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX);
+    const isFragmentGift = getIsFragmentGift(nftSuperCollectionsByCollectionAddress, collectionAddress);
 
     const metadata = {
+      attributes,
       ...(isWhitelisted && lottie && { lottie: getProxiedLottieUrl(lottie) }),
       ...(collectionAddress === MTW_CARDS_COLLECTION && buildMtwCardsNftMetadata(rawMetadata)),
       ...(isFragmentGift && { fragmentUrl: image!.replace(NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX, 'https://$1') }),
@@ -678,4 +692,13 @@ export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft |
     logDebugError('buildNft', err);
     return undefined;
   }
+}
+
+export function getIsFragmentGift(
+  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
+  collectionAddress?: string,
+) {
+  return collectionAddress
+    ? nftSuperCollectionsByCollectionAddress[collectionAddress]?.id === TELEGRAM_GIFTS_SUPER_COLLECTION
+    : false;
 }

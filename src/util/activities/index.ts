@@ -87,7 +87,7 @@ export function getIsIdSuitableForFetchingTimestamp(id: string) {
 }
 
 export function getTransactionTitle(
-  { type, isIncoming }: ApiTransaction,
+  { type, isIncoming, nft }: ApiTransaction,
   tense: 'past' | 'present' | 'future',
   translate: LangFn,
 ) {
@@ -106,7 +106,13 @@ export function getTransactionTitle(
       : ['Sent', 'Sending', '$send_action'];
   }
 
-  return translate(titles[tenseIndex]);
+  let title = translate(titles[tenseIndex]);
+
+  if (nft && (!type || type === 'mint' || type === 'burn')) {
+    title += ' NFT';
+  }
+
+  return title;
 }
 
 export function isScamTransaction(transaction: ApiTransaction) {

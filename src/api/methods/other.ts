@@ -5,8 +5,8 @@ import type { AccountCache } from '../common/cache';
 import type { StorageKey } from '../storages/types';
 import type { ApiChain, ApiNetwork } from '../types';
 
+import { setIsAppFocused } from '../../util/focusAwareDelay';
 import { getLogs, logDebugError } from '../../util/logs';
-import { setIsAppFocused } from '../../util/pauseOrFocus';
 import chains from '../chains';
 import { fetchStoredAccounts, fetchStoredTonWallet, updateStoredAccount } from '../common/accounts';
 import { callBackendGet } from '../common/backend';

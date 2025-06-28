@@ -12,9 +12,7 @@ import HtmlPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
-import {
-  EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
-} from 'webpack';
+import { EnvironmentPlugin, IgnorePlugin, ProvidePlugin } from 'webpack';
 
 import { convertI18nYamlToJson } from './dev/locales/convertI18nYamlToJson';
 import {
@@ -67,6 +65,7 @@ const cspFrameSrcExtra = IS_CORE_WALLET ? '' : [
 
 const cspConnectSrcHosts = [
   BRILLIANT_API_BASE_URL,
+  BRILLIANT_API_BASE_URL.replace(/^http(s?):/, 'ws$1:'),
   PROXY_API_BASE_URL,
   MTW_STATIC_BASE_URL,
   TONCENTER_MAINNET_URL,
@@ -141,7 +140,11 @@ export default function createConfig(
 
     entry: {
       main: './src/index.tsx',
-      extensionServiceWorker: './src/extension/serviceWorker.ts',
+      extensionServiceWorker: {
+        import: './src/extension/serviceWorker.ts',
+        // Extension service worker isn't allowed to load code dynamically. This option inlines all dynamic imports.
+        chunkLoading: false,
+      },
       extensionContentScript: './src/extension/contentScript.ts',
       extensionPageScript: './src/extension/pageScript/index.ts',
     },
@@ -365,7 +368,7 @@ export default function createConfig(
         ELECTRON_TONCENTER_TESTNET_KEY: '',
         BASE_URL,
         BOT_USERNAME: '',
-        IS_EXTENSION: 'false',
+        IS_EXTENSION: '', // It's necessary to use an empty string, because it's used in bundle-time conditions
         IS_FIREFOX_EXTENSION: 'false',
         IS_CAPACITOR: 'false',
         IS_AIR_APP: 'false',
@@ -444,14 +447,6 @@ export default function createConfig(
         extensions: [new WebpackContextExtension()],
         ...(statoscopeStatsFileToCompare ? { additionalStats: [statoscopeStatsFileToCompare] } : undefined),
       })] : []),
-      ...(IS_EXTENSION
-        ? [
-          new NormalModuleReplacementPlugin(
-            /src\/api\/providers\/worker\/connector\.ts/,
-            '../extension/connectorForPopup.ts',
-          ),
-        ]
-        : []),
     ],
 
     devtool:

@@ -167,7 +167,7 @@ function TransferModal({
               withChainIcon={isMultichainAccount}
               text={isNftTransfer
                 ? (nfts.length > 1 ? lang('%amount% NFTs', { amount: nfts.length }) : nfts[0]?.name || 'NFT')
-                : formatCurrency(toDecimal(amount!, decimals), symbol)}
+                : formatCurrency(toDecimal(amount!, decimals), symbol, decimals)}
               className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
               secondText={shortenAddress(toAddress!)}
             />

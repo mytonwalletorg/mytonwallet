@@ -4,9 +4,10 @@ import {
 import windowStateKeeper from 'electron-window-state';
 import path from 'path';
 
+import type { AppLayout } from '../global/types';
 import { ElectronAction } from './types';
 
-import { BASE_URL, IS_PRODUCTION } from '../config';
+import { BASE_URL, DEFAULT_LANDSCAPE_WINDOW_SIZE, DEFAULT_PORTRAIT_WINDOW_SIZE, IS_PRODUCTION } from '../config';
 import { AUTO_UPDATE_SETTING_KEY, getIsAutoUpdateEnabled, setupAutoUpdates } from './autoUpdates';
 import { processDeeplink } from './deeplink';
 import { captureStorage, restoreStorage } from './storageUtils';
@@ -147,6 +148,10 @@ export function setupElectronActionHandlers() {
 
   ipcMain.handle(ElectronAction.GET_IS_AUTO_UPDATE_ENABLED, () => {
     return store.get(AUTO_UPDATE_SETTING_KEY, true);
+  });
+
+  ipcMain.handle(ElectronAction.CHANGE_APP_LAYOUT, (_, layout: AppLayout) => {
+    mainWindow.setBounds(layout === 'portrait' ? DEFAULT_PORTRAIT_WINDOW_SIZE : DEFAULT_LANDSCAPE_WINDOW_SIZE);
   });
 
   ipcMain.handle(ElectronAction.RESTORE_STORAGE, () => restoreStorage());

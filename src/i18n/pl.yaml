@@ -165,6 +165,7 @@ Received: Otrzymano
 Sent: Wysłany
 $transaction_from: od %address%
 $transaction_to: do %address%
+$transaction_on: na %address%
 Wallet is not backed up: Portfel nie ma kopii zapasowej
 Testnet Version: Wersja Testnet
 Error reading clipboard: Błąd odczytu schowka
@@ -845,7 +846,7 @@ Exit all wallets: Wyjdź ze wszystkich portfeli
 Can't confirm?: Nie możesz się zalogować?
 $safe_staking_ethena_description1: Staking jest w pełni zdecentralizowany i obsługiwany przez **oficjalne**, audytowane **inteligentne kontrakty** Etheny do stakingu płynnego.
 $safe_staking_ethena_description2: Zdeponowany USDe jest wykorzystywany w **strategiach handlowych i inwestycyjnych** Etheny w celu automatycznego i przejrzystego generowania nagród.
-$safe_staking_ethena_description3: Możesz **wypłacić** swój stake z nagrodami w dowolnym momencie, a zostanie on zwrócony na Twoje konto **w ciągu 7 dni**, zgodnie ze standardowym okresem wypłat Etheny.
+$safe_staking_ethena_description3: Możesz **wypłacić depozyt** wraz z naliczonymi odsetkami w dowolnym momencie — środki zostaną zwrócone na Twoje główne konto w ciągu **7 dni**, zgodnie ze standardowym okresem wypłat Etheny.
 Unstake %amount%: Wycofać %amount%
 Request Unstaking: Żądaj odblokowania
 $unstaking_when_receive_ethena: Będziesz mógł otrzymać swój wycofany depozyt za **7 dni**.
@@ -910,3 +911,19 @@ $expires_in %days%:
   oneValue: Wygasa %days%
   fewValue: Wygasają %days%
   manyValue: Wygasają %days%
+Message: Wiadomość
+Binary Data: Dane binarne
+The binary data content is unclear. Sign it only if you trust the service.: Treść danych binarnych jest niejasna. Podpisz tylko jeśli ufasz tej usłudze.
+Cell Schema: Schemat komórki
+Cell Data: Dane komórki
+Sign Data: Podpisz dane
+Please confirm signature on your Ledger: Proszę potwierdzić podpis na swoim Ledgerze
+Utilities: Narzędzia
+Games: Gry
+Entertainment: Rozrywka
+Toggle to landscape layout: Przełącz na widok poziomy
+Toggle to portrait layout: Przełącz na widok pionowy
+Attributes: Atrybuty
+Show All: Pokaż wszystkie
+Description: Opis
+No additional data.: Brak dodatkowych danych.

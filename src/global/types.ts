@@ -1,3 +1,5 @@
+import type { SignDataPayload } from '@tonconnect/protocol';
+
 import type { ApiFetchEstimateDieselResult, ApiTonWalletVersion } from '../api/chains/ton/types';
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
@@ -24,7 +26,6 @@ import type {
   ApiSignedTransfer,
   ApiSite,
   ApiSiteCategory,
-  ApiStakingCommonData,
   ApiStakingHistory,
   ApiStakingState,
   ApiSwapAsset,
@@ -37,6 +38,7 @@ import type {
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
+  ApiUpdateDappSignData,
   ApiUpdateWalletVersions,
   ApiVestingInfo,
   ApiWalletWithVersionInfo,
@@ -54,6 +56,7 @@ export type IAnchorPosition = {
 export type AnimationLevel = 0 | 1 | 2;
 export type Theme = 'light' | 'dark' | 'system';
 export type AppTheme = 'dark' | 'light';
+export type AppLayout = 'portrait' | 'landscape';
 
 export type NotificationType = {
   icon?: string;
@@ -155,6 +158,13 @@ export enum TransferState {
   Password,
   ConnectHardware,
   ConfirmHardware,
+  Complete,
+}
+
+export enum SignDataState {
+  None,
+  Initial,
+  Password,
   Complete,
 }
 
@@ -386,6 +396,7 @@ export interface AccountState {
     address: ApiNft['address'];
     name: ApiNft['name'];
   };
+  currentNftForAttributes?: ApiNft;
   dappLastOpenedDatesByOrigin?: Record<string, number>;
   isBackupRequired?: boolean;
   currentTokenSlug?: string;
@@ -598,6 +609,16 @@ export type GlobalState = {
     error?: string;
   };
 
+  currentDappSignData: {
+    state: SignDataState;
+    isSse?: boolean;
+    promiseId?: string;
+    isLoading?: boolean;
+    dapp?: ApiDapp;
+    payloadToSign?: SignDataPayload;
+    error?: string;
+  };
+
   currentDomainRenewal: {
     addresses?: string[];
     state: DomainRenewalState;
@@ -641,7 +662,6 @@ export type GlobalState = {
     error?: string;
   };
 
-  stakingInfo?: ApiStakingCommonData;
   stakingDefault: ApiStakingState;
 
   accounts?: {
@@ -774,6 +794,7 @@ export type GlobalState = {
     enabledAccounts: Record<string, Partial<ApiNotificationsAccountValue>>;
   };
 
+  isAppLockActive?: boolean;
   isManualLockActive?: boolean;
   appLockHideBiometrics?: boolean;
   // The app is open in fullscreen mode in Telegram MiniApp on mobile
@@ -941,6 +962,8 @@ export interface ActionPayloads {
     isCollection: boolean;
   };
   closeHideNftModal: undefined;
+  openNftAttributesModal: { nft: ApiNft };
+  closeNftAttributesModal: undefined;
 
   openExplore: undefined;
   closeExplore: undefined;
@@ -960,6 +983,11 @@ export interface ActionPayloads {
 
   setLandscapeActionsActiveTabIndex: { index: ActiveTab };
   setActiveContentTab: { tab: ContentTab };
+
+  // BottomBar actions
+  switchToWallet: undefined;
+  switchToExplore: undefined;
+  switchToSettings: undefined;
 
   requestConfetti: undefined;
   setIsPinAccepted: undefined;
@@ -1032,6 +1060,7 @@ export interface ActionPayloads {
   setIsAutoConfirmEnabled: { isEnabled: boolean };
   setInMemoryPassword: { password?: string; isFinalCall?: boolean; force?: boolean };
   openSettingsHardwareWallet: undefined;
+  apiUpdateWalletVersions: ApiUpdateWalletVersions;
 
   // Account Settings
   setCardBackgroundNft: { nft: ApiNft };
@@ -1040,22 +1069,39 @@ export interface ActionPayloads {
   installAccentColorFromNft: { nft: ApiNft };
   clearAccentColorFromNft: undefined;
 
-  // TON Connect
+  // TON Connect common
+  apiUpdateDappLoading: ApiUpdateDappLoading;
+  apiUpdateDappCloseLoading: ApiUpdateDappCloseLoading;
+
+  // TON Connect connection
   submitDappConnectRequestConfirm: { accountId: string; password?: string };
   submitDappConnectRequestConfirmHardware: { accountId: string };
   submitDappConnectHardware: { accountId: string; signature: string };
   clearDappConnectRequestError: undefined;
   cancelDappConnectRequestConfirm: undefined;
   setDappConnectRequestState: { state: DappConnectState };
-  showDappTransfer: { transactionIdx: number };
+  apiUpdateDappConnect: ApiUpdateDappConnect;
+
+  // TON Connect transfer
   setDappTransferScreen: { state: TransferState };
-  clearDappTransferError: undefined;
+  showDappTransferTransaction: { transactionIdx: number };
   submitDappTransferConfirm: undefined;
   submitDappTransferPassword: { password: string };
   submitDappTransferHardware: undefined;
   submitDappTransferHardware2: { signedMessages: ApiSignedTransfer[] };
+  clearDappTransferError: undefined;
   cancelDappTransfer: undefined;
   closeDappTransfer: undefined;
+  apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
+
+  // TON Connect SignData
+  setDappSignDataScreen: { state: SignDataState };
+  submitDappSignDataConfirm: undefined;
+  submitDappSignDataPassword: { password: string };
+  clearDappSignDataError: undefined;
+  cancelDappSignData: undefined;
+  closeDappSignData: undefined;
+  apiUpdateDappSignData: ApiUpdateDappSignData;
 
   getDapps: undefined;
   deleteAllDapps: undefined;
@@ -1078,12 +1124,6 @@ export interface ActionPayloads {
     subtitle?: string;
   };
 
-  apiUpdateDappConnect: ApiUpdateDappConnect;
-  apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
-  apiUpdateDappLoading: ApiUpdateDappLoading;
-  apiUpdateDappCloseLoading: ApiUpdateDappCloseLoading;
-  apiUpdateWalletVersions: ApiUpdateWalletVersions;
-
   // Swap
   submitSwap: { password: string };
   startSwap: {
@@ -1101,7 +1141,6 @@ export interface ActionPayloads {
   setSwapAmountIn: { amount?: string; isMaxAmount?: boolean };
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
-  clearSwapPairsCache: undefined;
   estimateSwap: undefined;
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
@@ -1168,6 +1207,7 @@ export interface ActionPayloads {
 
   openFullscreen: undefined;
   closeFullscreen: undefined;
+  setAppLayout: { layout: AppLayout };
 
   setIsSensitiveDataHidden: { isHidden: boolean };
 
@@ -1189,6 +1229,7 @@ export interface ActionPayloads {
 
   checkLinkingAddress: { address?: string };
   setDomainLinkingWalletAddress: { address?: string };
+  setIsAppLockActive: { isActive: boolean };
 }
 
 export enum LoadMoreDirection {

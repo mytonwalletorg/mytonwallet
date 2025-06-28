@@ -26,12 +26,14 @@
   border-radius: min(2rem, 25%);
 
   background-color: var(--color-gray-button-background-light);
+
+  &.interactive {
+    cursor: var(--custom-cursor, pointer);
+  }
 }
 
 .subfolder {
   --scale-value: 0.95;
-
-  cursor: var(--custom-cursor, pointer);
 
   display: grid;
   grid-template-columns: repeat(2, 1fr);

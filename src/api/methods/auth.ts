@@ -5,7 +5,6 @@ import type {
   ApiAccountAny,
   ApiAccountWithMnemonic,
   ApiActivityTimestamps,
-  ApiChain,
   ApiImportAddressByChain,
   ApiNetwork,
   ApiTonAccount,
@@ -39,6 +38,12 @@ import { handleServerError } from '../errors';
 import { storage } from '../storages';
 import { activateAccount, deactivateAllAccounts } from './accounts';
 import { removeAccountDapps, removeAllDapps, removeNetworkDapps } from './dapps';
+import {
+  addPollingAccount,
+  removeAllPollingAccounts,
+  removeNetworkPollingAccounts,
+  removePollingAccount,
+} from './polling';
 
 const { ton, tron } = chains;
 
@@ -198,36 +203,31 @@ async function addAccount(network: ApiNetwork, account: ApiAccountAny, preferred
     return accountId;
   });
 
+  addPollingAccount(accountId, account);
+
   return accountId;
 }
 
 export async function removeNetworkAccounts(network: ApiNetwork) {
-  deactivateAllAccounts();
+  removeNetworkPollingAccounts(network);
 
   await Promise.all([
+    deactivateAllAccounts(),
     removeNetworkAccountsValue(network, 'accounts'),
     getEnvironment().isDappSupported && removeNetworkDapps(network),
   ]);
-
-  for (const chain of Object.keys(chains)) {
-    chains[chain as ApiChain].clearAccountsCacheByNetwork(network);
-  }
 }
 
 export async function resetAccounts() {
-  deactivateAllAccounts();
+  removeAllPollingAccounts();
 
   await Promise.all([
+    deactivateAllAccounts(),
     storage.removeItem('accounts'),
-    storage.removeItem('currentAccountId'),
     getEnvironment().isDappSupported && removeAllDapps(),
     nftRepository.clear(),
     tokenRepository.clear(),
   ]);
-
-  for (const chain of Object.keys(chains)) {
-    chains[chain as ApiChain].clearAccountsCache();
-  }
 }
 
 export async function removeAccount(
@@ -235,15 +235,13 @@ export async function removeAccount(
   nextAccountId: string,
   newestActivityTimestamps?: ApiActivityTimestamps,
 ) {
+  removePollingAccount(accountId);
+
   await Promise.all([
     removeAccountValue(accountId, 'accounts'),
     getEnvironment().isDappSupported && removeAccountDapps(accountId),
     nftRepository.deleteWhere({ accountId }),
   ]);
-
-  for (const chain of Object.keys(chains)) {
-    chains[chain as ApiChain].clearAccountCache(accountId);
-  }
 
   await activateAccount(nextAccountId, newestActivityTimestamps);
 }

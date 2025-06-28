@@ -1,3 +1,4 @@
+import type { ElementRef } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
@@ -27,9 +28,11 @@ import styles from './NftMenu.module.scss';
 
 interface OwnProps {
   nft: ApiNft;
+  ref?: ElementRef<HTMLButtonElement>;
   isContextMenuMode?: boolean;
   dnsExpireInDays?: number;
   menuAnchor?: IAnchorPosition;
+  className?: string;
   onOpen: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
   onCloseAnimationEnd?: NoneToVoidFunction;
@@ -50,6 +53,7 @@ function NftMenu({
   isViewMode,
   isContextMenuMode,
   nft,
+  ref,
   dnsExpireInDays,
   linkedAddress,
   menuAnchor,
@@ -57,6 +61,7 @@ function NftMenu({
   whitelistedNftAddresses,
   cardBackgroundNft,
   accentColorNft,
+  className,
   onOpen,
   onClose,
   onCloseAnimationEnd,
@@ -84,11 +89,14 @@ function NftMenu({
     isNftInstalled,
     isNftAccentColorInstalled,
   });
-  const ref = useRef<HTMLButtonElement>();
+  let buttonRef = useRef<HTMLButtonElement>();
   const menuRef = useRef<HTMLDivElement>();
   const isOpen = Boolean(menuAnchor);
+  if (ref) {
+    buttonRef = ref;
+  }
 
-  const getTriggerElement = useLastCallback(() => ref.current);
+  const getTriggerElement = useLastCallback(() => buttonRef.current);
   const getRootElement = useLastCallback(() => document.body);
   const getMenuElement = useLastCallback(() => menuRef.current);
   const getLayout = useLastCallback((): Layout => ({
@@ -113,9 +121,9 @@ function NftMenu({
   return (
     <>
       <button
-        ref={ref}
+        ref={buttonRef}
         type="button"
-        className={styles.button}
+        className={buildClassName(styles.button, className)}
         aria-label={lang('NFT Menu')}
         onClick={handleButtonClick}
       >

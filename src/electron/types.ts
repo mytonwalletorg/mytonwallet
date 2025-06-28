@@ -1,3 +1,5 @@
+import type { AppLayout } from '../global/types';
+
 export enum ElectronEvent {
   DEEPLINK = 'deeplink',
   UPDATE_ERROR = 'update-error',
@@ -24,6 +26,7 @@ export enum ElectronAction {
   GET_IS_TRAY_ICON_ENABLED = 'get-is-tray-icon-enabled',
   SET_IS_AUTO_UPDATE_ENABLED = 'set-is-auto-update-enabled',
   GET_IS_AUTO_UPDATE_ENABLED = 'get-is-auto-update-enabled',
+  CHANGE_APP_LAYOUT = 'change-app-layout',
 
   RESTORE_STORAGE = 'restore-storage',
 }
@@ -48,6 +51,7 @@ export interface ElectronApi {
   getIsTrayIconEnabled: () => Promise<boolean>;
   setIsAutoUpdateEnabled: (value: boolean) => Promise<void>;
   getIsAutoUpdateEnabled: () => Promise<boolean>;
+  changeAppLayout: (layout: AppLayout) => Promise<void>;
 
   restoreStorage: () => Promise<void>;
 

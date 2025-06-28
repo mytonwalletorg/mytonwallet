@@ -371,6 +371,10 @@
           "complexTypes": []
         },
         {
+          "text": "'dapp-sign-data'",
+          "complexTypes": []
+        },
+        {
           "text": "'disclaimer'",
           "complexTypes": []
         },

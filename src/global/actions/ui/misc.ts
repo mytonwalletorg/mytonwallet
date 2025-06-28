@@ -4,6 +4,7 @@ import type { GlobalState } from '../../types';
 import {
   AppState,
   AuthState,
+  ContentTab,
   DomainLinkingState,
   SettingsState,
   SwapState,
@@ -25,7 +26,7 @@ import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { omit } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
 import { getTelegramApp } from '../../../util/telegram';
 import {
@@ -33,6 +34,8 @@ import {
   IS_ANDROID_APP,
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
+  IS_ELECTRON,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { closeAllOverlays, parsePlainAddressQr } from '../../helpers/misc';
@@ -653,7 +656,6 @@ addActionHandler('openInvoiceModal', (global, actions, params) => {
 addActionHandler('changeInvoiceToken', (global, actions, params) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('changeInvoiceToken', params);
-    return;
   }
 
   global = updateCurrentAccountState(global, { invoiceTokenSlug: params.tokenSlug });
@@ -737,6 +739,14 @@ addActionHandler('setIsSensitiveDataHidden', (global, actions, { isHidden }) => 
   setGlobal(updateSettings(global, { isSensitiveDataHidden: isHidden ? true : undefined }));
 });
 
+addActionHandler('setIsAppLockActive', (global, actions, { isActive }) => {
+  if (IS_DELEGATING_BOTTOM_SHEET) {
+    callActionInNative('setIsAppLockActive', { isActive });
+  }
+
+  setGlobal({ ...global, isAppLockActive: isActive || undefined });
+});
+
 addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('switchAccountAndOpenUrl', payload);
@@ -752,4 +762,43 @@ addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => 
   ]);
 
   await openDeeplinkOrUrl(payload.url, payload);
+});
+
+addActionHandler('switchToWallet', (global: GlobalState, actions) => {
+  const { areSettingsOpen, isExploreOpen } = global;
+  const accountState = selectCurrentAccountState(global);
+  const areAssetsActive = accountState?.activeContentTab === ContentTab.Assets;
+  const isWalletTabActive = !isExploreOpen && !areSettingsOpen;
+
+  actions.closeExplore(undefined, { forceOnHeavyAnimation: true });
+  actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
+
+  if (!areAssetsActive && isWalletTabActive) {
+    actions.selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
+    actions.setActiveContentTab({ tab: ContentTab.Assets }, { forceOnHeavyAnimation: true });
+  }
+});
+
+addActionHandler('switchToExplore', (global: GlobalState, actions) => {
+  const { isExploreOpen } = global;
+
+  if (isExploreOpen) {
+    actions.closeSiteCategory(undefined, { forceOnHeavyAnimation: true });
+  }
+
+  actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
+  actions.openExplore(undefined, { forceOnHeavyAnimation: true });
+});
+
+addActionHandler('switchToSettings', (global: GlobalState, actions) => {
+  actions.closeExplore(undefined, { forceOnHeavyAnimation: true });
+  actions.openSettings(undefined, { forceOnHeavyAnimation: true });
+});
+
+addActionHandler('setAppLayout', (global, actions, { layout }) => {
+  if (IS_ELECTRON) {
+    void window.electron?.changeAppLayout(layout);
+  } else {
+    void callApi('setAppLayout', layout);
+  }
 });

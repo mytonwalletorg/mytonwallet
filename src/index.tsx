@@ -13,7 +13,7 @@ import {
 import { requestMutation } from './lib/fasterdom/fasterdom';
 import { enableStrict } from './lib/fasterdom/stricterdom';
 import { betterView } from './util/betterView';
-import { fixIosAppStorage, initCapacitor } from './util/capacitor';
+import { fixIosAppStorage, initCapacitor, processCapacitorLaunchDeeplink } from './util/capacitor';
 import { initElectron } from './util/electron';
 import { initFocusScrollController } from './util/focusScroll';
 import { forceLoadFonts } from './util/fonts';
@@ -65,6 +65,10 @@ void (async () => {
   await window.electron?.restoreStorage();
 
   getActions().init();
+
+  if (IS_CAPACITOR) {
+    await processCapacitorLaunchDeeplink();
+  }
 
   // Connecting to the API from remote tabs creates excessive polling in the API.
   // The remote tab doesn't need the API anyway.

@@ -21,20 +21,6 @@ const loginPromise = new Promise<void>((resolve) => {
   loginResolve = resolve;
 });
 
-let activeAccountId: string | undefined;
-
-export function getActiveAccountId() {
-  return activeAccountId;
-}
-
-export function setActiveAccountId(accountId?: string) {
-  activeAccountId = accountId;
-}
-
-export function isAccountActive(accountId: string) {
-  return activeAccountId === accountId;
-}
-
 export async function getAccountIds(): Promise<string[]> {
   return Object.keys(await storage.getItem('accounts') || {});
 }
@@ -66,8 +52,12 @@ export async function fetchStoredTronWallet(accountId: string): Promise<ApiTronW
   return (await fetchStoredTronAccount(accountId)).tron;
 }
 
+export function fetchMaybeStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T | undefined> {
+  return getAccountValue(accountId, 'accounts');
+}
+
 export async function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
-  const account = await getAccountValue(accountId, 'accounts');
+  const account = await fetchMaybeStoredAccount<T>(accountId);
   if (account) return account;
   throw new Error(`Account ${accountId} doesn't exist`);
 }

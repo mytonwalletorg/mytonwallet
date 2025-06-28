@@ -72,7 +72,7 @@ function Media({
       ) : (
         <img src={src} alt={alt} className={styles.image} />
       )}
-      <div className={styles.contentDescription} ref={ref}>
+      <div className={buildClassName(styles.contentDescription, 'custom-scroll')} ref={ref}>
         {description && (
           <div className={styles.contentTextWrapper}>
             <div className={buildClassName(styles.contentText, 'custom-scroll')} dir="auto">

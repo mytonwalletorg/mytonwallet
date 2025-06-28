@@ -22,6 +22,7 @@ import {
 } from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
 import { fetchStoredTonWallet } from '../../common/accounts';
+import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import {
   NFT_PAYLOAD_SAFE_MARGIN,
   NFT_TRANSFER_AMOUNT,
@@ -35,17 +36,19 @@ import { isActiveSmartContract } from './wallet';
 export async function getAccountNfts(accountId: string, offset?: number, limit?: number): Promise<ApiNft[]> {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
-  return compact(rawNfts.map((rawNft) => parseTonapiioNft(network, rawNft)));
+  return compact(rawNfts.map((rawNft) => parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress)));
 }
 
 export async function checkNftOwnership(accountId: string, nftAddress: string) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
-
   const rawNft = await fetchNftByAddress(network, nftAddress);
-  const nft = parseTonapiioNft(network, rawNft);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
+
+  const nft = parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress);
 
   return address === nft?.ownerAddress;
 }
@@ -53,6 +56,7 @@ export async function checkNftOwnership(accountId: string, nftAddress: string) {
 export async function getNftUpdates(accountId: string, fromSec: number) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const events = await fetchAccountEvents(network, address, fromSec);
   fromSec = events[0]?.timestamp ?? fromSec;
@@ -89,7 +93,7 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         }
 
         if (rawNft) {
-          const nft = parseTonapiioNft(network, rawNft);
+          const nft = parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress);
 
           if (nft) {
             updates.push({

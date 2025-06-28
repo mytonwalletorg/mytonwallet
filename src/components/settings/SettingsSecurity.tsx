@@ -581,7 +581,12 @@ function SettingsSecurity({
                 <span className={styles.headerTitle}>{lang('Change Password')}</span>
               </div>
             )}
-            <div className={buildClassName(modalStyles.transitionContent, styles.content)}>
+            <div className={buildClassName(
+              modalStyles.transitionContent,
+              styles.content,
+              isInsideModal && styles.contentInModal,
+            )}
+            >
               <AnimatedIconWithPreview
                 tgsUrl={ANIMATED_STICKERS_PATHS.guard}
                 previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}

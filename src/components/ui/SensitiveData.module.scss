@@ -17,7 +17,7 @@
 
 .wrapper,
 .content {
-  display: inline-block;
+  display: inline-block !important; // It's important to override the global .not-shown class
   width: max-content;
 
   @supports (interpolate-size: allow-keywords) {
@@ -53,14 +53,8 @@
   }
 }
 
-.content, .spoiler {
-  &:global(.not-shown) {
-    display: inline-block !important;
-  }
-}
-
 .right > .content {
-  display: inline-flex;
+  display: inline-flex !important; // It's important to override the global .not-shown class
   justify-content: flex-end;
 }
 

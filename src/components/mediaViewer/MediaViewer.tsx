@@ -1,6 +1,8 @@
 import React, {
   beginHeavyAnimation,
-  memo, useEffect, useLayoutEffect, useMemo,
+  memo,
+  useEffect,
+  useMemo,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -17,6 +19,7 @@ import { animateClosing, animateOpening, ANIMATION_DURATION } from './helpers/gh
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePrevious from '../../hooks/usePrevious';
+import useToggleClass from '../../hooks/useToggleClass';
 
 import ShowTransition from '../ui/ShowTransition';
 import Transition from '../ui/Transition';
@@ -77,9 +80,7 @@ function MediaViewer({
     openMediaViewer({ mediaType, mediaId: id });
   });
 
-  useLayoutEffect(() => {
-    document.body.classList.toggle('is-media-viewer-open', isOpen);
-  }, [isOpen]);
+  useToggleClass({ className: 'is-media-viewer-open', isActive: isOpen, element: document.body });
 
   useEffect(() => (isOpen ? captureEscKeyListener(handleClose) : undefined), [handleClose, isOpen]);
 

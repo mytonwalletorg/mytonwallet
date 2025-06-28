@@ -9,7 +9,7 @@ export type ApiChain = 'ton' | 'tron';
 export type ApiNetwork = 'mainnet' | 'testnet';
 export type ApiLedgerDriver = 'HID' | 'USB';
 export type ApiTokenType = 'lp_token';
-export type ApiDappConnectionType = 'connect' | 'sendTransaction';
+export type ApiDappConnectionType = 'connect' | 'sendTransaction' | 'signData';
 
 export interface AccountIdParsed {
   id: number;
@@ -61,6 +61,12 @@ export interface ApiAddressInfo {
   isMemoRequired?: boolean;
 }
 
+export interface ApiNftSuperCollection {
+  id: string;
+  name: string;
+  icon?: 'gift';
+}
+
 export type ApiActivityTimestamps = Record<string, number | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest'
   | 'callContract' | 'excess' | 'contractDeploy' | 'bounced'
@@ -99,7 +105,13 @@ export type ApiMtwCardType = 'black' | 'platinum' | 'gold' | 'silver' | 'standar
 export type ApiMtwCardTextType = 'light' | 'dark';
 export type ApiMtwCardBorderShineType = 'up' | 'down' | 'left' | 'right' | 'radioactive';
 
+export interface ApiNftAttribute {
+  trait_type: string;
+  value: string;
+}
+
 export interface ApiNftMetadata {
+  attributes?: ApiNftAttribute[];
   lottie?: string;
   imageUrl?: string;
   fragmentUrl?: string;
@@ -160,6 +172,8 @@ export type ApiLiquidStakingState = BaseStakingState & {
   type: 'liquid';
   tokenBalance: bigint;
   instantAvailable: bigint;
+  start: number;
+  end: number;
 };
 
 export type ApiJettonStakingState = BaseStakingState & {

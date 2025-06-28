@@ -82,11 +82,23 @@
 
 .text {
   overflow: hidden;
+  display: flex;
+
   max-width: 100%;
+
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .bold {
   font-weight: 700;
+}
+
+.nftTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.address {
+  margin-inline-start: 0.25rem;
 }

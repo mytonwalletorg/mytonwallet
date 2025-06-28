@@ -22,23 +22,14 @@ $listHorizontalPadding: 1rem;
 
 .list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   gap: 1.25rem 0.75rem;
   align-content: start;
 
   padding: 0 $listHorizontalPadding calc(max(var(--safe-area-bottom), 1rem) + var(--bottombar-height) + 1rem);
 
-  @media (min-width: 470px) {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-
   &.landscapeList {
-    grid-template-columns: 1fr 1fr;
     padding-bottom: 1rem;
-
-    @media (min-width: 800px) {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
   }
 
   @include mixins.adapt-padding-to-scrollbar($listHorizontalPadding);

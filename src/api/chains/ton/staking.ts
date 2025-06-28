@@ -24,6 +24,7 @@ import {
   TON_TSUSDE,
   TON_USDE,
   TONCOIN,
+  UNSTAKE_TON_GRACE_PERIOD,
   VALIDATION_PERIOD_MS,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -38,7 +39,6 @@ import {
   buildLiquidStakingDepositBody,
   buildLiquidStakingWithdrawBody,
   getJettonPoolStakeWallet,
-  getTokenBalance,
   getTonClient,
   resolveTokenWalletAddress,
   toBase64Address,
@@ -57,7 +57,6 @@ import { isKnownStakingPool } from '../../common/utils';
 import { nftRepository } from '../../db';
 import { STAKE_COMMENT, TON_GAS, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transfer';
-import { isAddressInitialized } from './wallet';
 
 export async function checkStakeDraft(accountId: string, amount: bigint, state: ApiStakingState) {
   let result: ApiCheckTransactionDraftResult;
@@ -419,9 +418,11 @@ async function buildLiquidState({
   backendState,
   commonData,
   loyaltyType,
+  balances,
 }: StakingStateOptions): Promise<ApiStakingState> {
   const { currentRate, collection } = commonData.liquid;
-  const tokenBalance = await getLiquidStakingTokenBalance(accountId);
+  const tokenSlug = buildTokenSlug('ton', LIQUID_JETTON);
+  const tokenBalance = balances[tokenSlug] ?? 0n;
   let unstakeAmount = 0n;
 
   if (collection) {
@@ -443,6 +444,7 @@ async function buildLiquidState({
 
   const isInstantUnstake = Date.now() - stakedAt > VALIDATION_PERIOD_MS && !getDevSettings().simulateLongUnstaking;
   const liquidAvailable = isInstantUnstake ? commonData.liquid.available : 0n;
+  const { start, end } = getLiquidStakingTimeRange(commonData);
 
   let liquidApy = commonData.liquid.apy;
   if (loyaltyType && loyaltyType in commonData.liquid.loyaltyApy) {
@@ -463,6 +465,8 @@ async function buildLiquidState({
     tokenBalance,
     unstakeRequestAmount: unstakeAmount,
     instantAvailable: liquidAvailable,
+    start,
+    end,
   };
 }
 
@@ -505,7 +509,7 @@ async function buildNominatorsState({
 
 async function buildJettonState(
   options: StakingStateOptions,
-  poolConfig: ApiStakingJettonPool,
+  pool: ApiStakingJettonPool,
 ): Promise<ApiJettonStakingState> {
   const { network } = options;
 
@@ -513,16 +517,13 @@ async function buildJettonState(
   const {
     pool: poolAddress,
     token: tokenAddress,
-  } = poolConfig;
+    poolConfig,
+  } = pool;
 
   const { decimals, slug: tokenSlug } = getTokenByAddress(tokenAddress);
 
-  const tonClient = getTonClient(network);
-  const pool = tonClient.open(StakingPool.createFromAddress(Address.parse(poolAddress)));
-
   // pool
-  const poolData = await pool.getStorageData();
-  const { tvl, rewardJettons } = unpackDicts(poolData) as StakingPoolConfigUnpacked;
+  const { tvl, rewardJettons } = unpackDicts(poolConfig) as StakingPoolConfigUnpacked;
   const { rewardsDeposits } = Object.values(rewardJettons!)[0];
   const now = Math.floor(Date.now() / 1000);
 
@@ -536,22 +537,26 @@ async function buildJettonState(
   const apr = calcJettonStakingApr({ tvl, dailyReward, decimals });
 
   // wallet
-  const { address } = options;
-  const periodConfig = poolConfig.periods[0];
+  const { address, balances } = options;
+  const periodConfig = pool.periods[0];
+  const stakedTokenSlug = buildTokenSlug('ton', periodConfig.token);
 
   const stakeWallet = await getJettonPoolStakeWallet(network, poolAddress, periodConfig.period, address);
-  const walletData = await stakeWallet.getStorageData().catch(() => undefined);
 
   let unclaimedRewards = 0n;
   let balance = 0n;
   let poolWallets: string[] | undefined;
 
-  if (walletData) {
-    const poolWalletAddress = await resolveTokenWalletAddress(network, poolAddress, tokenAddress);
-    const rewards = walletData && StakeWallet.getAvailableRewards(walletData, poolData);
-    unclaimedRewards = (rewards && rewards[poolWalletAddress]) ?? 0n;
-    balance = walletData.jettonBalance;
-    poolWallets = Object.keys(rewards);
+  if (stakedTokenSlug in balances) { // Avoiding the request when it's unnecessary
+    const walletData = await stakeWallet.getStorageData().catch(() => undefined);
+
+    if (walletData) {
+      const poolWalletAddress = await resolveTokenWalletAddress(network, poolAddress, tokenAddress);
+      const rewards = StakeWallet.getAvailableRewards(walletData, poolConfig);
+      unclaimedRewards = (rewards && rewards[poolWalletAddress]) ?? 0n;
+      balance = walletData.jettonBalance;
+      poolWallets = Object.keys(rewards);
+    }
   }
 
   const state: ApiJettonStakingState = {
@@ -611,29 +616,32 @@ async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthena
   };
 
   // When we don't know whether the wallet is verified and the staking is not active,
-  // we want to optimistically show the high APY
-  if (isVerified === undefined && !getIsActiveStakingState(state)) {
+  // we want to optimistically show the high APY.
+  // At the moment `isVerified` is never undefined, so we show the high APY for all wallets with no active staking.
+  // This shell be reverted when `isVerified` works as expected.
+  if (/* isVerified === undefined && */ !getIsActiveStakingState(state)) {
     state.annualYield = apyVerified;
   }
 
   return state;
 }
 
-async function getLiquidStakingTokenBalance(accountId: string) {
-  const { network } = parseAccountId(accountId);
-  if (network !== 'mainnet') {
-    return 0n;
-  }
+function getLiquidStakingTimeRange(commonData: ApiStakingCommonData) {
+  const { prevRound, round: currentRound } = commonData;
+  const now = Date.now();
+  const gracePeriod = UNSTAKE_TON_GRACE_PERIOD;
 
-  const { address } = await fetchStoredTonWallet(accountId);
-  const walletAddress = await resolveTokenWalletAddress(network, address, LIQUID_JETTON);
-  const isInitialized = await isAddressInitialized(network, walletAddress);
+  const round = (
+    // Show date of next unlock plus few minutes
+    // (except when grace period is active and payout has already occurred — i.e. collection has disappeared).
+    (now > prevRound.unlock && now < prevRound.unlock + gracePeriod && !commonData.liquid.collection)
+    || now >= prevRound.unlock + gracePeriod
+  ) ? currentRound : prevRound;
 
-  if (!isInitialized) {
-    return 0n;
-  }
-
-  return getTokenBalance(network, walletAddress);
+  return {
+    start: round.start,
+    end: round.unlock + gracePeriod,
+  };
 }
 
 export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState> {

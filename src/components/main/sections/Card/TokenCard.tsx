@@ -8,6 +8,7 @@ import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../gl
 import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, IS_CORE_WALLET, TONCOIN } from '../../../../config';
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { calcBigChangeValue } from '../../../../util/calcChangeValue';
 import { formatShortDay, SECOND } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
@@ -151,10 +152,11 @@ function TokenCard({
     return history?.find(([, value]) => Boolean(value))?.[1];
   }, [history]);
 
-  const change = (initialPrice && price) ? price - initialPrice : 0;
-  const amountChange = (initialPrice && tokenChangePrice) ? tokenChangePrice - initialPrice : 0;
-
-  const value = toBig(amount, decimals).mul(price).toString();
+  const valueBig = toBig(amount, decimals).mul(price);
+  const value = valueBig.toString();
+  const change = initialPrice && price ? price - initialPrice : 0;
+  const changeFactor = initialPrice && tokenChangePrice ? tokenChangePrice / initialPrice - 1 : 0;
+  const amountChange = initialPrice && tokenChangePrice ? calcBigChangeValue(valueBig, changeFactor).toNumber() : 0;
   const changePrefix = change === undefined ? change : change > 0 ? '↑' : change < 0 ? '↓' : 0;
 
   const changeValue = amountChange ? Math.abs(round(amountChange, 4)) : 0;

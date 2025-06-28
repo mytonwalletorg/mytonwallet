@@ -39,6 +39,7 @@ import AppLocked from './appLocked/AppLocked';
 import Auth from './auth/Auth';
 import AuthImportWalletModal from './auth/AuthImportWalletModal';
 import DappConnectModal from './dapps/DappConnectModal';
+import DappSignDataModal from './dapps/DappSignDataModal';
 import DappTransferModal from './dapps/DappTransferModal';
 import Dialogs from './Dialogs';
 import ElectronHeader from './electron/ElectronHeader';
@@ -47,6 +48,7 @@ import LedgerModal from './ledger/LedgerModal';
 import Main from './main/Main';
 import AddAccountModal from './main/modals/AddAccountModal';
 import BackupModal from './main/modals/BackupModal';
+import NftAttributesModal from './main/modals/NftAttributesModal';
 import OnRampWidgetModal from './main/modals/OnRampWidgetModal';
 import QrScannerModal from './main/modals/QrScannerModal';
 import SignatureModal from './main/modals/SignatureModal';
@@ -262,10 +264,12 @@ function App({
           <TransactionModal />
           <SwapActivityModal />
           <DappConnectModal />
+          <DappSignDataModal />
           <DappTransferModal />
           <AddAccountModal />
           <OnRampWidgetModal />
           <UnhideNftModal />
+          <NftAttributesModal />
           {IS_CAPACITOR && (
             <QrScannerModal
               isOpen={isQrScannerOpen}

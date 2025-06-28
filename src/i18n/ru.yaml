@@ -167,6 +167,7 @@ Received: Получено
 Sent: Отправлено
 $transaction_from: от %address%
 $transaction_to: на %address%
+$transaction_on: на %address%
 Wallet is not backed up: Резервная копия кошелька не создана
 Testnet Version: Версия Testnet
 Error reading clipboard: Ошибка буфера обмена
@@ -843,7 +844,7 @@ Exit all wallets: Выйти из всех кошельков
 Can't confirm?: Не удаётся войти?
 $safe_staking_ethena_description1: Стейкинг полностью **децентрализован** и управляется официальными, прошедшими аудит **смарт-контрактами от Ethena**.
 $safe_staking_ethena_description2: Ваш депозит в USDe используется в **торговых и инвестиционных стратегиях** Ethena, автоматически и прозрачно принося доход.
-$safe_staking_ethena_description3: Вы можете **вывести депозит** вместе с начисленными процентами в любой момент — средства вернутся на ваш основной счёт в течение **7 дней**, согласно стандартному периоду вывода Ethena.
+$safe_staking_ethena_description3: Вы можете **вывести депозит** вместе с начисленными процентами в любой момент — средства вернутся на ваш основной счёт через **7 дней**, согласно стандартному периоду вывода Ethena.
 Unstake %amount%: Вывести %amount%
 Request Unstaking: Запросить вывод
 $unstaking_when_receive_ethena: Вы сможете получить свой депозит через **7 дней**.
@@ -908,3 +909,19 @@ $expires_in %days%:
   oneValue: Истекает %days%
   fewValue: Истекают %days%
   manyValue: Истекают %days%
+Message: Сообщение
+Binary Data: Бинарные данные
+The binary data content is unclear. Sign it only if you trust the service.: Содержимое бинарных данных неясно. Подписывайте только если доверяете сервису.
+Cell Schema: Схема ячейки
+Cell Data: Данные ячейки
+Sign Data: Подписать данные
+Please confirm signature on your Ledger: Пожалуйста, подтвердите подпись на вашем Ledger
+Utilities: Утилиты
+Games: Игры
+Entertainment: Развлечения
+Toggle to landscape layout: Переключить на альбомный режим
+Toggle to portrait layout: Переключить на портретный режим
+Attributes: Атрибуты
+Show All: Показать все
+Description: Описание
+No additional data.: Нет дополнительных данных.

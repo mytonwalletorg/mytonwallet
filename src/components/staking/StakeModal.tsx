@@ -107,7 +107,7 @@ function StakeModal({
         tokenIn={token}
         withChainIcon={isMultichainAccount}
         color="purple"
-        text={formatCurrency(toDecimal(amount, token.decimals), token.symbol)}
+        text={formatCurrency(toDecimal(amount, token.decimals), token.symbol, token.decimals)}
         className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />
     );

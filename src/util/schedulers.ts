@@ -2,6 +2,10 @@ import Deferred from './Deferred';
 
 export type Scheduler = typeof requestAnimationFrame | typeof onTickEnd;
 
+export const pause = (ms: number) => new Promise<void>((resolve) => {
+  setTimeout(() => resolve(), ms);
+});
+
 export function debounce<F extends AnyToVoidFunction>(
   fn: F,
   ms: number,
@@ -28,35 +32,50 @@ export function debounce<F extends AnyToVoidFunction>(
   };
 }
 
-export function throttle<F extends AnyToVoidFunction>(
+/**
+ * An important feature of this throttle implementation is that it waits for `fn` to finish before scheduling the new
+ * execution. That is, `fn` never gets executed in parallel with itself.
+ */
+export function throttle<F extends AnyFunction>(
   fn: F,
   ms: number,
   shouldRunFirst = true,
 ) {
-  let interval: number | undefined;
-  let isPending: boolean;
-  let args: Parameters<F>;
+  let args: Parameters<F> | undefined;
+  let isRunning = false;
+
+  async function scheduleFn() {
+    await pause(ms);
+    void runFn();
+  }
+
+  async function runFn() {
+    if (!args) {
+      isRunning = false;
+      return;
+    }
+
+    try {
+      const localArgs = args;
+      args = undefined;
+      await fn(...localArgs);
+    } finally {
+      // Voiding the promise to let the error produced by `fn` be thrown immediately
+      void scheduleFn();
+    }
+  }
 
   return (..._args: Parameters<F>) => {
-    isPending = true;
     args = _args;
 
-    if (!interval) {
+    if (!isRunning) {
+      isRunning = true;
+
       if (shouldRunFirst) {
-        isPending = false;
-        fn(...args);
+        void runFn();
+      } else {
+        void scheduleFn();
       }
-
-      interval = self.setInterval(() => {
-        if (!isPending) {
-          self.clearInterval(interval);
-          interval = undefined;
-          return;
-        }
-
-        isPending = false;
-        fn(...args);
-      }, ms);
     }
   };
 }
@@ -82,10 +101,6 @@ export function throttleWith<F extends AnyToVoidFunction>(schedulerFn: Scheduler
     }
   };
 }
-
-export const pause = (ms: number) => new Promise<void>((resolve) => {
-  setTimeout(() => resolve(), ms);
-});
 
 export function rafPromise() {
   return new Promise<void>((resolve) => {
@@ -237,6 +252,11 @@ export async function waitFor(cb: () => boolean, interval: number, attempts: num
   }
 
   return result;
+}
+
+export function setCancellableTimeout(ms: number, cb: NoneToVoidFunction) {
+  const timeoutId = setTimeout(cb, ms);
+  return () => clearTimeout(timeoutId);
 }
 
 /**

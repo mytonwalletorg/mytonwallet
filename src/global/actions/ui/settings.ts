@@ -15,7 +15,7 @@ import { selectIsBiometricAuthEnabled } from '../../selectors';
 let prevGlobal: GlobalState | undefined;
 
 addCallback((global: GlobalState) => {
-  if (!prevGlobal) {
+  if (!prevGlobal || !(prevGlobal as AnyLiteral).settings) {
     prevGlobal = global;
     return;
   }

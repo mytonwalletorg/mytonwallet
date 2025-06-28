@@ -1,6 +1,6 @@
 /* TonConnect specification https://github.com/ton-blockchain/ton-connect */
 
-import { Address, Cell } from '@ton/core';
+import { Cell } from '@ton/core';
 import type {
   ConnectEventError,
   ConnectItemReply,
@@ -9,18 +9,21 @@ import type {
   DisconnectRpcResponse,
   SendTransactionRpcRequest,
   SendTransactionRpcResponse,
+  SignDataPayload,
   SignDataRpcRequest,
+  SignDataRpcResponse,
+  SignDataRpcResponseSuccess,
   TonProofItem,
   TonProofItemReplySuccess,
+  WalletResponseTemplateError,
 } from '@tonconnect/protocol';
-import { CHAIN } from '@tonconnect/protocol';
-import nacl from 'tweetnacl';
 
 import type { ApiEmulationWithFallbackResult, TonTransferParams } from '../chains/ton/types';
 import type {
   ApiAccountWithMnemonic,
-  ApiAccountWithTon,
   ApiAnyDisplayError,
+  ApiDapp,
+  ApiDappConnectionType,
   ApiDappMetadata,
   ApiDappRequest,
   ApiDappTransfer,
@@ -33,7 +36,7 @@ import type {
   ApiTonConnectProof, ConnectEvent, TransactionPayload, TransactionPayloadMessage,
 } from './types';
 import { ApiCommonError, ApiTransactionError } from '../types';
-import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
+import { CHAIN, CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from './types';
 
 import { IS_EXTENSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
@@ -43,12 +46,10 @@ import { fetchJsonWithProxy } from '../../util/fetch';
 import { pick } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import safeExec from '../../util/safeExec';
-import { tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
+import { getTonConnectMaxMessages, tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 import chains from '../chains';
 import { getContractInfo, parsePayloadBase64 } from '../chains/ton';
 import { fetchKeyPair } from '../chains/ton/auth';
-import { DEFAULT_MAX_MESSAGES } from '../chains/ton/constants';
-import { getMaxMessagesInTransaction } from '../chains/ton/util';
 import {
   getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress,
 } from '../chains/ton/util/tonCore';
@@ -60,7 +61,7 @@ import {
 import { getKnownAddressInfo } from '../common/addresses';
 import { createDappPromise } from '../common/dappPromises';
 import { isUpdaterAlive } from '../common/helpers';
-import { bytesToBase64, hexToBytes, sha256 } from '../common/utils';
+import { bytesToBase64, hexToBytes } from '../common/utils';
 import * as apiErrors from '../errors';
 import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
@@ -75,6 +76,7 @@ import {
 import { createLocalTransaction } from '../methods/transactions';
 import * as errors from './errors';
 import { UnknownAppError } from './errors';
+import { signDataWithPrivateKey, signTonProofWithPrivateKey } from './signing';
 import {
   getTransferActualToAddress,
   isTransferPayloadDangerous,
@@ -171,8 +173,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     const account = await fetchStoredTonAccount(accountId);
     const { address } = account.ton;
 
-    const maxMessages = getMaxMessages(account);
-    const deviceInfo = tonConnectGetDeviceInfo(maxMessages);
+    const deviceInfo = tonConnectGetDeviceInfo(account);
     const items: ConnectItemReply[] = [
       await buildTonAddressReplyItem(accountId, account.ton),
     ];
@@ -228,8 +229,7 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
 
     const account = await fetchStoredTonAccount(accountId);
 
-    const maxMessages = getMaxMessages(account);
-    const deviceInfo = tonConnectGetDeviceInfo(maxMessages);
+    const deviceInfo = tonConnectGetDeviceInfo(account);
     const items: ConnectItemReply[] = [
       await buildTonAddressReplyItem(accountId, account.ton),
     ];
@@ -245,16 +245,6 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
   } catch (e) {
     logDebugError('tonConnect:reconnect', e);
     return formatConnectError(id, e as Error);
-  }
-}
-
-function getMaxMessages(account: ApiAccountWithTon) {
-  const { type } = account;
-
-  if (type === 'ledger') {
-    return DEFAULT_MAX_MESSAGES; // TODO Remove after DEXs support the 1 message limit
-  } else {
-    return getMaxMessagesInTransaction(account);
   }
 }
 
@@ -295,7 +285,7 @@ export async function sendTransaction(
       },
     } = account;
 
-    const maxMessages = getMaxMessages(account);
+    const maxMessages = getTonConnectMaxMessages(account);
 
     if (messages.length > maxMessages) {
       throw new errors.BadRequestError(`Payload contains more than ${maxMessages} messages, which exceeds limit`);
@@ -424,45 +414,52 @@ export async function sendTransaction(
     };
   } catch (err) {
     logDebugError('tonConnect:sendTransaction', err);
-
-    safeExec(() => {
-      onPopupUpdate({
-        type: 'dappCloseLoading',
-        connectionType: 'sendTransaction',
-      });
-    });
-
-    let code = SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR;
-    let errorMessage = 'Unhandled error';
-    let displayError: ApiAnyDisplayError | undefined;
-
-    if (err instanceof apiErrors.ApiUserRejectsError) {
-      code = SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR;
-      errorMessage = err.message;
-    } else if (err instanceof errors.TonConnectError) {
-      code = err.code;
-      errorMessage = err.message;
-      displayError = err.displayError;
-    } else if (err instanceof ApiServerError) {
-      displayError = err.displayError;
-    } else {
-      displayError = ApiCommonError.Unexpected;
-    }
-
-    if (onPopupUpdate && isUpdaterAlive(onPopupUpdate) && displayError) {
-      onPopupUpdate({
-        type: 'showError',
-        error: displayError,
-      });
-    }
-    return {
-      error: {
-        code,
-        message: errorMessage,
-      },
-      id: message.id,
-    };
+    return handleMethodError(err, message.id, 'sendTransaction');
   }
+}
+
+function handleMethodError(
+  err: unknown,
+  messageId: string,
+  connectionType: ApiDappConnectionType,
+): WalletResponseTemplateError {
+  safeExec(() => {
+    onPopupUpdate({
+      type: 'dappCloseLoading',
+      connectionType,
+    });
+  });
+
+  let code = SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR;
+  let errorMessage = 'Unhandled error';
+  let displayError: ApiAnyDisplayError | undefined;
+
+  if (err instanceof apiErrors.ApiUserRejectsError) {
+    code = SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR;
+    errorMessage = err.message;
+  } else if (err instanceof errors.TonConnectError) {
+    code = err.code;
+    errorMessage = err.message;
+    displayError = err.displayError;
+  } else if (err instanceof ApiServerError) {
+    displayError = err.displayError;
+  } else {
+    displayError = ApiCommonError.Unexpected;
+  }
+
+  if (onPopupUpdate && isUpdaterAlive(onPopupUpdate) && displayError) {
+    onPopupUpdate({
+      type: 'showError',
+      error: displayError,
+    });
+  }
+  return {
+    error: {
+      code,
+      message: errorMessage,
+    },
+    id: messageId,
+  };
 }
 
 async function checkIsHisVestingWallet(network: ApiNetwork, ownerPublicKey: Uint8Array, address: string) {
@@ -474,14 +471,57 @@ async function checkIsHisVestingWallet(network: ApiNetwork, ownerPublicKey: Uint
   return info.contractInfo?.name === 'vesting' && areDeepEqual(ownerPublicKey, publicKey);
 }
 
-export function signData(request: ApiDappRequest, message: SignDataRpcRequest) {
-  return {
-    error: {
-      code: SIGN_DATA_ERROR_CODES.METHOD_NOT_SUPPORTED,
-      message: 'Method not supported',
-    },
-    id: message.id,
-  };
+/**
+ * See https://docs.tonconsole.com/academy/sign-data for more details
+ */
+export async function signData(
+  request: ApiDappRequest,
+  message: SignDataRpcRequest,
+): Promise<SignDataRpcResponse> {
+  try {
+    const { origin, accountId } = await validateRequest(request);
+    const account = await fetchStoredTonAccount(accountId);
+
+    if (account.type === 'view') throw new errors.MethodNotSupportedError('Not supported by view-only accounts');
+    if (account.type === 'ledger') throw new errors.MethodNotSupportedError('Not supported by Ledger');
+
+    await openExtensionPopup(true);
+
+    onPopupUpdate({
+      type: 'dappLoading',
+      connectionType: 'signData',
+      accountId,
+      isSse: Boolean('sseOptions' in request && request.sseOptions),
+    });
+
+    const { promiseId, promise } = createDappPromise();
+    const dapp = (await getDappsByOrigin(accountId))[origin];
+    const payloadToSign = JSON.parse(message.params[0]) as SignDataPayload;
+
+    onPopupUpdate({
+      type: 'dappSignData',
+      promiseId,
+      accountId,
+      dapp,
+      payloadToSign,
+    });
+
+    const password: string = await promise;
+
+    return {
+      result: await performSignData(
+        accountId,
+        account,
+        dapp,
+        payloadToSign,
+        password,
+      ),
+      id: message.id,
+    };
+  } catch (err) {
+    logDebugError('tonConnect:signData', err);
+    return handleMethodError(err, message.id, 'signData');
+  }
 }
 
 async function checkTransactionMessages(
@@ -598,45 +638,7 @@ async function signTonProof(
   proof: ApiTonConnectProof,
 ): Promise<TonProofItemReplySuccess> {
   const keyPair = await fetchKeyPair(accountId, password, account);
-  const { timestamp, domain, payload } = proof;
-
-  const timestampBuffer = Buffer.allocUnsafe(8);
-  timestampBuffer.writeBigInt64LE(BigInt(timestamp));
-
-  const domainBuffer = Buffer.from(domain);
-  const domainLengthBuffer = Buffer.allocUnsafe(4);
-  domainLengthBuffer.writeInt32LE(domainBuffer.byteLength);
-
-  const address = Address.parse(walletAddress);
-
-  const addressWorkchainBuffer = Buffer.allocUnsafe(4);
-  addressWorkchainBuffer.writeInt32BE(address.workChain);
-
-  const addressBuffer = Buffer.concat([
-    addressWorkchainBuffer,
-    address.hash,
-  ]);
-
-  const messageBuffer = Buffer.concat([
-    Buffer.from('ton-proof-item-v2/', 'utf8'),
-    addressBuffer,
-    domainLengthBuffer,
-    domainBuffer,
-    timestampBuffer,
-    Buffer.from(payload),
-  ]);
-
-  const bufferToSign = Buffer.concat([
-    Buffer.from('ffff', 'hex'),
-    Buffer.from('ton-connect', 'utf8'),
-    Buffer.from(await sha256(messageBuffer)),
-  ]);
-
-  const signature = nacl.sign.detached(
-    Buffer.from(await sha256(bufferToSign)),
-    keyPair!.secretKey,
-  );
-
+  const signature = await signTonProofWithPrivateKey(walletAddress, keyPair!.secretKey, proof);
   return buildTonProofReplyItem(proof, bytesToBase64(signature));
 }
 
@@ -655,6 +657,34 @@ function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): T
       signature,
       payload,
     },
+  };
+}
+
+async function performSignData(
+  accountId: string,
+  account: ApiAccountWithMnemonic,
+  dapp: ApiDapp,
+  payloadToSign: SignDataPayload,
+  password: string,
+): Promise<SignDataRpcResponseSuccess['result']> {
+  const { address } = account.ton;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const domain = new URL(dapp.origin).host;
+  const keyPair = (await fetchKeyPair(accountId, password, account))!;
+  const signature = await signDataWithPrivateKey(
+    address,
+    timestamp,
+    domain,
+    payloadToSign,
+    keyPair.secretKey,
+  );
+
+  return {
+    signature: bytesToBase64(signature),
+    address,
+    timestamp,
+    domain,
+    payload: payloadToSign,
   };
 }
 

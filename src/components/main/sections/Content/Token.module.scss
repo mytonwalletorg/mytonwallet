@@ -143,7 +143,6 @@
   font-weight: 600;
 
   @include mixins.is-mobile {
-    padding-bottom: 0.25rem;
     font-size: 1rem;
   }
 }

@@ -1,6 +1,7 @@
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
 
+import type { AppLayout } from '../global/types';
 import type { ElectronApi, ElectronEvent } from './types';
 import { ElectronAction } from './types';
 
@@ -24,6 +25,7 @@ const electronApi: ElectronApi = {
   getIsTrayIconEnabled: () => ipcRenderer.invoke(ElectronAction.GET_IS_TRAY_ICON_ENABLED),
   setIsAutoUpdateEnabled: (value: boolean) => ipcRenderer.invoke(ElectronAction.SET_IS_AUTO_UPDATE_ENABLED, value),
   getIsAutoUpdateEnabled: () => ipcRenderer.invoke(ElectronAction.GET_IS_AUTO_UPDATE_ENABLED),
+  changeAppLayout: (layout: AppLayout) => ipcRenderer.invoke(ElectronAction.CHANGE_APP_LAYOUT, layout),
 
   restoreStorage: () => ipcRenderer.invoke(ElectronAction.RESTORE_STORAGE),
 

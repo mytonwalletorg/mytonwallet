@@ -1,11 +1,15 @@
-import { TransferState } from '../../types';
+import { SignDataState, TransferState } from '../../types';
 
 import { BROWSER_HISTORY_LIMIT } from '../../../config';
 import { getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { unique } from '../../../util/iteratees';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
-  clearDappConnectRequestError, resetHardware, updateCurrentAccountState, updateCurrentDappTransfer,
+  clearDappConnectRequestError,
+  resetHardware,
+  updateCurrentAccountState,
+  updateCurrentDappSignData,
+  updateCurrentDappTransfer,
 } from '../../reducers';
 import { selectCurrentAccountState, selectIsHardwareAccount } from '../../selectors';
 
@@ -14,7 +18,7 @@ addActionHandler('clearDappConnectRequestError', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('showDappTransfer', (global, actions, payload) => {
+addActionHandler('showDappTransferTransaction', (global, actions, payload) => {
   const { transactionIdx } = payload;
 
   global = updateCurrentDappTransfer(global, {
@@ -117,4 +121,38 @@ addActionHandler('openSiteCategory', (global, actions, { id }) => {
 
 addActionHandler('closeSiteCategory', (global) => {
   return updateCurrentAccountState(global, { currentSiteCategoryId: undefined });
+});
+
+addActionHandler('closeDappTransfer', (global) => {
+  global = updateCurrentDappTransfer(global, { state: TransferState.None });
+  setGlobal(global);
+});
+
+addActionHandler('setDappSignDataScreen', (global, actions, payload) => {
+  const { state } = payload;
+
+  return updateCurrentDappSignData(global, { state });
+});
+
+addActionHandler('submitDappSignDataConfirm', async (global, actions) => {
+  const inMemoryPassword = await getInMemoryPassword();
+
+  global = getGlobal();
+
+  if (inMemoryPassword) {
+    global = updateCurrentDappSignData(global, { isLoading: true });
+    setGlobal(global);
+    actions.submitDappSignDataPassword({ password: inMemoryPassword });
+  } else {
+    global = updateCurrentDappSignData(global, { state: SignDataState.Password });
+    setGlobal(global);
+  }
+});
+
+addActionHandler('clearDappSignDataError', (global) => {
+  return updateCurrentDappSignData(global, { error: undefined });
+});
+
+addActionHandler('closeDappSignData', (global) => {
+  return updateCurrentDappSignData(global, { state: SignDataState.None });
 });

@@ -81,6 +81,8 @@ export const ANIMATED_STICKER_DEFAULT_PX = 150;
 export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 export const ANIMATED_STICKER_HUGE_SIZE_PX = 192;
 
+export const DEFAULT_PORTRAIT_WINDOW_SIZE = { width: 368, height: 770 };
+export const DEFAULT_LANDSCAPE_WINDOW_SIZE = { width: 980, height: 788 };
 export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 0;
 export const TRANSACTION_ADDRESS_SHIFT = 4;
 
@@ -157,7 +159,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-201';
+export const LANG_CACHE_NAME = 'mtw-lang-208';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -231,7 +233,6 @@ export const NFT_FRAGMENT_COLLECTIONS = [
   '0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2', // Anonymous Telegram Numbers
   '0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2', // Telegram Usernames
 ];
-export const NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX = 'https://nft.fragment.com/gift/';
 export const NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX = /^https?:\/\/nft\.(fragment\.com\/gift\/[\w-]+-\d+)\.\w+$/i;
 export const TELEGRAM_GIFTS_SUPER_COLLECTION = 'super:telegram-gifts';
 
@@ -392,8 +393,8 @@ export const TOKEN_INFO: Record<string, ApiTokenWithPrice> = {
   toncoin: {
     ...TONCOIN,
     isFromBackend: true,
-    price: 1.95,
-    priceUsd: 1.95,
+    price: 3.1,
+    priceUsd: 3.1,
     percentChange24h: 0,
   },
   trx: {
@@ -484,6 +485,7 @@ export const INDEXED_DB_NAME = 'keyval-store';
 export const INDEXED_DB_STORE_NAME = 'keyval';
 
 export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
+export const WINDOW_PROVIDER_PORT = `${IS_CORE_WALLET ? 'TonWallet' : 'MyTonWallet'}_popup_reversed`;
 
 export const SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY = IS_CORE_WALLET;
 export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 4;
@@ -632,6 +634,8 @@ export const DEFAULT_STAKING_STATE: ApiLiquidStakingState = {
   tokenBalance: 0n,
   unstakeRequestAmount: 0n,
   instantAvailable: 0n,
+  start: 0,
+  end: 0,
 };
 
 export const DEFAULT_NOMINATORS_STAKING_STATE: ApiNominatorsStakingState = {

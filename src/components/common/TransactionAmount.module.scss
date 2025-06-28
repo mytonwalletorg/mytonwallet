@@ -1,22 +1,36 @@
-.amountSensitiveData {
-  --border-radius-value: var(--border-radius-default);
+$amountBottomMargin: 1rem;
 
+.amountSensitiveData,
+.baseCurrencyAmountSensitiveData {
   overflow: hidden;
-  margin: 1rem auto;
-  border-radius: var(--border-radius-default);
+  margin: 1rem auto $amountBottomMargin;
+  border-radius: var(--border-radius-value);
+  line-height: 1;
+}
+
+.amountSensitiveData {
+  --border-radius-value: var(--border-radius-default); // Used by SensitiveData as well
 
   &.withStatus {
-    margin: 0 auto 1rem;
+    margin-top: 0;
   }
 }
 
-.amount {
+.baseCurrencyAmountSensitiveData {
+  --border-radius-value: var(--border-radius-normal);
+
+  margin-top: -$amountBottomMargin + 0.625rem;
+}
+
+.amount,
+.baseCurrencyAmount {
   overflow: hidden;
-
   max-width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: var(--border-radius-default);
+  border-radius: var(--border-radius-value);
+}
 
+.amount {
+  padding: 0.75rem 1rem;
   font-size: 3rem;
   font-weight: 600;
 
@@ -33,9 +47,15 @@
   }
 }
 
+.baseCurrencyAmount {
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .amount,
-.status {
-  line-height: 1;
+.status,
+.baseCurrencyAmount {
   color: var(--color-transaction-amount-gray-text);
   text-align: center;
   text-overflow: ellipsis;

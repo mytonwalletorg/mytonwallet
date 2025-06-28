@@ -108,6 +108,10 @@ html {
 
   -webkit-overflow-scrolling: touch;
 
+  html.is-safari:not(.is-ios) & {
+    scrollbar-width: auto;
+  }
+
   &::-webkit-scrollbar-thumb {
     border-radius: var(--border-radius-mini);
     background-color: rgba(90, 90, 90, 0);

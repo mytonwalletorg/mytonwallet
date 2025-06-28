@@ -178,7 +178,7 @@ function getNode(type: MediaType, mediaId: string, txId?: string, hiddenNfts?: '
         ? `.transaction-nft[data-tx-id="${txId}"][data-nft-address="${mediaId}"]`
         : hiddenNfts
           ? `.hidden-nfts-${hiddenNfts} [data-nft-address="${mediaId}"]`
-          : `.nfts-container > .Transition_slide-active [data-nft-address="${mediaId}"]`,
+          : `.nft-container[data-nft-address="${mediaId}"]`,
     ) as HTMLElement;
     image = container?.querySelector('img, canvas') as HTMLImageElement | HTMLCanvasElement;
   }

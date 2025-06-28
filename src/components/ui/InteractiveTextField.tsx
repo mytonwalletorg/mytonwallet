@@ -9,7 +9,6 @@ import type { IAnchorPosition, SavedAddress } from '../../global/types';
 import type { Layout } from '../../hooks/useMenuPosition';
 import type { DropdownItem } from './Dropdown';
 
-import { closeAllOverlays } from '../../global/helpers/misc';
 import { selectCurrentAccountState, selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
@@ -152,8 +151,7 @@ function InteractiveTextField({
     void shareUrl(addressUrl!, chain ? getExplorerName(chain) : undefined);
   });
 
-  const handleTonExplorerOpen = useLastCallback(async () => {
-    await closeAllOverlays();
+  const handleTonExplorerOpen = useLastCallback(() => {
     void openUrl(addressUrl!, { title: getExplorerName(chain!), subtitle: getHostnameFromUrl(addressUrl!) });
   });
 
@@ -206,7 +204,7 @@ function InteractiveTextField({
       <Transition activeKey={isConcealed ? 1 : 0} name="fade" className={styles.commentContainer}>
         {isConcealed ? (
           <span className={buildClassName(styles.button, styles.button_spoiler, textClassName)}>
-            <i>{spoiler}</i>
+            <i>{spoiler}</i>{' '}
             <span
               onClick={handleRevealSpoiler}
               tabIndex={0}

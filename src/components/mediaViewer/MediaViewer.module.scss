@@ -267,7 +267,7 @@
   overflow: auto;
   flex: 1;
   max-width: min(50rem, calc(100% - 4rem));
-  margin-top: 2rem;
+  margin-top: 1.75rem;
 
   @include mixins.respond-below(xs) {
     --background-color: #000;

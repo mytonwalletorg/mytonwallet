@@ -5,8 +5,8 @@ import React, {
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type {
+  ApiBaseCurrency,
   ApiNft,
-  ApiStakingCommonData,
   ApiStakingState,
   ApiTokenWithPrice,
   ApiToncoinStakingState,
@@ -88,7 +88,6 @@ type StateProps = {
   isHardwareAccount: boolean;
   isTestnet?: boolean;
   isViewMode: boolean;
-  stakingInfo?: ApiStakingCommonData;
   stakingStates?: ApiStakingState[];
   isLongUnstakeRequested?: boolean;
   isMediaViewerOpen?: boolean;
@@ -97,6 +96,7 @@ type StateProps = {
   nftsByAddress?: Record<string, ApiNft>;
   accounts?: Record<string, Account>;
   currentAccountId: string;
+  baseCurrency?: ApiBaseCurrency;
 };
 
 const enum SLIDES {
@@ -111,7 +111,6 @@ function TransactionModal({
   isTestnet,
   isHardwareAccount,
   isViewMode,
-  stakingInfo,
   stakingStates,
   isLongUnstakeRequested,
   isMediaViewerOpen,
@@ -120,6 +119,7 @@ function TransactionModal({
   nftsByAddress,
   accounts,
   currentAccountId,
+  baseCurrency,
 }: StateProps) {
   const {
     fetchActivityDetails,
@@ -201,15 +201,15 @@ function TransactionModal({
     withShouldRender: true,
   });
 
-  const state = useMemo(() => {
+  const stakingState = useMemo(() => {
     return stakingStates?.find((staking): staking is ApiToncoinStakingState => {
       return staking.tokenSlug === TONCOIN.slug && staking.balance > 0n;
     });
   }, [stakingStates]);
 
-  const stakingStatus = state && getStakingStateStatus(state);
-  const startOfStakingCycle = state?.type === 'nominators' ? state.start : stakingInfo?.round?.start;
-  const endOfStakingCycle = state?.type === 'nominators' ? state.end : stakingInfo?.round?.end;
+  const stakingStatus = stakingState && getStakingStateStatus(stakingState);
+  const startOfStakingCycle = stakingState?.start;
+  const endOfStakingCycle = stakingState?.end;
 
   const {
     shouldRender: shouldRenderUnstakeTimer,
@@ -512,10 +512,10 @@ function TransactionModal({
             isIncoming={isIncoming}
             isScam={isScam}
             amount={amount ?? 0n}
-            decimals={token?.decimals}
-            tokenSymbol={token?.symbol}
+            token={token}
             status={isOurUnstaking && !shouldRenderUnstakeTimer ? lang('Successfully') : undefined}
             noSign={amountDisplayMode === 'noSign'}
+            baseCurrency={baseCurrency}
           />
         )}
         {nft && <NftInfo nft={nft} withMediaViewer={doesNftExist} withTonExplorer />}
@@ -612,7 +612,6 @@ export default memo(
     const savedAddresses = accountState?.savedAddresses;
     const { byAddress } = accountState?.nfts || {};
 
-    const stakingInfo = global.stakingInfo;
     const stakingStates = selectAccountStakingStates(global, accountId);
     const { isTestnet, theme, isSensitiveDataHidden } = global.settings;
     const accounts = selectAccounts(global);
@@ -628,12 +627,12 @@ export default memo(
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
       isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
       theme,
-      stakingInfo,
       stakingStates,
       isSensitiveDataHidden,
       nftsByAddress: byAddress,
       accounts,
       currentAccountId: accountId,
+      baseCurrency: global.settings.baseCurrency,
     };
   })(TransactionModal),
 );

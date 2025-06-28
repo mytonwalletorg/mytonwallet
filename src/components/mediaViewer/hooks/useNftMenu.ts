@@ -136,6 +136,7 @@ export default function useNftMenu({
     addNftsToBlacklist,
     addNftsToWhitelist,
     closeMediaViewer,
+    closeNftAttributesModal,
     openUnhideNftModal,
     setCardBackgroundNft,
     clearCardBackgroundNft,
@@ -146,6 +147,11 @@ export default function useNftMenu({
   } = getActions();
 
   const lang = useLang();
+
+  function closeOverlays() {
+    closeMediaViewer();
+    closeNftAttributesModal();
+  }
 
   const handleMenuItemSelect = useLastCallback((
     value: NftMenuHandler,
@@ -160,7 +166,7 @@ export default function useNftMenu({
           isPortrait: getIsPortrait(),
           nfts: [nft!],
         });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
@@ -229,13 +235,14 @@ export default function useNftMenu({
 
       case 'collection': {
         openNftCollection({ address: nft!.collectionAddress! }, { forceOnHeavyAnimation: true });
+        closeOverlays();
 
         break;
       }
 
       case 'hide': {
         addNftsToBlacklist({ addresses: [nft!.address] });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
@@ -248,14 +255,14 @@ export default function useNftMenu({
 
       case 'unhide': {
         addNftsToWhitelist({ addresses: [nft!.address] });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
 
       case 'burn': {
         burnNfts({ nfts: [nft!] });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }

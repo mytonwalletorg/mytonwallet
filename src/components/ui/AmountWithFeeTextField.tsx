@@ -13,6 +13,7 @@ interface OwnProps {
   label: string;
   currency?: string;
   symbol?: string;
+  fractionDigits?: number;
   feeText?: TeactNode;
   className?: string;
   labelClassName?: string;
@@ -23,6 +24,7 @@ function AmountWithFeeTextField({
   label,
   currency = '',
   symbol,
+  fractionDigits,
   feeText,
   className,
   labelClassName,
@@ -33,7 +35,7 @@ function AmountWithFeeTextField({
     <>
       <div className={buildClassName(styles.label, labelClassName)}>{label}</div>
       <div className={buildClassName(styles.root, className)}>
-        {formatCurrencyExtended(amount, currency, true)}
+        {formatCurrencyExtended(amount, currency, true, fractionDigits)}
         {symbol && <span className={styles.suffix}>{symbol}</span>}
         {Boolean(feeText) && (
           <>

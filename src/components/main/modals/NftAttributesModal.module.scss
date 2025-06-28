@@ -1,0 +1,287 @@
+@use "../../../styles/mixins";
+
+.modal {
+  --z-modal: 98;
+}
+
+.dialog {
+  overflow: hidden;
+  max-width: 25rem;
+  height: 100%;
+  max-height: 46.875rem;
+
+  @include mixins.respond-below(xs) {
+    max-height: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  :global(html.is-android-app) & {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+.container {
+  position: relative;
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.menuButton,
+.closeButton {
+  cursor: var(--custom-cursor, pointer);
+
+  position: absolute;
+  z-index: 2 !important;
+  top: max(0.75rem, var(--safe-area-top, 0rem));
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 100px;
+
+  color: var(--color-card-text);
+
+  background: rgba(153, 153, 153, 0.32);
+  backdrop-filter: blur(8px);
+
+  transition: opacity 150ms;
+
+  @media (hover: hover) {
+    &:hover, &:focus-visible, &:active {
+      opacity: 0.85;
+    }
+  }
+
+  @media (pointer: coarse) {
+    &:active {
+      opacity: 0.85;
+    }
+  }
+}
+
+.menuButton :global(.icon-menu-dots) {
+  opacity: 1 !important;
+}
+
+.icon {
+  font-size: 1.5rem;
+  line-height: 1;
+
+  @include mixins.respond-above(xs) {
+    font-size: 1.875rem;
+  }
+}
+
+.closeButton {
+  left: 0.75rem;
+
+  @include mixins.respond-above(xs) {
+    right: 0.75rem;
+    left: auto;
+  }
+}
+
+.menuButton {
+  right: 0.75rem;
+
+  @include mixins.respond-above(xs) {
+    right: 3.75rem;
+  }
+}
+
+.nftInfo {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 1;
+
+  &::before {
+    pointer-events: none;
+    content: '';
+
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    // Workaround for iOS Safari z-index issue - during transition on Lottie nft they overlap other elements
+    transform: translate3d(0, 0, 0);
+
+    width: 100%;
+    height: 8rem;
+
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 100%);
+  }
+}
+
+.thumbnail {
+  cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+  z-index: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.info {
+  pointer-events: none;
+
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  left: 0;
+  // Workaround for iOS Safari z-index issue - during transition on Lottie nft they overlap other elements
+  transform: translate3d(0, 0, 0);
+
+  width: 100%;
+  padding: 2rem 1rem 1rem 1rem;
+
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.nftName {
+  overflow: hidden;
+
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.75rem;
+  color: var(--color-card-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collectionName {
+  pointer-events: auto;
+  cursor: var(--custom-cursor, pointer);
+
+  display: inline-block;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--color-card-text);
+
+  opacity: 0.75;
+
+  transition: opacity 150ms;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+    }
+  }
+}
+
+.content {
+  padding: 1.3125rem 1rem;
+}
+
+.noData {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  height: 100%;
+}
+
+.label {
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 0.875rem;
+  color: var(--color-gray-2);
+}
+
+.description {
+  margin-bottom: 1.25rem;
+  padding: 0.875rem 0.75rem;
+  border-radius: var(--border-radius-default);
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--color-black);
+  overflow-wrap: break-word;
+
+  background: var(--color-background-first);
+}
+
+.attributesList {
+  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: separate;
+
+  width: 100%;
+
+  color: var(--color-black);
+}
+
+.attributeName,
+.attributeValue {
+  padding: 0.625rem 0.75rem;
+  border: solid var(--color-separator);
+
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  overflow-wrap: break-word;
+}
+
+.attributeName {
+  width: 45%;
+  border-width: 1px 1px 0 1px;
+  font-weight: 700;
+  background: var(--color-background-first-disabled);
+
+  &.first {
+    border-top-left-radius: var(--border-radius-normal);
+  }
+
+  &.last {
+    border-width: 1px;
+    border-bottom-left-radius: var(--border-radius-normal);
+  }
+}
+
+.attributeValue {
+  border-width: 1px 1px 0 0;
+  font-weight: 600;
+  background: var(--color-background-first);
+
+  &.first {
+    border-top-right-radius: var(--border-radius-normal);
+  }
+
+  &.last {
+    border-width: 1px 1px 1px 0;
+    border-bottom-right-radius: var(--border-radius-normal);
+  }
+}
+
+.expandButton {
+  display: inline-block;
+
+  margin: 0.375rem 0 0 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: none;
+  }
+}
+
+.collectionNameIcon,
+.expandButtonIcon {
+  vertical-align: -0.1875rem;
+}

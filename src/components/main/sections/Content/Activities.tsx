@@ -5,7 +5,7 @@ import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../../../../global';
 
 import type {
-  ApiActivity, ApiNft, ApiStakingState, ApiSwapAsset, ApiTokenWithPrice,
+  ApiActivity, ApiBaseCurrency, ApiNft, ApiStakingState, ApiSwapAsset, ApiTokenWithPrice,
 } from '../../../../api/types';
 import type { Account, SavedAddress, Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
@@ -70,6 +70,7 @@ type StateProps = {
   isHistoryEndReachedBySlug?: Record<string, boolean>;
   alwaysShownSlugs?: string[];
   theme: Theme;
+  baseCurrency?: ApiBaseCurrency;
   isFirstTransactionsLoaded?: boolean;
   isSensitiveDataHidden?: true;
   stakingStateBySlug?: Record<string, ApiStakingState>;
@@ -109,6 +110,7 @@ function Activities({
   isHistoryEndReachedBySlug,
   alwaysShownSlugs,
   theme,
+  baseCurrency,
   isFirstTransactionsLoaded,
   isSensitiveDataHidden,
   stakingStateBySlug,
@@ -352,6 +354,7 @@ function Activities({
             savedAddresses={savedAddresses}
             withChainIcon={isMultichainAccount}
             accounts={accounts}
+            baseCurrency={baseCurrency}
             onClick={handleActivityClick}
           />
         </div>
@@ -445,6 +448,7 @@ export default memo(
         currentActivityId: accountState?.currentActivityId,
         alwaysShownSlugs: accountSettings?.alwaysShownSlugs,
         theme: global.settings.theme,
+        baseCurrency: global.settings.baseCurrency,
         isFirstTransactionsLoaded,
         stakingStateBySlug,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,

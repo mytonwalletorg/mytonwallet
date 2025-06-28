@@ -496,9 +496,9 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 38;
   }
 
-  if (cached.stateVersion >= 38 && cached.stateVersion <= 39) {
+  if (cached.stateVersion >= 38 && cached.stateVersion <= 40) {
     clearActivities();
-    cached.stateVersion = 40;
+    cached.stateVersion = 41;
   }
 
   // When adding migration here, increase `STATE_VERSION`
@@ -559,10 +559,10 @@ function updateCache(force?: boolean) {
 
   const global = getGlobal();
 
+  const accountsById = global.accounts?.byId || {};
   const reducedGlobal: GlobalState = {
     ...INITIAL_STATE,
     ...pick(global, [
-      'settings',
       'currentAccountId',
       'stateVersion',
       'restrictions',
@@ -572,9 +572,13 @@ function updateCache(force?: boolean) {
       'stakingDefault',
     ]),
     accounts: {
-      byId: global.accounts?.byId || {},
+      byId: accountsById,
     },
     byAccountId: reduceByAccountId(global),
+    settings: {
+      ...global.settings,
+      byAccountId: pick(global.settings.byAccountId, Object.keys(accountsById)),
+    },
   };
 
   const usedTokenSlugs = getUsedTokenSlugs(reducedGlobal);
@@ -589,6 +593,10 @@ function updateCache(force?: boolean) {
 
 function reduceByAccountId(global: GlobalState) {
   return Object.entries(global.byAccountId).reduce((acc, [accountId, state]) => {
+    if (!global.accounts?.byId[accountId]) {
+      return acc;
+    }
+
     acc[accountId] = pick(state, [
       'isBackupRequired',
       'currentTokenSlug',

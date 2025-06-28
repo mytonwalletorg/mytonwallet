@@ -192,7 +192,7 @@ function SwapModal({
         tokenIn={tokenIn}
         withChainIcon
         tokenOut={tokenOut}
-        text={formatCurrencyExtended(amountIn, tokenIn.symbol ?? '', true)}
+        text={formatCurrencyExtended(amountIn, tokenIn.symbol ?? '', true, tokenIn.decimals)}
         secondText={formatCurrencyExtended(amountOut, tokenOut.symbol ?? '', true)}
         className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />

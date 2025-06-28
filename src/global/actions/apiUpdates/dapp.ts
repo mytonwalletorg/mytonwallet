@@ -121,7 +121,15 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
 
       actions.apiUpdateDappSendTransaction(update);
+      break;
+    }
 
+    case 'dappSignData': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdateDappSignData', update);
+      }
+
+      actions.apiUpdateDappSignData(update);
       break;
     }
 

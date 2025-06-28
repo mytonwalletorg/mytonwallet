@@ -253,9 +253,14 @@ function NftCollectionHeader({
 
   return (
     <div className={styles.root}>
-      <Button className={styles.backButton} isSimple isText onClick={closeNftCollection}>
+      <Button
+        isSimple
+        isText
+        ariaLabel={lang('Back')}
+        className={styles.backButton}
+        onClick={closeNftCollection}
+      >
         <i className={buildClassName(styles.backIcon, 'icon-chevron-left')} aria-hidden />
-        <span>{lang('Back')}</span>
       </Button>
 
       <div className={styles.content}>

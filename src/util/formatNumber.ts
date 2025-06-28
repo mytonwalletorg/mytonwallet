@@ -1,4 +1,4 @@
-import type { ApiBaseCurrency } from '../api/types';
+import type { ApiBaseCurrency, ApiTokenWithPrice } from '../api/types';
 
 import {
   DEFAULT_PRICE_CURRENCY,
@@ -6,6 +6,7 @@ import {
   WHOLE_PART_DELIMITER,
 } from '../config';
 import { Big } from '../lib/big.js';
+import { bigintAbs } from './bigint';
 import { toDecimal } from './decimals';
 import withCache from './withCache';
 
@@ -81,4 +82,17 @@ function applyThousandsGrouping(str: string) {
   const groupedWhole = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, `$&${WHOLE_PART_DELIMITER}`);
 
   return [groupedWhole, fractionPart].filter(Boolean).join('.');
+}
+
+/** Formats the base currency amount of a transaction */
+export function formatBaseCurrencyAmount(
+  amount: bigint,
+  baseCurrency: ApiBaseCurrency | undefined,
+  token: Pick<ApiTokenWithPrice, 'decimals' | 'price'>,
+) {
+  const baseCurrencyAmount = Big(toDecimal(bigintAbs(amount), token.decimals, true)).mul(token.price);
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+  // The rounding logic should match the original amount rounding logic implemented by formatCurrencyExtended.
+  // It's for cases when the base currency matches the transaction currency.
+  return formatCurrency(baseCurrencyAmount, shortBaseSymbol);
 }

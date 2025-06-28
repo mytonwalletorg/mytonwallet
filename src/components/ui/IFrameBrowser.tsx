@@ -93,7 +93,13 @@ function IFrameBrowser({
         onMenuItemClick={handleMenuItemClick}
         className={styles.modalHeader}
       />
-      <iframe ref={iframeRef} title={renderingTitle} src={url} className={styles.iframe} />
+      <iframe
+        ref={iframeRef}
+        title={renderingTitle}
+        src={url}
+        className={styles.iframe}
+        allow="web-share; clipboard-write"
+      />
     </Modal>
   );
 }

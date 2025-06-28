@@ -60,6 +60,7 @@ function ModalHeader<T extends string>({
         withNotch && 'is-scrolled',
         !onBackButtonClick && modalStyles.header_wideContent,
         className,
+        isMenuOpen && 'is-menu-open',
       )}
     >
       {onBackButtonClick && (

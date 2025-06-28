@@ -26,7 +26,6 @@ import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
 import localStorage from '../storages/localStorage';
-import { isAccountActive } from './accounts';
 import {
   checkHasScamLink,
   checkHasTelegramBotMention,
@@ -96,10 +95,6 @@ export function connectUpdater(onUpdate: OnApiUpdate) {
 
 export function disconnectUpdater() {
   currentOnUpdate = undefined;
-}
-
-export function isAlive(_onUpdate: OnApiUpdate, accountId: string) {
-  return isUpdaterAlive(_onUpdate) && isAccountActive(accountId);
 }
 
 export function isUpdaterAlive(onUpdate: OnApiUpdate) {

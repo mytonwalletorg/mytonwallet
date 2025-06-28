@@ -35,7 +35,6 @@ const IOS_SPLASH_SCREEN_HIDE_DELAY = 500;
 const IOS_SPLASH_SCREEN_HIDE_DURATION = 600;
 export const VIBRATE_SUCCESS_END_PAUSE_MS = 1300;
 
-let launchUrl: string | undefined;
 let isNativeBiometricAuthSupported = false;
 let isFaceIdAvailable = false;
 let isTouchIdAvailable = false;
@@ -90,8 +89,10 @@ export async function initCapacitor() {
   await SafeArea.addListener('safeAreaChanged', (data) => {
     updateSafeAreaValues(data);
   });
+}
 
-  launchUrl = (await App.getLaunchUrl())?.url;
+export async function processCapacitorLaunchDeeplink() {
+  const launchUrl = (await App.getLaunchUrl())?.url;
 
   if (launchUrl) {
     void processDeeplink(launchUrl);

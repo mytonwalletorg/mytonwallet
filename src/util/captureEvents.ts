@@ -1,3 +1,4 @@
+import { forceMutation } from '../lib/fasterdom/stricterdom';
 import { Lethargy } from './lethargy';
 import { clamp, round } from './math';
 import { debounce } from './schedulers';
@@ -204,10 +205,13 @@ export function captureEvents(element: HTMLElement, options: CaptureOptions) {
       (captureEvent.target as HTMLElement).removeEventListener('touchmove', onMove);
 
       if (IS_IOS && options.selectorToPreventScroll) {
-        Array.from(document.querySelectorAll<HTMLElement>(options.selectorToPreventScroll))
-          .forEach((scrollable) => {
+        const nodes = Array.from(document.querySelectorAll<HTMLElement>(options.selectorToPreventScroll));
+
+        forceMutation(() => {
+          nodes.forEach((scrollable) => {
             scrollable.style.overflow = '';
           });
+        }, nodes);
       }
 
       if (e) {
@@ -304,10 +308,13 @@ export function captureEvents(element: HTMLElement, options: CaptureOptions) {
       }
 
       if (IS_IOS && shouldPreventScroll && options.selectorToPreventScroll) {
-        Array.from(document.querySelectorAll<HTMLElement>(options.selectorToPreventScroll))
-          .forEach((scrollable) => {
+        const nodes = Array.from(document.querySelectorAll<HTMLElement>(options.selectorToPreventScroll));
+
+        forceMutation(() => {
+          nodes.forEach((scrollable) => {
             scrollable.style.overflow = 'hidden';
           });
+        }, nodes);
       }
     }
   }

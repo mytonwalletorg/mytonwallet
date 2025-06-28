@@ -1,6 +1,39 @@
 import { useEffect } from '../lib/teact/teact';
 
-import { hideBottomBar, showBottomBar } from '../components/main/sections/Actions/BottomBar';
+import { createCallbackManager } from '../util/callbacks';
+
+let bottomBarHideCounter = 0;
+const bottomBarListeners = createCallbackManager();
+
+export function getIsBottomBarHidden() {
+  return bottomBarHideCounter > 0;
+}
+
+export function subscribeToBottomBarVisibility(callback: () => void) {
+  return bottomBarListeners.addCallback(callback);
+}
+
+function notifyBottomBarListeners() {
+  bottomBarListeners.runCallbacks();
+}
+
+function hideBottomBar() {
+  const wasHidden = getIsBottomBarHidden();
+  bottomBarHideCounter += 1;
+
+  if (!wasHidden && getIsBottomBarHidden()) {
+    notifyBottomBarListeners();
+  }
+}
+
+function showBottomBar() {
+  const wasHidden = getIsBottomBarHidden();
+  bottomBarHideCounter = Math.max(0, bottomBarHideCounter - 1);
+
+  if (wasHidden && !getIsBottomBarHidden()) {
+    notifyBottomBarListeners();
+  }
+}
 
 // Use this hook when you need to temporarily hide the bottom bar on a screen, for example,
 // when assumes the use of the entire screen height - `PasswordForm` with biometrics

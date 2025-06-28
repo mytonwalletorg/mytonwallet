@@ -11,15 +11,21 @@ import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { stopEvent } from '../../util/domEvents';
 import { vibrate } from '../../util/haptics';
-import { openUrl } from '../../util/openUrl';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
 import useTelegramMiniAppSwipeToClose from '../../util/telegram/hooks/useTelegramMiniAppSwipeToClose';
-import { getHostnameFromUrl, isValidUrl } from '../../util/url';
 import {
   IS_ANDROID, IS_ANDROID_APP, IS_IOS_APP, IS_TOUCH_ENV,
 } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import {
+  filterSites,
+  findSiteByUrl,
+  generateSearchSuggestions,
+  openSite,
+  processSites,
+  type SearchSuggestions,
+} from './helpers/utils';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
@@ -33,12 +39,11 @@ import useScrolledState from '../../hooks/useScrolledState';
 import { useStateRef } from '../../hooks/useStateRef';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import Menu from '../ui/Menu';
-import MenuItem from '../ui/MenuItem';
 import Spinner from '../ui/Spinner';
 import Transition from '../ui/Transition';
 import Category from './Category';
 import DappFeed from './DappFeed';
+import ExploreSearchSuggestions from './ExploreSearchSuggestions';
 import Site from './Site';
 import SiteList from './SiteList';
 
@@ -56,14 +61,7 @@ interface StateProps {
   currentSiteCategoryId?: number;
 }
 
-interface SearchSuggestions {
-  history?: string[];
-  sites?: ApiSite[];
-  isEmpty: boolean;
-}
-
 const SUGGESTIONS_OPEN_DELAY = 300;
-const GOOGLE_SEARCH_URL = 'https://www.google.com/search?q=';
 const enum SLIDES {
   main,
   category,
@@ -75,7 +73,6 @@ function Explore({
   const {
     loadExploreSites,
     getDapps,
-    addSiteToBrowserHistory,
     removeSiteFromBrowserHistory,
     openSiteCategory,
     closeSiteCategory,
@@ -105,44 +102,14 @@ function Explore({
     [closeSiteCategory, renderingKey],
   );
 
-  const filteredSites = useMemo(() => {
-    return shouldRestrict
-      ? originalSites?.filter((site) => !site.canBeRestricted)
-      : originalSites;
-  }, [originalSites, shouldRestrict]);
+  const filteredSites = useMemo(() => filterSites(originalSites, shouldRestrict), [originalSites, shouldRestrict]);
 
-  const searchSuggestions = useMemo<SearchSuggestions>(() => {
-    const search = searchValue.toLowerCase();
-    const historyResult = browserHistory?.filter((url) => url.toLowerCase().includes(search));
-    const sitesResult = search.length && filteredSites
-      ? filteredSites.filter(({ url, name, description }) => {
-        return url.toLowerCase().includes(search)
-          || name.toLowerCase().includes(search)
-          || description.toLowerCase().includes(search);
-      })
-      : undefined;
+  const searchSuggestions = useMemo<SearchSuggestions>(
+    () => generateSearchSuggestions(searchValue, browserHistory, filteredSites),
+    [browserHistory, searchValue, filteredSites],
+  );
 
-    return {
-      history: historyResult,
-      sites: sitesResult,
-      isEmpty: (historyResult?.length || 0) + (sitesResult?.length || 0) === 0,
-    };
-  }, [browserHistory, searchValue, filteredSites]);
-
-  const { trendingSites, allSites } = useMemo(() => {
-    return (filteredSites || []).reduce((acc, site) => {
-      if (site.isFeatured) {
-        acc.trendingSites.push(site);
-      }
-
-      if (!acc.allSites[site.categoryId!]) {
-        acc.allSites[site.categoryId!] = [];
-      }
-      acc.allSites[site.categoryId!].push(site);
-
-      return acc;
-    }, { trendingSites: [] as ApiSite[], allSites: {} as Record<number, ApiSite[]> });
-  }, [filteredSites]);
+  const { trendingSites, allSites } = useMemo(() => processSites(filteredSites), [filteredSites]);
 
   useEffect(() => {
     if (!IS_TOUCH_ENV || !filteredSites?.length) {
@@ -208,35 +175,21 @@ function Explore({
     }
   }, [isSearchFocused, searchSuggestions.isEmpty]);
 
-  function openSite(originalUrl: string, isExternal?: boolean, title?: string) {
-    let url = originalUrl;
-    if (!url.startsWith('http:') && !url.startsWith('https:')) {
-      url = `https://${url}`;
-    }
-    if (!isValidUrl(url)) {
-      url = `${GOOGLE_SEARCH_URL}${encodeURIComponent(originalUrl)}`;
-    } else {
-      addSiteToBrowserHistory({ url });
-    }
-
-    void openUrl(url, { isExternal, title, subtitle: getHostnameFromUrl(url) });
-  }
-
   const handleSiteClick = useLastCallback((
     e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElement>,
     url: string,
   ) => {
     void vibrate();
     hideSuggestions();
-    const site = originalSites?.find(({ url: currentUrl }) => currentUrl === url);
+    const site = findSiteByUrl(originalSites, url);
     openSite(url, site?.isExternal, site?.name);
   });
 
-  function handleSiteClear(e: React.MouseEvent, url: string) {
+  const handleSiteClear = useLastCallback((e: React.MouseEvent, url: string) => {
     stopEvent(e);
 
     removeSiteFromBrowserHistory({ url });
-  }
+  });
 
   function handleSearchValueChange(e: React.ChangeEvent<HTMLInputElement>) {
     setSearchValue(e.target.value);
@@ -278,43 +231,6 @@ function Explore({
     );
   }
 
-  function renderSearchSuggestions() {
-    return (
-      <Menu
-        type="suggestion"
-        noBackdrop
-        isOpen={Boolean(isSuggestionsVisible && !searchSuggestions.isEmpty)}
-        className={styles.suggestions}
-        bubbleClassName={styles.suggestionsMenu}
-        onClose={handleMenuClose}
-      >
-        {searchSuggestions?.history?.map((url) => (
-          <MenuItem key={`history-${url}`} className={styles.suggestion} onClick={handleSiteClick} clickArg={url}>
-            <i
-              className={buildClassName(styles.suggestionIcon, searchValue.length ? 'icon-search' : 'icon-globe')}
-              aria-hidden
-            />
-            <span className={styles.suggestionAddress}>{getHostnameFromUrl(url)}</span>
-
-            <button
-              className={styles.clearSuggestion}
-              type="button"
-              aria-label={lang('Clear')}
-              title={lang('Clear')}
-              onMouseDown={(e) => handleSiteClear(e, url)}
-              onClick={stopEvent}
-            >
-              <i className="icon-close" aria-hidden />
-            </button>
-          </MenuItem>
-        ))}
-        {searchSuggestions?.sites?.map((site) => (
-          <Site key={`site-${site.url}-${site.name}`} className={styles.suggestion} site={site} />
-        ))}
-      </Menu>
-    );
-  }
-
   function renderTrending() {
     return (
       <div ref={trendingContainerRef} className={styles.trendingSection}>
@@ -338,7 +254,14 @@ function Explore({
           >
             <div className={buildClassName(styles.searchWrapper, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
               {renderSearch()}
-              {renderSearchSuggestions()}
+              <ExploreSearchSuggestions
+                isSuggestionsVisible={isSuggestionsVisible}
+                searchSuggestions={searchSuggestions}
+                searchValue={searchValue}
+                onSiteClick={handleSiteClick}
+                onSiteClear={handleSiteClear}
+                onClose={handleMenuClose}
+              />
             </div>
 
             <DappFeed />

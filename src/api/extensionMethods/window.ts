@@ -1,5 +1,6 @@
 import extension from 'webextension-polyfill';
 
+import { DEFAULT_PORTRAIT_WINDOW_SIZE } from '../../config';
 import { createDappPromise, rejectAllDappPromises } from '../common/dappPromises';
 import storage from '../storages/extension';
 
@@ -11,8 +12,7 @@ let readyPromise: Promise<void> | undefined;
 const WINDOW_DEFAULTS = {
   top: 120,
   left: 20,
-  width: 368,
-  height: 770,
+  ...DEFAULT_PORTRAIT_WINDOW_SIZE,
 };
 const MARGIN_RIGHT = 20;
 const WINDOW_STATE_MONITOR_INTERVAL = 3000;
@@ -132,4 +132,8 @@ async function createWindow(isRetryingWithoutLastState = false): Promise<void> {
 
 export async function clearCache() {
   await extension.webRequest.handlerBehaviorChanged();
+}
+
+export async function updateWindowSize(size: { width: number; height: number }) {
+  await extension.windows.update(currentWindowId!, size);
 }

@@ -167,9 +167,14 @@ function NftSelectionHeader({
 
   return (
     <div className={styles.root}>
-      <Button className={styles.backButton} isSimple isText onClick={clearNftsSelection}>
+      <Button
+        isSimple
+        isText
+        ariaLabel={lang('Back')}
+        className={styles.backButton}
+        onClick={clearNftsSelection}
+      >
         <i className={buildClassName(styles.backIcon, 'icon-chevron-left')} aria-hidden />
-        <span>{lang('Back')}</span>
       </Button>
       <div className={styles.content}>
         <div className={styles.title}>

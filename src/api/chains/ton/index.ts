@@ -67,8 +67,6 @@ export {
   checkApiAvailability,
 } from './other';
 export {
-  getAccountTokenBalances,
-  getTokenBalances,
   fetchToken,
   insertMintlessPayload,
   getToncoinAmountForTransfer,
@@ -88,11 +86,8 @@ export {
 } from './swap';
 export { Workchain } from './constants';
 export {
-  setupPolling,
-  setupInactiveAccountsBalancePolling,
-  clearAccountsCache,
-  clearAccountCache,
-  clearAccountsCacheByNetwork,
+  setupActivePolling,
+  setupInactivePolling,
 } from './polling';
 export {
   fetchActivityDetails,

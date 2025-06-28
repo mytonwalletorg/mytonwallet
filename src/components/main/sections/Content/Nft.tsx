@@ -6,7 +6,7 @@ import { getActions } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 import type { ObserveFn } from '../../../../hooks/useIntersectionObserver';
-import { type IAnchorPosition, MediaType } from '../../../../global/types';
+import { type IAnchorPosition } from '../../../../global/types';
 
 import { TON_DNS_RENEWAL_NFT_WARNING_DAYS } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
@@ -55,10 +55,10 @@ function Nft({
   isViewAccount,
 }: OwnProps) {
   const {
-    openMediaViewer,
     selectNfts,
     clearNftSelection,
     openDomainRenewalModal,
+    openNftAttributesModal,
   } = getActions();
 
   const lang = useLang();
@@ -92,7 +92,6 @@ function Nft({
     handleContextMenuClose,
   } = useContextMenuHandlers({
     elementRef: ref,
-    shouldDisablePropagation: true,
   });
 
   const fullClassName = buildClassName(
@@ -113,7 +112,7 @@ function Nft({
     }
 
     void vibrate();
-    openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft });
+    openNftAttributesModal({ nft });
   }
 
   function handleRenewDomainClick(e: React.MouseEvent) {
@@ -162,7 +161,6 @@ function Nft({
     <div
       key={nft.address}
       ref={ref}
-      data-nft-address={nft.address}
       className={fullClassName}
       onMouseEnter={markHover}
       onMouseLeave={unmarkHover}

@@ -110,7 +110,7 @@ export function createAccount({
   }
 
   if (selectAccount(global, accountId)) {
-    throw new Error(`Account ${accountId} already exist`);
+    throw new Error(`Account ${accountId} already exists`);
   }
 
   return {
@@ -276,6 +276,12 @@ export function updateCurrentAccountState(global: GlobalState, partial: Partial<
 export function updateAccountState(
   global: GlobalState, accountId: string, partial: Partial<AccountState>, withDeepCompare = false,
 ): GlobalState {
+  // Updates from the API may arrive after the account is removed.
+  // This check prevents that useless data from persisting in the global state.
+  if (!doesAccountExist(global, accountId)) {
+    return global;
+  }
+
   const accountState = selectAccountState(global, accountId);
 
   if (withDeepCompare && accountState && isPartialDeepEqual(accountState, partial)) {
@@ -309,6 +315,12 @@ export function updateAccountSettings(
   accountId: string,
   settingsUpdate: Partial<GlobalState['settings']['byAccountId']['*']>,
 ) {
+  // Updates from the API may arrive after the account is removed.
+  // This check prevents that useless data from persisting in the global state.
+  if (!doesAccountExist(global, accountId)) {
+    return global;
+  }
+
   return {
     ...global,
     settings: {
@@ -360,4 +372,10 @@ export function updateCurrentAccountId(global: GlobalState, accountId: string): 
     ...global,
     currentAccountId: accountId,
   };
+}
+
+export function doesAccountExist(global: GlobalState, accountId: string) {
+  return !!selectAccount(global, accountId)
+    || accountId === global.auth.firstNetworkAccount?.accountId
+    || accountId === global.auth.secondNetworkAccount?.accountId;
 }

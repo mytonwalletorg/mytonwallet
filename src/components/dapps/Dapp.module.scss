@@ -142,6 +142,7 @@ $labelSidePadding: 0.5rem;
   min-width: 9rem !important;
 }
 
+.rowContainerSkeleton,
 .dataField {
   margin-bottom: $fieldGap;
 }
@@ -174,6 +175,11 @@ $labelSidePadding: 0.5rem;
 
   &_expanded {
     word-break: break-all !important;
+    white-space: normal;
+  }
+
+  &_text {
+    overflow-wrap: break-word;
     white-space: normal;
   }
 }
@@ -466,10 +472,6 @@ $labelSidePadding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-.rowContainerSkeleton {
-  margin-bottom: $fieldGap;
 }
 
 .rowSkeleton {

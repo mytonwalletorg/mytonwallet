@@ -42,6 +42,15 @@ type StateProps = {
   isViewMode: boolean;
 };
 
+const SHOULD_CLOSE_VIEWER_HANDLERS: NftMenuHandler[] = [
+  'send',
+  'renew',
+  'burn',
+  'collection',
+  'select',
+  'linkDomain',
+];
+
 function Actions({
   nft,
   tonDnsExpiration,
@@ -82,7 +91,7 @@ function Actions({
   });
 
   const handleSelect = useLastCallback((value: NftMenuHandler) => {
-    if (value === 'send' || value === 'renew') {
+    if (SHOULD_CLOSE_VIEWER_HANDLERS.includes(value)) {
       onClose();
     }
 

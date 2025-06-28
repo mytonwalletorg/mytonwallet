@@ -10,6 +10,7 @@
 
   -webkit-app-region: drag;
 
+  :global(html.is-modal-open) &,
   :global(body.is-media-viewer-open) & {
     pointer-events: none;
     opacity: 0;

@@ -72,7 +72,7 @@ import {
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
-let pairsCache: Record<string, { timestamp: number }> = {};
+const pairsCache: Record<string, { timestamp: number }> = {};
 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const WAIT_FOR_CHANGELLY = 5 * 1000;
@@ -827,10 +827,6 @@ async function loadSwapPairs(tokenSlug: string) {
 addActionHandler('setSwapCexAddress', (global, actions, { toAddress }) => {
   global = updateCurrentSwap(global, { toAddress });
   setGlobal(global);
-});
-
-addActionHandler('clearSwapPairsCache', () => {
-  pairsCache = {};
 });
 
 addActionHandler('updatePendingSwaps', async (global) => {

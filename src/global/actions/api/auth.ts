@@ -73,7 +73,6 @@ export async function switchAccount(global: GlobalState, accountId: string, newN
   global = getGlobal();
   setGlobal(switchAccountAndClearGlobal(global, accountId));
 
-  actions.clearSwapPairsCache();
   clearPoisoningCache();
 
   if (newNetwork) {
@@ -471,9 +470,8 @@ addActionHandler('addHardwareAccounts', (global, actions, { wallets }) => {
 });
 
 addActionHandler('afterCheckMnemonic', (global, actions) => {
-  global = updateCurrentAccountId(global, global.auth.firstNetworkAccount!.accountId);
-  global = updateCurrentAccountState(global, {});
   global = createAccountsFromGlobal(global);
+  global = updateCurrentAccountId(global, global.auth.firstNetworkAccount!.accountId);
   setGlobal(global);
 
   actions.tryAddNotificationAccount({ accountId: global.auth.firstNetworkAccount!.accountId });
@@ -498,12 +496,12 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
     return;
   }
 
+  global = createAccountsFromGlobal(global);
   global = updateCurrentAccountId(global, global.auth.firstNetworkAccount!.accountId);
   global = updateCurrentAccountState(global, { isBackupRequired: true });
-  global = createAccountsFromGlobal(global);
-  actions.tryAddNotificationAccount({ accountId: global.auth.firstNetworkAccount!.accountId });
-
   setGlobal(global);
+
+  actions.tryAddNotificationAccount({ accountId: global.auth.firstNetworkAccount!.accountId });
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
@@ -591,9 +589,9 @@ addActionHandler('confirmDisclaimer', (global, actions) => {
 addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   const { firstNetworkAccount } = global.auth;
 
+  global = createAccountsFromGlobal(global);
   global = updateCurrentAccountId(global, firstNetworkAccount!.accountId);
   global = updateAuth(global, { state: AuthState.ready });
-  global = createAccountsFromGlobal(global);
   setGlobal(global);
 
   actions.tryAddNotificationAccount({ accountId: firstNetworkAccount!.accountId });

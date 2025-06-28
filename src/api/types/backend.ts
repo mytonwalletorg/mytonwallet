@@ -1,6 +1,7 @@
 import type { DieselStatus } from '../../global/types';
+import type { StakingPoolConfig } from '../chains/ton/contracts/JettonStaking/StakingPool';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiLoyaltyType, ApiMtwCardType, ApiTokenWithPrice } from './misc';
+import type { ApiCountryCode, ApiLoyaltyType, ApiMtwCardType, ApiTokenWithPrice } from './misc';
 
 export type ApiTokenDetails = Pick<ApiTokenWithPrice, 'slug' | 'type' | 'price' | 'priceUsd' | 'percentChange24h'>;
 
@@ -174,6 +175,7 @@ export type ApiSwapCexCreateTransactionResponse = {
 // Staking
 export type ApiStakingJettonPool = {
   pool: string;
+  poolConfig: StakingPoolConfig;
   token: string;
   periods: {
     period: number;
@@ -182,13 +184,15 @@ export type ApiStakingJettonPool = {
   }[];
 };
 
-export type ApiStakingCommonData = {
+/** Note: all the timestamps are in Unix seconds */
+export type ApiStakingCommonResponse = {
   liquid: {
     currentRate: number;
     nextRoundRate: number;
     collection?: string;
     apy: number;
-    available: bigint;
+    /** The string is a floating point number */
+    available: string;
     loyaltyApy: Record<ApiLoyaltyType, number>;
   };
   round: {
@@ -201,7 +205,7 @@ export type ApiStakingCommonData = {
     end: number;
     unlock: number;
   };
-  jettonPools: ApiStakingJettonPool[];
+  jettonPools: Omit<ApiStakingJettonPool, 'poolConfig'>[];
   ethena: {
     apy: number;
     apyVerified: number;
@@ -209,6 +213,14 @@ export type ApiStakingCommonData = {
     isDisabled?: boolean;
   };
 };
+
+/** Note: all timestamps are in Unix milliseconds */
+export type ApiStakingCommonData = Override<ApiStakingCommonResponse, {
+  liquid: Override<ApiStakingCommonResponse['liquid'], {
+    available: bigint;
+  }>;
+  jettonPools: ApiStakingJettonPool[];
+}>;
 
 export type ApiSite = {
   url: string;
@@ -261,4 +273,15 @@ export type ApiCardsInfo = Record<ApiMtwCardType, ApiCardInfo>;
 
 export type ApiAccountConfig = {
   cardsInfo?: ApiCardsInfo;
+};
+
+export type ApiBackendConfig = {
+  isLimited: boolean;
+  isCopyStorageEnabled?: boolean;
+  supportAccountsCount?: number;
+  now: number;
+  country: ApiCountryCode;
+  isUpdateRequired: boolean;
+  isVestingEnabled?: boolean;
+  isWebSocketEnabled?: boolean;
 };

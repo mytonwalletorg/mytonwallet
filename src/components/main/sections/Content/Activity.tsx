@@ -1,6 +1,13 @@
 import React from '../../../../lib/teact/teact';
 
-import type { ApiActivity, ApiNft, ApiStakingState, ApiSwapAsset, ApiTokenWithPrice } from '../../../../api/types';
+import type {
+  ApiActivity,
+  ApiBaseCurrency,
+  ApiNft,
+  ApiStakingState,
+  ApiSwapAsset,
+  ApiTokenWithPrice,
+} from '../../../../api/types';
 import type { Account, AppTheme, SavedAddress } from '../../../../global/types';
 
 import Swap, { getSwapHeight } from './Swap';
@@ -21,6 +28,7 @@ interface OwnProps {
   stakingStateBySlug?: Record<string, ApiStakingState>;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
+  baseCurrency?: ApiBaseCurrency;
   onClick?: (id: string) => void;
 }
 
@@ -39,6 +47,7 @@ export default function Activity({
   stakingStateBySlug,
   savedAddresses,
   accounts,
+  baseCurrency,
   onClick,
 }: OwnProps) {
   if (activity.kind === 'swap') {
@@ -77,6 +86,7 @@ export default function Activity({
         isSensitiveDataHidden={isSensitiveDataHidden}
         isFuture={isFuture}
         accounts={accounts}
+        baseCurrency={baseCurrency}
         onClick={onClick}
       />
     );

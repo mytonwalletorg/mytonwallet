@@ -29,6 +29,7 @@
   display: flex;
   align-items: center;
 
+  width: 3rem;
   height: 3rem;
   padding: 0.125rem 0.5rem 0;
 
@@ -43,7 +44,7 @@
 .content {
   flex: 1 1 auto;
   max-width: 100%;
-  padding: 0 4.75rem;
+  padding: 0 3rem;
   text-align: center;
 }
 
