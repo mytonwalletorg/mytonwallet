@@ -1,8 +1,10 @@
+import type { ElementRef } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 import type { IAnchorPosition } from '../../../../global/types';
+import type { Layout } from '../../../../hooks/useMenuPosition';
 
 import {
   selectCurrentAccountSettings,
@@ -26,10 +28,14 @@ import styles from './NftMenu.module.scss';
 
 interface OwnProps {
   nft: ApiNft;
+  ref?: ElementRef<HTMLButtonElement>;
+  isContextMenuMode?: boolean;
   dnsExpireInDays?: number;
   menuAnchor?: IAnchorPosition;
+  className?: string;
   onOpen: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
+  onCloseAnimationEnd?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -41,9 +47,13 @@ interface StateProps {
   linkedAddress?: string;
 }
 
+const CONTEXT_MENU_VERTICAL_SHIFT_PX = 4;
+
 function NftMenu({
   isViewMode,
+  isContextMenuMode,
   nft,
+  ref,
   dnsExpireInDays,
   linkedAddress,
   menuAnchor,
@@ -51,8 +61,10 @@ function NftMenu({
   whitelistedNftAddresses,
   cardBackgroundNft,
   accentColorNft,
+  className,
   onOpen,
   onClose,
+  onCloseAnimationEnd,
 }: OwnProps & StateProps) {
   const isNftBlacklisted = useMemo(() => {
     return blacklistedNftAddresses?.includes(nft.address);
@@ -77,16 +89,21 @@ function NftMenu({
     isNftInstalled,
     isNftAccentColorInstalled,
   });
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  let buttonRef = useRef<HTMLButtonElement>();
+  const menuRef = useRef<HTMLDivElement>();
   const isOpen = Boolean(menuAnchor);
+  if (ref) {
+    buttonRef = ref;
+  }
 
-  const getTriggerElement = useLastCallback(() => ref.current);
+  const getTriggerElement = useLastCallback(() => buttonRef.current);
   const getRootElement = useLastCallback(() => document.body);
   const getMenuElement = useLastCallback(() => menuRef.current);
-  const getLayout = useLastCallback(() => ({ withPortal: true }));
+  const getLayout = useLastCallback((): Layout => ({
+    withPortal: true,
+    topShiftY: isContextMenuMode ? CONTEXT_MENU_VERTICAL_SHIFT_PX : 0,
+    preferredPositionX: isContextMenuMode ? 'left' : 'right',
+  }));
 
   const lang = useLang();
 
@@ -104,9 +121,9 @@ function NftMenu({
   return (
     <>
       <button
-        ref={ref}
+        ref={buttonRef}
         type="button"
-        className={styles.button}
+        className={buildClassName(styles.button, className)}
         aria-label={lang('NFT Menu')}
         onClick={handleButtonClick}
       >
@@ -118,17 +135,19 @@ function NftMenu({
         withPortal
         menuAnchor={menuAnchor}
         menuPositionX="right"
-        getTriggerElement={getTriggerElement}
+        getTriggerElement={!isContextMenuMode ? getTriggerElement : undefined}
         getRootElement={getRootElement}
         getMenuElement={getMenuElement}
         getLayout={getLayout}
         items={menuItems}
         shouldTranslateOptions
-        className={styles.menu}
+        className={isContextMenuMode ? styles.contextMenu : styles.menu}
         bubbleClassName={styles.menuBubble}
         buttonClassName={styles.item}
+        itemDescriptionClassName={styles.menuItemDescription}
         shouldCleanup
         onClose={onClose}
+        onCloseAnimationEnd={onCloseAnimationEnd}
         onSelect={handleMenuItemSelect}
       />
     </>

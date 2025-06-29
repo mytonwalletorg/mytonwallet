@@ -7,7 +7,7 @@ import {
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import { handleOpenUrl } from '../../util/openUrl';
+import { handleUrlClick } from '../../util/openUrl';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -65,7 +65,8 @@ function SettingsAbout({
           headerClassName,
           'with-notch-on-scroll',
           isScrolled && 'is-scrolled',
-        )}>
+        )}
+        >
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
@@ -179,7 +180,7 @@ function SettingsAbout({
               href="https://mytonwallet.io/terms-of-use"
               target="_blank"
               rel="noreferrer"
-              onClick={handleOpenUrl}
+              onClick={handleUrlClick}
             >{lang('Terms of Use')}
             </a>
             <i className={styles.dotLarge} aria-hidden />
@@ -187,7 +188,7 @@ function SettingsAbout({
               href="https://mytonwallet.io/privacy-policy"
               target="_blank"
               rel="noreferrer"
-              onClick={handleOpenUrl}
+              onClick={handleUrlClick}
             >{lang('Privacy Policy')}
             </a>
           </div>

@@ -17,6 +17,8 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import { useDappBridge } from '../explore/hooks/useDappBridge';
 
+import { getIsAnyNativeBottomSheetModalOpen } from './Modal';
+
 interface StateProps {
   title?: string;
   subtitle?: string;
@@ -28,6 +30,7 @@ interface StateProps {
 // The maximum time the in-app browser will take to close (and a little more as a safe margin)
 const CLOSE_MAX_DURATION = 900;
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
 
 function InAppBrowser({
@@ -60,8 +63,7 @@ function InAppBrowser({
     inAppBrowser.removeEventListener('message', onMessage);
     inAppBrowser.removeEventListener('exit', handleBrowserClose);
     inAppBrowser = undefined;
-    // eslint-disable-next-line no-null/no-null
-    inAppBrowserRef.current = null;
+    inAppBrowserRef.current = undefined;
     closeBrowser();
   });
 
@@ -102,6 +104,13 @@ function InAppBrowser({
           resolve();
         }
       });
+    };
+
+    const originalShow = inAppBrowser.show;
+    inAppBrowser.show = () => {
+      if (!getIsAnyNativeBottomSheetModalOpen()) {
+        originalShow?.();
+      }
     };
 
     const originalClose = inAppBrowser.close;

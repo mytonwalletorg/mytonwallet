@@ -138,7 +138,7 @@ function App({ mtwWalletInfo }: OwnProps) {
             giveaway={giveaway!}
             wallet={wallet!}
             participantStatus={participantStatus!}
-            jettonMetadata={tokenAddressData!}
+            jettonMetadata={tokenAddressData}
           />
         );
 

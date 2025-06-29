@@ -207,16 +207,16 @@ async function sendLedgerTransaction(
   if (data) {
     switch (dataType) {
       case 'hex':
-        payloadBoc = await ton.packPayloadToBoc(hexToBytes(data));
+        payloadBoc = ton.packPayloadToBoc(hexToBytes(data));
         break;
       case 'base64':
-        payloadBoc = await ton.packPayloadToBoc(base64ToBytes(data));
+        payloadBoc = ton.packPayloadToBoc(base64ToBytes(data));
         break;
       case 'boc':
         payloadBoc = data;
         break;
       case 'text':
-        payloadBoc = await ton.packPayloadToBoc(data);
+        payloadBoc = ton.packPayloadToBoc(data);
         break;
       default:
         payloadBoc = undefined;

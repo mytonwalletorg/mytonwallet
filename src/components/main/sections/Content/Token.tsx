@@ -1,11 +1,10 @@
-import type { RefObject } from 'react';
-import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
+import React, { type ElementRef, memo, useMemo, useRef } from '../../../../lib/teact/teact';
 
 import type { ApiBaseCurrency, ApiStakingState, ApiYieldType } from '../../../../api/types';
-import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { AppTheme, UserToken } from '../../../../global/types';
 import type { LangFn } from '../../../../hooks/useLang';
 import type { Layout } from '../../../../hooks/useMenuPosition';
+import type { StakingStateStatus } from '../../../../util/staking';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, IS_CORE_WALLET, TOKEN_WITH_LABEL, TON_USDE } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
@@ -35,7 +34,7 @@ import SensitiveData from '../../../ui/SensitiveData';
 import styles from './Token.module.scss';
 
 interface OwnProps {
-  ref?: RefObject<HTMLButtonElement>;
+  ref?: ElementRef<HTMLButtonElement>;
   token: UserToken;
   // Undefined means that it's not a staked token
   stakingStatus?: StakingStateStatus;
@@ -62,6 +61,7 @@ interface OwnProps {
 
 const UNFREEZE_DANGER_DURATION = 7 * DAY;
 const CONTEXT_MENU_VERTICAL_SHIFT_PX = 4;
+export const OPEN_CONTEXT_MENU_CLASS_NAME = 'open-context-menu';
 
 function Token({
   ref,
@@ -99,10 +99,8 @@ function Token({
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
 
-  // eslint-disable-next-line no-null/no-null
-  let buttonRef = useRef<HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  let buttonRef = useRef<HTMLButtonElement>();
+  const menuRef = useRef<HTMLDivElement>();
   const isVesting = Boolean(vestingStatus?.length);
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
   const value = Big(renderedAmount).mul(price).toString();
@@ -224,9 +222,9 @@ function Token({
   }
 
   const fullClassName = buildClassName(
-    styles.container,
+    styles.button,
     isActive && styles.active,
-    classNames,
+    isContextMenuOpen && OPEN_CONTEXT_MENU_CLASS_NAME,
   );
 
   function renderInvestorView() {
@@ -234,7 +232,6 @@ function Token({
       <Button
         ref={buttonRef}
         isSimple
-        style={style}
         className={fullClassName}
         onMouseDown={handleBeforeContextMenu}
         onContextMenu={handleContextMenu}
@@ -310,7 +307,8 @@ function Token({
               cols={fiatAmountCols}
               rows={2}
               cellSize={8}
-              align="right" className={buildClassName(styles.change, changeClassName)}
+              align="right"
+              className={buildClassName(styles.change, changeClassName)}
             >
               {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
               <i className={styles.dot} aria-hidden />
@@ -330,7 +328,6 @@ function Token({
       <Button
         ref={buttonRef}
         isSimple
-        style={style}
         className={fullClassName}
         onMouseDown={handleBeforeContextMenu}
         onContextMenu={handleContextMenu}
@@ -386,7 +383,8 @@ function Token({
             cols={amountCols}
             rows={2}
             cellSize={8}
-            align="right" className={buildClassName(
+            align="right"
+            className={buildClassName(
               styles.secondaryValue,
               stakingStatus && styles.secondaryValue_staked,
               isVesting && styles.secondaryValue_vesting,
@@ -412,7 +410,7 @@ function Token({
   }
 
   return (
-    <>
+    <div className={buildClassName(styles.container, classNames)} style={style}>
       <MenuBackdrop
         isMenuOpen={isBackdropRendered}
         contentRef={buttonRef}
@@ -438,7 +436,7 @@ function Token({
           onCloseAnimationEnd={handleContextMenuHide}
         />
       )}
-    </>
+    </div>
   );
 }
 

@@ -2,13 +2,18 @@ import { AppLauncher } from '@capacitor/app-launcher';
 import { getActions, getGlobal } from '../global';
 
 import { IFRAME_WHITELIST, IS_CAPACITOR, SUBPROJECT_URL_MASK } from '../config';
+import { closeAllOverlays } from '../global/helpers/misc';
 import { isTelegramUrl } from './url';
 
 const [, SUBPROJECT_HOST_ENDING] = SUBPROJECT_URL_MASK.split('*');
 
-export async function openUrl(
-  url: string, options?: { isExternal?: boolean; title?: string; subtitle?: string },
-) {
+export type OpenUrlOptions = {
+  isExternal?: boolean;
+  title?: string;
+  subtitle?: string;
+};
+
+export async function openUrl(url: string, options?: OpenUrlOptions) {
   if (isSubproject(url)) {
     url = `${url}#theme=${getGlobal().settings.theme}`;
   }
@@ -19,6 +24,7 @@ export async function openUrl(
     && (IS_CAPACITOR || isSubproject(url) || isInIframeWhitelist(url))
     && !isTelegramUrl(url)
   ) {
+    await closeAllOverlays();
     getActions().openBrowser({
       url,
       title: options?.title,
@@ -41,11 +47,13 @@ function isInIframeWhitelist(url: string) {
   return IFRAME_WHITELIST.some((allowedOrigin) => url.startsWith(allowedOrigin.replace(/\*$/, '')));
 }
 
-export function handleOpenUrl(
+export function handleUrlClick(
   e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
 ) {
   e.preventDefault();
-  void openUrl(e.currentTarget.href);
+  void openUrl(e.currentTarget.href, {
+    isExternal: e.shiftKey || e.ctrlKey || e.metaKey,
+  });
 }
 
 async function openAppSafe(url: string) {

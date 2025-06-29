@@ -1,12 +1,19 @@
 import type { Cell } from '@ton/core';
 import { beginCell, external, storeMessage } from '@ton/core';
 
-import type { ApiActivity, ApiEmulationResult, ApiNetwork, ApiTransactionActivity } from '../../types';
+import type {
+  ApiActivity,
+  ApiEmulationResult,
+  ApiNetwork,
+  ApiNftSuperCollection,
+  ApiTransactionActivity,
+} from '../../types';
 import type { EmulationResponse } from './toncenter/emulation';
 import type { TonWallet } from './util/tonCore';
 
 import { BURN_ADDRESS, TONCOIN } from '../../../config';
 import { toBase64Address } from './util/tonCore';
+import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import { FAKE_TX_ID } from '../../constants';
 import { fetchEmulateTrace } from './toncenter/emulation';
 import { calculateActivityDetails, getActivityRealFee } from './activities';
@@ -22,13 +29,15 @@ export async function emulateTransaction(
   const boc = buildExternalBoc(wallet, transaction, isInitialized);
   const emulation = await fetchEmulateTrace(network, boc);
   const walletAddress = toBase64Address(wallet.address, false, network);
-  return parseEmulation(network, walletAddress, emulation);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
+  return parseEmulation(network, walletAddress, emulation, nftSuperCollectionsByCollectionAddress);
 }
 
 function parseEmulation(
   network: ApiNetwork,
   walletAddress: string,
   emulation: EmulationResponse,
+  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
 ): ApiEmulationResult {
   const parsedTrace = parseTrace({
     network,
@@ -45,6 +54,7 @@ function parseEmulation(
     emulation.actions,
     emulation.address_book,
     emulation.metadata,
+    nftSuperCollectionsByCollectionAddress,
   ).activities;
 
   const walletActivities: ApiActivity[] = [];

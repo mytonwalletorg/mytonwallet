@@ -1,7 +1,7 @@
-@import "responsive";
+@forward "responsive";
 
-@import "scroll";
+@forward "scroll";
 
-@import "transition";
+@forward "transition";
 
-@import "ui";
+@forward "ui";

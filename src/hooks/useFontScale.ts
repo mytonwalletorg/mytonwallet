@@ -1,11 +1,11 @@
-import { useRef } from '../lib/teact/teact';
+import { type ElementRef, useRef } from '../lib/teact/teact';
 
 import { suppressStrict } from '../lib/fasterdom/stricterdom';
 import buildClassName from '../util/buildClassName';
 
 const MIN_SIZE_SCALE = 0.25; // 12px
 
-function useFontScale(inputRef: React.RefObject<HTMLElement>, shouldGetParentWidth?: boolean) {
+function useFontScale(inputRef: ElementRef<HTMLElement>, shouldGetParentWidth?: boolean) {
   const isFontChangedRef = useRef(false);
   const measureEl = useRef(document.createElement('div'));
 

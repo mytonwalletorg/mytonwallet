@@ -54,8 +54,7 @@ function IFrameBrowser({
   const { closeBrowser, showNotification } = getActions();
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>();
 
   const host = useMemo(() => url && (new URL(url)).host, [url]);
   const renderingTitle = useCurrentOrPrev(title || (host && (TITLES[host as keyof typeof TITLES] || host)));
@@ -75,7 +74,7 @@ function IFrameBrowser({
         break;
       case 'copyUrl':
         void copyTextToClipboard(url);
-        showNotification({ message: lang('URL was copied!') as string, icon: 'icon-copy' });
+        showNotification({ message: lang('URL was copied!'), icon: 'icon-copy' });
         break;
       case 'share':
         void shareUrl(url, renderingTitle);
@@ -94,7 +93,13 @@ function IFrameBrowser({
         onMenuItemClick={handleMenuItemClick}
         className={styles.modalHeader}
       />
-      <iframe ref={iframeRef} src={url} className={styles.iframe} />
+      <iframe
+        ref={iframeRef}
+        title={renderingTitle}
+        src={url}
+        className={styles.iframe}
+        allow="web-share; clipboard-write"
+      />
     </Modal>
   );
 }

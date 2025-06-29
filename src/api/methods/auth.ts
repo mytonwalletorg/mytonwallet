@@ -5,22 +5,23 @@ import type {
   ApiAccountAny,
   ApiAccountWithMnemonic,
   ApiActivityTimestamps,
-  ApiChain,
   ApiImportAddressByChain,
-  ApiLedgerAccount,
   ApiNetwork,
+  ApiTonAccount,
   ApiTonWallet,
   ApiViewAccount,
 } from '../types';
 import { ApiCommonError } from '../types';
 
 import { DEFAULT_WALLET_VERSION, IS_BIP39_MNEMONIC_ENABLED, IS_CORE_WALLET } from '../../config';
-import { buildAccountId, parseAccountId } from '../../util/account';
+import { parseAccountId } from '../../util/account';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
+import { createTaskQueue } from '../../util/schedulers';
 import chains from '../chains';
 import { toBase64Address } from '../chains/ton/util/tonCore';
 import {
   fetchStoredAccounts,
+  fetchStoredTonAccount,
   getAddressesFromAccount,
   getNewAccountId,
   removeAccountValue,
@@ -37,8 +38,12 @@ import { handleServerError } from '../errors';
 import { storage } from '../storages';
 import { activateAccount, deactivateAllAccounts } from './accounts';
 import { removeAccountDapps, removeAllDapps, removeNetworkDapps } from './dapps';
-
-export { importNewWalletVersion } from '../chains/ton';
+import {
+  addPollingAccount,
+  removeAllPollingAccounts,
+  removeNetworkPollingAccounts,
+  removePollingAccount,
+} from './polling';
 
 const { ton, tron } = chains;
 
@@ -76,7 +81,6 @@ export async function importMnemonic(
     throw new Error('Invalid mnemonic');
   }
 
-  const accountId: string = await getNewAccountId(network);
   const mnemonicEncrypted = await encryptMnemonic(mnemonic, password);
 
   // This is a defensive approach against potential corrupted encryption reported by some users
@@ -121,7 +125,7 @@ export async function importMnemonic(
       };
     }
 
-    await setAccountValue(accountId, 'accounts', account);
+    const accountId = await addAccount(network, account);
     const secondNetworkAccount = IS_CORE_WALLET ? await createAccountWithSecondNetwork({
       accountId, network, mnemonic, mnemonicEncrypted, version,
     }) : undefined;
@@ -151,14 +155,13 @@ export async function createAccountWithSecondNetwork(options: {
   const tonWallet = await ton.getWalletFromMnemonic(mnemonic, network, version);
 
   const secondNetwork = network === 'testnet' ? 'mainnet' : 'testnet';
-  const secondAccountId = buildAccountId({ ...parseAccountId(accountId), network: secondNetwork });
   tonWallet.address = toBase64Address(tonWallet.address, false, secondNetwork);
-  const account = {
+  const account: ApiTonAccount = {
     type: 'ton',
     mnemonicEncrypted,
     ton: tonWallet,
   };
-  await setAccountValue(secondAccountId, 'accounts', account);
+  const secondAccountId = await addAccount(secondNetwork, account, parseAccountId(accountId).id);
 
   return {
     accountId: secondAccountId,
@@ -168,12 +171,11 @@ export async function createAccountWithSecondNetwork(options: {
 }
 
 export async function importLedgerWallet(network: ApiNetwork, walletInfo: LedgerWalletInfo) {
-  const accountId: string = await getNewAccountId(network);
   const {
     publicKey, address, index, driver, deviceId, deviceName, version,
   } = walletInfo;
 
-  await storeHardwareAccount(accountId, {
+  const accountId = await addAccount(network, {
     type: 'ledger',
     ton: {
       type: 'ton',
@@ -190,37 +192,42 @@ export async function importLedgerWallet(network: ApiNetwork, walletInfo: Ledger
   return { accountId, address, walletInfo };
 }
 
-function storeHardwareAccount(accountId: string, account?: ApiLedgerAccount) {
-  return setAccountValue(accountId, 'accounts', account);
+// When multiple Ledger accounts are imported, they all are created simultaneously. This causes a race condition causing
+// multiple accounts having the same id. `createTaskQueue(1)` forces the accounts to be imported sequentially.
+const addAccountMutex = createTaskQueue(1);
+
+async function addAccount(network: ApiNetwork, account: ApiAccountAny, preferredId?: number) {
+  const accountId = await addAccountMutex.run(async () => {
+    const accountId = await getNewAccountId(network, preferredId);
+    await setAccountValue(accountId, 'accounts', account);
+    return accountId;
+  });
+
+  addPollingAccount(accountId, account);
+
+  return accountId;
 }
 
 export async function removeNetworkAccounts(network: ApiNetwork) {
-  deactivateAllAccounts();
+  removeNetworkPollingAccounts(network);
 
   await Promise.all([
+    deactivateAllAccounts(),
     removeNetworkAccountsValue(network, 'accounts'),
     getEnvironment().isDappSupported && removeNetworkDapps(network),
   ]);
-
-  for (const chain of Object.keys(chains)) {
-    chains[chain as ApiChain].clearAccountsCacheByNetwork(network);
-  }
 }
 
 export async function resetAccounts() {
-  deactivateAllAccounts();
+  removeAllPollingAccounts();
 
   await Promise.all([
+    deactivateAllAccounts(),
     storage.removeItem('accounts'),
-    storage.removeItem('currentAccountId'),
     getEnvironment().isDappSupported && removeAllDapps(),
     nftRepository.clear(),
     tokenRepository.clear(),
   ]);
-
-  for (const chain of Object.keys(chains)) {
-    chains[chain as ApiChain].clearAccountsCache();
-  }
 }
 
 export async function removeAccount(
@@ -228,15 +235,13 @@ export async function removeAccount(
   nextAccountId: string,
   newestActivityTimestamps?: ApiActivityTimestamps,
 ) {
+  removePollingAccount(accountId);
+
   await Promise.all([
     removeAccountValue(accountId, 'accounts'),
     getEnvironment().isDappSupported && removeAccountDapps(accountId),
     nftRepository.deleteWhere({ accountId }),
   ]);
-
-  for (const chain of Object.keys(chains)) {
-    chains[chain as ApiChain].clearAccountCache(accountId);
-  }
 
   await activateAccount(nextAccountId, newestActivityTimestamps);
 }
@@ -276,8 +281,7 @@ export async function importViewAccount(network: ApiNetwork, addressByChain: Api
       };
     }
 
-    const accountId = await getNewAccountId(network);
-    await setAccountValue(accountId, 'accounts', account);
+    const accountId = await addAccount(network, account);
     void activateAccount(accountId);
 
     return {
@@ -288,4 +292,24 @@ export async function importViewAccount(network: ApiNetwork, addressByChain: Api
   } catch (err) {
     return handleServerError(err);
   }
+}
+
+export async function importNewWalletVersion(accountId: string, version: ApiTonWalletVersion) {
+  const { network } = parseAccountId(accountId);
+  const account = await fetchStoredTonAccount(accountId);
+  const newAccount = {
+    ...account,
+    ton: ton.getOtherVersionWallet(network, account.ton, version),
+  };
+  const ledger = account.type === 'ledger'
+    ? { index: account.ton.index, driver: account.driver }
+    : undefined;
+
+  const newAccountId = await addAccount(network, newAccount);
+
+  return {
+    accountId: newAccountId,
+    address: newAccount.ton.address,
+    ledger,
+  };
 }

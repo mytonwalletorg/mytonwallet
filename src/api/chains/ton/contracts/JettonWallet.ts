@@ -5,9 +5,8 @@ import {
   beginCell, contractAddress, SendMode, toNano,
 } from '@ton/core';
 
-export type JettonWalletConfig = {};
+export type JettonWalletConfig = object;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function jettonWalletConfigToCell(config: JettonWalletConfig): Cell {
   return beginCell().endCell();
 }
@@ -25,7 +24,6 @@ export class JettonWallet implements Contract {
     return new JettonWallet(contractAddress(workchain, init), init);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
     await provider.internal(via, {
       value,
@@ -34,7 +32,6 @@ export class JettonWallet implements Contract {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getJettonBalance(provider: ContractProvider) {
     const state = await provider.getState();
     if (state.state.type !== 'active') {
@@ -47,7 +44,7 @@ export class JettonWallet implements Contract {
   static transferMessage(
     jetton_amount: bigint,
     to: Address,
-    responseAddress:Address,
+    responseAddress: Address,
     customPayload: Cell | null,
     forward_ton_amount: bigint,
     forwardPayload: Cell | null,
@@ -62,13 +59,12 @@ export class JettonWallet implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendTransfer(
     provider: ContractProvider,
     via: Sender,
     value: bigint,
     jetton_amount: bigint, to: Address,
-    responseAddress:Address,
+    responseAddress: Address,
     customPayload: Cell,
     forward_ton_amount: bigint,
     forwardPayload: Cell,
@@ -88,7 +84,7 @@ export class JettonWallet implements Contract {
                   = InternalMsgBody;
   */
   static burnMessage(jetton_amount: bigint,
-    responseAddress:Address,
+    responseAddress: Address,
     customPayload: Cell | null) {
     return beginCell().storeUint(0x595f07bc, 32).storeUint(0, 64) // op, queryId
       .storeCoins(jetton_amount)
@@ -97,10 +93,9 @@ export class JettonWallet implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendBurn(provider: ContractProvider, via: Sender, value: bigint,
     jetton_amount: bigint,
-    responseAddress:Address,
+    responseAddress: Address,
     customPayload: Cell) {
     await provider.internal(via, {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -117,7 +112,6 @@ export class JettonWallet implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async sendWithdrawTons(provider: ContractProvider, via: Sender) {
     await provider.internal(via, {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -129,7 +123,7 @@ export class JettonWallet implements Contract {
   /*
     withdraw_jettons#10 query_id:uint64 wallet:MsgAddressInt amount:Coins = InternalMsgBody;
   */
-  static withdrawJettonsMessage(from:Address, amount:bigint) {
+  static withdrawJettonsMessage(from: Address, amount: bigint) {
     return beginCell().storeUint(0x768a50b2, 32).storeUint(0, 64) // op, queryId
       .storeAddress(from)
       .storeCoins(amount)
@@ -137,8 +131,7 @@ export class JettonWallet implements Contract {
       .endCell();
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  async sendWithdrawJettons(provider: ContractProvider, via: Sender, from:Address, amount:bigint) {
+  async sendWithdrawJettons(provider: ContractProvider, via: Sender, from: Address, amount: bigint) {
     await provider.internal(via, {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
       body: JettonWallet.withdrawJettonsMessage(from, amount),
@@ -146,7 +139,6 @@ export class JettonWallet implements Contract {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getWalletData(provider: ContractProvider) {
     const res = await provider.get('get_wallet_data', []);
     const balance = res.stack.readBigNumber();

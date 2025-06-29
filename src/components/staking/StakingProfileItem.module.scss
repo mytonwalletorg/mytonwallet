@@ -38,6 +38,7 @@
   width: 2.25rem;
   height: 2.25rem;
   margin: 0 0.625rem 0 0;
+  border-radius: 50%;
 
   font-size: 1.5rem;
   line-height: 1;
@@ -45,7 +46,6 @@
   text-align: center;
 
   background-color: var(--color-activity-green-background);
-  border-radius: 50%;
 
   &::before {
     line-height: 2.25rem;
@@ -59,7 +59,6 @@
 .amount,
 .operationName {
   padding-bottom: 0.0625rem;
-
   font-size: 0.9375rem;
   font-weight: 600;
 }
@@ -71,9 +70,7 @@
 
 .amount {
   grid-area: right;
-
   margin-left: auto;
-
   color: var(--color-green);
   text-align: right;
 

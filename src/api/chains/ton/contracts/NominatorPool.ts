@@ -5,7 +5,7 @@ import {
   Address, beginCell, contractAddress, TupleReader,
 } from '@ton/core';
 
-export type NominatorPoolConfig = {};
+export type NominatorPoolConfig = object;
 
 export type Nominator = {
   address: Address;
@@ -14,7 +14,6 @@ export type Nominator = {
   withdrawRequested: boolean;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function nominatorPoolConfigToCell(config: NominatorPoolConfig): Cell {
   return beginCell().endCell();
 }
@@ -32,10 +31,9 @@ export class NominatorPool implements Contract {
     return new NominatorPool(contractAddress(workchain, init), init);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getListNominators(provider: ContractProvider): Promise<Nominator[]> {
     const res = await provider.get('list_nominators', []);
-    const tupleReader = (res.stack as TupleReader).readTuple();
+    const tupleReader = (res.stack).readTuple();
     const itemsArray = (tupleReader as any).items as bigint[][];
 
     return itemsArray.map((items: bigint[]) => {

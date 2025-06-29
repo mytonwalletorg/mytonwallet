@@ -23,7 +23,7 @@ contextMenu({
 
 app.on('ready', () => {
   if (IS_MAC_OS) {
-    app.dock.setIcon(nativeImage.createFromPath(path.resolve(__dirname, '../public/icon-electron-macos.png')));
+    app.dock!.setIcon(nativeImage.createFromPath(path.resolve(__dirname, '../public/icon-electron-macos.png')));
   }
 
   createWindow();

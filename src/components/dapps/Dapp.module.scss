@@ -32,9 +32,9 @@ $labelSidePadding: 0.5rem;
 
   width: 100%;
   padding: 0.875rem 1rem;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 
   &_first {
     margin-top: 0.125rem;
@@ -53,9 +53,8 @@ $labelSidePadding: 0.5rem;
 .dappLogo {
   width: 2.25rem;
   height: 2.25rem;
-
-  object-fit: cover;
   border-radius: var(--border-radius-tiny);
+  object-fit: cover;
 
   &_icon {
     display: flex;
@@ -79,7 +78,6 @@ $labelSidePadding: 0.5rem;
 .dappUrl {
   overflow: hidden;
   display: block;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -102,11 +100,10 @@ $labelSidePadding: 0.5rem;
 .dappDisconnect {
   height: 1.75rem !important;
   padding: 0.4375rem 0.625rem !important;
+  border-radius: 0.875rem !important;
 
   font-size: 0.875rem !important;
   line-height: 0.875rem !important;
-
-  border-radius: 0.875rem !important;
 }
 
 .label {
@@ -129,7 +126,6 @@ $labelSidePadding: 0.5rem;
 .footer {
   display: flex;
   justify-content: center;
-
   margin-top: auto;
   padding-top: 1rem;
 }
@@ -138,16 +134,15 @@ $labelSidePadding: 0.5rem;
   display: flex;
   gap: 0.5rem;
   justify-content: center;
-
   margin-top: 1.5rem;
 }
 
 .button {
   flex: 1 1 calc(50% - 0.25rem);
-
   min-width: 9rem !important;
 }
 
+.rowContainerSkeleton,
 .dataField {
   margin-bottom: $fieldGap;
 }
@@ -164,6 +159,8 @@ $labelSidePadding: 0.5rem;
   box-sizing: border-box;
   margin-bottom: $fieldGap;
   padding: 0.875rem 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-default);
 
   font-size: 1rem;
   font-weight: 600;
@@ -174,12 +171,15 @@ $labelSidePadding: 0.5rem;
   white-space: nowrap;
 
   background: var(--color-background-first);
-  border: none;
-  border-radius: var(--border-radius-default);
   outline: none;
 
   &_expanded {
     word-break: break-all !important;
+    white-space: normal;
+  }
+
+  &_text {
+    overflow-wrap: break-word;
     white-space: normal;
   }
 }
@@ -193,13 +193,13 @@ $labelSidePadding: 0.5rem;
   bottom: 0;
 
   padding: 0.875rem 0.75rem;
+  border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
 
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-accent);
 
   background: var(--color-background-first);
-  border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
 
   &::before {
     content: '';
@@ -221,9 +221,8 @@ $labelSidePadding: 0.5rem;
 
 .transactionList {
   margin-bottom: $fieldGap;
-
-  background: var(--color-background-first);
   border-radius: var(--border-radius-default);
+  background: var(--color-background-first);
 }
 
 .transactionRow {
@@ -282,7 +281,6 @@ $labelSidePadding: 0.5rem;
 
 .transactionRowAmount {
   margin-inline-end: 0.25rem;
-
   color: var(--color-black);
 }
 
@@ -306,7 +304,6 @@ $labelSidePadding: 0.5rem;
   width: 2.75rem;
   height: 1.0625rem;
   margin-right: 0.25rem;
-
   vertical-align: bottom;
 }
 
@@ -319,12 +316,12 @@ $labelSidePadding: 0.5rem;
 
   min-height: 4rem;
   margin: 0.375rem 0 1.25rem;
+  border-radius: var(--border-radius-default);
 
   color: var(--color-card-text);
 
   background: #3679C0 url(../../assets/transfer_dapp_bg.jpg) no-repeat 50% 0;
   background-size: cover;
-  border-radius: var(--border-radius-default);
 
   --skeleton-background-color: var(--color-card-button);
   --color-skeleton-shimmer: var(--color-card-button-shimmer);
@@ -338,16 +335,15 @@ $labelSidePadding: 0.5rem;
 
     width: calc(50% + 2rem);
     height: 100%;
+    border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
 
     background: url("../../assets/transfer_dapp_info_bg.svg") no-repeat 100% 50%;
     background-size: cover;
-    border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
   }
 }
 
 .accountTitle {
   margin-bottom: 0.25rem;
-
   font-size: 1rem;
   font-weight: 700;
   white-space: nowrap;
@@ -362,9 +358,7 @@ $labelSidePadding: 0.5rem;
 .accountBalance,
 .accountTitle {
   overflow: hidden;
-
   padding: 0 1rem;
-
   text-overflow: ellipsis;
 }
 
@@ -401,9 +395,9 @@ $labelSidePadding: 0.5rem;
   gap: 1rem;
 
   padding: 1rem;
+  border-radius: 1rem;
 
   background: var(--color-background-first);
-  border-radius: 1rem;
 }
 
 .dappInfoSkeleton {
@@ -413,9 +407,9 @@ $labelSidePadding: 0.5rem;
 
   height: 4rem;
   padding: 0.875rem 1rem;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 
   --skeleton-background-color: var(--color-separator-input-stroke);
 }
@@ -427,7 +421,6 @@ $labelSidePadding: 0.5rem;
 .dappInfoIconSkeleton {
   width: 2.25rem;
   height: 2.25rem;
-
   border-radius: var(--border-radius-tiny);
 }
 
@@ -440,7 +433,6 @@ $labelSidePadding: 0.5rem;
 .nameSkeleton,
 .descSkeleton {
   height: 0.75rem;
-
   border-radius: var(--border-radius-tiny);
 }
 
@@ -464,7 +456,6 @@ $labelSidePadding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-
   margin-left: 1rem;
 }
 
@@ -483,14 +474,9 @@ $labelSidePadding: 0.5rem;
   gap: 0.25rem;
 }
 
-.rowContainerSkeleton {
-  margin-bottom: $fieldGap;
-}
-
 .rowSkeleton {
   width: 100%;
   height: 3rem;
-
   border-radius: var(--border-radius-default);
 }
 
@@ -502,7 +488,6 @@ $labelSidePadding: 0.5rem;
   width: 3.0625rem;
   height: $labelSkeletonHeight;
   margin: 0 auto ($labelGap + ($labelLineHeight - $labelSkeletonHeight)) $labelSidePadding;
-
   border-radius: var(--border-radius-tiny);
 }
 
@@ -514,7 +499,6 @@ $labelSidePadding: 0.5rem;
   width: 4.5rem;
   height: $labelSkeletonHeight;
   margin: $labelGap $labelSidePadding 0 auto;
-
   border-radius: var(--border-radius-tiny);
 }
 
@@ -538,6 +522,7 @@ $labelSidePadding: 0.5rem;
   overflow: hidden;
 
   padding: 0.5625rem 0.75rem 0.625rem 1rem;
+  border-radius: var(--border-radius-small);
 
   font-size: 0.8125rem;
   font-weight: 500;
@@ -545,7 +530,6 @@ $labelSidePadding: 0.5rem;
   color: var(--color-yellow);
 
   background-color: var(--color-background-yellow);
-  border-radius: var(--border-radius-small);
 
   &::before {
     content: '';
@@ -568,7 +552,6 @@ $labelSidePadding: 0.5rem;
 
   &Fee {
     margin: $labelGap $labelSidePadding $fieldGap;
-
     text-align: right !important;
   }
 }

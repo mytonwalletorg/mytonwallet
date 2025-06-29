@@ -1,11 +1,12 @@
 import React, {
+  type ElementRef,
   memo, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 import type { ObserveFn } from '../../../../hooks/useIntersectionObserver';
-import { type IAnchorPosition, MediaType } from '../../../../global/types';
+import { type IAnchorPosition } from '../../../../global/types';
 
 import { TON_DNS_RENEWAL_NFT_WARNING_DAYS } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
@@ -54,16 +55,15 @@ function Nft({
   isViewAccount,
 }: OwnProps) {
   const {
-    openMediaViewer,
     selectNfts,
     clearNftSelection,
     openDomainRenewalModal,
+    openNftAttributesModal,
   } = getActions();
 
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>();
 
   const {
     isLottie, shouldPlay, noLoop, markHover, unmarkHover,
@@ -85,13 +85,13 @@ function Nft({
 
   const {
     isContextMenuOpen,
+    contextMenuAnchor,
     handleBeforeContextMenu,
     handleContextMenu,
     handleContextMenuHide,
     handleContextMenuClose,
   } = useContextMenuHandlers({
     elementRef: ref,
-    shouldDisablePropagation: true,
   });
 
   const fullClassName = buildClassName(
@@ -112,7 +112,7 @@ function Nft({
     }
 
     void vibrate();
-    openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft });
+    openNftAttributesModal({ nft });
   }
 
   function handleRenewDomainClick(e: React.MouseEvent) {
@@ -120,6 +120,10 @@ function Nft({
 
     openDomainRenewalModal({ addresses: [nft.address] });
   }
+
+  const handleOpenContextMenu = useLastCallback(() => {
+    setMenuAnchor(contextMenuAnchor);
+  });
 
   const handleOpenMenu = useLastCallback(() => {
     const { right: x, y } = ref.current!.getBoundingClientRect();
@@ -129,12 +133,11 @@ function Nft({
   const handleCloseMenu = useLastCallback(() => {
     setMenuAnchor(undefined);
     handleContextMenuClose();
-    handleContextMenuHide();
   });
 
   useSyncEffect(() => {
     if (isContextMenuOpen) {
-      handleOpenMenu();
+      handleOpenContextMenu();
     } else {
       handleCloseMenu();
     }
@@ -147,7 +150,9 @@ function Nft({
         className={buildClassName(styles.warningBlock, isViewAccount && styles.nonInteractive)}
         onClick={!isViewAccount ? handleRenewDomainClick : undefined}
       >
-        {dnsExpireInDays! < 0 ? lang('Expired') : lang('Expires in %1$d days', dnsExpireInDays, 'i')}
+        {dnsExpireInDays! < 0
+          ? 'Expired'
+          : lang('$expires_in %days%', { days: lang('$in_days', dnsExpireInDays) }, undefined, 1)}
       </button>
     );
   }
@@ -156,7 +161,6 @@ function Nft({
     <div
       key={nft.address}
       ref={ref}
-      data-nft-address={nft.address}
       className={fullClassName}
       onMouseEnter={markHover}
       onMouseLeave={unmarkHover}
@@ -175,10 +179,12 @@ function Nft({
       {!isSelectionEnabled && (
         <NftMenu
           nft={nft}
+          isContextMenuMode={Boolean(contextMenuAnchor)}
           dnsExpireInDays={dnsExpireInDays}
           menuAnchor={menuAnchor}
           onOpen={handleOpenMenu}
           onClose={handleCloseMenu}
+          onCloseAnimationEnd={handleContextMenuHide}
         />
       )}
       {isLottie ? (
@@ -189,7 +195,7 @@ function Nft({
             shouldStretch
             play={shouldPlay}
             noLoop={noLoop}
-            tgsUrl={nft.metadata!.lottie}
+            tgsUrl={nft.metadata.lottie}
             previewUrl={nft.thumbnail}
             noPreviewTransition
             className={buildClassName(styles.image, isSelected && styles.imageSelected)}
@@ -222,7 +228,7 @@ export default memo(Nft);
 
 function useLottie(
   nft: ApiNft,
-  ref: React.RefObject<HTMLDivElement>,
+  ref: ElementRef<HTMLDivElement>,
   observeIntersection: ObserveFn,
 ): UseLottieReturnType {
   const isLottie = Boolean(nft.metadata?.lottie);

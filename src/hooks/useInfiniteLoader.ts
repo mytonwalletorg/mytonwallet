@@ -9,8 +9,7 @@ interface OwnProps {
 }
 
 export default function useInfiniteLoader({ isDisabled, isLoading, loadMore }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const loadingObserver = useRef<IntersectionObserver>(null);
+  const loadingObserver = useRef<IntersectionObserver>();
   const [hasIntersection, setHasIntersection] = useState(false);
 
   const handleIntersection = useLastCallback((node: HTMLElement | null) => {

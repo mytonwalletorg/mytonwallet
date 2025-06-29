@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .root {
   display: grid;
@@ -9,11 +9,11 @@
   justify-content: space-between;
 
   max-width: 100%;
+  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 
   text-align: center;
 
   background: var(--color-background-first);
-  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 
   transition: background-color 300ms;
 
@@ -21,7 +21,7 @@
     transition: none !important;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     position: sticky !important;
     z-index: 3;
 
@@ -30,9 +30,9 @@
     top: -0.25px;
 
     padding: calc(var(--header-padding-top) + var(--safe-area-top)) 0.125rem var(--header-padding-bottom);
+    border-radius: 0;
 
     background-color: var(--color-background-second);
-    border-radius: 0;
 
     &:global(.is-scrolled) {
       @supports (backdrop-filter: saturate(180%) blur(20px)) {
@@ -64,7 +64,7 @@
   font-size: 0.9375rem;
   color: var(--color-accent);
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     cursor: var(--custom-cursor, pointer);
 
     display: flex;

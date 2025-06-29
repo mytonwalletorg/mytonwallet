@@ -107,10 +107,10 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
     case 'dappCloseLoading': {
       if (IS_DELEGATING_BOTTOM_SHEET) {
-        callActionInNative('apiUpdateDappCloseLoading');
+        callActionInNative('apiUpdateDappCloseLoading', update);
       }
 
-      actions.apiUpdateDappCloseLoading();
+      actions.apiUpdateDappCloseLoading(update);
 
       break;
     }
@@ -121,7 +121,15 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
 
       actions.apiUpdateDappSendTransaction(update);
+      break;
+    }
 
+    case 'dappSignData': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdateDappSignData', update);
+      }
+
+      actions.apiUpdateDappSignData(update);
       break;
     }
 

@@ -27,7 +27,6 @@ import {
   updateRestrictions,
   updateSettings,
   updateStakingDefault,
-  updateStakingInfo,
   updateSwapTokens,
   updateTokens,
   updateVesting,
@@ -52,7 +51,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const {
         accountId,
         states,
-        common,
         totalProfit,
         shouldUseNominators,
       } = update;
@@ -65,7 +63,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         unstakeRequestAmount: 0n,
         tokenBalance: 0n,
       });
-      global = updateStakingInfo(global, common);
       global = updateAccountStaking(global, accountId, {
         stateById,
         shouldUseNominators,
@@ -189,16 +186,20 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'updateAccount': {
       const { accountId, chain, domain, address } = update;
       const account = selectAccount(global, accountId);
+      if (!account) {
+        break;
+      }
+
       const accountUpdate: Partial<Account> = {};
       if (address) {
         accountUpdate.addressByChain = {
-          ...account?.addressByChain,
+          ...account.addressByChain,
           [chain]: address,
         };
       }
       if (domain !== false) {
         accountUpdate.domainByChain = {
-          ...account?.domainByChain,
+          ...account.domainByChain,
           [chain]: domain,
         };
       }

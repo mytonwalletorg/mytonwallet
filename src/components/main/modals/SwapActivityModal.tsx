@@ -147,7 +147,7 @@ function SwapActivityModal({
       cexTransactionId = cex.transactionId;
     } else {
       isPending = status === 'pending';
-      isError = ONCHAIN_ERROR_STATUSES.has(status!);
+      isError = ONCHAIN_ERROR_STATUSES.has(status);
     }
 
     if (isPending) {
@@ -266,7 +266,8 @@ function SwapActivityModal({
               email: (
                 <span className={styles.changellyDescriptionBold}>
                   {CHANGELLY_SECURITY_EMAIL}
-                </span>),
+                </span>
+              ),
             })}
           </span>
           {cexTransactionId && (
@@ -302,11 +303,13 @@ function SwapActivityModal({
                     className={styles.changellyDescriptionBold}
                   >
                     {lang('Changelly Live Chat')}
-                  </a>),
+                  </a>
+                ),
                 email: (
                   <span className={styles.changellyDescriptionBold}>
                     {CHANGELLY_SUPPORT_EMAIL}
-                  </span>),
+                  </span>
+                ),
               })}
             </span>
             {cexTransactionId && (

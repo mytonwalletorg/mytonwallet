@@ -82,17 +82,17 @@ export class StakeWallet implements Contract {
     }
 
     const timeNow = Math.floor(Date.now() / 1000);
-    const rewardMultiplier = poolConfig.lockPeriods.get(Number(stakeWalletConfig.lockPeriod))!!.rewardMultiplier;
+    const rewardMultiplier = poolConfig.lockPeriods.get(Number(stakeWalletConfig.lockPeriod))!.rewardMultiplier;
 
-    const res: { [key: string]: bigint } = {};
-    for (const rewardJettonWallet of poolConfig.rewardJettons!!.keys()) {
-      const poolRewardsInfo = poolConfig.rewardJettons.get(rewardJettonWallet)!!;
+    const res: Record<string, bigint> = {};
+    for (const rewardJettonWallet of poolConfig.rewardJettons.keys()) {
+      const poolRewardsInfo = poolConfig.rewardJettons.get(rewardJettonWallet)!;
       const userRewardsInfo = stakeWalletConfig.rewardsDict.get(rewardJettonWallet);
       let unclaimedRewards = userRewardsInfo ? userRewardsInfo.unclaimedRewards : 0n;
       const userDistributedRewards = userRewardsInfo ? userRewardsInfo.distributedRewards : 0n;
       let poolDistributedRewards = poolRewardsInfo.distributedRewards;
       for (const i of poolRewardsInfo.rewardsDeposits.keys()) {
-        const rewardDeposit = poolRewardsInfo.rewardsDeposits.get(i)!!;
+        const rewardDeposit = poolRewardsInfo.rewardsDeposits.get(i)!;
         if (rewardDeposit.startTime < timeNow && poolConfig.tvlWithMultipliers) {
           poolDistributedRewards += (
             rewardDeposit.distributionSpeed
@@ -111,7 +111,6 @@ export class StakeWallet implements Contract {
     return res;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getStorageData(provider: ContractProvider): Promise<StakeWalletConfig> {
     const { stack } = await provider.get('get_storage_data', []);
 

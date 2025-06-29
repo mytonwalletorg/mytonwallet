@@ -6,6 +6,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiChain } from '../../api/types';
 import type { IAnchorPosition, SavedAddress } from '../../global/types';
+import type { Layout } from '../../hooks/useMenuPosition';
 import type { DropdownItem } from './Dropdown';
 
 import { selectCurrentAccountState, selectIsMultichainAccount } from '../../global/selectors';
@@ -13,7 +14,7 @@ import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { stopEvent } from '../../util/domEvents';
-import { handleOpenUrl, openUrl } from '../../util/openUrl';
+import { handleUrlClick, openUrl } from '../../util/openUrl';
 import { shareUrl } from '../../util/share';
 import { MEANINGFUL_CHAR_LENGTH, shortenAddress } from '../../util/shortenAddress';
 import { getExplorerAddressUrl, getExplorerName, getHostnameFromUrl } from '../../util/url';
@@ -96,10 +97,9 @@ function InteractiveTextField({
 }: OwnProps & StateProps) {
   const { showNotification, addSavedAddress } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const addressNameRef = useRef<HTMLInputElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const contentRef = useRef<HTMLDivElement>(null);
+  const addressNameRef = useRef<HTMLInputElement>();
+  const contentRef = useRef<HTMLDivElement>();
+  const menuRef = useRef<HTMLDivElement>();
   const lang = useLang();
   const [isSaveAddressModalOpen, openSaveAddressModal, closeSaveAddressModal] = useFlag();
   const [isDeleteSavedAddressModalOpen, openDeletedSavedAddressModal, closeDeleteSavedAddressModal] = useFlag();
@@ -178,6 +178,9 @@ function InteractiveTextField({
   });
 
   const shouldUseMenu = !spoiler && IS_TOUCH_ENV && menuItems.length > 1;
+  const getRootElement = useLastCallback(() => document.body);
+  const getMenuElement = useLastCallback(() => menuRef.current);
+  const getLayout = useLastCallback((): Layout => ({ withPortal: true, preferredPositionY: menuPositionY }));
 
   const longPressHandlers = useLongPress({
     onClick: handleMenuShow,
@@ -201,7 +204,7 @@ function InteractiveTextField({
       <Transition activeKey={isConcealed ? 1 : 0} name="fade" className={styles.commentContainer}>
         {isConcealed ? (
           <span className={buildClassName(styles.button, styles.button_spoiler, textClassName)}>
-            <i>{spoiler}</i>
+            <i>{spoiler}</i>{' '}
             <span
               onClick={handleRevealSpoiler}
               tabIndex={0}
@@ -271,12 +274,16 @@ function InteractiveTextField({
         <>
           <i className={iconClassName} aria-hidden />
           <DropdownMenu
+            ref={menuRef}
             withPortal
             shouldTranslateOptions
             isOpen={isActionsMenuOpen}
             items={menuItems}
             menuPositionY={menuPositionY}
             menuAnchor={menuAnchor}
+            getLayout={getLayout}
+            getMenuElement={getMenuElement}
+            getRootElement={getRootElement}
             bubbleClassName={styles.menu}
             buttonClassName={styles.menuItem}
             fontIconClassName={styles.menuIcon}
@@ -327,7 +334,7 @@ function InteractiveTextField({
             aria-label={explorerTitle}
             target="_blank"
             rel="noreferrer noopener"
-            onClick={handleOpenUrl}
+            onClick={handleUrlClick}
           >
             <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
           </a>
@@ -378,7 +385,6 @@ function InteractiveTextField({
       <div
         ref={contentRef}
         className={buildClassName(styles.wrapper, className)}
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
         {...(shouldUseMenu && !isActionsMenuOpen && {
           ...longPressHandlers,
           tabIndex: 0,
@@ -483,7 +489,7 @@ function useDropdownMenu(
 
     let x: number;
     if (e.type.startsWith('touch')) {
-      const { changedTouches, touches } = (e as React.TouchEvent);
+      const { changedTouches, touches } = e as React.TouchEvent;
       if (touches.length > 0) {
         x = touches[0].clientX;
       } else {

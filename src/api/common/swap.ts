@@ -108,7 +108,7 @@ export async function swapReplaceCexActivities(
     }
 
     const result: ApiActivity[] = [];
-    const allSwapHashes: Set<string> = new Set();
+    const allSwapHashes = new Set<string>();
 
     for (const swap of swaps) {
       swap.hashes.forEach((hash) => allSwapHashes.add(hash));

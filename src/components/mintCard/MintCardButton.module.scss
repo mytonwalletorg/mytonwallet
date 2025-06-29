@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .button {
   --color-accent: var(--action-color, var(--color-card-second-text));
@@ -12,13 +12,13 @@
   width: 1.75rem;
   height: 1.75rem;
   padding: 0;
+  border: none;
 
   font-size: 1.75rem;
   line-height: 1;
   color: var(--color-accent);
 
   background: none;
-  border: none;
   outline: none;
 
   transition: color 300ms, opacity 0.15s ease !important;
@@ -45,6 +45,5 @@
   position: absolute;
   right: -0.125rem;
   bottom: -0.125rem;
-
   font-size: 1rem;
 }

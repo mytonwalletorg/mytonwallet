@@ -1,8 +1,7 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .modalDialog {
   overflow: hidden;
-
   height: 40.125rem;
 
   @supports (height: var(--safe-area-bottom)) {
@@ -20,7 +19,7 @@
   min-height: 0;
   padding: 0 1rem 1rem;
 
-  @include adapt-padding-to-scrollbar(1rem);
+  @include mixins.adapt-padding-to-scrollbar(1rem);
 
   @supports (padding-bottom: var(--safe-area-bottom)) {
     padding-bottom: max(var(--safe-area-bottom), 1rem);
@@ -46,13 +45,11 @@
 .advancedSlippageContainer {
   position: relative;
   z-index: 1;
-
   width: 100%;
 }
 
 .content {
   position: relative;
-
   display: flex;
   flex-direction: column;
 }
@@ -82,9 +79,9 @@
 
   width: 2.75rem;
   height: 2.75rem;
+  border-radius: 50%;
 
   background-color: var(--color-background-window);
-  border-radius: 50%;
 }
 
 .swapButtonWrapperStatic {
@@ -99,12 +96,12 @@
 
   width: 2.25rem;
   height: 2.25rem;
+  border-radius: 50%;
 
   font-size: 0.875rem;
   color: var(--color-accent-button-text);
 
   background-color: var(--color-accent-button-background);
-  border-radius: 50%;
 
   transition: background-color 150ms;
 
@@ -136,12 +133,12 @@
   width: 0.125rem;
   height: 0.125rem;
   margin: 0 0.25rem;
+  border-radius: 50%;
 
   font-style: normal;
   line-height: 1rem;
 
   background-color: var(--color-accent);
-  border-radius: 50%;
 }
 
 .advancedBlock {
@@ -151,9 +148,9 @@
 
   margin-bottom: 1.25rem;
   padding: 1rem;
+  border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 }
 
 .advancedRow {
@@ -170,7 +167,6 @@
 
 .advancedTooltip {
   color: var(--color-gray-4);
-
   transition: color 150ms;
 }
 
@@ -178,7 +174,6 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-
   max-width: 18.9375rem !important;
 }
 
@@ -221,7 +216,6 @@
 
 .advancedInput {
   position: relative;
-
   margin-bottom: 0.5rem;
 }
 
@@ -230,7 +224,6 @@
 
   &.isEmpty::before {
     content: "0";
-
     font-size: 1rem;
   }
 }
@@ -268,7 +261,6 @@
 
 .advancedLinkIcon {
   margin-inline-end: -0.267em;
-
   font-size: 115.4%;
 }
 
@@ -292,7 +284,6 @@
 
 .footerButtonInner {
   overflow: hidden;
-
   text-overflow: ellipsis;
 }
 
@@ -309,9 +300,8 @@
 .changellyInfo,
 .priceImpact {
   padding: 1rem;
-
-  background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
+  background-color: var(--color-background-first);
 
   .feeLine + & {
     margin-top: -0.25rem;
@@ -320,7 +310,6 @@
 
 .priceImpact {
   cursor: var(--custom-cursor, pointer);
-
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -339,7 +328,6 @@
 
 .priceImpactTitle {
   position: relative;
-
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-red);
@@ -386,9 +374,9 @@
 
     width: 3rem;
     height: 3rem;
+    border-radius: 50% 50% 0 0;
 
     background: var(--color-background-first);
-    border-radius: 50% 50% 0 0;
   }
 
   &::before {
@@ -421,7 +409,6 @@
 
 .swapCornerStaticTop {
   bottom: 0;
-
   height: 0.75rem;
 
   &::before {
@@ -445,7 +432,6 @@
 .blockchainHintWrapper {
   display: flex;
   justify-content: center;
-
   margin-top: 1rem;
   padding: 0 2rem;
 }
@@ -474,18 +460,17 @@
 
   width: 2rem;
   height: 2rem;
+  border-radius: var(--border-radius-small) !important;
 
   font-size: 1.25rem;
   color: var(--color-gray-3);
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-small) !important;
 
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
       color: var(--color-input-button-text);
-
       background-color: var(--color-input-button-background);
     }
   }
@@ -493,7 +478,6 @@
   @media (pointer: coarse) {
     &:active {
       color: var(--color-input-button-text);
-
       background-color: var(--color-input-button-background);
       // Optimization
       transition: none;
@@ -581,13 +565,11 @@ $animation-time: 350ms;
 @keyframes arrow-disappear {
   from {
     transform: none;
-
     opacity: 1;
   }
 
   to {
     transform: translateY(-$translate);
-
     opacity: 0;
   }
 }
@@ -595,13 +577,11 @@ $animation-time: 350ms;
 @keyframes arrow-appear {
   from {
     transform: translateY($translate);
-
     opacity: 0;
   }
 
   to {
     transform: none;
-
     opacity: 1;
   }
 }
@@ -627,7 +607,6 @@ $animation-time: 350ms;
 
 .transactionBanner {
   align-self: center;
-
   margin-bottom: 2rem;
 }
 
@@ -644,9 +623,9 @@ $animation-time: 350ms;
   width: 100%;
   max-width: 9rem;
   margin: 0 auto;
+  border-radius: var(--border-radius-card);
 
   background-color: var(--color-white);
-  border-radius: var(--border-radius-card);
 
   transition: opacity 350ms ease-in-out;
 

@@ -91,3 +91,11 @@ addActionHandler('closeHideNftModal', (global) => {
     selectedNftsToHide: undefined,
   });
 });
+
+addActionHandler('openNftAttributesModal', (global, actions, { nft }) => {
+  return updateCurrentAccountState(global, { currentNftForAttributes: nft });
+});
+
+addActionHandler('closeNftAttributesModal', (global) => {
+  return updateCurrentAccountState(global, { currentNftForAttributes: undefined });
+});

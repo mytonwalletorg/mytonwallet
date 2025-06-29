@@ -1,6 +1,5 @@
 .label {
   margin: 0 0.5rem 0.5rem;
-
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-gray-2);
@@ -13,6 +12,7 @@
 
   // Follows the InteractiveTextField style
   padding: calc(1rem - 1px) calc(0.75rem - 1px);
+  border-radius: 1rem;
 
   font-size: 1rem;
   font-weight: 600;
@@ -20,7 +20,6 @@
   color: var(--color-black);
 
   background-color: var(--color-background-first);
-  border-radius: 1rem;
 
   &_transition {
     height: $textHeight;
@@ -29,11 +28,9 @@
   &_loading {
     --color-dot: var(--color-gray-3);
 
-    transform: scale(0.7);
     transform-origin: 0 50%;
-
+    transform: scale(0.7);
     justify-content: flex-start;
-
     height: 100%;
   }
 }

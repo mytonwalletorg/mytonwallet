@@ -163,6 +163,7 @@ Received: ได้รับ
 Sent: ส่ง
 $transaction_from: จาก %address%
 $transaction_to: ถึง %address%
+$transaction_on: บน %address%
 Wallet is not backed up: วอลเล็ตไม่ได้สำรองข้อมูล
 Testnet Version: เวอร์ชั้น Testnet
 Error reading clipboard: อ่านคลิปบอร์ดผิดพลาด
@@ -796,6 +797,9 @@ Bidding at NFT Auction: กำลังประมูล NFT
 NFT Bought: ซื้อ NFT แล้ว
 Buying NFT: กำลังซื้อ NFT
 $buy_nft_action: การซื้อ NFT
+NFT Sold: ขาย NFT แล้ว
+Selling NFT: กำลังขาย NFT
+$sell_nft_action: ขาย NFT
 Receiving: กำลังรับ
 $receive_action: การรับ
 Change Palette: เปลี่ยนพาเลต
@@ -835,7 +839,7 @@ Exit all wallets: ออกจากกระเป๋าทั้งหมด
 Can't confirm?: เข้าระบบไม่ได้?
 $safe_staking_ethena_description1: การ staking เป็นแบบกระจายศูนย์อย่างสมบูรณ์และดำเนินการโดย **สัญญาอัจฉริยะ** ของ Ethena ที่ผ่านการตรวจสอบแล้ว
 $safe_staking_ethena_description2: USDe ที่ฝากไว้จะถูกใช้ใน **กลยุทธ์การซื้อขายและการลงทุน** ของ Ethena เพื่อสร้างรางวัลโดยอัตโนมัติและโปร่งใส
-$safe_staking_ethena_description3: คุณสามารถ **ถอน** การ stake พร้อมรางวัลได้ทุกเวลา และจะได้รับคืนเข้าบัญชีของคุณ **ภายใน 7 วัน** ตามระยะเวลาถอนมาตรฐานของ Ethena
+$safe_staking_ethena_description3: คุณสามารถ**ถอนเงินฝาก**พร้อมดอกเบี้ยที่ค้างรับได้ทุกเวลา เงินจะถูกโอนกลับเข้าบัญชีหลักของคุณภายใน **7 วัน** ตามระยะเวลาถอนมาตรฐานของ Ethena
 Unstake %amount%: เลิกเดิมพัน %amount%
 Request Unstaking: ขอถอนการวางเดิมพัน
 $unstaking_when_receive_ethena: คุณจะสามารถรับเงินฝากที่ยกเลิกการวางเดิมพันได้ในอีก **7 วัน**
@@ -843,17 +847,12 @@ Coins have been unstaked!: เหรียญถูกถอนแล้ว!
 Confirm Upgrading: ยืนยันการอัปเกรด
 How does it work?: ทำงานอย่างไร?
 Multisend: ส่งหลายรายการ
-Expires in %1$d days:
-  zeroValue: หมดอายุวันนี้
-  otherValue: จะหมดอายุใน %1$d วัน
 Renew All: ต่ออายุทั้งหมด
 Renew: ต่ออายุ
 Renew Domain: ต่ออายุโดเมน
 Renew Domains: ต่ออายุโดเมน
 Some domains are about to expire: โดเมนบางรายการกำลังจะหมดอายุ
-$domain_expire:
-  zeroValue: "%domain% หมดอายุวันนี้"
-  otherValue: "%domain% หมดอายุในอีก %days% วัน"
+$domain_expire: "**%domain%** หมดอายุ %days%"
 '%token% Staking': การวางเดิมพัน %token%
 Add Tab: เพิ่มแท็บ
 Remove Tab: ลบแท็บ
@@ -879,16 +878,35 @@ Confirm Renewing: ยืนยันการต่ออายุ
 Confirm Linking: ยืนยันการเชื่อมโยง
 $domains_expire:
   zeroValue: "ไม่มีโดเมนหมดอายุ %days%"
-  otherValue: "%domain% โดเมนหมดอายุ %days%"
+  otherValue: "**%domain%** โดเมนหมดอายุ %days%"
 $in_days:
   zeroValue: วันนี้
   otherValue: "ใน %1$d วัน"
-$domain_was_expired: "%domain% หมดอายุแล้ว"
+$domain_was_expired: "**%domain%** หมดอายุแล้ว"
 $domains_was_expired:
   zeroValue: "ไม่มีโดเมนที่หมดอายุ"
-  otherValue: "%domain% โดเมนหมดอายุแล้ว"
-
+  otherValue: "**%domain%** โดเมนหมดอายุแล้ว"
 Reload: โหลดใหม่
 Copy Link: คัดลอกลิงค์
 Check eligibility for max APY: ตรวจสอบสิทธิ์สำหรับ APY สูงสุด
 Check eligibility: ตรวจสอบสิทธิ์
+$expired_many: หมดอายุแล้ว
+$expires_in %days%:
+  zeroValue: จะหมดอายุ %days%
+  otherValue: จะหมดอายุ %days%
+Message: ข้อความ
+Binary Data: ข้อมูลไบนารี
+The binary data content is unclear. Sign it only if you trust the service.: เนื้อหาของข้อมูลไบนารีไม่ชัดเจน เซ็นชื่อเฉพาะหากคุณเชื่อใจบริการนี้
+Cell Schema: โครงสร้างเซลล์
+Cell Data: ข้อมูลเซลล์
+Sign Data: เซ็นชื่อข้อมูล
+Please confirm signature on your Ledger: กรุณายืนยันลายเซ็นบน Ledger ของคุณ
+Utilities: อรรถประโยชน์
+Games: เกม
+Entertainment: ความบันเทิง
+Toggle to landscape layout: สลับเป็นแนวนอน
+Toggle to portrait layout: สลับเป็นแนวตั้ง
+Attributes: คุณสมบัติ
+Show All: แสดงทั้งหมด
+Description: คำอธิบาย
+No additional data.: ไม่มีข้อมูลเพิ่มเติม

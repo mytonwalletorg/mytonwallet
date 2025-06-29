@@ -10,14 +10,14 @@ import { shortenAddress } from '../../util/shortenAddress';
 
 import useLang from '../../hooks/useLang';
 
-import Menu from '../ui/Menu';
 import AddressBookItem from './AddressBookItem';
+import Menu from './Menu';
 
-import styles from './Transfer.module.scss';
+import styles from '../transfer/Transfer.module.scss';
 
 interface OwnProps {
   isOpen: boolean;
-  isNftTransfer: boolean;
+  currentChain?: ApiChain;
   currentAddress?: string;
   otherAccountIds?: string[];
   onClose: NoneToVoidFunction;
@@ -32,7 +32,7 @@ interface StateProps {
 }
 
 function AddressBook({
-  isOpen, isNftTransfer, currentAddress = '', otherAccountIds,
+  isOpen, currentChain, currentAddress = '', otherAccountIds,
   accounts, savedAddresses, isMultichainAccount,
   onAddressSelect, onSavedAddressDelete, onClose,
 }: OwnProps & StateProps) {
@@ -45,8 +45,7 @@ function AddressBook({
 
     return savedAddresses
       .filter((item) => {
-        // NFT transfer is only available on the TON blockchain
-        return (!isNftTransfer || item.chain === 'ton') && doesSavedAddressFitSearch(item, currentAddress);
+        return (!currentChain || item.chain === currentChain) && doesSavedAddressFitSearch(item, currentAddress);
       })
       .map((item) => (
         <AddressBookItem
@@ -60,7 +59,7 @@ function AddressBook({
           onDeleteClick={onSavedAddressDelete}
         />
       ));
-  }, [currentAddress, isMultichainAccount, isNftTransfer, lang, onAddressSelect, onSavedAddressDelete, savedAddresses]);
+  }, [currentAddress, isMultichainAccount, currentChain, lang, onAddressSelect, onSavedAddressDelete, savedAddresses]);
 
   const renderedOtherAccounts = useMemo(() => {
     if (!otherAccountIds || otherAccountIds.length === 0) return undefined;
@@ -71,22 +70,21 @@ function AddressBook({
       .reduce((acc, accountId) => {
         const account = accounts![accountId];
 
-        Object.keys(account.addressByChain).forEach((currentChain) => {
-          const address = account.addressByChain[currentChain as ApiChain];
-          const key = `${currentChain}:${address}`;
+        Object.keys(account.addressByChain).forEach((addressChain) => {
+          const address = account.addressByChain[addressChain as ApiChain];
+          const key = `${addressChain}:${address}`;
           if (
             address
             && !uniqueAddresses.has(key)
-            // NFT transfer is only available on the TON blockchain
-            && (!isNftTransfer || currentChain === 'ton')
-            && (isMultichainAccount || currentChain === TONCOIN.chain)
-            && !addressesToBeIgnored.includes(`${currentChain}:${address}`)
+            && (!currentChain || addressChain === currentChain)
+            && (isMultichainAccount || addressChain === TONCOIN.chain)
+            && !addressesToBeIgnored.includes(`${addressChain}:${address}`)
           ) {
             uniqueAddresses.add(key);
             acc.push({
               name: account.title || shortenAddress(address)!,
               address,
-              chain: currentChain as ApiChain,
+              chain: addressChain as ApiChain,
               isHardware: account.type === 'hardware',
             });
           }
@@ -109,7 +107,7 @@ function AddressBook({
         onClick={onAddressSelect}
       />
     ));
-  }, [otherAccountIds, savedAddresses, accounts, isNftTransfer, isMultichainAccount, currentAddress, onAddressSelect]);
+  }, [otherAccountIds, savedAddresses, accounts, currentChain, isMultichainAccount, currentAddress, onAddressSelect]);
 
   const shouldRender = Boolean(renderedOtherAccounts?.length || renderedSavedAddresses?.length);
 

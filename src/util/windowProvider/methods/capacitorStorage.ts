@@ -14,7 +14,7 @@ const promise = new Promise((resolve) => {
 export async function init() {
   if (IS_CAPACITOR && !SecureStoragePlugin) {
     ({ SecureStoragePlugin } = await import(
-      /* webpackChunkName: "capacitorSecureStorage" */ 'capacitor-secure-storage-plugin'
+      /* webpackChunkName: "capacitorSecureStorage" */ 'capacitor-secure-storage-plugin',
     ));
     resolvePromise();
   }

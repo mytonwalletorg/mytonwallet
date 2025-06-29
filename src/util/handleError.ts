@@ -8,12 +8,9 @@ const shouldShowAlert = (APP_ENV === 'development' || APP_ENV === 'staging')
   && typeof window === 'object'
   && !IS_EXTENSION_PAGE_SCRIPT;
 
-// eslint-disable-next-line no-alert
 const throttledAlert = throttle((message) => window.alert(message), 10 * SECOND);
 
-// eslint-disable-next-line no-restricted-globals
 self.addEventListener('error', handleErrorEvent);
-// eslint-disable-next-line no-restricted-globals
 self.addEventListener('unhandledrejection', handleErrorEvent);
 
 function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {

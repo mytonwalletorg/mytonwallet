@@ -1,8 +1,13 @@
 .iframe {
   height: 100%;
-
   border: 0;
   border-radius: var(--border-radius-default);
+
+  // If the menu in the header is open, the event handling must be disabled,
+  // otherwise the menu items will not be accessible
+  :global(.is-menu-open) ~ & {
+    pointer-events: none;
+  }
 }
 
 .dialog {

@@ -1,7 +1,7 @@
-import { useEffect } from '../lib/teact/teact';
+import { type ElementRef, useEffect } from '../lib/teact/teact';
 
 interface OwnProps {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: ElementRef<HTMLDivElement>;
   isDisabled?: boolean;
   shouldPreventDefault?: boolean;
   contentSelector?: string;

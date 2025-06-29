@@ -1,5 +1,5 @@
-import type { RefObject } from 'react';
 import React, {
+  type ElementRef,
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions } from '../../global';
@@ -34,7 +34,7 @@ interface SortState {
 }
 
 interface OwnProps {
-  parentContainer: RefObject<HTMLDivElement>;
+  parentContainer: ElementRef<HTMLDivElement>;
   tokens?: UserToken[];
   orderedSlugs?: string[];
   isSortByValueEnabled?: boolean;
@@ -64,10 +64,8 @@ function SettingsTokens({
   const lang = useLang();
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  // eslint-disable-next-line no-null/no-null
-  const tokensRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const sortableContainerRef = useRef<HTMLDivElement>(null);
+  const tokensRef = useRef<HTMLDivElement>();
+  const sortableContainerRef = useRef<HTMLDivElement>();
 
   const [tokenToDelete, setTokenToDelete] = useState<UserToken | undefined>();
   const [state, setState] = useState<SortState>({
@@ -167,7 +165,7 @@ function SettingsTokens({
         offset={{ top: TOP_OFFSET }}
         parentRef={tokensRef}
         scrollRef={parentContainer}
-        // eslint-disable-next-line react/jsx-no-bind
+
         onClick={(e) => handleTokenVisibility(token, e)}
       >
         <TokenIcon token={token} withChainIcon={withChainIcon} />

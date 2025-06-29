@@ -1,27 +1,38 @@
-.amountSensitiveData {
-  --border-radius-value: var(--border-radius-default);
+$amountBottomMargin: 1rem;
 
+.amountSensitiveData,
+.baseCurrencyAmountSensitiveData {
   overflow: hidden;
+  margin: 1rem auto $amountBottomMargin;
+  border-radius: var(--border-radius-value);
+  line-height: 1;
+}
 
-  margin: 1rem auto;
-
-  border-radius: var(--border-radius-default);
+.amountSensitiveData {
+  --border-radius-value: var(--border-radius-default); // Used by SensitiveData as well
 
   &.withStatus {
-    margin: 0 auto 1rem;
+    margin-top: 0;
   }
 }
 
-.amount {
+.baseCurrencyAmountSensitiveData {
+  --border-radius-value: var(--border-radius-normal);
+
+  margin-top: -$amountBottomMargin + 0.625rem;
+}
+
+.amount,
+.baseCurrencyAmount {
   overflow: hidden;
-
   max-width: 100%;
-  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-value);
+}
 
+.amount {
+  padding: 0.75rem 1rem;
   font-size: 3rem;
   font-weight: 600;
-
-  border-radius: var(--border-radius-default);
 
   @media (prefers-color-scheme: dark) {
     :global(.theme-system) & {
@@ -31,15 +42,20 @@
 
   &.withStatus {
     margin-bottom: 0.25rem;
-
     border-bottom-right-radius: var(--border-radius-mini);
     border-bottom-left-radius: var(--border-radius-mini);
   }
 }
 
+.baseCurrencyAmount {
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .amount,
-.status {
-  line-height: 1;
+.status,
+.baseCurrencyAmount {
   color: var(--color-transaction-amount-gray-text);
   text-align: center;
   text-overflow: ellipsis;
@@ -60,22 +76,19 @@
 
 .operationPositive {
   color: var(--color-transaction-amount-green-text);
-
   background-color: var(--color-transaction-amount-green-bg);
 }
 
 .operationScam {
   color: var(--color-transaction-amount-red-text);
-
   background-color: var(--color-transaction-amount-red-bg);
 }
 
 .status {
   margin: 0 auto;
   padding: 0.8125rem 0.75rem;
+  border-radius: var(--border-radius-mini) var(--border-radius-mini) var(--border-radius-default) var(--border-radius-default);
 
   font-size: 1.0625rem;
   font-weight: 700;
-
-  border-radius: var(--border-radius-mini) var(--border-radius-mini) var(--border-radius-default) var(--border-radius-default);
 }

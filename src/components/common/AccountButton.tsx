@@ -81,7 +81,7 @@ function AccountButton({
         </span>
       </div>
       {withCheckbox
-      && <div className={buildClassName(styles.accountCheckMark, isActive && styles.accountCheckMark_active)} />}
+        && <div className={buildClassName(styles.accountCheckMark, isActive && styles.accountCheckMark_active)} />}
     </div>
   );
 }

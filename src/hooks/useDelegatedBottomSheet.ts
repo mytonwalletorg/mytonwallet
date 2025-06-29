@@ -3,7 +3,7 @@ import type { BottomSheetKeys } from '@mytonwallet/native-bottom-sheet';
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import type { SafeAreaInsets } from 'capacitor-plugin-safe-area';
 import { SafeArea } from 'capacitor-plugin-safe-area';
-import { useEffect, useLayoutEffect, useState } from '../lib/teact/teact';
+import { type ElementRef, useEffect, useLayoutEffect, useState } from '../lib/teact/teact';
 import { forceOnHeavyAnimationOnce } from '../lib/teact/teactn';
 import { setGlobal } from '../global';
 
@@ -21,7 +21,7 @@ const COMPACT_MODAL_CSS_SELECTOR = '.is-compact-modal';
 
 const controlledByMain = new Map<BottomSheetKeys, NoneToVoidFunction>();
 
-const textInputTypes: Set<HTMLInputTypeAttribute> = new Set([
+const textInputTypes = new Set<HTMLInputTypeAttribute>([
   'color', 'date', 'datetime-local', 'email', 'month', 'number',
   'password', 'search', 'tel', 'text', 'time', 'url', 'week',
 ]);
@@ -60,7 +60,7 @@ export function useDelegatedBottomSheet(
   key: BottomSheetKeys | undefined,
   isOpen: boolean | undefined,
   onClose: AnyToVoidFunction,
-  dialogRef: React.RefObject<HTMLDivElement>,
+  dialogRef: ElementRef<HTMLDivElement>,
   forceFullNative = false,
   noResetHeightOnBlur = false,
 ) {

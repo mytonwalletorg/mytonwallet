@@ -162,6 +162,7 @@ Received: Recibido
 Sent: Enviado
 $transaction_from: de %address%
 $transaction_to: a %address%
+$transaction_on: en %address%
 Wallet is not backed up: El monedero no está respaldado
 Testnet Version: Versión Testnet
 Error reading clipboard: Error al leer el portapapeles
@@ -795,6 +796,9 @@ Bidding at NFT Auction: Puja en la subasta de NFT
 NFT Bought: NFT comprado
 Buying NFT: Comprando NFT
 $buy_nft_action: Comprar NFT
+NFT Sold: NFT vendido
+Selling NFT: Vendiendo NFT
+$sell_nft_action: Vender NFT
 Receiving: Recibiendo
 $receive_action: Recibir
 Change Palette: Cambiar paleta
@@ -834,7 +838,7 @@ Exit all wallets: Cerrar todas las billeteras
 Can't confirm?: ¿No puedes acceder?
 $safe_staking_ethena_description1: El staking es completamente descentralizado y operado por **smart contracts oficiales** auditados de staking líquido de **Ethena**.
 $safe_staking_ethena_description2: El USDe en staking se utiliza en las **estrategias comerciales y de inversión** de Ethena para generar recompensas de forma automática y transparente.
-$safe_staking_ethena_description3: Puedes **retirar** tu stake con recompensas en cualquier momento, y se devolverá a tu cuenta **en un plazo de 7 días**, según el período de retiro estándar de Ethena.
+$safe_staking_ethena_description3: Puedes **retirar el depósito** junto con los intereses acumulados en cualquier momento. Los fondos se devolverán a tu cuenta principal en **7 días**, según el período estándar de retiro de Ethena.
 Unstake %amount%: Retirar %amount%
 Request Unstaking: Solicitar desestacado
 $unstaking_when_receive_ethena: Podrás recibir tu depósito retirado en **7 días**.
@@ -842,19 +846,12 @@ Coins have been unstaked!: ¡Monedas retiradas!
 Confirm Upgrading: Confirmar actualización
 How does it work?: ¿Cómo funciona?
 Multisend: Multienvío
-Expires in %1$d days:
-  zeroValue: Expira hoy
-  oneValue: Expira mañana
-  otherValue: Expira en %1$d días
 Renew All: Renovar todo
 Renew: Renovar
 Renew Domain: Renovar dominio
 Renew Domains: Renovar dominios
 Some domains are about to expire: Algunos dominios están por expirar
-$domain_expire:
-  zeroValue: "%domain% expira hoy"
-  oneValue: "%domain% expira mañana"
-  otherValue: "%domain% expira en %days% días"
+$domain_expire: "**%domain%** expira %days%"
 '%token% Staking': Staking de %token%
 Add Tab: Añadir pestaña
 Remove Tab: Eliminar pestaña
@@ -881,19 +878,39 @@ Confirm Renewing: Confirmar renovación
 Confirm Linking: Confirmar vinculación
 $domains_expire:
   zeroValue: "Ningún dominio expira %days%"
-  oneValue: "%domain% dominio expira %days%"
-  otherValue: "%domain% dominios expiran %days%"
+  oneValue: "**%domain% dominio** expira %days%"
+  otherValue: "**%domain% dominios** expiran %days%"
 $in_days:
   zeroValue: hoy
   oneValue: mañana
   otherValue: "en %1$d días"
-$domain_was_expired: "%domain% ha expirado"
+$domain_was_expired: "**%domain%** ha expirado"
 $domains_was_expired:
   zeroValue: "Ningún dominio ha expirado"
-  oneValue: "%domain% dominio ha expirado"
-  otherValue: "%domain% dominios han expirado"
-
+  oneValue: "**%domain% dominio** ha expirado"
+  otherValue: "**%domain% dominios** han expirado"
 Reload: Recargar
 Copy Link: Copiar enlace
 Check eligibility for max APY: Verificar elegibilidad para APY máx.
 Check eligibility: Verificar elegibilidad
+$expired_many: Expirados
+$expires_in %days%:
+  zeroValue: Expira %days%
+  oneValue: Expira %days%
+  otherValue: Expiran %days%
+Message: Mensaje
+Binary Data: Datos binarios
+The binary data content is unclear. Sign it only if you trust the service.: El contenido de los datos binarios no está claro. Fírmelo solo si confía en el servicio.
+Cell Schema: Esquema de celda
+Cell Data: Datos de celda
+Sign Data: Firmar datos
+Please confirm signature on your Ledger: Por favor confirme la firma en su Ledger
+Utilities: Utilidades
+Games: Juegos
+Entertainment: Entretenimiento
+Toggle to landscape layout: Cambiar a horizontal
+Toggle to portrait layout: Cambiar a vertical
+Attributes: Atributos
+Show All: Mostrar todo
+Description: Descripción
+No additional data.: No hay datos adicionales.

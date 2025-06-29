@@ -27,7 +27,6 @@ import { ANIMATION_DURATION } from '../ui/Menu';
 import styles from './MediaViewer.module.scss';
 
 type OwnProps = {
-  // eslint-disable-next-line react/no-unused-prop-types
   mediaId?: string;
   onClose: NoneToVoidFunction;
 };
@@ -42,6 +41,15 @@ type StateProps = {
   accentColorNft?: ApiNft;
   isViewMode: boolean;
 };
+
+const SHOULD_CLOSE_VIEWER_HANDLERS: NftMenuHandler[] = [
+  'send',
+  'renew',
+  'burn',
+  'collection',
+  'select',
+  'linkDomain',
+];
 
 function Actions({
   nft,
@@ -83,7 +91,7 @@ function Actions({
   });
 
   const handleSelect = useLastCallback((value: NftMenuHandler) => {
-    if (value === 'send' || value === 'renew') {
+    if (SHOULD_CLOSE_VIEWER_HANDLERS.includes(value)) {
       onClose();
     }
 

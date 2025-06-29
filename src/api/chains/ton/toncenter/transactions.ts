@@ -69,7 +69,7 @@ export function parseRawTransaction(
     },
   } = rawTx;
 
-  const timestamp = now as number * 1000;
+  const timestamp = now * 1000;
   const isIncoming = !!rawTx.in_msg.source && !rawTx.out_msgs.length;
   const inMsgHash = rawTx.in_msg.hash;
   const msgs: TransactionMessage[] = isIncoming ? [rawTx.in_msg] : rawTx.out_msgs;
@@ -88,6 +88,7 @@ export function parseRawTransaction(
       fwd_fee: fwdFee,
       opcode,
       hash: msgHash,
+      bounced,
     } = msg;
 
     if (!destination) {
@@ -96,8 +97,8 @@ export function parseRawTransaction(
     }
 
     const fromAddress = addressBook[source!].user_friendly;
-    const toAddress = addressBook[destination!].user_friendly;
-    const normalizedAddress = toBase64Address(isIncoming ? source! : destination!, true, network);
+    const toAddress = addressBook[destination].user_friendly;
+    const normalizedAddress = toBase64Address(isIncoming ? source! : destination, true, network);
     const fee = oneMsgFee + BigInt(fwdFee ?? 0);
 
     const tx: ApiTransactionExtended = omitUndefined({
@@ -115,6 +116,7 @@ export function parseRawTransaction(
       hash,
       opCode: Number(opcode) || undefined,
       msgHash,
+      type: bounced ? 'bounced' : undefined,
     });
 
     transactions.push(tx);

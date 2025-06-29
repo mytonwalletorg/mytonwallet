@@ -30,10 +30,8 @@ function ModalHeader<T extends string>({
 }: OwnProps<T>) {
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>();
+  const menuButtonRef = useRef<HTMLButtonElement>();
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>();
 
   const hasMenu = Boolean(menuItems?.length);
@@ -62,6 +60,7 @@ function ModalHeader<T extends string>({
         withNotch && 'is-scrolled',
         !onBackButtonClick && modalStyles.header_wideContent,
         className,
+        isMenuOpen && 'is-menu-open',
       )}
     >
       {onBackButtonClick && (
@@ -96,7 +95,7 @@ function ModalHeader<T extends string>({
         <DropdownMenu
           isOpen={isMenuOpen}
           ref={menuRef}
-          items={menuItems!}
+          items={menuItems}
           withPortal
           shouldTranslateOptions
           menuPositionX="right"

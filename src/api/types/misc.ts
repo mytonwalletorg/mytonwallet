@@ -9,6 +9,7 @@ export type ApiChain = 'ton' | 'tron';
 export type ApiNetwork = 'mainnet' | 'testnet';
 export type ApiLedgerDriver = 'HID' | 'USB';
 export type ApiTokenType = 'lp_token';
+export type ApiDappConnectionType = 'connect' | 'sendTransaction' | 'signData';
 
 export interface AccountIdParsed {
   id: number;
@@ -60,13 +61,19 @@ export interface ApiAddressInfo {
   isMemoRequired?: boolean;
 }
 
+export interface ApiNftSuperCollection {
+  id: string;
+  name: string;
+  icon?: 'gift';
+}
+
 export type ApiActivityTimestamps = Record<string, number | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest'
-| 'callContract' | 'excess' | 'contractDeploy' | 'bounced'
-| 'mint' | 'burn' | 'auctionBid' | 'nftPurchase'
-| 'dnsChangeAddress' | 'dnsChangeSite' | 'dnsChangeSubdomains' | 'dnsChangeStorage' | 'dnsDelete' | 'dnsRenew'
-| 'liquidityDeposit' | 'liquidityWithdraw'
-| undefined;
+  | 'callContract' | 'excess' | 'contractDeploy' | 'bounced'
+  | 'mint' | 'burn' | 'auctionBid' | 'nftTrade'
+  | 'dnsChangeAddress' | 'dnsChangeSite' | 'dnsChangeSubdomains' | 'dnsChangeStorage' | 'dnsDelete' | 'dnsRenew'
+  | 'liquidityDeposit' | 'liquidityWithdraw'
+  | undefined;
 
 export interface ApiTransaction {
   txId: string;
@@ -92,14 +99,19 @@ export interface ApiTransaction {
   nft?: ApiNft;
 }
 
-export interface ApiTransactionMetadata extends ApiAddressInfo {
-}
+export type ApiTransactionMetadata = ApiAddressInfo;
 
 export type ApiMtwCardType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
 export type ApiMtwCardTextType = 'light' | 'dark';
 export type ApiMtwCardBorderShineType = 'up' | 'down' | 'left' | 'right' | 'radioactive';
 
+export interface ApiNftAttribute {
+  trait_type: string;
+  value: string;
+}
+
 export interface ApiNftMetadata {
+  attributes?: ApiNftAttribute[];
   lottie?: string;
   imageUrl?: string;
   fragmentUrl?: string;
@@ -160,6 +172,8 @@ export type ApiLiquidStakingState = BaseStakingState & {
   type: 'liquid';
   tokenBalance: bigint;
   instantAvailable: bigint;
+  start: number;
+  end: number;
 };
 
 export type ApiJettonStakingState = BaseStakingState & {
@@ -187,9 +201,9 @@ export type ApiEthenaStakingState = BaseStakingState & {
 
 export type ApiYieldType = 'APY' | 'APR';
 export type ApiStakingState = ApiNominatorsStakingState
-| ApiLiquidStakingState
-| ApiJettonStakingState
-| ApiEthenaStakingState;
+  | ApiLiquidStakingState
+  | ApiJettonStakingState
+  | ApiEthenaStakingState;
 export type ApiToncoinStakingState = ApiNominatorsStakingState | ApiLiquidStakingState;
 
 export interface ApiNominatorsPool {
@@ -208,6 +222,7 @@ export interface ApiBackendStakingState {
   shouldUseNominators?: boolean;
   stakedAt?: number;
   ethena: {
+    /** Boolean - whether the wallet is verified; undefined - the wallet eligibility was never checked */
     isVerified?: boolean;
   };
 }
@@ -261,7 +276,7 @@ export interface ApiSignedTransfer {
  * The `fee` field should contain the final (real) fee, because we want to show the real fee in local transactions
  */
 export type ApiLocalTransactionParams = Omit<
-ApiTransactionActivity, 'id' | 'timestamp' | 'isIncoming' | 'normalizedAddress' | 'kind' | 'shouldLoadDetails'
+  ApiTransactionActivity, 'id' | 'timestamp' | 'isIncoming' | 'normalizedAddress' | 'kind' | 'shouldLoadDetails'
 > & {
   normalizedAddress?: string;
   isIncoming?: boolean;
@@ -295,23 +310,23 @@ export type ApiWalletWithVersionInfo = ApiWalletInfo & Required<Pick<ApiWalletIn
 
 // Country codes from ISO-3166-1 spec
 export type ApiCountryCode = 'AF' | 'AX' | 'AL' | 'DZ' | 'AS' | 'AD' | 'AO' | 'AI' | 'AQ' | 'AG' | 'AR'
-| 'AM' | 'AW' | 'AU' | 'AT' | 'AZ' | 'BS' | 'BH' | 'BD' | 'BB' | 'BY' | 'BE' | 'BZ' | 'BJ' | 'BM'
-| 'BT' | 'BO' | 'BQ' | 'BA' | 'BW' | 'BV' | 'BR' | 'IO' | 'BN' | 'BG' | 'BF' | 'BI' | 'CV' | 'KH'
-| 'CM' | 'CA' | 'KY' | 'CF' | 'TD' | 'CL' | 'CN' | 'CX' | 'CC' | 'CO' | 'KM' | 'CG' | 'CD' | 'CK'
-| 'CR' | 'CI' | 'HR' | 'CU' | 'CW' | 'CY' | 'CZ' | 'DK' | 'DJ' | 'DM' | 'DO' | 'EC' | 'EG' | 'SV'
-| 'GQ' | 'ER' | 'EE' | 'SZ' | 'ET' | 'FK' | 'FO' | 'FJ' | 'FI' | 'FR' | 'GF' | 'PF' | 'TF' | 'GA'
-| 'GM' | 'GE' | 'DE' | 'GH' | 'GI' | 'GR' | 'GL' | 'GD' | 'GP' | 'GU' | 'GT' | 'GG' | 'GN' | 'GW'
-| 'GY' | 'HT' | 'HM' | 'VA' | 'HN' | 'HK' | 'HU' | 'IS' | 'IN' | 'ID' | 'IR' | 'IQ' | 'IE' | 'IM'
-| 'IL' | 'IT' | 'JM' | 'JP' | 'JE' | 'JO' | 'KZ' | 'KE' | 'KI' | 'KP' | 'KR' | 'KW' | 'KG' | 'LA'
-| 'LV' | 'LB' | 'LS' | 'LR' | 'LY' | 'LI' | 'LT' | 'LU' | 'MO' | 'MG' | 'MW' | 'MY' | 'MV' | 'ML'
-| 'MT' | 'MH' | 'MQ' | 'MR' | 'MU' | 'YT' | 'MX' | 'FM' | 'MD' | 'MC' | 'MN' | 'ME' | 'MS' | 'MA'
-| 'MZ' | 'MM' | 'NA' | 'NR' | 'NP' | 'NL' | 'NC' | 'NZ' | 'NI' | 'NE' | 'NG' | 'NU' | 'NF' | 'MP'
-| 'NO' | 'OM' | 'PK' | 'PW' | 'PS' | 'PA' | 'PG' | 'PY' | 'PE' | 'PH' | 'PN' | 'PL' | 'PT' | 'PR'
-| 'QA' | 'MK' | 'RO' | 'RU' | 'RW' | 'RE' | 'BL' | 'SH' | 'KN' | 'LC' | 'MF' | 'PM' | 'VC' | 'WS'
-| 'SM' | 'ST' | 'SA' | 'SN' | 'RS' | 'SC' | 'SL' | 'SG' | 'SX' | 'SK' | 'SI' | 'SB' | 'SO' | 'ZA'
-| 'GS' | 'SS' | 'ES' | 'LK' | 'SD' | 'SR' | 'SJ' | 'SE' | 'CH' | 'SY' | 'TW' | 'TJ' | 'TZ' | 'TH'
-| 'TL' | 'TG' | 'TK' | 'TO' | 'TT' | 'TN' | 'TR' | 'TM' | 'TC' | 'TV' | 'UG' | 'UA' | 'AE' | 'GB'
-| 'US' | 'UM' | 'UY' | 'UZ' | 'VU' | 'VE' | 'VN' | 'VG' | 'VI' | 'WF' | 'EH' | 'YE' | 'ZM' | 'ZW';
+  | 'AM' | 'AW' | 'AU' | 'AT' | 'AZ' | 'BS' | 'BH' | 'BD' | 'BB' | 'BY' | 'BE' | 'BZ' | 'BJ' | 'BM'
+  | 'BT' | 'BO' | 'BQ' | 'BA' | 'BW' | 'BV' | 'BR' | 'IO' | 'BN' | 'BG' | 'BF' | 'BI' | 'CV' | 'KH'
+  | 'CM' | 'CA' | 'KY' | 'CF' | 'TD' | 'CL' | 'CN' | 'CX' | 'CC' | 'CO' | 'KM' | 'CG' | 'CD' | 'CK'
+  | 'CR' | 'CI' | 'HR' | 'CU' | 'CW' | 'CY' | 'CZ' | 'DK' | 'DJ' | 'DM' | 'DO' | 'EC' | 'EG' | 'SV'
+  | 'GQ' | 'ER' | 'EE' | 'SZ' | 'ET' | 'FK' | 'FO' | 'FJ' | 'FI' | 'FR' | 'GF' | 'PF' | 'TF' | 'GA'
+  | 'GM' | 'GE' | 'DE' | 'GH' | 'GI' | 'GR' | 'GL' | 'GD' | 'GP' | 'GU' | 'GT' | 'GG' | 'GN' | 'GW'
+  | 'GY' | 'HT' | 'HM' | 'VA' | 'HN' | 'HK' | 'HU' | 'IS' | 'IN' | 'ID' | 'IR' | 'IQ' | 'IE' | 'IM'
+  | 'IL' | 'IT' | 'JM' | 'JP' | 'JE' | 'JO' | 'KZ' | 'KE' | 'KI' | 'KP' | 'KR' | 'KW' | 'KG' | 'LA'
+  | 'LV' | 'LB' | 'LS' | 'LR' | 'LY' | 'LI' | 'LT' | 'LU' | 'MO' | 'MG' | 'MW' | 'MY' | 'MV' | 'ML'
+  | 'MT' | 'MH' | 'MQ' | 'MR' | 'MU' | 'YT' | 'MX' | 'FM' | 'MD' | 'MC' | 'MN' | 'ME' | 'MS' | 'MA'
+  | 'MZ' | 'MM' | 'NA' | 'NR' | 'NP' | 'NL' | 'NC' | 'NZ' | 'NI' | 'NE' | 'NG' | 'NU' | 'NF' | 'MP'
+  | 'NO' | 'OM' | 'PK' | 'PW' | 'PS' | 'PA' | 'PG' | 'PY' | 'PE' | 'PH' | 'PN' | 'PL' | 'PT' | 'PR'
+  | 'QA' | 'MK' | 'RO' | 'RU' | 'RW' | 'RE' | 'BL' | 'SH' | 'KN' | 'LC' | 'MF' | 'PM' | 'VC' | 'WS'
+  | 'SM' | 'ST' | 'SA' | 'SN' | 'RS' | 'SC' | 'SL' | 'SG' | 'SX' | 'SK' | 'SI' | 'SB' | 'SO' | 'ZA'
+  | 'GS' | 'SS' | 'ES' | 'LK' | 'SD' | 'SR' | 'SJ' | 'SE' | 'CH' | 'SY' | 'TW' | 'TJ' | 'TZ' | 'TH'
+  | 'TL' | 'TG' | 'TK' | 'TO' | 'TT' | 'TN' | 'TR' | 'TM' | 'TC' | 'TV' | 'UG' | 'UA' | 'AE' | 'GB'
+  | 'US' | 'UM' | 'UY' | 'UZ' | 'VU' | 'VE' | 'VN' | 'VG' | 'VI' | 'WF' | 'EH' | 'YE' | 'ZM' | 'ZW';
 
 /** Each string value can be either an address or a domain name */
-export type ApiImportAddressByChain = { [K in ApiChain]?: string };
+export type ApiImportAddressByChain = Partial<Record<ApiChain, string>>;

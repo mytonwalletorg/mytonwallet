@@ -1,4 +1,4 @@
-@import '../../styles/mixins';
+@use "../../styles/mixins";
 
 .root {
   position: fixed;
@@ -24,11 +24,10 @@
   // Potential perf improvement
   &:not(:global(.shown)) {
     transform: scale(0);
-
     display: block !important;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     background: rgba(0, 0, 0, 1);
   }
 }
@@ -45,7 +44,7 @@
 
   background: linear-gradient(to bottom, rgba(12, 12, 12, 1) 0%, rgba(12, 12, 12, 0) 100%);
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     padding: max(1rem, var(--safe-area-top)) max(1rem, env(safe-area-inset-left));
   }
 }
@@ -75,6 +74,8 @@
   margin-left: auto;
   margin-inline-start: 0.75rem;
   padding: 0.3125rem;
+  border: 0;
+  border-radius: 0.625rem;
 
   line-height: 1;
   color: #A3A3A3;
@@ -82,8 +83,6 @@
   white-space: nowrap;
 
   background-color: rgba(0, 0, 0, 0.32);
-  border: 0;
-  border-radius: 0.625rem;
   outline: none;
 
   transition: background-color 0.15s, color 0.15s;
@@ -92,7 +91,6 @@
   &:focus-visible {
     color: white;
     text-decoration: none;
-
     background-color: rgba(0, 0, 0, 0.8);
   }
 
@@ -121,22 +119,19 @@
 }
 
 .menuButton {
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     color: #A3A3A3;
-
     background-color: rgba(0, 0, 0, 0.32);
 
     &:hover,
     &:focus-visible {
       color: #A3A3A3;
-
       background-color: rgba(0, 0, 0, 0.32);
     }
   }
 
   &_active {
     color: white !important;
-
     background-color: rgba(0, 0, 0, 0.8) !important;
   }
 }
@@ -235,12 +230,11 @@
 
   &::before {
     content: "";
-
     display: block;
     flex: 1;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     padding: 3rem 0 0.5rem;
   }
 }
@@ -251,9 +245,9 @@
   aspect-ratio: 1;
   max-width: 100vw;
   max-height: calc(100vh - 14rem);
+  border-radius: var(--border-radius-normal);
 
   object-fit: contain;
-  border-radius: var(--border-radius-normal);
 
   -webkit-touch-callout: default;
 
@@ -261,7 +255,7 @@
     opacity: 0;
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     border-radius: 0;
   }
 }
@@ -272,11 +266,10 @@
 
   overflow: auto;
   flex: 1;
-
   max-width: min(50rem, calc(100% - 4rem));
-  margin-top: 2rem;
+  margin-top: 1.75rem;
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     --background-color: #000;
 
     max-width: 100%;
@@ -290,9 +283,9 @@
   overflow: hidden;
 
   max-height: var(--max-height);
+  border-radius: var(--border-radius-normal);
 
   background: var(--background-color);
-  border-radius: var(--border-radius-normal);
 
   &::before,
   &::after {
@@ -313,11 +306,10 @@
   &::after {
     top: auto;
     bottom: 0;
-
     background: linear-gradient(to top, var(--background-color) 0%, transparent 100%);
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     border-radius: 0;
   }
 }
@@ -350,18 +342,17 @@
   width: 10vw;
   margin: 0;
   padding: 0;
+  border: none;
 
+  appearance: none;
   opacity: 0;
   background: transparent no-repeat;
   background-size: 1.875rem;
-  border: none;
   outline: none;
 
   transition: opacity 0.15s;
 
-  appearance: none;
-
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     display: none;
   }
 
@@ -376,7 +367,6 @@
 
   &_prev {
     left: env(safe-area-inset-left);
-
     background-image: url("../../assets/mediaViewer/navigation_previous.svg");
     background-position: 50% calc(50% - 3rem);
 
@@ -389,7 +379,6 @@
 
   &_next {
     right: env(safe-area-inset-right);
-
     background-image: url("../../assets/mediaViewer/navigation_next.svg");
     background-position: 50% calc(50% - 3rem);
 
@@ -405,7 +394,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-
   max-width: 100%;
 
   :global(html.is-electron.is-macos) & {
@@ -454,9 +442,7 @@
 
 .tooltip {
   position: relative;
-
   margin-left: 0.25rem;
-
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
 }
@@ -473,7 +459,7 @@
 
   transition: transform 0.2s ease, opacity 0.2s ease, border-radius 0.2s ease;
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     border-radius: 0;
   }
 
@@ -488,10 +474,8 @@
 
 .ghostImage {
   user-select: none;
-
   width: 100%;
   height: 100%;
-
   object-fit: cover;
 }
 

@@ -57,7 +57,6 @@ void (async () => {
 
   requestMutation(() => {
     TeactDOM.render(
-      // eslint-disable-next-line react/jsx-no-bind
       <App mtwWalletInfo={mtwWalletInfo} />,
       document.getElementById('root')!,
     );

@@ -51,7 +51,7 @@ if ('visualViewport' in window && (IS_IOS || IS_ANDROID)) {
     // not taking into account the height of the virtual keyboard.
     if (IS_IOS && IS_TELEGRAM_APP) {
       const keyboardHeight = initialHeight - target.height;
-      adjustBodyPaddingForKeyboard(keyboardHeight > SAFE_AREA_TOLERANCE_HEIGHT_PX ? keyboardHeight : 0)
+      void adjustBodyPaddingForKeyboard(keyboardHeight > SAFE_AREA_TOLERANCE_HEIGHT_PX ? keyboardHeight : 0)
         .finally(() => {
           requestMeasure(() => {
             currentWindowSize = {

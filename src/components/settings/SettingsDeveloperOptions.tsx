@@ -83,7 +83,7 @@ function SettingsDeveloperOptions({
 
     if (!CAN_DOWNLOAD_LOGS) {
       await copyTextToClipboard(logsString);
-      showNotification({ message: lang('Logs were copied!') as string, icon: 'icon-copy' });
+      showNotification({ message: lang('Logs were copied!'), icon: 'icon-copy' });
       onClose();
     } else {
       const filename = `${IS_CORE_WALLET ? 'tonwallet' : 'mytonwallet'}_logs_${new Date().toISOString()}.json`;

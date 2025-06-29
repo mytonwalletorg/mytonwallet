@@ -1,7 +1,7 @@
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { type ElementRef, memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { StakingStateStatus } from '../../../../global/helpers/staking';
+import type { StakingStateStatus } from '../../../../util/staking';
 
 import { IS_CORE_WALLET } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
@@ -24,7 +24,7 @@ interface OwnProps {
   isSwapDisabled?: boolean;
   isStakingDisabled?: boolean;
   isOnRampDisabled?: boolean;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: ElementRef<HTMLDivElement>;
   onEarnClick: NoneToVoidFunction;
 }
 
@@ -95,7 +95,7 @@ function PortraitActions({
               isSimple
               className={buildClassName(styles.button, isMenuOpen && styles.buttonActive)}
               onClick={handleStartTransfer}
-              ref={buttonProps.ref as React.RefObject<HTMLButtonElement>}
+              ref={buttonProps.ref as ElementRef<HTMLButtonElement>}
             >
               <i className={buildClassName(styles.buttonIcon, 'icon-action-send')} aria-hidden />
               {lang('Send')}

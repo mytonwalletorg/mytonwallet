@@ -16,25 +16,10 @@ import { storage } from '../storages';
 
 const MIN_ACCOUNT_NUMBER = 0;
 
-// eslint-disable-next-line import/no-mutable-exports
 export let loginResolve: AnyFunction;
 const loginPromise = new Promise<void>((resolve) => {
   loginResolve = resolve;
 });
-
-let activeAccountId: string | undefined;
-
-export function getActiveAccountId() {
-  return activeAccountId;
-}
-
-export function setActiveAccountId(accountId?: string) {
-  activeAccountId = accountId;
-}
-
-export function isAccountActive(accountId: string) {
-  return activeAccountId === accountId;
-}
 
 export async function getAccountIds(): Promise<string[]> {
   return Object.keys(await storage.getItem('accounts') || {});
@@ -47,9 +32,11 @@ export async function getAccountWithMnemonic() {
     .find(([, { type }]) => type !== 'ledger' && type !== 'view') as [string, ApiAccountWithMnemonic] | undefined;
 }
 
-export async function getNewAccountId(network: ApiNetwork) {
+export async function getNewAccountId(network: ApiNetwork, preferredId?: number) {
   const ids = (await getAccountIds()).map((accountId) => parseAccountId(accountId).id);
-  const id = ids.length === 0 ? MIN_ACCOUNT_NUMBER : Math.max(...ids) + 1;
+  const id = preferredId !== undefined && !ids.includes(preferredId)
+    ? preferredId
+    : ids.length === 0 ? MIN_ACCOUNT_NUMBER : Math.max(...ids) + 1;
   return buildAccountId({ id, network });
 }
 
@@ -65,8 +52,12 @@ export async function fetchStoredTronWallet(accountId: string): Promise<ApiTronW
   return (await fetchStoredTronAccount(accountId)).tron;
 }
 
-export function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
-  const account = getAccountValue(accountId, 'accounts');
+export function fetchMaybeStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T | undefined> {
+  return getAccountValue(accountId, 'accounts');
+}
+
+export async function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
+  const account = await fetchMaybeStoredAccount<T>(accountId);
   if (account) return account;
   throw new Error(`Account ${accountId} doesn't exist`);
 }
@@ -161,7 +152,7 @@ export function waitLogin() {
 }
 
 export function getAddressesFromAccount(account: ApiAccountAny) {
-  const addressByChain: { [K in ApiChain]?: string } = {};
+  const addressByChain: Partial<Record<ApiChain, string>> = {};
 
   if ('ton' in account && account.ton) addressByChain.ton = account.ton.address;
   if ('tron' in account && account.tron) addressByChain.tron = account.tron.address;

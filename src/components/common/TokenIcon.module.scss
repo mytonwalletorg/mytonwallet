@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .wrapper {
   position: relative;
@@ -11,22 +11,29 @@
 
   width: 2.25rem;
   height: 2.25rem;
-
   border-radius: 50%;
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     flex-basis: 2.625rem;
-
     width: 2.625rem;
     height: 2.625rem;
   }
 
   &.large {
-    @include is-not-mobile() {
+    @include mixins.is-not-mobile() {
       flex-basis: 2.5rem;
-
       width: 2.5rem !important;
       height: 2.5rem !important;
+    }
+  }
+
+  &.x-small {
+    width: 1.0625rem !important;
+    height: 1.0625rem !important;
+
+    @include mixins.is-mobile() {
+      width: 1.125rem !important;
+      height: 1.125rem !important;
     }
   }
 
@@ -39,11 +46,6 @@
     width: 1.5rem !important;
     height: 1.5rem !important;
   }
-
-  &.x-middle {
-    width: 1.625rem !important;
-    height: 1.625rem !important;
-  }
 }
 
 .fallbackIcon {
@@ -52,13 +54,17 @@
   justify-content: center;
 
   box-sizing: border-box;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  border: 0.0875rem solid var(--color-gray-4);
 
   font-size: 1.0625rem;
   font-weight: 800;
   line-height: 1;
   color: var(--color-gray-3);
-  /* stylelint-disable-next-line plugin/whole-pixel */
-  border: 0.0875rem solid var(--color-gray-4);
+
+  &.x-small {
+    font-size: 0.75rem;
+  }
 }
 
 .blockchainIcon {
@@ -68,30 +74,28 @@
 
   width: 1rem;
   height: 1rem;
-
   border-radius: 50%;
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 0 0 0.1rem var(--color-background-first);
 
-  @include is-mobile() {
+  @include mixins.is-mobile() {
     top: 1.625rem;
     left: 1.625rem;
-
     width: 1.125rem;
     height: 1.125rem;
   }
 
   &.large {
-    @include is-not-mobile() {
+    @include mixins.is-not-mobile() {
       top: 1.5rem;
       left: 1.5rem;
-
       width: 1.125rem;
       height: 1.125rem;
     }
   }
 
-  &.small {
+  &.small,
+  &.x-small, {
     top: 0.625rem !important;
     left: 0.625rem !important;
 
@@ -101,11 +105,9 @@
     box-shadow: 0 0 0 0.0625rem var(--color-background-first);
   }
 
-  &.middle,
-  &.x-middle {
+  &.middle {
     top: 0.9375rem !important;
     left: 0.9375rem !important;
-
     width: 0.625rem !important;
     height: 0.625rem !important;
   }

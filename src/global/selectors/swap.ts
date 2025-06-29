@@ -53,7 +53,6 @@ function createTokenList(
     .sort(sortFn);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const selectPopularTokensMemoizedFor = withCache((accountId: string) => memoize(
   (balancesBySlug: ApiBalanceBySlug, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const popularTokenOrder = [
@@ -78,7 +77,6 @@ const selectPopularTokensMemoizedFor = withCache((accountId: string) => memoize(
   },
 ));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const selectSwapTokensMemoizedFor = withCache((accountId: string) => memoize(
   (balancesBySlug: ApiBalanceBySlug, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const sortFn = (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => (

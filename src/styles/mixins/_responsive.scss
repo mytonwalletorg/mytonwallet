@@ -10,7 +10,7 @@ $breakpoints: (
 );
 
 @mixin respond-above($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
     $breakpoint-value: map.get($breakpoints, $breakpoint);
 
     @media (min-width: $breakpoint-value) {
@@ -22,7 +22,7 @@ $breakpoints: (
 }
 
 @mixin respond-below($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
     $breakpoint-value: map.get($breakpoints, $breakpoint);
 
     @media (max-width: ($breakpoint-value - 0.02)) {
@@ -46,7 +46,7 @@ $breakpoints: (
       @warn 'Your lower breakpoint was invalid: #{$lower}.';
     }
 
-    @if (map-has-key($breakpoints, $upper) == false) {
+    @if (map.has-key($breakpoints, $upper) == false) {
       @warn 'Your upper breakpoint was invalid: #{$upper}.';
     }
   }

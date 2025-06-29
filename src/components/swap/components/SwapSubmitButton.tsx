@@ -1,4 +1,3 @@
-import type { TeactNode } from '../../../lib/teact/teact';
 import React, { memo, useRef } from '../../../lib/teact/teact';
 
 import type { DieselStatus, UserSwapToken } from '../../../global/types';
@@ -81,22 +80,22 @@ function SwapSubmitButton({
 
   const isTouched = Boolean(amountIn || amountOut);
 
-  let text: string | TeactNode[] = '$swap_from_to';
+  let text: string | string[] = '$swap_from_to';
 
   if (isTouched) {
     if (isErrorExist) {
-      text = errorMsgByType[errorType];
+      text = errorMsgByType[errorType] as string;
     } else if (nativeToken) {
       if (isNotEnoughNative && tokenIn?.chain === 'ton' && tokenIn?.tokenAddress) {
         if (dieselStatus === 'not-available') {
-          text = lang('Not Enough %symbol%', { symbol: 'TON' });
+          text = lang('Not Enough %symbol%', { symbol: 'TON' }) as string;
         } else if (dieselStatus === 'pending-previous') {
           text = lang('Awaiting Previous Fee');
         } else if (dieselStatus === 'not-authorized') {
-          text = lang('Authorize %token% Fee', { token: tokenIn?.symbol });
+          text = lang('Authorize %token% Fee', { token: tokenIn?.symbol }) as string;
         }
       } else if (isNotEnoughNative) {
-        text = lang('Not Enough %symbol%', { symbol: nativeToken?.symbol });
+        text = lang('Not Enough %symbol%', { symbol: nativeToken?.symbol }) as string;
       }
     }
   }

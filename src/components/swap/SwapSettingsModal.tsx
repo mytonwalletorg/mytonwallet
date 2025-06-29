@@ -364,7 +364,6 @@ export default function SwapSettingsModal({ isOpen, onClose, ...restProps }: Own
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCompact title={lang('Swap Details')}>
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <SwapSettings onClose={onClose} {...restProps} />
     </Modal>
   );

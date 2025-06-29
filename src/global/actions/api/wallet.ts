@@ -214,7 +214,7 @@ addActionHandler('submitSignature', async (global, actions, payload) => {
     return;
   }
 
-  await callApi('confirmDappRequest', promiseId, password!);
+  await callApi('confirmDappRequest', promiseId, password);
 
   setGlobal(updateCurrentSignature(getGlobal(), { isSigned: true }));
 });
@@ -298,7 +298,7 @@ addActionHandler('importToken', async (global, actions, { address }) => {
   const slug = (await callApi('buildTokenSlug', 'ton', address))!;
   global = getGlobal();
 
-  let token: ApiTokenWithPrice | ApiToken | undefined = global.tokenInfo.bySlug?.[slug!];
+  let token: ApiTokenWithPrice | ApiToken | undefined = global.tokenInfo.bySlug?.[slug];
 
   if (!token) {
     token = await callApi('fetchToken', global.currentAccountId!, address);

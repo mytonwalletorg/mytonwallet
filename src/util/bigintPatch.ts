@@ -4,5 +4,5 @@ import { BIGINT_PREFIX } from './bigint';
 // Extracted to a separate file to avoid leaking into Extension Page Script.
 // @ts-ignore
 BigInt.prototype.toJSON = function toJSON() {
-  return `${BIGINT_PREFIX}${this}`;
+  return `${BIGINT_PREFIX}${this.toString()}`;
 };

@@ -4,6 +4,7 @@
   min-height: 3rem;
   /* Account for border width */
   padding: calc(1rem - 1px) calc(0.75rem - 1px);
+  border-radius: var(--border-radius-default);
 
   font-size: 1rem;
   font-weight: 600;
@@ -13,12 +14,10 @@
   word-break: break-all;
 
   background: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 }
 
 .button {
   cursor: var(--custom-cursor, pointer);
-
   text-decoration: none !important;
 
   &_spoiler {
@@ -68,7 +67,6 @@
 .iconShare {
   margin-right: -0.0625rem;
   margin-left: -0.125rem;
-
   font-size: 1.25rem;
   vertical-align: -0.3125rem;
 }
@@ -79,9 +77,7 @@
 
 .shortAddress {
   position: relative;
-
   margin-left: 0.75rem;
-
   color: var(--color-gray-3);
 
   &::before {
@@ -93,9 +89,9 @@
 
     width: 0.125rem;
     height: 0.125rem;
+    border-radius: 50%;
 
     background-color: var(--color-gray-3);
-    border-radius: 50%;
   }
 
   &.scam {
@@ -105,9 +101,7 @@
 
 .revealSpoiler {
   cursor: var(--custom-cursor, pointer);
-
   margin-left: 0.1875rem;
-
   color: var(--color-accent);
 
   &:hover {
@@ -123,14 +117,12 @@
   width: 2.75rem;
   height: 1.0625rem;
   margin-right: 0.25rem;
-
   vertical-align: bottom;
 }
 
 .chainIcon {
   color: var(--color-gray-3);
   vertical-align: -0.125rem;
-
   transition: color 200ms;
 
   :global(html.animation-level-0) & {
@@ -152,7 +144,6 @@
 .menuIcon,
 .dimmedPart {
   color: var(--color-gray-3);
-
   transition: color 200ms;
 
   :global(html.animation-level-0) & {
@@ -180,7 +171,6 @@
   &::before {
     top: 0;
     left: 0;
-
     width: 100%;
   }
 

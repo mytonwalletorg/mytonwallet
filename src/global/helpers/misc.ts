@@ -29,7 +29,10 @@ export function parsePlainAddressQr(global: GlobalState, qrData: string) {
   };
 }
 
-function getChainFromAddress(address: string, availableChains: { [K in ApiChain]?: unknown }): ApiChain | undefined {
+function getChainFromAddress(
+  address: string,
+  availableChains: Partial<Record<ApiChain, unknown>>,
+): ApiChain | undefined {
   for (const chain of Object.keys(availableChains) as Array<keyof typeof availableChains>) {
     if (isValidAddressOrDomain(address, chain)) {
       return chain;

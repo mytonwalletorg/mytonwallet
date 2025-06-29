@@ -6,14 +6,14 @@ import type { ContractType } from './constants';
 import type { AddressBook, AnyAction, TraceDetail } from './toncenter/types';
 
 export type ApiTonWalletVersion = 'simpleR1'
-| 'simpleR2'
-| 'simpleR3'
-| 'v2R1'
-| 'v2R2'
-| 'v3R1'
-| 'v3R2'
-| 'v4R2'
-| 'W5';
+  | 'simpleR2'
+  | 'simpleR3'
+  | 'v2R1'
+  | 'v2R2'
+  | 'v3R1'
+  | 'v3R2'
+  | 'v4R2'
+  | 'W5';
 
 export type AnyPayload = string | Cell | Uint8Array;
 
@@ -47,11 +47,11 @@ export interface JettonMetadata {
 }
 
 export type ContractName = ApiTonWalletVersion
-| 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2' | 'multisigNew'
-| 'nominatorPool' | 'vesting'
-| 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
-| 'stonPtonWallet' | 'stonRouter' | 'stonRouterV2_1' | 'stonPoolV2_1'
-| 'stonRouterV2_2' | 'stonRouterV2_2_alt' | 'stonPoolV2_2' | 'stonPtonWalletV2';
+  | 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2' | 'multisigNew'
+  | 'nominatorPool' | 'vesting'
+  | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
+  | 'stonPtonWallet' | 'stonRouter' | 'stonRouterV2_1' | 'stonPoolV2_1'
+  | 'stonRouterV2_2' | 'stonRouterV2_2_alt' | 'stonPoolV2_2' | 'stonPtonWalletV2';
 
 export type ContractInfo = {
   name: ContractName;

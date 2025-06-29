@@ -13,7 +13,6 @@ const tonProvider = initTonProvider(apiConnector);
 const tonConnect = initTonConnect(apiConnector);
 
 function onUpdate(update: ApiSiteUpdate) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { type, ...args } = update;
 
   if (type === 'updateTonMagic') {

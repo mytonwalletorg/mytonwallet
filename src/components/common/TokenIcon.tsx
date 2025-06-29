@@ -14,7 +14,7 @@ import styles from './TokenIcon.module.scss';
 interface OwnProps {
   token: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
   withChainIcon?: boolean;
-  size?: 'small' | 'middle' | 'x-middle' | 'large';
+  size?: 'x-small' | 'small' | 'middle' | 'large';
   className?: string;
   iconClassName?: string;
   children?: TeactNode;

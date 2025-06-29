@@ -11,6 +11,7 @@
   height: 1.75rem;
   margin-right: auto;
   padding: 0 0.5rem;
+  border-radius: var(--border-radius-default);
 
   font-size: 0.9375rem;
   font-weight: 700;
@@ -18,7 +19,6 @@
   color: var(--color-accent-button-text);
 
   background-color: var(--color-green-button-background);
-  border-radius: var(--border-radius-default);
 
   /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
   transition: opacity 400ms, background-color 150ms;
@@ -35,7 +35,6 @@
 
   &.disabled {
     cursor: not-allowed;
-
     opacity: 0.3;
   }
 
@@ -56,12 +55,12 @@
   width: 0.875rem;
   height: 0.875rem;
   margin-right: 0.3125rem;
+  border-radius: var(--border-radius-default);
 
   font-size: 0.75rem;
   color: var(--color-apy-text);
 
   background-color: var(--color-accent-button-text);
-  border-radius: var(--border-radius-default);
 }
 
 .text {

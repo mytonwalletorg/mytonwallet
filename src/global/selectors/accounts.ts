@@ -74,27 +74,27 @@ export function selectIsHardwareAccount(global: GlobalState) {
   return Boolean(account) && isHardwareAccount(account);
 }
 
-export function selectAllHardwareAccounts(global: GlobalState) {
+export function selectAllHardwareAccounts(global: GlobalState, network: ApiNetwork) {
   const accounts = selectAccounts(global);
 
-  if (!accounts) {
-    return undefined;
-  }
-
-  return Object.values(accounts).filter(isHardwareAccount);
+  return Object.entries(accounts ?? {}).reduce<Account[]>((accounts, [accountId, account]) => {
+    if (isHardwareAccount(account) && parseAccountId(accountId).network === network) {
+      accounts.push(account);
+    }
+    return accounts;
+  }, []);
 }
 
 export function selectIsOneAccount(global: GlobalState) {
   return Object.keys(selectAccounts(global) || {}).length === 1;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const selectEnabledTokensCountMemoizedFor = withCache((accountId: string) => memoize((tokens?: UserToken[]) => {
   return (tokens ?? []).filter(({ isDisabled }) => !isDisabled).length;
 }));
 
-export function selectLedgerAccountIndexToImport(global: GlobalState) {
-  const hardwareAccounts = selectAllHardwareAccounts(global) ?? [];
+export function selectLedgerAccountIndexToImport(global: GlobalState, network: ApiNetwork) {
+  const hardwareAccounts = selectAllHardwareAccounts(global, network);
   const hardwareAccountIndexes = hardwareAccounts?.map((account) => account.ledger!.index)
     .sort((a, b) => a - b);
 

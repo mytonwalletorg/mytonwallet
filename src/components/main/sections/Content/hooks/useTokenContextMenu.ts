@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import { useMemo } from '../../../../../lib/teact/teact';
+import { type ElementRef, useMemo } from '../../../../../lib/teact/teact';
 import { getActions } from '../../../../../global';
 
 import type { ApiStakingState } from '../../../../../api/types';
@@ -8,18 +7,18 @@ import type { DropdownItem } from '../../../../ui/Dropdown';
 import { ActiveTab, SettingsState } from '../../../../../global/types';
 
 import { DEFAULT_SWAP_FIRST_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG } from '../../../../../config';
-import { getStakingStateStatus } from '../../../../../global/helpers/staking';
 import { vibrate } from '../../../../../util/haptics';
 import { compact } from '../../../../../util/iteratees';
+import { getStakingStateStatus } from '../../../../../util/staking';
 import { getIsServiceToken } from '../../../../../util/tokens';
 
 import useContextMenuHandlers from '../../../../../hooks/useContextMenuHandlers';
 import useLastCallback from '../../../../../hooks/useLastCallback';
 
 export type MenuHandler = 'add' | 'send' | 'swap' | 'stake' | 'hide' | 'settings'
-| 'unstake' | 'stakeMore' | 'claimRewards';
+  | 'unstake' | 'stakeMore' | 'claimRewards';
 
-function useTokenContextMenu(ref: RefObject<HTMLButtonElement>, options: {
+function useTokenContextMenu(ref: ElementRef<HTMLButtonElement>, options: {
   isPortrait?: boolean;
   withContextMenu?: boolean;
   token: UserToken;
@@ -58,7 +57,6 @@ function useTokenContextMenu(ref: RefObject<HTMLButtonElement>, options: {
   } = useContextMenuHandlers({
     elementRef: ref,
     isMenuDisabled: !withContextMenu,
-    shouldDisablePropagation: true,
   });
   const isServiceToken = getIsServiceToken(token);
   const stakingId = stakingState?.id;

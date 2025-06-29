@@ -24,9 +24,9 @@ export type ApiSiteDisconnect = {
 };
 
 export type ApiSiteUpdate = ApiLegacyDappUpdate
-| ApiSiteUpdateTonMagic
-| ApiSiteUpdateDeeplinkHook
-| ApiSiteDisconnect;
+  | ApiSiteUpdateTonMagic
+  | ApiSiteUpdateDeeplinkHook
+  | ApiSiteDisconnect;
 
 export type ApiLegacyDappUpdate = ApiDappUpdateBalance | ApiDappUpdateAccounts;
 

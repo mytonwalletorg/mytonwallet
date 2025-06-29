@@ -40,10 +40,10 @@ interface BroadcastChannelNativeLogsResponse {
 }
 
 type BroadcastChannelMessage = BroadcastChannelGlobalDiff
-| BroadcastChannelCallActionInMain<keyof ActionPayloads>
-| BroadcastChannelCallActionInNative<keyof ActionPayloads>
-| BroadcastChannelNativeLogsRequest
-| BroadcastChannelNativeLogsResponse;
+  | BroadcastChannelCallActionInMain<keyof ActionPayloads>
+  | BroadcastChannelCallActionInNative<keyof ActionPayloads>
+  | BroadcastChannelNativeLogsRequest
+  | BroadcastChannelNativeLogsResponse;
 type EventListener = (type: 'message', listener: (event: { data: BroadcastChannelMessage }) => void) => void;
 
 export type TypedBroadcastChannel = {

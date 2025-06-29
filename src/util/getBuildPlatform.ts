@@ -14,18 +14,18 @@ import { getTelegramApp } from './telegram';
 import { IS_ANDROID, IS_ELECTRON, IS_IOS } from './windowEnvironment';
 
 export type BuildPlatform = Platforms
-| 'web'
-| 'extension'
-| 'firefox-extension'
-| 'opera-extension'
-| 'electron'
-| 'android'
-| 'android-air'
-| 'android-air-direct'
-| 'android-direct'
-| 'ios'
-| 'ios-air'
-| 'telegram-unknown';
+  | 'web'
+  | 'extension'
+  | 'firefox-extension'
+  | 'opera-extension'
+  | 'electron'
+  | 'android'
+  | 'android-air'
+  | 'android-air-direct'
+  | 'android-direct'
+  | 'ios'
+  | 'ios-air'
+  | 'telegram-unknown';
 
 export function getBuildPlatform(): BuildPlatform {
   if (IS_FIREFOX_EXTENSION) return 'firefox-extension';

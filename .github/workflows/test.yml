@@ -17,6 +17,10 @@ jobs:
 
       - name: Prepare the Node environment
         uses: ./.github/actions/prepare_node
+        with:
+          node-version: ${{ vars.NODE_VERSION }}
 
       - name: Test
-        run: npm test
+        run: |
+          npm run i18n:build:default
+          npm test

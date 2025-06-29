@@ -79,7 +79,7 @@ function Backup({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             </div>
-            { isMultichainAccount && (
+            {isMultichainAccount && (
               <p className={styles.blockDescription}>
                 {lang('Can be imported to any multichain wallet supporting TON.')}
               </p>

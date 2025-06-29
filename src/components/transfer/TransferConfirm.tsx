@@ -130,7 +130,7 @@ function TransferConfirm({
     return <NftChips nfts={nfts!} />;
   }
 
-  function renderFee() {
+  function renderAmountWithFee() {
     if (!explainedFee.realFee || !token) {
       return undefined;
     }
@@ -155,6 +155,7 @@ function TransferConfirm({
         amount={toDecimal(amount ?? 0n, token?.decimals)}
         symbol={token?.symbol ?? ''}
         feeText={feeText}
+        fractionDigits={token?.decimals}
       />
     );
   }
@@ -248,14 +249,14 @@ function TransferConfirm({
         </div>
         <InteractiveTextField
           chain={chain}
-          address={resolvedAddress!}
+          address={resolvedAddress}
           addressName={addressName}
           isScam={isScam}
           copyNotification={lang('Address was copied!')}
           className={styles.addressWidget}
         />
 
-        {renderFee()}
+        {renderAmountWithFee()}
         {renderComment()}
 
         {nfts && (isBurning || (isNotcoinBurning && nfts?.length > 1)) && (

@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
-import type { GlobalState, HardwareConnectState } from '../../global/types';
+import type { GlobalState } from '../../global/types';
 import { DomainRenewalState } from '../../global/types';
 
 import { TONCOIN } from '../../config';
@@ -39,9 +39,6 @@ interface StateProps {
   isMediaViewerOpen?: boolean;
   currentDomainRenewal: GlobalState['currentDomainRenewal'];
   byAddress?: Record<string, ApiNft>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   tonBalance: bigint;
 }
 
@@ -50,6 +47,8 @@ const FULL_NATIVE_STATES = new Set([
   DomainRenewalState.ConnectHardware,
   DomainRenewalState.ConfirmHardware,
 ]);
+
+const THUMBNAILS_COUNT = 3;
 
 function RenewDomainModal({
   currentDomainRenewal: {
@@ -62,9 +61,6 @@ function RenewDomainModal({
   },
   isMediaViewerOpen,
   byAddress,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   tonBalance,
 }: StateProps) {
   const {
@@ -89,6 +85,9 @@ function RenewDomainModal({
   const forceFullNative = FULL_NATIVE_STATES.has(renderingKey);
   const feeTerms = useMemo(() => (realFee ? { native: realFee } : undefined), [realFee]);
   const newExpireTimestamp = Date.now() + YEAR;
+  const domainNftThumbnails = useMemo(() => {
+    return domainNfts.map((nft) => nft?.thumbnail).filter(Boolean).slice(0, THUMBNAILS_COUNT);
+  }, [domainNfts]);
 
   useInterval(forceUpdate, isOpen ? MINUTE : undefined, true);
   useEffect(() => {
@@ -177,11 +176,11 @@ function RenewDomainModal({
           skipAuthScreen
         >
           <TransactionBanner
-            imageUrl={domainNfts?.[0]?.thumbnail}
+            imageUrl={domainNftThumbnails}
             text={
-              domainNfts!.length === 1 && Boolean(domainNfts![0]?.name)
-                ? domainNfts![0]?.name
-                : lang('$domains_amount %1$d', domainNfts!.length, 'i')
+              domainNfts.length === 1 && Boolean(domainNfts[0]?.name)
+                ? domainNfts[0]?.name
+                : lang('$domains_amount %1$d', domainNfts.length, 'i')
             }
             className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
           />
@@ -228,8 +227,7 @@ function RenewDomainModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: DomainRenewalState) {
     switch (currentKey) {
       case DomainRenewalState.Initial:
         return (
@@ -246,9 +244,6 @@ function RenewDomainModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareSubmit}
             onClose={cancelDomainsRenewal}
           />
@@ -297,15 +292,11 @@ export default memo(
       mediaViewer: { mediaId },
     } = global;
     const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
-    const { hardwareState, isLedgerConnected, isTonAppConnected } = global.hardware;
 
     return {
       isMediaViewerOpen: Boolean(mediaId),
       currentDomainRenewal,
       byAddress,
-      hardwareState,
-      isLedgerConnected,
-      isTonAppConnected,
       tonBalance: selectCurrentToncoinBalance(global),
     };
   })(RenewDomainModal),

@@ -38,10 +38,7 @@ export function isSwapFormFilled({ currentSwap }: GlobalState) {
 }
 
 export function doesSwapChangeRequireEstimation(globalBefore: GlobalState, globalAfter: GlobalState) {
-  return isSwapFormFilled(globalAfter) && (
-    !isSwapEstimateInputEqual(globalBefore, globalAfter)
-    || globalBefore.currentSwap.pairs !== globalAfter.currentSwap.pairs
-  );
+  return isSwapFormFilled(globalAfter) && !isSwapEstimateInputEqual(globalBefore, globalAfter);
 }
 
 export function doesSwapChangeRequireEstimationReset(globalBefore: GlobalState, globalAfter: GlobalState) {

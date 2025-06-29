@@ -60,7 +60,7 @@ function TonContent({
 
       <InteractiveTextField
         chain="ton"
-        address={address!}
+        address={address}
         className={isStatic ? styles.copyButtonStatic : styles.addressWrapper}
         copyNotification={lang('Your address was copied!')}
         noSavedAddress

@@ -4,11 +4,10 @@ import type { ApiInitArgs, OnApiUpdate } from '../../types';
 
 import { POPUP_PORT } from './config';
 import { createExtensionInterface } from '../../../util/createPostMessageInterface';
-import { disconnectUpdater } from '../../common/helpers';
 import * as extensionMethods from '../../extensionMethods';
 import initExtensionMethods from '../../extensionMethods/init';
 import * as methods from '../../methods';
-import initMethods from '../../methods/init';
+import initMethods, { destroy as destroyMethods } from '../../methods/init';
 
 void createExtensionInterface(POPUP_PORT, (name: string, origin?: string, ...args: any[]) => {
   if (name === 'init') {
@@ -24,4 +23,4 @@ void createExtensionInterface(POPUP_PORT, (name: string, origin?: string, ...arg
     // @ts-ignore
     return method(...args as MethodArgs<keyof Methods>);
   }
-}, undefined, disconnectUpdater);
+}, undefined, destroyMethods);

@@ -16,7 +16,7 @@ function requestBiometricAccess(options: BiometricRequestAccessParams) {
 }
 
 export async function setBiometricCredentials(password: string) {
-  const biometricManager = getTelegramApp()?.BiometricManager!;
+  const biometricManager = getTelegramApp()!.BiometricManager;
 
   if (!biometricManager.isAccessGranted) {
     const isAccessGranted = await requestBiometricAccess({ reason: APP_NAME });
@@ -37,7 +37,7 @@ export async function setBiometricCredentials(password: string) {
 }
 
 export async function verifyIdentity() {
-  const biometricManager = getTelegramApp()?.BiometricManager!;
+  const biometricManager = getTelegramApp()!.BiometricManager;
 
   if (!biometricManager.isAccessGranted) {
     const isAccessGranted = await requestBiometricAccess({ reason: APP_NAME });

@@ -36,7 +36,7 @@ function SwapTokensInfo({
     amount = '0',
     isReceived = false,
   ) {
-    const amountWithSign = isReceived ? amount : -amount;
+    const amountWithSign = isReceived ? amount : `-${amount}`;
     const withLabel = Boolean(token && TOKEN_WITH_LABEL[token.slug]);
 
     return (

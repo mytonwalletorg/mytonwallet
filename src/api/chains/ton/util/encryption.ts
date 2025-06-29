@@ -7,11 +7,10 @@
 
 import type { Address } from '@ton/core';
 
+import aesjs from '../../../../lib/aes-js';
+import { getSharedSecret } from '../../../../lib/noble-ed25519';
 import { OpCode } from '../constants';
 import { toBase64Address } from './tonCore';
-
-const ed25519 = require('../../../../lib/noble-ed25519');
-const aesjs = require('../../../../lib/aes-js');
 
 async function hmacSha512(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
   const hmacAlgo = { name: 'HMAC', hash: 'SHA-512' };
@@ -22,7 +21,7 @@ async function hmacSha512(key: Uint8Array, data: Uint8Array): Promise<Uint8Array
   return result;
 }
 
-function getAesCbcState(hash: Uint8Array): Promise<any> {
+function getAesCbcState(hash: Uint8Array) {
   if (hash.length < 48) throw new Error();
   const key = hash.slice(0, 32);
   const iv = hash.slice(32, 32 + 16);
@@ -31,12 +30,10 @@ function getAesCbcState(hash: Uint8Array): Promise<any> {
   // even if the data IS a multiple of 16 bytes, padding will still be added
   // So we use aes-js
 
-  // eslint-disable-next-line new-cap
   return new aesjs.ModeOfOperation.cbc(key, iv);
 }
 
 function getRandomPrefix(dataLength: number, minPadding: number): Uint8Array {
-  // eslint-disable-next-line no-bitwise
   const prefixLength = ((minPadding + 15 + dataLength) & -16) - dataLength;
   const prefix = crypto.getRandomValues(new Uint8Array(prefixLength));
   prefix[0] = prefixLength;
@@ -57,14 +54,14 @@ async function encryptDataWithPrefix(data: Uint8Array, sharedSecret: Uint8Array,
   res.set(msgKey, 0);
 
   const cbcStateSecret = await combineSecrets(sharedSecret, msgKey);
-  const encrypted = (await getAesCbcState(cbcStateSecret)).encrypt(data);
+  const encrypted = getAesCbcState(cbcStateSecret).encrypt(data);
   res.set(encrypted, 16);
 
   return res;
 }
 
 async function encryptDataImpl(data: Uint8Array, sharedSecret: Uint8Array, salt: Uint8Array) {
-  const prefix = await getRandomPrefix(data.length, 16);
+  const prefix = getRandomPrefix(data.length, 16);
   const combined = new Uint8Array(prefix.length + data.length);
   combined.set(prefix, 0);
   combined.set(data, prefix.length);
@@ -74,12 +71,11 @@ async function encryptDataImpl(data: Uint8Array, sharedSecret: Uint8Array, salt:
 export async function encryptData(
   data: Uint8Array, myPublicKey: Uint8Array, theirPublicKey: Uint8Array, privateKey: Uint8Array, salt: Uint8Array,
 ) {
-  const sharedSecret = await ed25519.getSharedSecret(privateKey, theirPublicKey);
+  const sharedSecret = await getSharedSecret(privateKey, theirPublicKey);
 
   const encrypted = await encryptDataImpl(data, sharedSecret, salt);
   const prefixedEncrypted = new Uint8Array(myPublicKey.length + encrypted.length);
   for (let i = 0; i < myPublicKey.length; i++) {
-    // eslint-disable-next-line no-bitwise
     prefixedEncrypted[i] = theirPublicKey[i] ^ myPublicKey[i];
   }
   prefixedEncrypted.set(encrypted, myPublicKey.length);
@@ -119,7 +115,7 @@ export async function encryptMessageComment(
 async function doDecrypt(
   cbcStateSecret: Uint8Array, msgKey: Uint8Array, encryptedData: Uint8Array, salt: Uint8Array,
 ): Promise<Uint8Array> {
-  const decryptedData = (await getAesCbcState(cbcStateSecret)).decrypt(encryptedData);
+  const decryptedData = getAesCbcState(cbcStateSecret).decrypt(encryptedData);
   const dataHash = await combineSecrets(salt, decryptedData);
   const gotMsgKey = dataHash.slice(0, 16);
   if (msgKey.join(',') !== gotMsgKey.join(',')) {
@@ -150,10 +146,9 @@ export async function decryptData(data: Uint8Array, publicKey: Uint8Array, priva
   }
   const theirPublicKey = new Uint8Array(publicKey.length);
   for (let i = 0; i < publicKey.length; i++) {
-    // eslint-disable-next-line no-bitwise
     theirPublicKey[i] = data[i] ^ publicKey[i];
   }
-  const sharedSecret = await ed25519.getSharedSecret(privateKey, theirPublicKey);
+  const sharedSecret = await getSharedSecret(privateKey, theirPublicKey);
 
   const decrypted = await decryptDataImpl(data.slice(publicKey.length), sharedSecret, salt);
   return decrypted;

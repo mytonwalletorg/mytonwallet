@@ -152,7 +152,7 @@ function setSwapDetails(options: {
   const { action, networkFee, received, sent, parsedTrace: { actions } } = options;
   let { activity } = options;
 
-  const { details } = action as SwapAction;
+  const { details } = action;
 
   let sentForFee = sent;
   let excess = received;
@@ -175,6 +175,7 @@ function setSwapDetails(options: {
   let ourFee: bigint | undefined;
   if (!details.asset_in) {
     const ourFeeAction = actions.find((_action) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       return _action.type === 'call_contract' && Number(_action.details.opcode) === OpCode.OurFee;
     }) as CallContractAction | undefined;
     if (ourFeeAction) {
@@ -224,8 +225,9 @@ function setTransactionDetails(options: {
   let excess = received;
 
   switch (action.type) {
-    case 'ton_transfer': {
-      sentForFee = 0n;
+    case 'ton_transfer':
+    case 'call_contract': {
+      sentForFee -= BigInt(action.details.value);
       break;
     }
     case 'nft_transfer': {
@@ -251,6 +253,7 @@ function setTransactionDetails(options: {
         network: 'mainnet',
         walletAddress: '',
         metadata: {},
+        nftSuperCollectionsByCollectionAddress: {},
       }).length);
 
       networkFee = totalNetworkFee / activitiesPerAction;

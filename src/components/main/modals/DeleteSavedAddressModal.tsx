@@ -28,7 +28,7 @@ function DeleteSavedAddressModal({
 
   const handleDeleteSavedAddress = useLastCallback(() => {
     removeFromSavedAddress({ address: address!, chain: chain! });
-    showNotification({ message: lang('Address removed from saved') as string, icon: 'icon-trash' });
+    showNotification({ message: lang('Address removed from saved'), icon: 'icon-trash' });
     onClose();
   });
 

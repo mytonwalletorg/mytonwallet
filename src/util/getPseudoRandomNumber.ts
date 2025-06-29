@@ -1,5 +1,3 @@
-/* eslint-disable no-bitwise */
-
 // Converts a string to a numeric seed using a simple hashing algorithm
 function stringToNumberSeed(str: string) {
   let hash = 0;

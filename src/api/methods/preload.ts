@@ -1,5 +1,5 @@
-let resolvePromise: Function;
-const preloadPromise = new Promise((resolve) => {
+let resolvePromise: NoneToVoidFunction;
+const preloadPromise = new Promise<void>((resolve) => {
   resolvePromise = resolve;
 });
 

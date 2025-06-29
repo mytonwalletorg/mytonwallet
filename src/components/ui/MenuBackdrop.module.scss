@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .backdrop {
   pointer-events: none;
@@ -13,7 +13,7 @@
   opacity: 0;
   background: var(--color-tint);
 
-  @include transition(opacity 200ms);
+  @include mixins.transition(opacity 200ms);
 }
 
 .visible {
@@ -22,7 +22,6 @@
 
 .wrapperVisible {
   pointer-events: none;
-
   position: relative;
   z-index: var(--z-menu-bubble);
 }

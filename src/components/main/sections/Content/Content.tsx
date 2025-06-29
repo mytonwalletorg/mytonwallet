@@ -14,7 +14,6 @@ import {
   TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
-import { getIsActiveStakingState } from '../../../../global/helpers/staking';
 import {
   selectAccountStakingStates,
   selectCurrentAccountState,
@@ -26,6 +25,7 @@ import buildClassName from '../../../../util/buildClassName';
 import { getStatusBarHeight } from '../../../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
 import { compact } from '../../../../util/iteratees';
+import { getIsActiveStakingState } from '../../../../util/staking';
 import { getTelegramApp } from '../../../../util/telegram';
 import { IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD } from '../../../../util/windowEnvironment';
 import windowSize from '../../../../util/windowSize';
@@ -47,6 +47,7 @@ import Assets from './Assets';
 import NftCollectionHeader from './NftCollectionHeader';
 import Nfts from './Nfts';
 import NftSelectionHeader from './NftSelectionHeader';
+import { OPEN_CONTEXT_MENU_CLASS_NAME } from './Token';
 
 import styles from './Content.module.scss';
 
@@ -106,8 +107,7 @@ function Content({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
-  // eslint-disable-next-line no-null/no-null
-  const tabsRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>();
   const hasNftSelection = Boolean(selectedAddresses?.length);
 
   const numberOfStaking = useMemo(() => {
@@ -183,8 +183,7 @@ function Content({
     );
   }, [blacklistedNftAddresses, nfts]);
 
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
+  const transitionRef = useRef<HTMLDivElement>();
 
   const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0) + numberOfStaking;
   const shouldShowSeparateAssetsPanel = totalTokensAmount <= (
@@ -264,6 +263,7 @@ function Content({
   });
 
   const handleSwitchTab = useLastCallback((tab: ContentTab | number) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const tabIndex = tabs.findIndex(({ id }) => id === tab);
     if (tabIndex >= mainContentTabsCount) {
       const collectionAddress = collectionTabs![tabIndex - mainContentTabsCount];
@@ -315,6 +315,15 @@ function Content({
       includedClosestSelector: '.swipe-container',
       excludedClosestSelector: '.dapps-feed',
       onSwipe: (e, direction) => {
+        if (
+          direction === SwipeDirection.Up
+          || direction === SwipeDirection.Down
+          // For preventing swipe in one interaction with a long press event handler
+          || (e.target as HTMLElement | null)?.closest(`.${OPEN_CONTEXT_MENU_CLASS_NAME}`)
+        ) {
+          return false;
+        }
+
         if (direction === SwipeDirection.Left) {
           const tab = tabs[Math.min(tabs.length - 1, activeTabIndex + 1)];
           handleSwitchTab(tab.id);

@@ -22,8 +22,7 @@ interface OwnProps {
 const DELAY = 200;
 
 function Collapsible({ children, isShown }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const isOpenRef = useRef(isShown);
   const [shouldRender, setShouldRender] = useState(isShown);
   const prevIsShown = usePrevious(isShown);

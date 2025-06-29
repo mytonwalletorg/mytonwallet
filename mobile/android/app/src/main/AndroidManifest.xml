@@ -83,8 +83,6 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-    <!-- To get access to the flashlight (required by barcode-scanner) -->
-    <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <!-- To connect to the ledger devices -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />

@@ -62,7 +62,7 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
     if (!IS_DELEGATED_BOTTOM_SHEET) return;
 
     if (isWarningModalOpen) {
-      Dialog.confirm({
+      void Dialog.confirm({
         title: lang(warningTitle),
         message: lang(warningDescription),
         okButtonTitle: lang('Yes'),

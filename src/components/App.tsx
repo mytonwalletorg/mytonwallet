@@ -16,9 +16,10 @@ import { useAccentColor } from '../util/accentColor';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
 import { MINUTE } from '../util/dateFormat';
+import { closeThisTab } from '../util/ledger/tab';
 import { resolveRender } from '../util/renderPromise';
 import {
-  IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_IOS, IS_LINUX,
+  IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_IOS, IS_LEDGER_EXTENSION_TAB, IS_LINUX,
 } from '../util/windowEnvironment';
 import { updateSizes } from '../util/windowSize';
 import { callApi } from '../api';
@@ -38,6 +39,7 @@ import AppLocked from './appLocked/AppLocked';
 import Auth from './auth/Auth';
 import AuthImportWalletModal from './auth/AuthImportWalletModal';
 import DappConnectModal from './dapps/DappConnectModal';
+import DappSignDataModal from './dapps/DappSignDataModal';
 import DappTransferModal from './dapps/DappTransferModal';
 import Dialogs from './Dialogs';
 import ElectronHeader from './electron/ElectronHeader';
@@ -46,6 +48,7 @@ import LedgerModal from './ledger/LedgerModal';
 import Main from './main/Main';
 import AddAccountModal from './main/modals/AddAccountModal';
 import BackupModal from './main/modals/BackupModal';
+import NftAttributesModal from './main/modals/NftAttributesModal';
 import OnRampWidgetModal from './main/modals/OnRampWidgetModal';
 import QrScannerModal from './main/modals/QrScannerModal';
 import SignatureModal from './main/modals/SignatureModal';
@@ -156,7 +159,7 @@ function App({
     void callApi('setIsAppFocused', false);
   }, () => {
     void callApi('setIsAppFocused', true);
-  });
+  }, IS_LEDGER_EXTENSION_TAB);
 
   useLayoutEffect(() => {
     document.documentElement.classList.add('is-rendered');
@@ -178,8 +181,7 @@ function App({
 
   useAppIntersectionObserver();
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: AppState) {
     switch (currentKey) {
       case AppState.Auth:
         return <Auth />;
@@ -210,7 +212,7 @@ function App({
       case AppState.Settings:
         return <Settings isActive={isActive} />;
       case AppState.Ledger:
-        return <LedgerModal isOpen onClose={handleCloseBrowserTab} />;
+        return <LedgerModal isOpen noBackdropClose onClose={closeThisTab} />;
       case AppState.Inactive:
         return <AppInactive />;
     }
@@ -262,10 +264,12 @@ function App({
           <TransactionModal />
           <SwapActivityModal />
           <DappConnectModal />
+          <DappSignDataModal />
           <DappTransferModal />
           <AddAccountModal />
           <OnRampWidgetModal />
           <UnhideNftModal />
+          <NftAttributesModal />
           {IS_CAPACITOR && (
             <QrScannerModal
               isOpen={isQrScannerOpen}
@@ -302,9 +306,3 @@ export default memo(withGlobal((global): StateProps => {
     accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
   };
 })(App));
-
-async function handleCloseBrowserTab() {
-  const tab = await chrome.tabs.getCurrent();
-  if (!tab?.id) return;
-  await chrome.tabs.remove(tab.id);
-}

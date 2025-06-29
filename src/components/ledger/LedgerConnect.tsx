@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
@@ -11,14 +12,11 @@ import { IS_CAPACITOR } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { closeLedgerTab } from '../../util/ledger/tab';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import {
-  IS_ANDROID, IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP,
-} from '../../util/windowEnvironment';
+import { IS_ANDROID, IS_IOS, IS_IOS_APP, IS_LEDGER_EXTENSION_TAB } from '../../util/windowEnvironment';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
-import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -46,12 +44,6 @@ import ledgerMobileUsbDarkSrc from '../../assets/ledger/mobile-usb-dark.png';
 interface OwnProps {
   isActive: boolean;
   isStatic?: boolean;
-  // All API method calls should be delegated from the main to the native copy of the app on iOS (NBS)
-  shouldDelegateToNative?: boolean;
-  state?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
-  isRemoteTab?: boolean;
   className?: string;
   onConnected: (isSingleWallet: boolean) => void;
   onBackButtonClick?: NoneToVoidFunction;
@@ -60,6 +52,9 @@ interface OwnProps {
 }
 
 interface StateProps {
+  state: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
   availableTransports?: LedgerTransport[];
   lastUsedTransport?: LedgerTransport;
   currentTheme: Theme;
@@ -77,8 +72,6 @@ function LedgerConnect({
   state,
   isLedgerConnected,
   isTonAppConnected,
-  isRemoteTab,
-  shouldDelegateToNative,
   availableTransports,
   lastUsedTransport,
   currentTheme,
@@ -88,12 +81,7 @@ function LedgerConnect({
   onCancel,
   onClose,
 }: OwnProps & StateProps) {
-  const {
-    connectHardwareWallet,
-    resetHardwareWalletConnect,
-    initializeHardwareWalletModal,
-    initializeHardwareWalletConnection,
-  } = getActions();
+  const { initializeHardwareWalletModal, initializeHardwareWalletConnection } = getActions();
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
@@ -104,10 +92,8 @@ function LedgerConnect({
   const isTonAppFailed = isTonAppConnected === false;
   const isConnected = state === HardwareConnectState.ConnectedWithSingleWallet
     || state === HardwareConnectState.ConnectedWithSeveralWallets;
-  const isConnecting = state === HardwareConnectState.Connecting || (
-    state === HardwareConnectState.Connect && !isLedgerFailed && !isTonAppFailed && availableTransports?.length === 1
-  );
-  const isWaitingForBrowser = state === HardwareConnectState.WaitingForBrowser;
+  const isConnecting = state === HardwareConnectState.Connecting;
+  const isWaitingForRemoteTab = state === HardwareConnectState.WaitingForRemoteTab;
   const title = isConnected ? lang('Ledger Connected!') : lang('Connect Ledger');
   const shouldCloseOnCancel = !onCancel;
 
@@ -121,7 +107,7 @@ function LedgerConnect({
     shouldRender: shouldRenderAvailableTransports,
     ref: availableTransportsRef,
   } = useShowTransition({
-    isOpen: Boolean(renderingAvailableTransports.length > 0 && selectedTransport),
+    isOpen: Boolean(renderingAvailableTransports.length > 1 && selectedTransport),
     withShouldRender: true,
   });
 
@@ -129,8 +115,6 @@ function LedgerConnect({
     isActive,
     onBack: onCancel ?? onClose,
   });
-
-  useHideBottomBar(isActive);
 
   useEffect(() => {
     if (selectedTransport) return;
@@ -142,10 +126,10 @@ function LedgerConnect({
   }, [availableTransports, selectedTransport]);
 
   useEffect(() => {
-    if (isRemoteTab || !isActive || (IS_DELEGATING_BOTTOM_SHEET && !shouldDelegateToNative)) return;
+    if (!isActive) return;
 
-    initializeHardwareWalletModal({ shouldDelegateToNative: IS_DELEGATING_BOTTOM_SHEET && shouldDelegateToNative });
-  }, [isActive, isRemoteTab, shouldDelegateToNative]);
+    initializeHardwareWalletModal();
+  }, [isActive]);
 
   useEffectWithPrevDeps(([prevLastUsedTransport]) => {
     if (lastUsedTransport && prevLastUsedTransport !== lastUsedTransport) {
@@ -154,42 +138,30 @@ function LedgerConnect({
   }, [lastUsedTransport]);
 
   const handleConnected = useLastCallback((isSingleWallet: boolean) => {
-    if (isRemoteTab || (IS_DELEGATING_BOTTOM_SHEET && !shouldDelegateToNative)) {
+    if (IS_LEDGER_EXTENSION_TAB) {
       return;
     }
 
     setTimeout(() => {
       onConnected(isSingleWallet);
-
-      setTimeout(() => {
-        resetHardwareWalletConnect();
-      }, NEXT_SLIDE_DELAY);
     }, NEXT_SLIDE_DELAY);
   });
 
   useEffect(() => {
-    if (
-      state === HardwareConnectState.ConnectedWithSingleWallet
-      || state === HardwareConnectState.ConnectedWithSeveralWallets
-    ) {
+    if (isConnected && isActive) {
       handleConnected(state === HardwareConnectState.ConnectedWithSingleWallet);
     }
-  }, [state, handleConnected]);
+  }, [isConnected, isActive, state, handleConnected]);
 
-  const handleCloseWithBrowserTab = useLastCallback(() => {
+  const handleCloseWithRemoteTab = useLastCallback(() => {
     const closeAction = shouldCloseOnCancel ? onClose : onCancel;
-    void closeLedgerTab();
+    closeLedgerTab(); // To close the remote extension tab when the connection is cancelled in the popup
     closeAction();
   });
 
   const handleSubmit = useLastCallback(() => {
-    if (renderingAvailableTransports.length > 1) {
-      initializeHardwareWalletConnection({
-        transport: selectedTransport!,
-        shouldDelegateToNative,
-      });
-    } else {
-      connectHardwareWallet({ transport: availableTransports?.[0] });
+    if (selectedTransport) {
+      initializeHardwareWalletConnection({ transport: selectedTransport });
     }
   });
 
@@ -199,7 +171,7 @@ function LedgerConnect({
         <Dropdown
           label={lang('Connection Type')}
           items={renderingAvailableTransports}
-          selectedValue={selectedTransport!}
+          selectedValue={selectedTransport}
           theme="light"
           arrow="chevron"
           disabled={isConnecting}
@@ -213,7 +185,7 @@ function LedgerConnect({
   function renderButtons() {
     const isFailed = state === HardwareConnectState.Failed;
 
-    if (isRemoteTab && isConnected) {
+    if (IS_LEDGER_EXTENSION_TAB && isConnected) {
       return (
         <div className={buildClassName(styles.actionBlock, isConnected && styles.actionBlock_single)}>
           <Button
@@ -269,85 +241,28 @@ function LedgerConnect({
     return selectedTransport === 'bluetooth' ? iconData.mobileBluetooth : iconData.mobileUsb;
   }
 
-  function renderWaitingForBrowser() {
+  function renderScreen(handleClose: NoneToVoidFunction, children: TeactNode) {
     return (
       <>
         {!isStatic ? (
           <ModalHeader
             title={title}
             onBackButtonClick={onBackButtonClick}
-            onClose={!onBackButtonClick ? handleCloseWithBrowserTab : undefined}
+            onClose={!onBackButtonClick ? handleClose : undefined}
           />
         ) : (
           <div className={settingsStyles.header}>
-            <Button isSimple isText onClick={handleCloseWithBrowserTab} className={settingsStyles.headerBack}>
+            <Button isSimple isText onClick={handleClose} className={settingsStyles.headerBack}>
               <i className={buildClassName(settingsStyles.iconChevron, 'icon-chevron-left')} aria-hidden />
               <span>{lang('Back')}</span>
             </Button>
             <span className={settingsStyles.headerTitle}>{title}</span>
           </div>
         )}
-        <div className={styles.container}>
-          <Transition
-            activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
-            name="semiFade"
-            className={buildClassName(styles.iconBlock, isPortrait && styles.mobile)}
-            slideClassName={styles.iconBlockSlide}
-          >
-            <Image
-              url={getLedgerIconSrc()}
-              imageClassName={styles.ledgerIcon}
-            />
-          </Transition>
-          <div
-            className={buildClassName(
-              styles.textBlock,
-              styles.textBlock_gap,
-            )}
-          >
-            <span className={styles.text}>
-              <i className={buildClassName(styles.textIcon, 'icon-dot')} aria-hidden />
-              {lang('Switch to the newly opened tab to connect Ledger.')}
-            </span>
-            <span className={styles.text}>
-              <i className={buildClassName(styles.textIcon, 'icon-dot')} aria-hidden />
-              {lang('Once connected, switch back to this window to proceed.')}
-            </span>
-          </div>
-          <div className={buildClassName(styles.actionBlock, styles.actionBlock_single)}>
-            <Button
-              className={buildClassName(styles.button, styles.button_single)}
-              onClick={handleCloseWithBrowserTab}
-            >
-              {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  function renderConnect() {
-    return (
-      <>
-        {!isStatic ? (
-          <ModalHeader
-            title={title}
-            onBackButtonClick={onBackButtonClick}
-            onClose={!onBackButtonClick ? onClose : undefined}
-          />
-        ) : (
-          <div className={settingsStyles.header}>
-            <Button isSimple isText onClick={onClose} className={settingsStyles.headerBack}>
-              <i className={buildClassName(settingsStyles.iconChevron, 'icon-chevron-left')} aria-hidden />
-              <span>{lang('Back')}</span>
-            </Button>
-            <span className={settingsStyles.headerTitle}>{title}</span>
-          </div>
-        )}
-        <div className={buildClassName(
-          styles.container, isStatic && styles.containerStatic, isStatic && 'static-container',
-        )}
+        <div
+          className={buildClassName(
+            styles.container, isStatic && styles.containerStatic, isStatic && 'static-container',
+          )}
         >
           <Transition
             activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
@@ -360,52 +275,90 @@ function LedgerConnect({
               imageClassName={styles.ledgerIcon}
             />
           </Transition>
-          <div
-            className={buildClassName(
-              styles.textBlock,
-              isConnected && styles.textBlock_success,
-            )}
-          >
-            <span
-              className={buildClassName(
-                styles.text,
-                isLedgerFailed && styles.text_failed,
-                isLedgerConnected && styles.text_connected,
-                isConnected && styles.text_success,
-              )}
-            >
-              <i
-                className={buildClassName(styles.textIcon, isLedgerConnected ? 'icon-accept' : 'icon-dot')}
-                aria-hidden
-              />
-              {lang('Connect your Ledger')}
-            </span>
-            <span
-              className={buildClassName(
-                styles.text,
-                isTonAppFailed && styles.text_failed,
-                isTonAppConnected && styles.text_connected,
-                isConnected && styles.text_success,
-              )}
-            >
-              <i
-                className={buildClassName(styles.textIcon, isTonAppConnected ? 'icon-accept' : 'icon-dot')}
-                aria-hidden
-              />
-              {lang('Unlock it and open the TON App')}
-            </span>
-          </div>
-
-          {shouldRenderAvailableTransports && renderAvailableTransports()}
-          {renderButtons()}
+          {children}
         </div>
       </>
     );
   }
 
+  function renderWaitingForRemoteTab() {
+    return renderScreen(handleCloseWithRemoteTab, (
+      <>
+        <div
+          className={buildClassName(
+            styles.textBlock,
+            styles.textBlock_gap,
+          )}
+        >
+          <span className={styles.text}>
+            <i className={buildClassName(styles.textIcon, 'icon-dot')} aria-hidden />
+            {lang('Switch to the newly opened tab to connect Ledger.')}
+          </span>
+          <span className={styles.text}>
+            <i className={buildClassName(styles.textIcon, 'icon-dot')} aria-hidden />
+            {lang('Once connected, switch back to this window to proceed.')}
+          </span>
+        </div>
+        <div className={buildClassName(styles.actionBlock, styles.actionBlock_single)}>
+          <Button
+            className={buildClassName(styles.button, styles.button_single)}
+            onClick={handleCloseWithRemoteTab}
+          >
+            {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
+          </Button>
+        </div>
+      </>
+    ));
+  }
+
+  function renderConnect() {
+    return renderScreen(onClose, (
+      <>
+        <div
+          className={buildClassName(
+            styles.textBlock,
+            isConnected && styles.textBlock_success,
+          )}
+        >
+          <span
+            className={buildClassName(
+              styles.text,
+              isLedgerFailed && styles.text_failed,
+              isLedgerConnected && styles.text_connected,
+              isConnected && styles.text_success,
+            )}
+          >
+            <i
+              className={buildClassName(styles.textIcon, isLedgerConnected ? 'icon-accept' : 'icon-dot')}
+              aria-hidden
+            />
+            {lang('Connect your Ledger')}
+          </span>
+          <span
+            className={buildClassName(
+              styles.text,
+              isTonAppFailed && styles.text_failed,
+              isTonAppConnected && styles.text_connected,
+              isConnected && styles.text_success,
+            )}
+          >
+            <i
+              className={buildClassName(styles.textIcon, isTonAppConnected ? 'icon-accept' : 'icon-dot')}
+              aria-hidden
+            />
+            {lang('Unlock it and open the TON App')}
+          </span>
+        </div>
+
+        {shouldRenderAvailableTransports && renderAvailableTransports()}
+        {renderButtons()}
+      </>
+    ));
+  }
+
   function renderContent() {
-    if (isWaitingForBrowser) {
-      return renderWaitingForBrowser();
+    if (isWaitingForRemoteTab) {
+      return renderWaitingForRemoteTab();
     }
 
     return renderConnect();
@@ -416,7 +369,7 @@ function LedgerConnect({
       name={resolveSlideTransitionName()}
       className={buildClassName(modalStyles.transition, 'custom-scroll', className)}
       slideClassName={modalStyles.transitionSlide}
-      activeKey={isWaitingForBrowser ? 1 : 0}
+      activeKey={isWaitingForRemoteTab ? 1 : 0}
     >
       {renderContent}
     </Transition>
@@ -424,9 +377,18 @@ function LedgerConnect({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { availableTransports, lastUsedTransport } = global.hardware;
+  const {
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+    availableTransports,
+    lastUsedTransport,
+  } = global.hardware;
 
   return {
+    state: hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
     availableTransports,
     lastUsedTransport,
     currentTheme: global.settings.theme,

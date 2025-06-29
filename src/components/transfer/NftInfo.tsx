@@ -1,4 +1,4 @@
-import React, { memo, type TeactNode, useMemo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, getGlobal } from '../../global';
 
 import { MediaType, type NftTransfer } from '../../global/types';
@@ -34,7 +34,7 @@ function NftInfo({
   const tonExplorerTitle = useMemo(() => {
     return (lang('Open on %ton_explorer_name%', {
       ton_explorer_name: getExplorerName('ton'),
-    }) as TeactNode[]
+    }) as string[]
     ).join('');
   }, [lang]);
 

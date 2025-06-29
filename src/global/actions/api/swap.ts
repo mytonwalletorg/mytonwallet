@@ -9,7 +9,6 @@ import type {
   ApiSwapEstimateResponse,
   ApiSwapEstimateVariant,
   ApiSwapHistoryItem,
-  ApiSwapPairAsset,
 } from '../../../api/types';
 import type {
   AssetPairs,
@@ -40,7 +39,7 @@ import generateUniqueId from '../../../util/generateUniqueId';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
-import { pause } from '../../../util/schedulers';
+import { pause, waitFor } from '../../../util/schedulers';
 import { getChainBySlug, getIsTonToken, getNativeToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -73,7 +72,7 @@ import {
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
-let pairsCache: Record<string, { data: ApiSwapPairAsset[]; timestamp: number }> = {};
+const pairsCache: Record<string, { timestamp: number }> = {};
 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const WAIT_FOR_CHANGELLY = 5 * 1000;
@@ -119,7 +118,7 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     toAmount,
     toMinAmount: amountOutMin!,
     slippage,
-    fromAddress: account?.addressByChain[tokenIn.chain as ApiChain] || account?.addressByChain.ton!,
+    fromAddress: (account?.addressByChain[tokenIn.chain as ApiChain] || account?.addressByChain.ton)!,
     shouldTryDiesel: shouldSwapBeGasless({ ...global.currentSwap, swapType, nativeTokenInBalance }),
     dexLabel: currentDexLabel!,
     networkFee: realNetworkFee ?? networkFee!,
@@ -233,7 +232,7 @@ addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
 
 addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
   if (shouldReset) {
-    const { tokenInSlug, tokenOutSlug, pairs } = global.currentSwap;
+    const { tokenInSlug, tokenOutSlug } = global.currentSwap;
 
     global = clearCurrentSwap(global);
     global = updateCurrentSwap(global, {
@@ -242,7 +241,6 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
       amountIn: undefined,
       amountOut: undefined,
       inputSource: SwapInputSource.In,
-      pairs,
     });
 
     setGlobal(global);
@@ -499,12 +497,12 @@ addActionHandler('setSwapTokenIn', (global, actions, { tokenSlug: newTokenInSlug
     tokenInSlug,
     tokenOutSlug,
   } = global.currentSwap;
-  const newTokenIn = global.swapTokenInfo!.bySlug[newTokenInSlug];
+  const newTokenIn = global.swapTokenInfo.bySlug[newTokenInSlug];
   const adjustedAmountIn = amountIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
 
   // Don't set the same token in both inputs
   const newTokenOutSlug = newTokenInSlug === tokenOutSlug ? tokenInSlug : tokenOutSlug;
-  const newTokenOut = newTokenOutSlug ? global.swapTokenInfo!.bySlug[newTokenOutSlug] : undefined;
+  const newTokenOut = newTokenOutSlug ? global.swapTokenInfo.bySlug[newTokenOutSlug] : undefined;
   const adjustedAmountOut = amountOut && newTokenOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
 
   global = updateCurrentSwap(global, {
@@ -523,12 +521,12 @@ addActionHandler('setSwapTokenOut', (global, actions, { tokenSlug: newTokenOutSl
     tokenInSlug,
     tokenOutSlug,
   } = global.currentSwap;
-  const newTokenOut = global.swapTokenInfo!.bySlug[newTokenOutSlug!];
+  const newTokenOut = global.swapTokenInfo.bySlug[newTokenOutSlug];
   const adjustedAmountOut = amountOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
 
   // Don't set the same token in both inputs
   const newTokenInSlug = newTokenOutSlug === tokenInSlug ? tokenOutSlug : tokenInSlug;
-  const newTokenIn = newTokenInSlug ? global.swapTokenInfo!.bySlug[newTokenInSlug] : undefined;
+  const newTokenIn = newTokenInSlug ? global.swapTokenInfo.bySlug[newTokenInSlug] : undefined;
   const adjustedAmountIn = amountIn && newTokenIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
 
   global = updateCurrentSwap(global, {
@@ -563,18 +561,28 @@ addActionHandler('setSlippage', (global, actions, { slippage }) => {
 });
 
 addActionHandler('estimateSwap', async () => {
-  await estimateSwapConcurrently((global, shouldStop) => {
-    if (!isSwapFormFilled(global)) {
-      return getSwapEstimateResetParams(global);
+  await estimateSwapConcurrently(async (global, shouldStop) => {
+    const { tokenInSlug, tokenOutSlug } = global.currentSwap;
+
+    if (tokenInSlug) {
+      await loadSwapPairs(tokenInSlug);
+
+      if (shouldStop()) return;
+      global = getGlobal();
     }
 
-    const pairsBySlug = global.currentSwap.pairs?.bySlug ?? {};
-    const isPairValid = global.currentSwap.tokenOutSlug! in pairsBySlug;
-    if (!isPairValid) {
-      return {
-        ...getSwapEstimateResetParams(global),
-        errorType: SwapErrorType.InvalidPair,
-      };
+    if (tokenInSlug && tokenOutSlug) {
+      const isPairValid = global.swapPairs?.bySlug?.[tokenInSlug]?.[tokenOutSlug];
+      if (!isPairValid) {
+        return {
+          ...getSwapEstimateResetParams(global),
+          errorType: SwapErrorType.InvalidPair,
+        };
+      }
+    }
+
+    if (!isSwapFormFilled(global)) {
+      return getSwapEstimateResetParams(global);
     }
 
     if (selectSwapType(global) === SwapType.OnChain) {
@@ -586,8 +594,8 @@ addActionHandler('estimateSwap', async () => {
 });
 
 async function estimateDexSwap(global: GlobalState): Promise<SwapEstimateResult> {
-  const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
-  const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
+  const tokenIn = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
+  const tokenOut = global.swapTokenInfo.bySlug[global.currentSwap.tokenOutSlug!];
   const nativeTokenIn = getChainConfig(getChainBySlug(tokenIn.slug)).nativeToken;
 
   const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
@@ -657,8 +665,8 @@ async function estimateDexSwap(global: GlobalState): Promise<SwapEstimateResult>
 }
 
 async function estimateCexSwap(global: GlobalState, shouldStop: () => boolean): Promise<SwapEstimateResult> {
-  const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
-  const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
+  const tokenIn = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
+  const tokenOut = global.swapTokenInfo.bySlug[global.currentSwap.tokenOutSlug!];
 
   const from = resolveSwapAssetId(tokenIn);
   const to = resolveSwapAssetId(tokenOut);
@@ -704,7 +712,7 @@ async function estimateCexSwap(global: GlobalState, shouldStop: () => boolean): 
     }
 
     const toAddress = {
-      ton: account?.addressByChain.ton!,
+      ton: account!.addressByChain.ton!,
       tron: TRX_SWAP_COUNT_FEE_ADDRESS,
     }[tokenIn.chain];
 
@@ -753,8 +761,14 @@ addActionHandler('clearSwapError', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldForceUpdate }) => {
-  const tokenIn = global.swapTokenInfo?.bySlug[tokenSlug];
+async function loadSwapPairs(tokenSlug: string) {
+  await waitFor(() => {
+    const { swapTokenInfo: { isLoaded, bySlug } } = getGlobal();
+    return !!(isLoaded || bySlug[tokenSlug]);
+  }, 500, 100);
+  let global = getGlobal();
+
+  const tokenIn = global.swapTokenInfo.bySlug[tokenSlug];
   if (!tokenIn) {
     return;
   }
@@ -763,67 +777,56 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
 
   const cache = pairsCache[tokenSlug];
   const isCacheValid = cache && (Date.now() - cache.timestamp <= CACHE_DURATION);
-  if (isCacheValid && !shouldForceUpdate) {
+  if (isCacheValid) {
     return;
   }
 
   const pairs = await callApi('swapGetPairs', assetId);
   global = getGlobal();
 
-  if (!pairs) {
-    global = updateCurrentSwap(global, {
-      pairs: {
-        bySlug: {
-          ...global.currentSwap.pairs?.bySlug,
-          [tokenSlug]: {},
-        },
-      },
-    });
-    setGlobal(global);
-    return;
+  let bySlug: AssetPairs;
+
+  if (pairs) {
+    const isTonTokenIn = tokenIn.chain === 'ton';
+
+    bySlug = pairs.reduce((acc, pair) => {
+      const isTonTokenOut = getIsTonToken(pair.slug, true);
+      const countTonTokens = Number(isTonTokenIn) + (isTonTokenOut ? 1 : 0);
+
+      const isMultichain = !(
+        (countTonTokens === 2) || (countTonTokens === 1 && [tokenIn.slug, pair.slug].includes(TONCOIN.slug))
+      );
+
+      acc[pair.slug] = {
+        ...(isMultichain && {
+          isMultichain,
+        }),
+        ...(pair.isReverseProhibited && {
+          isReverseProhibited: pair.isReverseProhibited,
+        }),
+      };
+      return acc;
+    }, {} as AssetPairs);
+
+    pairsCache[tokenSlug] = { timestamp: Date.now() };
+  } else {
+    bySlug = {};
   }
 
-  const isTonTokenIn = tokenIn.chain === 'ton';
-
-  const bySlug = pairs.reduce((acc, pair) => {
-    const isTonTokenOut = getIsTonToken(pair.slug, true);
-    const countTonTokens = Number(isTonTokenIn) + (isTonTokenOut ? 1 : 0);
-
-    const isMultichain = !(
-      (countTonTokens === 2) || (countTonTokens === 1 && [tokenIn.slug, pair.slug].includes(TONCOIN.slug))
-    );
-
-    acc[pair.slug] = {
-      ...(isMultichain && {
-        isMultichain,
-      }),
-      ...(pair.isReverseProhibited && {
-        isReverseProhibited: pair.isReverseProhibited,
-      }),
-    };
-    return acc;
-  }, {} as AssetPairs);
-
-  pairsCache[tokenSlug] = { data: pairs, timestamp: Date.now() };
-
-  global = updateCurrentSwap(global, {
-    pairs: {
+  setGlobal({
+    ...global,
+    swapPairs: {
       bySlug: {
-        ...global.currentSwap.pairs?.bySlug,
+        ...global.swapPairs?.bySlug,
         [tokenSlug]: bySlug,
       },
     },
   });
-  setGlobal(global);
-});
+}
 
 addActionHandler('setSwapCexAddress', (global, actions, { toAddress }) => {
   global = updateCurrentSwap(global, { toAddress });
   setGlobal(global);
-});
-
-addActionHandler('clearSwapPairsCache', () => {
-  pairsCache = {};
 });
 
 addActionHandler('updatePendingSwaps', async (global) => {
@@ -1002,7 +1005,7 @@ function chooseSwapEstimate(
   }
 
   // Otherwise, select automatically
-  const tokenIn = tokenInSlug ? global.swapTokenInfo!.bySlug[tokenInSlug] : undefined;
+  const tokenIn = tokenInSlug ? global.swapTokenInfo.bySlug[tokenInSlug] : undefined;
   const tokenInBalance = tokenInSlug ? selectCurrentAccountTokenBalance(global, tokenInSlug) : undefined;
   const nativeTokenIn = tokenInSlug ? findChainConfig(getChainBySlug(tokenInSlug))?.nativeToken : undefined;
   const nativeTokenInBalance = nativeTokenIn && selectCurrentAccountTokenBalance(global, nativeTokenIn.slug);

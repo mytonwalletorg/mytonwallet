@@ -3,12 +3,12 @@ import type { UserToken } from '../../../../../global/types';
 
 import { STAKED_TOKEN_SLUGS } from '../../../../../config';
 import { Big } from '../../../../../lib/big.js';
-import { getFullStakingBalance } from '../../../../../global/helpers/staking';
 import { calcBigChangeValue } from '../../../../../util/calcChangeValue';
 import { toBig } from '../../../../../util/decimals';
 import { formatNumber } from '../../../../../util/formatNumber';
 import { buildCollectionByKey } from '../../../../../util/iteratees';
 import { round } from '../../../../../util/math';
+import { getFullStakingBalance } from '../../../../../util/staking';
 
 import styles from '../Card.module.scss';
 

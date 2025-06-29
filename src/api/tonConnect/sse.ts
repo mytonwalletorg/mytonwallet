@@ -23,7 +23,7 @@ type SseDapp = {
   origin: string;
 } & ApiSseOptions;
 
-type ReturnStrategy = 'back' | 'none' | string;
+type ReturnStrategy = 'back' | 'none' | (string & {});
 
 const BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge';
 const TTL_SEC = 300;
@@ -239,7 +239,9 @@ async function sendRawMessage(body: string, clientId: string, toId: string, topi
 function closeEventSource() {
   if (!sseEventSource) return;
 
-  safeExec(() => { sseEventSource!.close(); });
+  safeExec(() => {
+    sseEventSource!.close();
+  });
   sseEventSource = undefined;
 }
 

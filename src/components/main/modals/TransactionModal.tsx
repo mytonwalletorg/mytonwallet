@@ -5,8 +5,8 @@ import React, {
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type {
+  ApiBaseCurrency,
   ApiNft,
-  ApiStakingCommonData,
   ApiStakingState,
   ApiTokenWithPrice,
   ApiToncoinStakingState,
@@ -24,12 +24,12 @@ import {
   TONCOIN,
   VALIDATION_PERIOD_MS,
 } from '../../../config';
-import { getStakingStateStatus } from '../../../global/helpers/staking';
 import {
   selectAccounts,
   selectAccountStakingStates,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
+  selectIsHardwareAccount,
 } from '../../../global/selectors';
 import {
   getIsActivityWithHash,
@@ -41,6 +41,7 @@ import {
   parseTxId,
   shouldShowTransactionAddress,
 } from '../../../util/activities';
+import { getHasInMemoryPassword, getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { bigintAbs } from '../../../util/bigint';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import buildClassName from '../../../util/buildClassName';
@@ -49,6 +50,7 @@ import { getLocalAddressName } from '../../../util/getLocalAddressName';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
+import { getStakingStateStatus } from '../../../util/staking';
 import { getNativeToken } from '../../../util/tokens';
 import { getExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
@@ -83,9 +85,9 @@ type StateProps = {
   transaction?: ApiTransactionActivity;
   tokensBySlug?: Record<string, ApiTokenWithPrice>;
   savedAddresses?: SavedAddress[];
+  isHardwareAccount: boolean;
   isTestnet?: boolean;
   isViewMode: boolean;
-  stakingInfo?: ApiStakingCommonData;
   stakingStates?: ApiStakingState[];
   isLongUnstakeRequested?: boolean;
   isMediaViewerOpen?: boolean;
@@ -94,6 +96,7 @@ type StateProps = {
   nftsByAddress?: Record<string, ApiNft>;
   accounts?: Record<string, Account>;
   currentAccountId: string;
+  baseCurrency?: ApiBaseCurrency;
 };
 
 const enum SLIDES {
@@ -106,8 +109,8 @@ function TransactionModal({
   tokensBySlug,
   savedAddresses,
   isTestnet,
+  isHardwareAccount,
   isViewMode,
-  stakingInfo,
   stakingStates,
   isLongUnstakeRequested,
   isMediaViewerOpen,
@@ -116,6 +119,7 @@ function TransactionModal({
   nftsByAddress,
   accounts,
   currentAccountId,
+  baseCurrency,
 }: StateProps) {
   const {
     fetchActivityDetails,
@@ -130,8 +134,8 @@ function TransactionModal({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
-  const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.initial);
-  const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
+  const [currentSlide, setCurrentSlide] = useState<SLIDES>(SLIDES.initial);
+  const [nextKey, setNextKey] = useState<SLIDES | undefined>(SLIDES.password);
   const animationLevel = getGlobal().settings.animationLevel;
   const animationDuration = animationLevel === ANIMATION_LEVEL_MIN
     ? 0
@@ -182,6 +186,7 @@ function TransactionModal({
   const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
   const transactionHash = chain && id ? parseTxId(id).hash : undefined;
   const doesNftExist = Boolean(nft && nftsByAddress?.[nft.address]);
+  const canDecryptComment = !isViewMode && !isHardwareAccount;
 
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
@@ -196,24 +201,24 @@ function TransactionModal({
     withShouldRender: true,
   });
 
-  const state = useMemo(() => {
+  const stakingState = useMemo(() => {
     return stakingStates?.find((staking): staking is ApiToncoinStakingState => {
       return staking.tokenSlug === TONCOIN.slug && staking.balance > 0n;
     });
   }, [stakingStates]);
 
-  const stakingStatus = state && getStakingStateStatus(state);
-  const startOfStakingCycle = state?.type === 'nominators' ? state.start : stakingInfo?.round?.start;
-  const endOfStakingCycle = state?.type === 'nominators' ? state.end : stakingInfo?.round?.end;
+  const stakingStatus = stakingState && getStakingStateStatus(stakingState);
+  const startOfStakingCycle = stakingState?.start;
+  const endOfStakingCycle = stakingState?.end;
 
   const {
     shouldRender: shouldRenderUnstakeTimer,
     ref: unstakeTimerRef,
   } = useShowTransition({
     isOpen: transaction?.type === 'unstakeRequest'
-    && startOfStakingCycle !== undefined
-    && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
-    && transaction.timestamp >= startOfStakingCycle,
+      && startOfStakingCycle !== undefined
+      && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
+      && transaction.timestamp >= startOfStakingCycle,
     withShouldRender: true,
   });
 
@@ -246,14 +251,6 @@ function TransactionModal({
     setCurrentSlide(SLIDES.initial);
     setNextKey(SLIDES.password);
     clearPasswordError();
-  });
-
-  const openHiddenComment = useLastCallback(() => {
-    if (!encryptedComment) {
-      return;
-    }
-
-    openPasswordSlide();
   });
 
   const handleSendClick = useLastCallback(() => {
@@ -309,6 +306,23 @@ function TransactionModal({
 
     closePasswordSlide();
     setDecryptedComment(result);
+  });
+
+  const openHiddenComment = useLastCallback(async () => {
+    if (!encryptedComment) {
+      return;
+    }
+
+    if (getHasInMemoryPassword()) {
+      const password = await getInMemoryPassword();
+
+      if (password) {
+        void handlePasswordSubmit(password);
+        return;
+      }
+    }
+
+    openPasswordSlide();
   });
 
   const handleClose = useLastCallback(() => {
@@ -400,8 +414,8 @@ function TransactionModal({
         <InteractiveTextField
           text={encryptedComment ? decryptedComment : comment}
           spoiler={spoiler}
-          spoilerRevealText={encryptedComment ? (isViewMode ? undefined : lang('Decrypt')) : lang('Display')}
-          spoilerCallback={!isViewMode ? openHiddenComment : undefined}
+          spoilerRevealText={encryptedComment ? (canDecryptComment ? lang('Decrypt') : undefined) : lang('Display')}
+          spoilerCallback={canDecryptComment ? openHiddenComment : undefined}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}
@@ -498,10 +512,10 @@ function TransactionModal({
             isIncoming={isIncoming}
             isScam={isScam}
             amount={amount ?? 0n}
-            decimals={token?.decimals}
-            tokenSymbol={token?.symbol}
+            token={token}
             status={isOurUnstaking && !shouldRenderUnstakeTimer ? lang('Successfully') : undefined}
             noSign={amountDisplayMode === 'noSign'}
+            baseCurrency={baseCurrency}
           />
         )}
         {nft && <NftInfo nft={nft} withMediaViewer={doesNftExist} withTonExplorer />}
@@ -514,7 +528,7 @@ function TransactionModal({
             <InteractiveTextField
               chain={chain}
               addressName={addressName}
-              address={address!}
+              address={address}
               isScam={isScam && !isIncoming}
               copyNotification={lang('Address was copied!')}
               className={styles.copyButtonWrapper}
@@ -533,8 +547,7 @@ function TransactionModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
       case SLIDES.initial:
         return (
@@ -599,26 +612,27 @@ export default memo(
     const savedAddresses = accountState?.savedAddresses;
     const { byAddress } = accountState?.nfts || {};
 
-    const stakingInfo = global.stakingInfo;
     const stakingStates = selectAccountStakingStates(global, accountId);
     const { isTestnet, theme, isSensitiveDataHidden } = global.settings;
     const accounts = selectAccounts(global);
+    const isHardwareAccount = selectIsHardwareAccount(global);
 
     return {
       transaction: activity?.kind === 'transaction' ? activity : undefined,
       tokensBySlug: global.tokenInfo?.bySlug,
       savedAddresses,
+      isHardwareAccount,
       isTestnet,
       isViewMode: selectIsCurrentAccountViewMode(global),
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
       isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
       theme,
-      stakingInfo,
       stakingStates,
       isSensitiveDataHidden,
       nftsByAddress: byAddress,
       accounts,
       currentAccountId: accountId,
+      baseCurrency: global.settings.baseCurrency,
     };
   })(TransactionModal),
 );

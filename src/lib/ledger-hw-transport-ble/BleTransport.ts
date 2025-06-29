@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import type { BleService } from '@capacitor-community/bluetooth-le';
 import { BleClient, ConnectionPriority } from '@capacitor-community/bluetooth-le';
 import type { BluetoothInfos, DeviceModel } from '@ledgerhq/devices';
@@ -52,7 +53,7 @@ const reconnectionConfig: ReconnectionConfig | null | undefined = {
 };
 
 // Allows us to give more granulary error messages
-const bluetoothInfoCache: { [deviceUuid: string]: BluetoothInfos } = {};
+const bluetoothInfoCache: Record<string, BluetoothInfos> = {};
 
 function retrieveInfos(device: Device | null): BluetoothInfos | undefined {
   if (!device || !device.uuids) return undefined;
@@ -66,7 +67,6 @@ function retrieveInfos(device: Device | null): BluetoothInfos | undefined {
   return infos;
 }
 
-// eslint-disable-next-line no-promise-executor-return
 const delay = (ms: number | undefined) => new Promise((success) => setTimeout(success, ms));
 
 /**
@@ -74,7 +74,7 @@ const delay = (ms: number | undefined) => new Promise((success) => setTimeout(su
  * Allows efficient storage and retrieval of previously initialized transports.
  * @type {Object.<string, BluetoothTransport>}
  */
-const transportsCache: { [deviceId: string]: BleTransport } = {};
+const transportsCache: Record<string, BleTransport> = {};
 
 // `connectOptions` is actually used by `react-native-ble-plx` even if comment above `ConnectionOptions` says it's not used
 const connectOptions: Record<string, unknown> = {
@@ -328,7 +328,7 @@ export default class BleTransport extends Transport {
             tracer.trace('Error while exchanging APDU, mapped and throws following error', {
               mappedError,
             });
-            // eslint-disable-next-line @typescript-eslint/no-throw-literal
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw mappedError;
           }),
           finalize(() => {
@@ -390,7 +390,7 @@ export default class BleTransport extends Transport {
         this.tracer.trace('Error while inferring APDU, mapped and throws following error', {
           mappedError,
         });
-        // eslint-disable-next-line @typescript-eslint/no-throw-literal
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw mappedError;
       } finally {
         // When negotiating the MTU, a message is sent/written to the device, and a transaction id was associated to this write
@@ -469,7 +469,7 @@ export default class BleTransport extends Transport {
     } catch (error: unknown) {
       tracer.trace('Error while writing APDU', { error });
       throw new DisconnectedDeviceDuringOperation(
-        error instanceof Error ? error.message : `${error}`,
+        error instanceof Error ? error.message : `${String(error)}`,
       );
     }
   };
@@ -530,8 +530,9 @@ async function open(
 ) {
   const tracer = new LocalTracer(LOG_TYPE, context);
   let device: Device;
-  tracer.trace(`Opening ${deviceOrId}`, { needsReconnect });
+  tracer.trace(`Opening ${typeof deviceOrId === 'string' ? deviceOrId : deviceOrId.deviceId}`, { needsReconnect });
   let deviceId: string;
+  // eslint-disable-next-line prefer-const
   let transport: BleTransport;
 
   if (typeof deviceOrId === 'string') {
@@ -609,7 +610,7 @@ async function open(
       });
     } catch (error: any) {
       tracer.trace('Connect error', { error });
-      // eslint-disable-next-line @typescript-eslint/no-throw-literal
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw remapError(error);
     }
   }
@@ -745,7 +746,6 @@ async function open(
   // Keeping it as a comment for now but if no new bluetooth issues occur, we will be able to remove it
   // await transport.requestConnectionPriority("High");
 
-  // eslint-disable-next-line prefer-const
   // let disconnectedSub: Subscription;
 
   // Callbacks on `react-native-ble-plx` notifying the device has been disconnected
@@ -766,7 +766,6 @@ async function open(
     transport.disconnectCallback?.();
   };
 
-  // eslint-disable-next-line require-atomic-updates
   transportsCache[transport.id] = transport;
   const beforeMTUTime = Date.now();
 

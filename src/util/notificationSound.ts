@@ -38,7 +38,7 @@ function loadSound() {
       assetPath: 'public/incoming-transaction.mp3',
       audioChannelNum: 1,
       isUrl: false,
-    }).catch((err : any) => {
+    }).catch((err: any) => {
       logDebugError('appSounds:loadSound', err);
     });
   } else {

@@ -60,8 +60,7 @@ function SwapBlockchain({
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
 
-  // eslint-disable-next-line no-null/no-null
-  const toAddressRef = useRef<HTMLInputElement>(null);
+  const toAddressRef = useRef<HTMLInputElement>();
 
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
@@ -117,7 +116,7 @@ function SwapBlockchain({
     }
 
     const response = await callApi('swapCexValidateAddress', {
-      slug: tokenOut?.slug!,
+      slug: tokenOut!.slug,
       address,
     });
 
@@ -166,7 +165,6 @@ function SwapBlockchain({
 
   const handleQrScanClick = useLastCallback(() => {
     if (IS_IOS && getIsMobileTelegramApp()) {
-      // eslint-disable-next-line no-alert
       alert('Scanning is temporarily not available');
       return;
     }
@@ -237,11 +235,11 @@ function SwapBlockchain({
     );
   }
 
-  const title = (lang('$swap_from_to', {
+  const title = lang('$swap_from_to', {
     from: tokenIn?.symbol,
     icon: <i className={buildClassName('icon-chevron-right', styles.swapArrowIcon)} aria-hidden />,
     to: tokenOut?.symbol,
-  }) as TeactNode[]);
+  }) as TeactNode[];
 
   return (
     <>

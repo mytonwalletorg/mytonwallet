@@ -25,7 +25,7 @@ function Notifications({ notifications }: StateProps) {
           key={message}
           icon={icon}
           message={message}
-          // eslint-disable-next-line react/jsx-no-bind
+
           onDismiss={dismissNotification}
         />
       ))}

@@ -1,6 +1,5 @@
 .wrapper {
   user-select: none;
-
   position: relative;
 
   &.inPortal {
@@ -21,16 +20,14 @@
   display: block;
 
   margin: 0;
+  border-radius: var(--border-radius-default);
 
   list-style: none;
 
   background-color: var(--color-background-drop-down);
-  border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
 
   transition: var(--dropdown-transition) !important;
-
-  scrollbar-width: none !important;
 
   &:global(.open) {
     transform: scale(1);
@@ -64,8 +61,12 @@
     transition: var(--no-animation-transition) !important;
   }
 
-  &::-webkit-scrollbar {
-    display: none !important;
+  :global(html:not(.is-ios):not(.is-android)) & {
+    scrollbar-width: none !important;
+
+    &::-webkit-scrollbar {
+      display: none !important;
+    }
   }
 }
 
@@ -86,8 +87,8 @@
   --offset-x: 0;
   --offset-y: calc(100% - 0.5rem);
 
-  transform: scaleY(0.5) !important;
   transform-origin: top !important;
+  transform: scaleY(0.5) !important;
 
   overflow: auto;
 
@@ -126,5 +127,9 @@
     &:global(.open) {
       transform: translate(var(--translate-x, 0), 0) !important;
     }
+  }
+
+  :global(html:not(.is-ios):not(.is-android)) & {
+    overflow-y: auto;
   }
 }

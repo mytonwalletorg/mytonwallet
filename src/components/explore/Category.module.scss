@@ -23,15 +23,17 @@
   aspect-ratio: 1;
   width: 100%;
   padding: 1rem;
+  border-radius: min(2rem, 25%);
 
   background-color: var(--color-gray-button-background-light);
-  border-radius: min(2rem, 25%);
+
+  &.interactive {
+    cursor: var(--custom-cursor, pointer);
+  }
 }
 
 .subfolder {
   --scale-value: 0.95;
-
-  cursor: var(--custom-cursor, pointer);
 
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -51,10 +53,10 @@
 
   margin: 0;
   padding: 0;
-
-  background: none;
   border: none;
   border-radius: min(1rem, 25%);
+
+  background: none;
 
   &.small {
     border-radius: min(0.4375rem, 25%);
@@ -65,7 +67,6 @@
   aspect-ratio: 1;
   width: 100%;
   height: 100%;
-
   object-fit: contain;
 }
 

@@ -8,7 +8,7 @@ import { useEffect, useState } from '../lib/teact/teact';
 
 type QueryStateSetter = (matches: boolean) => void;
 
-// eslint-disable-next-line max-len, no-spaced-func
+// eslint-disable-next-line @stylistic/max-len
 const queriesMap = new Map<string, { mql: MediaQueryList; dispatchers: Set<Dispatch<boolean>>; listener: () => void }>();
 
 const createQueryEntry = (query: string) => {
@@ -90,7 +90,6 @@ export function useMediaQuery(query: string, options?: UseMediaQueryOptions): bo
     querySubscribe(query, setState);
 
     return () => queryUnsubscribe(query, setState);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   return state;

@@ -39,7 +39,7 @@ export function getIsInternalSwap({
   const isMultichain = Boolean(addressByChain?.tron);
   return (from?.chain === 'ton' && to?.chain === 'ton') || (
     isMultichain && from && to && addressByChain
-      && getIsSupportedChain(from.chain)
-      && addressByChain[to.chain as ApiChain] === toAddress
+    && getIsSupportedChain(from.chain)
+    && addressByChain[to.chain as ApiChain] === toAddress
   );
 }

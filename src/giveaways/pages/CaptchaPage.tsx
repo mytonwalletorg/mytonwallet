@@ -23,7 +23,6 @@ function CaptchaPage({
   wallet, setParticipantStatus, setGiveaway, isGiveawayFinished,
 }: OwnProps) {
   useEffectOnce(() => {
-    // eslint-disable-next-line func-names
     window.onloadTurnstileCallback = function () {
       // @ts-expect-error
       turnstile.render('#turnstile-container', {

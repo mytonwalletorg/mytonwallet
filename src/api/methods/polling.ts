@@ -2,94 +2,106 @@ import type {
   ApiAccountAny,
   ApiAccountConfig,
   ApiAccountWithMnemonic,
-  ApiCountryCode,
+  ApiActivityTimestamps,
+  ApiBackendConfig,
+  ApiChain,
+  ApiNetwork,
   ApiSwapAsset,
   ApiTokenDetails,
   ApiTokenWithPrice,
+  ApiUpdatingStatus,
   OnApiUpdate,
 } from '../types';
 
-import { IS_AIR_APP, TONCOIN } from '../../config';
+import { IS_AIR_APP, IS_CORE_WALLET, IS_STAKING_DISABLED, TONCOIN } from '../../config';
+import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
+import { getChainConfig } from '../../util/chain';
 import { omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
-import { pauseOrFocus } from '../../util/pauseOrFocus';
+import { createTaskQueue } from '../../util/schedulers';
 import chains from '../chains';
+import { fetchMaybeStoredAccount, fetchStoredAccount, fetchStoredAccounts } from '../common/accounts';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet, callBackendPost } from '../common/backend';
-import { isAlive, isUpdaterAlive } from '../common/helpers';
+import { setBackendConfigCache } from '../common/cache';
+import { pollingLoop } from '../common/polling';
 import { getBaseCurrency } from '../common/prices';
 import { getTokensCache, loadTokensCache, tokensPreload, updateTokens } from '../common/tokens';
-import { MINUTE } from '../constants';
+import { MINUTE, SEC } from '../constants';
 import { resolveDataPreloadPromise } from './preload';
 import { tryUpdateStakingCommonData } from './staking';
 import { swapGetAssets } from './swap';
 
-const SEC = 1000;
 const BACKEND_INTERVAL = 30 * SEC;
-const LONG_BACKEND_INTERVAL = 60 * SEC;
+const LONG_BACKEND_INTERVAL = MINUTE;
 const INCORRECT_TIME_DIFF = 30 * SEC;
 
-const ACCOUNT_CONFIG_INTERVAL = 60 * SEC;
+const ACCOUNT_CONFIG_INTERVAL = MINUTE;
 const ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED = 10 * MINUTE;
 
 const MAX_POST_TOKENS = 1000;
 
-const { ton, tron } = chains;
-
 let onUpdate: OnApiUpdate;
+let stopCommonBackendPolling: NoneToVoidFunction | undefined;
+let stopActiveAccountPolling: NoneToVoidFunction | undefined;
+const inactiveAccountPolling = IS_AIR_APP ? createInactiveAccountsPollingManager() : undefined;
+const setUpdatingStatus = createUpdatingStatusManager();
 
-export async function initPolling(_onUpdate: OnApiUpdate) {
+export function initPolling(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 
-  await loadTokensCache();
+  void loadTokensCache();
 
   void Promise.allSettled([
     tryUpdateKnownAddresses(),
-    tryUpdateTokens(_onUpdate),
-    tryUpdateSwapTokens(_onUpdate),
+    tryUpdateTokens(),
+    !IS_STAKING_DISABLED && tryUpdateSwapTokens(),
     tryUpdateStakingCommonData(),
   ]).then(() => resolveDataPreloadPromise());
 
-  void tryUpdateConfig(_onUpdate);
+  void tryUpdateConfig();
 
-  void setupBackendPolling();
-  void setupLongBackendPolling();
-  if (IS_AIR_APP) {
-    void ton.setupInactiveAccountsBalancePolling(onUpdate);
-    void tron.setupInactiveAccountsBalancePolling(onUpdate);
-  }
+  stopCommonBackendPolling?.();
+  stopCommonBackendPolling = setupCommonBackendPolling();
 }
 
-export async function setupBackendPolling() {
-  const localOnUpdate = onUpdate;
-
-  while (isUpdaterAlive(localOnUpdate)) {
-    await pauseOrFocus(BACKEND_INTERVAL);
-    await tryUpdateTokens(localOnUpdate);
-  }
+export async function destroyPolling() {
+  stopCommonBackendPolling?.();
+  stopCommonBackendPolling = undefined;
+  removeAllPollingAccounts();
+  await setActivePollingAccount(undefined, {});
 }
 
-export async function setupLongBackendPolling() {
-  const localOnUpdate = onUpdate;
+function setupCommonBackendPolling() {
+  const stopFns = [
+    pollingLoop({
+      pause: BACKEND_INTERVAL,
+      skipInitialPoll: true,
+      poll: tryUpdateTokens,
+    }),
+    pollingLoop({
+      pause: LONG_BACKEND_INTERVAL,
+      skipInitialPoll: true,
+      async poll() {
+        await Promise.all([
+          tryUpdateKnownAddresses(),
+          !IS_STAKING_DISABLED && tryUpdateStakingCommonData(),
+          tryUpdateConfig(),
+          tryUpdateSwapTokens(),
+        ]);
+      },
+    }),
+  ];
 
-  while (isUpdaterAlive(localOnUpdate)) {
-    await pauseOrFocus(LONG_BACKEND_INTERVAL);
-
-    await Promise.all([
-      tryUpdateKnownAddresses(),
-      tryUpdateStakingCommonData(),
-      tryUpdateConfig(localOnUpdate),
-      tryUpdateSwapTokens(localOnUpdate),
-    ]);
-  }
+  return () => {
+    for (const stopFn of stopFns) {
+      stopFn();
+    }
+  };
 }
 
-export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
-  if (!localOnUpdate) {
-    localOnUpdate = onUpdate;
-  }
-
+export async function tryUpdateTokens() {
   try {
     const baseCurrency = await getBaseCurrency();
 
@@ -113,23 +125,15 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
         assets: nonBackendTokenAddresses.slice(0, MAX_POST_TOKENS),
       }) : undefined;
 
-    if (!isUpdaterAlive(localOnUpdate)) return;
-
     await updateTokens(tokens, onUpdate, nonBackendTokenDetails, baseCurrency, true);
   } catch (err) {
     logDebugError('tryUpdateTokens', err);
   }
 }
 
-export async function tryUpdateSwapTokens(localOnUpdate?: OnApiUpdate) {
-  if (!localOnUpdate) {
-    localOnUpdate = onUpdate;
-  }
-
+export async function tryUpdateSwapTokens() {
   try {
     const assets = await swapGetAssets();
-
-    if (!isUpdaterAlive(localOnUpdate)) return;
 
     await tokensPreload.promise;
     const tokensCache = getTokensCache();
@@ -156,8 +160,11 @@ export async function tryUpdateSwapTokens(localOnUpdate?: OnApiUpdate) {
   }
 }
 
-export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
+export async function tryUpdateConfig() {
   try {
+    const config = await callBackendGet<ApiBackendConfig>('/utils/get-config');
+    setBackendConfigCache(config);
+
     const {
       isLimited,
       isCopyStorageEnabled = false,
@@ -165,16 +172,7 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
       now: serverUtc,
       country: countryCode,
       isUpdateRequired: isAppUpdateRequired,
-    } = await callBackendGet<{
-      isLimited: boolean;
-      isCopyStorageEnabled?: boolean;
-      supportAccountsCount?: number;
-      now: number;
-      country: ApiCountryCode;
-      isUpdateRequired: boolean;
-    }>('/utils/get-config');
-
-    if (!isUpdaterAlive(localOnUpdate)) return;
+    } = config;
 
     onUpdate({
       type: 'updateConfig',
@@ -196,29 +194,234 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
   }
 }
 
-export async function setupAccountConfigPolling(accountId: string, account: ApiAccountAny) {
+/** Call it every time the active account changes */
+export async function setActivePollingAccount(
+  accountId: string | undefined,
+  newestActivityTimestamps: ApiActivityTimestamps,
+) {
+  stopActiveAccountPolling?.();
+  stopActiveAccountPolling = undefined;
+
+  inactiveAccountPolling?.setActiveAccount(accountId);
+
+  if (accountId) {
+    const account = await fetchStoredAccount(accountId);
+
+    const stopPollingFns = [
+      !IS_CORE_WALLET && setupAccountConfigPolling(accountId, account),
+
+      ...(Object.keys(chains) as (keyof typeof chains)[]).map((chain) => (
+        chains[chain].setupActivePolling(
+          accountId,
+          account,
+          onUpdate,
+          setUpdatingStatus.bind(undefined, accountId, chain),
+          pickChainTimestamps(newestActivityTimestamps, chain),
+        )
+      )),
+    ];
+
+    stopActiveAccountPolling = () => {
+      for (const stopFn of stopPollingFns) {
+        if (stopFn) {
+          stopFn();
+        }
+      }
+    };
+  }
+}
+
+/** Call it every time a new account is created */
+export function addPollingAccount(accountId: string, account: ApiAccountAny) {
+  inactiveAccountPolling?.addAccount(accountId, account);
+}
+
+/** Call it every time an account is removed (except for cases in the other remove...account functions) */
+export function removePollingAccount(accountId: string) {
+  inactiveAccountPolling?.removeAccount(accountId);
+}
+
+/** Call it every time all accounts of a network are removed */
+export function removeNetworkPollingAccounts(network: ApiNetwork) {
+  inactiveAccountPolling?.removeNetworkAccounts(network);
+}
+
+/** Call it every time all accounts are removed */
+export function removeAllPollingAccounts() {
+  inactiveAccountPolling?.removeAllAccounts();
+}
+
+function setupAccountConfigPolling(accountId: string, account: ApiAccountAny) {
   let lastResult: ApiAccountConfig | undefined;
 
   const partialAccount = omit(account as ApiAccountWithMnemonic, ['mnemonicEncrypted']);
 
-  while (isAlive(onUpdate, accountId)) {
-    try {
-      const accountConfig = await callBackendPost<ApiAccountConfig>('/account-config', partialAccount);
+  return pollingLoop({
+    pause: ACCOUNT_CONFIG_INTERVAL,
+    pauseWhenNotFocused: ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED,
+    async poll() {
+      try {
+        const accountConfig = await callBackendPost<ApiAccountConfig>('/account-config', partialAccount);
 
-      if (!isAlive(onUpdate, accountId)) return;
-
-      if (!areDeepEqual(accountConfig, lastResult)) {
-        lastResult = accountConfig;
-        onUpdate({
-          type: 'updateAccountConfig',
-          accountId,
-          accountConfig,
-        });
+        if (!areDeepEqual(accountConfig, lastResult)) {
+          lastResult = accountConfig;
+          onUpdate({
+            type: 'updateAccountConfig',
+            accountId,
+            accountConfig,
+          });
+        }
+      } catch (err) {
+        logDebugError('setupBackendAccountPolling', err);
       }
-    } catch (err) {
-      logDebugError('setupBackendAccountPolling', err);
+    },
+  });
+}
+
+/**
+ * Returns a stateful function that receives updating statuses from multiple chains and merges them together into a
+ * single set of consistent 'updatingStatus' events for the UI.
+ */
+function createUpdatingStatusManager() {
+  const updatingStatuses = new Map<string, Set<ApiChain>>();
+
+  return (accountId: string, chain: ApiChain, kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => {
+    const key = `${accountId} ${kind}`;
+    let chainsBeingUpdated = updatingStatuses.get(key);
+    if (!chainsBeingUpdated) {
+      chainsBeingUpdated = new Set();
+      updatingStatuses.set(key, chainsBeingUpdated);
     }
 
-    await pauseOrFocus(ACCOUNT_CONFIG_INTERVAL, ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED);
+    const wasAnyUpdating = chainsBeingUpdated.size > 0;
+
+    if (isUpdating) {
+      chainsBeingUpdated.add(chain);
+      if (!wasAnyUpdating) {
+        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating: true });
+      }
+    } else {
+      chainsBeingUpdated.delete(chain);
+      if (chainsBeingUpdated.size === 0 && wasAnyUpdating) {
+        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating: false });
+      }
+    }
+  };
+}
+
+/**
+ * Manages polling for the inactive accounts.
+ * The goal is polling the accounts from the network of the current active account, but not the active account itself.
+ *
+ * @todo: Deduplicate polling the same addresses, if multiple accounts have it
+ */
+function createInactiveAccountsPollingManager() {
+  const stopByAccount: Record<string, NoneToVoidFunction> = {};
+  let activeAccountId: string | undefined;
+
+  async function setActiveAccount(accountId: string | undefined) {
+    if (accountId === activeAccountId) {
+      return;
+    }
+
+    if (accountId === undefined) {
+      stopAllPollings();
+      return;
+    }
+
+    if (!activeAccountId || parseAccountId(accountId).network !== parseAccountId(activeAccountId).network) {
+      await switchNetwork(accountId);
+      return;
+    }
+
+    const previousActiveAccountId = activeAccountId;
+    activeAccountId = accountId;
+
+    // Stop polling the now active account
+    stopByAccount[activeAccountId]?.();
+    delete stopByAccount[activeAccountId];
+
+    // Start polling the previous active account
+    const previousActiveAccount = await fetchMaybeStoredAccount(previousActiveAccountId);
+    if (previousActiveAccount) { // The previously active account may get removed at this moment
+      startAccountPolling(previousActiveAccountId, previousActiveAccount);
+    }
   }
+
+  function addAccount(accountId: string, account: ApiAccountAny) {
+    const isActiveAccount = accountId === activeAccountId;
+    const isCurrentNetwork = activeAccountId
+      && parseAccountId(accountId).network === parseAccountId(activeAccountId).network;
+
+    if (!isActiveAccount && isCurrentNetwork) {
+      startAccountPolling(accountId, account);
+    }
+  }
+
+  function removeAccount(accountId: string) {
+    stopByAccount[accountId]?.();
+    delete stopByAccount[accountId];
+  }
+
+  function removeNetworkAccounts(network: ApiNetwork) {
+    if (activeAccountId && parseAccountId(activeAccountId).network === network) {
+      // Inactive account polling must poll only the network of the active account, so removing the network means removing all account
+      stopAllPollings();
+    }
+  }
+
+  function removeAllAccounts() {
+    stopAllPollings();
+  }
+
+  async function switchNetwork(newActiveAccountId: string) {
+    stopAllPollings();
+    activeAccountId = newActiveAccountId;
+    const { network } = parseAccountId(activeAccountId);
+    const accounts = await fetchStoredAccounts();
+    const otherAccountIds = Object.keys(accounts).filter((accountId) => (
+      accountId !== activeAccountId
+      && parseAccountId(accountId).network === network
+    ));
+    otherAccountIds.map((accountId) => startAccountPolling(accountId, accounts[accountId]));
+  }
+
+  function startAccountPolling(accountId: string, account: ApiAccountAny) {
+    if (stopByAccount[accountId]) return;
+
+    const stopFns = Object.values(chains).map((chain) => chain.setupInactivePolling(accountId, account, onUpdate));
+    stopByAccount[accountId] = () => {
+      for (const stopChain of stopFns) {
+        stopChain();
+      }
+    };
+  }
+
+  function stopAllPollings() {
+    for (const [accountId, stopAccountPolling] of Object.entries(stopByAccount)) {
+      stopAccountPolling();
+      delete stopByAccount[accountId];
+    }
+  }
+
+  const preventRaceCondition = createTaskQueue(1).wrap as
+    <Args extends unknown[]>(task: (...args: Args) => unknown) => (...args: Args) => void;
+
+  return {
+    setActiveAccount: preventRaceCondition(setActiveAccount),
+    addAccount: preventRaceCondition(addAccount),
+    removeAccount: preventRaceCondition(removeAccount),
+    removeNetworkAccounts: preventRaceCondition(removeNetworkAccounts),
+    removeAllAccounts: preventRaceCondition(removeAllAccounts),
+  };
+}
+
+function pickChainTimestamps(bySlug: ApiActivityTimestamps, chain: ApiChain) {
+  const { slug: nativeSlug } = getChainConfig(chain).nativeToken;
+  return Object.entries(bySlug).reduce((newBySlug, [slug, timestamp]) => {
+    if (slug === nativeSlug || slug.startsWith(`${chain}-`)) {
+      newBySlug[slug] = timestamp;
+    }
+    return newBySlug;
+  }, {} as ApiActivityTimestamps);
 }

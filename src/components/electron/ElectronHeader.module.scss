@@ -10,9 +10,9 @@
 
   -webkit-app-region: drag;
 
+  :global(html.is-modal-open) &,
   :global(body.is-media-viewer-open) & {
     pointer-events: none;
-
     opacity: 0;
 
     -webkit-app-region: no-drag;
@@ -31,16 +31,13 @@
 
   :global(html.is-electron.is-windows) & {
     justify-content: flex-start;
-
     max-width: 100%;
   }
 }
 
 .applicationName {
   user-select: none;
-
   align-self: center;
-
   font-size: 0.9375rem;
   font-weight: 700;
 }

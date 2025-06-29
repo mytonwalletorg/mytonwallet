@@ -1,5 +1,5 @@
-import type { RefObject, UIEvent } from 'react';
-import type { FC, TeactNode } from '../../lib/teact/teact';
+import type { UIEvent } from 'react';
+import type { ElementRef, FC, TeactNode } from '../../lib/teact/teact';
 import React, {
   useEffect, useLayoutEffect, useMemo, useRef,
 } from '../../lib/teact/teact';
@@ -17,7 +17,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps';
 
 type OwnProps = {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   style?: string;
   className?: string;
   items?: any[];
@@ -74,8 +74,7 @@ const InfiniteScroll: FC<OwnProps> = ({
   onDragOver,
   onDragLeave,
 }: OwnProps) => {
-  // eslint-disable-next-line no-null/no-null
-  let containerRef = useRef<HTMLDivElement>(null);
+  let containerRef = useRef<HTMLDivElement>();
   if (ref) {
     containerRef = ref;
   }
@@ -141,7 +140,7 @@ const InfiniteScroll: FC<OwnProps> = ({
 
       if (state.currentAnchor && Array.from(listItemElements).includes(state.currentAnchor)) {
         const { scrollTop } = scrollContainer;
-        const newAnchorTop = state.currentAnchor!.getBoundingClientRect().top;
+        const newAnchorTop = state.currentAnchor.getBoundingClientRect().top;
         newScrollTop = scrollTop + (newAnchorTop - state.currentAnchorTop!);
       } else {
         const nextAnchor = listItemElements[0];

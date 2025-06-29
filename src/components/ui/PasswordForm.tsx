@@ -24,7 +24,6 @@ import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
-import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import { useMatchCount } from '../../hooks/useMatchCount';
@@ -41,7 +40,7 @@ import modalStyles from './Modal.module.scss';
 import styles from './PasswordForm.module.scss';
 
 type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap'
-| 'unfreeze' | 'passcode' | 'unlock' | 'claim' | 'turnOnBiometrics' | 'mintCard';
+  | 'unfreeze' | 'passcode' | 'unlock' | 'claim' | 'turnOnBiometrics' | 'mintCard';
 
 interface OwnProps {
   isActive: boolean;
@@ -134,8 +133,7 @@ function PasswordForm({
 
   const showOnlyConfirmScreen = skipAuthScreen && hasInMemoryPassword;
 
-  // eslint-disable-next-line no-null/no-null
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>();
   const [password, setPassword] = useState<string>('');
   const [localError, setLocalError] = useState<string>('');
   const [wrongAttempts, setWrongAttempts] = useState(0);
@@ -153,8 +151,6 @@ function PasswordForm({
       setWrongAttempts(0);
     }
   }, [isActive]);
-
-  useHideBottomBar(isActive);
 
   const submitCallback = useLastCallback(async (enteredPassword: string) => {
     const passwordToReturn = showOnlyConfirmScreen ? memoizedPasswordRef.current! : enteredPassword;

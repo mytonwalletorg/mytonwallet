@@ -1,5 +1,5 @@
-let resolveRenderPromise: Function;
-const renderPromise = new Promise((resolve) => {
+let resolveRenderPromise: NoneToVoidFunction;
+const renderPromise = new Promise<void>((resolve) => {
   resolveRenderPromise = resolve;
 });
 

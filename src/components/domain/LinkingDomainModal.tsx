@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
-import type { Account, GlobalState, HardwareConnectState, SavedAddress } from '../../global/types';
+import type { Account, GlobalState, SavedAddress } from '../../global/types';
 import { DomainLinkingState } from '../../global/types';
 
 import { TONCOIN } from '../../config';
@@ -15,11 +15,10 @@ import {
 } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
-import { getLocalAddressName } from '../../util/getLocalAddressName';
+import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
-import useAddressInput from '../../hooks/useAddressInput';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
@@ -28,10 +27,8 @@ import useSyncEffectWithPrevDeps from '../../hooks/useSyncEffectWithPrevDeps';
 import TransactionBanner from '../common/TransactionBanner';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
-import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
-import AddressBook from '../transfer/AddressBook';
-import AddressInput from '../transfer/AddressInput';
 import NftInfo from '../transfer/NftInfo';
+import AddressInput from '../ui/AddressInput';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import FeeLine from '../ui/FeeLine';
@@ -47,9 +44,6 @@ interface StateProps {
   isMediaViewerOpen?: boolean;
   currentDomainLinking: GlobalState['currentDomainLinking'];
   byAddress?: Record<string, ApiNft>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   tonBalance: bigint;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
@@ -77,9 +71,6 @@ function LinkingDomainModal({
   },
   isMediaViewerOpen,
   byAddress,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   tonBalance,
   accounts,
   savedAddresses,
@@ -107,53 +98,11 @@ function LinkingDomainModal({
   const forceFullNative = FULL_NATIVE_STATES.has(renderingKey);
   const feeTerms = useMemo(() => (realFee ? { native: realFee } : undefined), [realFee]);
   const modalTitle = currentLinkedWalletAddress ? 'Change Linked Wallet' : 'Link to Wallet';
+  const isAddressValid = isValidAddressOrDomain(walletAddress, 'ton');
 
   const handleWalletAddressInput = useLastCallback((newToAddress?: string) => {
     setDomainLinkingWalletAddress({ address: newToAddress });
   });
-
-  const {
-    isAddressFocused,
-    isAddressValid,
-    hasAddressError,
-    isQrScannerSupported,
-    withPasteButton,
-    addressInputRef,
-
-    shouldUseAddressBook,
-    isAddressBookOpen,
-    addressBookAccountIds,
-    chainForDeletion,
-    addressForDeletion,
-
-    closeAddressBook,
-    handlePasteClick,
-    handleAddressBlur,
-    handleAddressFocus,
-    handleAddressClear,
-    handleQrScanClick,
-    handleAddressBookItemSelect,
-    handleDeleteSavedAddressClick,
-    handleDeleteSavedAddressModalClose,
-  } = useAddressInput({
-    value: walletAddress,
-    chain: 'ton',
-    // It is necessary to allow linking of current wallet address to the domain, so pass an empty string
-    currentAccountId: '',
-    accounts,
-    savedAddresses,
-    validateAddress: checkLinkingAddress,
-    onChange: handleWalletAddressInput,
-    onClose: cancelDomainLinking,
-  });
-
-  const localAddressName = useMemo(() => getLocalAddressName({
-    address: walletAddress,
-    chain: 'ton',
-    currentAccountId: '',
-    savedAddresses,
-    accounts: accounts!,
-  }), [accounts, savedAddresses, walletAddress]);
 
   const canSubmit = isAddressValid && walletAddress !== currentLinkedWalletAddress
     && !isInsufficientBalance && !isLoading;
@@ -197,34 +146,22 @@ function LinkingDomainModal({
             <NftInfo nft={domainNft} withMediaViewer />
 
             <AddressInput
-              label={currentLinkedWalletAddress ? lang('Linked Wallet') : lang('Wallet')}
+              withQrScan
               value={walletAddress}
-              error={hasAddressError ? (lang('Incorrect address') as string) : undefined}
-              isFocused={isAddressFocused}
-              isQrScannerSupported={isQrScannerSupported}
-              withPasteButton={withPasteButton}
+              // It is necessary to allow linking of current wallet address to the domain, so pass an empty string
+              currentAccountId=""
+              // Domain linking is available only for TON blockchain
+              addressBookChain="ton"
+              chain="ton"
+              accounts={accounts}
+              savedAddresses={savedAddresses}
+              validateAddress={checkLinkingAddress}
+              label={currentLinkedWalletAddress ? lang('Linked Wallet') : lang('Wallet')}
               address={resolvedWalletAddress || walletAddress}
-              addressName={localAddressName || walletAddressName}
-              inputRef={addressInputRef}
+              addressName={walletAddressName}
               onInput={handleWalletAddressInput}
-              onFocus={handleAddressFocus}
-              onBlur={handleAddressBlur}
-              onClearClick={handleAddressClear}
-              onQrScanClick={handleQrScanClick}
-              onPasteClick={handlePasteClick}
+              onClose={cancelDomainLinking}
             />
-
-            {shouldUseAddressBook && (
-              <AddressBook
-                isOpen={isAddressBookOpen}
-                isNftTransfer={true} // Linking domain to address is an operation with NFT
-                currentAddress={walletAddress}
-                otherAccountIds={addressBookAccountIds}
-                onAddressSelect={handleAddressBookItemSelect}
-                onSavedAddressDelete={handleDeleteSavedAddressClick}
-                onClose={closeAddressBook}
-              />
-            )}
           </div>
 
           <FeeLine terms={feeTerms} token={TONCOIN} precision="exact" />
@@ -243,12 +180,6 @@ function LinkingDomainModal({
             </Button>
           </div>
         </div>
-        <DeleteSavedAddressModal
-          isOpen={Boolean(addressForDeletion)}
-          address={addressForDeletion}
-          chain={chainForDeletion}
-          onClose={handleDeleteSavedAddressModalClose}
-        />
       </>
     );
   }
@@ -309,8 +240,7 @@ function LinkingDomainModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: DomainLinkingState) {
     switch (currentKey) {
       case DomainLinkingState.Initial:
         return renderInitialContent();
@@ -322,9 +252,6 @@ function LinkingDomainModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareSubmit}
             onClose={cancelDomainLinking}
           />
@@ -375,7 +302,6 @@ export default memo(
     const currentAccount = selectCurrentAccount(global);
     const accountState = selectCurrentAccountState(global);
     const { byAddress } = accountState?.nfts || {};
-    const { hardwareState, isLedgerConnected, isTonAppConnected } = global.hardware;
     const domainNft = currentDomainLinking.address ? byAddress?.[currentDomainLinking.address] : undefined;
     const currentLinkedWalletAddress = domainNft ? selectTonDnsLinkedAddress(global, domainNft) : '';
 
@@ -383,9 +309,6 @@ export default memo(
       isMediaViewerOpen: Boolean(mediaId),
       currentDomainLinking,
       byAddress,
-      hardwareState,
-      isLedgerConnected,
-      isTonAppConnected,
       tonBalance: selectCurrentToncoinBalance(global),
       accounts: selectNetworkAccounts(global),
       savedAddresses: accountState?.savedAddresses,

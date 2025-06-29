@@ -28,7 +28,6 @@
 
     width: 0;
     height: 0;
-
     border: 0.4375rem solid;
     border-color: var(--color-background-drop-down) transparent transparent var(--color-background-drop-down);
     border-radius: 0.125rem;
@@ -40,10 +39,8 @@
   --color-selected-drop-down-item: var(--color-gray-1);
 
   justify-content: center;
-
   margin-bottom: 0 !important;
   padding: 0.5625rem 0.75rem !important;
-
   border-radius: var(--border-radius-small);
 
   &::before {

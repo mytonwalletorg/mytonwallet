@@ -14,7 +14,7 @@ import {
 } from './util/tonCore';
 import { fetchStoredTonWallet } from '../../common/accounts';
 import { base64ToBytes, hexToBytes, sha256 } from '../../common/utils';
-import { ALL_WALLET_VERSIONS, KnownContracts, WORKCHAIN } from './constants';
+import { ALL_WALLET_VERSIONS, ContractType, KnownContracts, WORKCHAIN } from './constants';
 import { getWalletInfos } from './toncenter';
 
 export const isAddressInitialized = withCacheAsync(
@@ -78,7 +78,7 @@ export async function getContractInfo(network: ApiNetwork, address: string): Pro
   const codeHash = code && Cell.fromBase64(code).hash().toString('hex');
 
   const isInitialized = state === 'active';
-  const isWallet = state === 'active' ? contractInfo?.type === 'wallet' : undefined;
+  const isWallet = state === 'active' ? contractInfo?.type === ContractType.Wallet : undefined;
   const isSwapAllowed = contractInfo?.isSwapAllowed;
 
   return {
@@ -192,7 +192,7 @@ export async function getWalletStateInit(accountId: string, storedWallet: ApiTon
   const wallet = await getTonWallet(accountId, storedWallet);
 
   return beginCell()
-    .storeWritable(storeStateInit(wallet!.init))
+    .storeWritable(storeStateInit(wallet.init))
     .endCell();
 }
 

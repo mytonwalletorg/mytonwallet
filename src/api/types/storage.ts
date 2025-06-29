@@ -49,7 +49,7 @@ export type ApiTronWallet = ApiBaseWallet & {
 export type ApiAccountAny = ApiBip39Account | ApiTonAccount | ApiLedgerAccount | ApiViewAccount;
 export type ApiAccountWithMnemonic = Extract<ApiAccountAny, { mnemonicEncrypted: string }>;
 export type ApiAccountWithTon = ApiAccountAny & { ton: ApiTonWallet };
-export type ApiAccountWithTron = (ApiBip39Account | ApiViewAccount) & { tron: ApiTonWallet };
+export type ApiAccountWithTron = (ApiBip39Account | ApiViewAccount) & { tron: ApiTronWallet };
 
 export interface ApiDappMetadata {
   origin: string;

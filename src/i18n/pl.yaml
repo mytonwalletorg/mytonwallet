@@ -165,6 +165,7 @@ Received: Otrzymano
 Sent: Wysłany
 $transaction_from: od %address%
 $transaction_to: do %address%
+$transaction_on: na %address%
 Wallet is not backed up: Portfel nie ma kopii zapasowej
 Testnet Version: Wersja Testnet
 Error reading clipboard: Błąd odczytu schowka
@@ -803,6 +804,9 @@ Bidding at NFT Auction: Licytacja w aukcji NFT
 NFT Bought: NFT kupiony
 Buying NFT: Kupowanie NFT
 $buy_nft_action: Zakup NFT
+NFT Sold: NFT sprzedane
+Selling NFT: Sprzedaż NFT
+$sell_nft_action: Sprzedaż NFT
 Receiving: Otrzymywanie
 $receive_action: Odbieranie
 Change Palette: Zmień paletę
@@ -842,7 +846,7 @@ Exit all wallets: Wyjdź ze wszystkich portfeli
 Can't confirm?: Nie możesz się zalogować?
 $safe_staking_ethena_description1: Staking jest w pełni zdecentralizowany i obsługiwany przez **oficjalne**, audytowane **inteligentne kontrakty** Etheny do stakingu płynnego.
 $safe_staking_ethena_description2: Zdeponowany USDe jest wykorzystywany w **strategiach handlowych i inwestycyjnych** Etheny w celu automatycznego i przejrzystego generowania nagród.
-$safe_staking_ethena_description3: Możesz **wypłacić** swój stake z nagrodami w dowolnym momencie, a zostanie on zwrócony na Twoje konto **w ciągu 7 dni**, zgodnie ze standardowym okresem wypłat Etheny.
+$safe_staking_ethena_description3: Możesz **wypłacić depozyt** wraz z naliczonymi odsetkami w dowolnym momencie — środki zostaną zwrócone na Twoje główne konto w ciągu **7 dni**, zgodnie ze standardowym okresem wypłat Etheny.
 Unstake %amount%: Wycofać %amount%
 Request Unstaking: Żądaj odblokowania
 $unstaking_when_receive_ethena: Będziesz mógł otrzymać swój wycofany depozyt za **7 dni**.
@@ -850,21 +854,12 @@ Coins have been unstaked!: Monety wycofane!
 Confirm Upgrading: Potwierdź ulepszenie
 How does it work?: Jak to działa?
 Multisend: Multiwysyłka
-Expires in %1$d days:
-  zeroValue: Wygasa dzisiaj
-  oneValue: Wygasa jutro
-  fewValue: Wygasa za %1$d dni
-  manyValue: Wygasa za %1$d dni
 Renew All: Odnów wszystkie
 Renew: Odnów
 Renew Domain: Odnów domenę
 Renew Domains: Odnów domeny
 Some domains are about to expire: Niektóre domeny wkrótce wygasną
-$domain_expire:
-  zeroValue: "%domain% wygasa dziś"
-  oneValue: "%domain% wygasa jutro"
-  fewValue: "%domain% wygasa za %days% dni"
-  manyValue: "%domain% wygasa za %days% dni"
+$domain_expire: "**%domain%** wygasa %days%"
 '%token% Staking': Stakowanie %token%
 Add Tab: Dodaj kartę
 Remove Tab: Usuń kartę
@@ -892,22 +887,43 @@ Confirm Renewing: Potwierdź odnowienie
 Confirm Linking: Potwierdź łączenie
 $domains_expire:
   zeroValue: "Żadne domeny nie wygasają %days%"
-  oneValue: "%domain% domena wygasa %days%"
-  fewValue: "%domain% domeny wygasną %days%"
-  manyValue: "%domain% domeny wygasną %days%"
+  oneValue: "**%domain% domena** wygasa %days%"
+  fewValue: "**%domain% domeny** wygasną %days%"
+  manyValue: "**%domain% domeny** wygasną %days%"
 $in_days:
   zeroValue: dziś
   oneValue: jutro
   fewValue: "za %1$d dni"
   manyValue: "za %1$d dni"
-$domain_was_expired: "%domain% wygasł"
+$domain_was_expired: "**%domain%** wygasł"
 $domains_was_expired:
   zeroValue: "Żadne domeny nie wygasły"
-  oneValue: "%domain% domena wygasła"
-  fewValue: "%domain% domeny wygasły"
-  manyValue: "%domain% domeny wygasły"
-
+  oneValue: "**%domain% domena** wygasła"
+  fewValue: "**%domain% domeny** wygasły"
+  manyValue: "**%domain% domeny** wygasły"
 Reload: Przeładuj
 Copy Link: Kopiuj link
 Check eligibility for max APY: Sprawdź dostępność maks. APY
 Check eligibility: Sprawdź dostępność
+$expired_many: Wygasły
+$expires_in %days%:
+  zeroValue: Wygasa %days%
+  oneValue: Wygasa %days%
+  fewValue: Wygasają %days%
+  manyValue: Wygasają %days%
+Message: Wiadomość
+Binary Data: Dane binarne
+The binary data content is unclear. Sign it only if you trust the service.: Treść danych binarnych jest niejasna. Podpisz tylko jeśli ufasz tej usłudze.
+Cell Schema: Schemat komórki
+Cell Data: Dane komórki
+Sign Data: Podpisz dane
+Please confirm signature on your Ledger: Proszę potwierdzić podpis na swoim Ledgerze
+Utilities: Narzędzia
+Games: Gry
+Entertainment: Rozrywka
+Toggle to landscape layout: Przełącz na widok poziomy
+Toggle to portrait layout: Przełącz na widok pionowy
+Attributes: Atrybuty
+Show All: Pokaż wszystkie
+Description: Opis
+No additional data.: Brak dodatkowych danych.

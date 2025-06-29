@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import { useEffect, useState } from '../lib/teact/teact';
+import { type ElementRef, useEffect, useState } from '../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../lib/teact/teact-dom';
 
 import type { IAnchorPosition } from '../global/types';
@@ -14,7 +13,7 @@ const LONG_TAP_DURATION_MS = 200;
 const IOS_PWA_CONTEXT_MENU_DELAY_MS = 100;
 
 interface OwnProps {
-  elementRef: RefObject<HTMLElement>;
+  elementRef: ElementRef<HTMLElement>;
   isMenuDisabled?: boolean;
   shouldDisableOnLink?: boolean;
   shouldDisableOnLongTap?: boolean;
@@ -68,6 +67,12 @@ const useContextMenuHandlers = ({
     setContextMenuAnchor(undefined);
   });
 
+  const handleTouchMove = useLastCallback((e: TouchEvent) => {
+    if (isContextMenuOpen) {
+      stopEvent(e);
+    }
+  });
+
   // Support context menu on touch devices
   useEffect(() => {
     if (isMenuDisabled || !IS_TOUCH_ENV || shouldDisableOnLongTap) {
@@ -86,6 +91,10 @@ const useContextMenuHandlers = ({
         clearTimeout(timer);
         timer = undefined;
       }
+    };
+    const clearLongPressTimerAndStopEvent = (origialEvent: TouchEvent) => {
+      clearLongPressTimer();
+      handleTouchMove(origialEvent);
     };
 
     const emulateContextMenuEvent = (originalEvent: TouchEvent) => {
@@ -147,14 +156,15 @@ const useContextMenuHandlers = ({
     element.addEventListener('touchstart', startLongPressTimer, { passive: true });
     element.addEventListener('touchcancel', clearLongPressTimer, true);
     element.addEventListener('touchend', clearLongPressTimer, true);
-    element.addEventListener('touchmove', clearLongPressTimer, { passive: true });
+    // `useCapture` is needed to prevent the content from scrolling behind the context menu
+    element.addEventListener('touchmove', clearLongPressTimerAndStopEvent, true);
 
     return () => {
       clearLongPressTimer();
       element.removeEventListener('touchstart', startLongPressTimer);
       element.removeEventListener('touchcancel', clearLongPressTimer, true);
       element.removeEventListener('touchend', clearLongPressTimer, true);
-      element.removeEventListener('touchmove', clearLongPressTimer);
+      element.removeEventListener('touchmove', clearLongPressTimerAndStopEvent, true);
     };
   }, [
     contextMenuAnchor, isMenuDisabled, shouldDisableOnLongTap, elementRef, shouldDisableOnLink,

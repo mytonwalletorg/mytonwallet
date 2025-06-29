@@ -22,8 +22,7 @@ function ImageComponent({
   imageClassName,
   children,
 }: OwnProps) {
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLImageElement>(null);
+  const ref = useRef<HTMLImageElement>();
   const [isLoaded, markIsLoaded] = useFlag(preloadedImageUrls.has(url));
 
   const handleLoad = () => {

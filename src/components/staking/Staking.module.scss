@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .modalDialog {
   height: 35rem;
@@ -13,10 +13,10 @@
   align-items: center;
 
   margin-bottom: 1.25rem;
-  padding: 1rem 2rem 1rem 1rem;
+  padding: 1rem;
+  border-radius: var(--border-radius-default);
 
   background: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 
   &_static {
     margin-bottom: 1.5rem;
@@ -44,12 +44,12 @@
 
   margin: 0.5rem 0 0.875rem;
   padding: 0.375rem;
+  border-radius: var(--border-radius-tiny);
 
   line-height: 0.9375rem;
   color: var(--color-apy-text);
 
   background: var(--color-apy-background);
-  border-radius: var(--border-radius-tiny);
 }
 
 .textButton {
@@ -102,13 +102,11 @@
   width: 1.5rem;
   height: 1.5rem;
   margin-inline-end: 0.375rem;
-
   border-radius: 50%;
 }
 
 .tonName {
   height: 1rem;
-
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-input-button-text);
@@ -140,9 +138,7 @@
 
 .amountBottomRight {
   flex: 1;
-
   color: var(--color-gray-3);
-
   transition: color 150ms;
 
   &_error {
@@ -151,7 +147,6 @@
 
   &_slide {
     text-align: right;
-
     background: var(--color-background-window);
   }
 
@@ -185,8 +180,8 @@
 }
 
 .inputRichStatic {
-  background: transparent;
   border: 1px solid var(--color-separator-input-stroke);
+  background: transparent;
 }
 
 .balanceResultWrapper {
@@ -232,7 +227,6 @@
 
 .stakingInfoModal {
   overflow: hidden;
-
   max-height: 19.875rem !important;
 
   &_withHistory {
@@ -262,15 +256,14 @@
 
   --sensitive-data-extra-width: 0.5rem;
 
-  background: var(--color-background-purple-2);
   border-radius: var(--border-radius-small);
+  background: var(--color-background-purple-2);
 
   &_modal {
     padding: 0 1rem 1rem;
-
     border-radius: var(--border-radius-default);
 
-    @include respond-below(xs) {
+    @include mixins.respond-below(xs) {
       :global(.is-telegram-app) &,
       :global(.is-android) & {
         border-top-left-radius: 0;
@@ -286,7 +279,6 @@
 
   &:global(.staking-info) {
     position: relative;
-
     background: none;
 
     &::before {
@@ -298,13 +290,14 @@
       bottom: -1rem;
       left: -1rem;
 
-      background: var(--color-background-purple-2);
       border-radius: var(--border-radius-default) 0 var(--border-radius-default) var(--border-radius-default);
+
+      background: var(--color-background-purple-2);
     }
   }
 }
 
-@include respond-below(xs) {
+@include mixins.respond-below(xs) {
   .stakingInfoNoHistory {
     border-radius: 0;
 
@@ -324,13 +317,11 @@
       // Workaround for the bottom padding on flex layout
       &::after {
         content: '';
-
         flex-shrink: 0;
-
         height: 1rem;
       }
 
-      @include adapt-padding-to-scrollbar(1rem);
+      @include mixins.adapt-padding-to-scrollbar(1rem);
     }
   }
 
@@ -342,11 +333,11 @@
   }
 
   &.withBackground {
-    background: var(--color-background-purple-2);
     border-top-left-radius: var(--border-radius-default);
     border-top-right-radius: var(--border-radius-default);
+    background: var(--color-background-purple-2);
 
-    @include respond-above(xs) {
+    @include mixins.respond-above(xs) {
       border-radius: var(--border-radius-default);
     }
 
@@ -356,14 +347,13 @@
     }
   }
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     max-height: min(80vh, 48rem);
   }
 }
 
 .stakingInfoLoading {
   align-self: center;
-
   width: 0;
 }
 
@@ -380,10 +370,8 @@
 
 .stakingInfoButtons {
   position: relative;
-
   display: flex;
   gap: 0.5rem;
-
   margin-top: 1.25rem;
 
   &_withMargin {
@@ -406,7 +394,6 @@
   width: 100%;
   min-width: 8rem !important;
   max-width: 100% !important;
-
   font-size: 0.9375rem !important;
 }
 
@@ -449,6 +436,7 @@
   max-width: 19rem;
   margin: 0.25rem auto 0;
   padding: 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 500;
@@ -456,13 +444,10 @@
   text-align: center;
 
   background: var(--color-gray-button-background-light);
-  border-radius: var(--border-radius-buttons);
 
   &_purple {
     margin-top: 1.25rem;
-
     color: var(--color-gpurple-button-text-rest);
-
     background: var(--color-gpurple-button-background-rest);
   }
 }
@@ -521,11 +506,9 @@
 
 .historyList {
   flex-grow: 1;
-
   margin-top: 0.5rem;
-
-  background: var(--color-background-first);
   border-radius: var(--border-radius-default);
+  background: var(--color-background-first);
 
   &_static {
     margin-right: -1rem;
@@ -536,7 +519,6 @@
 
 .transactionBanner {
   align-self: center;
-
   margin-bottom: 2rem;
 }
 
@@ -549,6 +531,7 @@
   max-width: 19rem;
   margin: 0.25rem auto 0;
   padding: 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -556,7 +539,6 @@
   text-align: center;
 
   background: var(--color-transaction-amount-green-bg);
-  border-radius: var(--border-radius-buttons);
 }
 
 .tokenDropdown {
@@ -574,14 +556,12 @@
 
 .tokenDropdownMenu {
   color: var(--color-gpurple-button-text-rest) !important;
-
   background: var(--color-input-button-background-purple-rest) !important;
 
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
       color: var(--color-gpurple-button-text-hover) !important;
-
       background-color: var(--color-input-button-background-purple-hover) !important;
     }
   }

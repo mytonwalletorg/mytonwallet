@@ -7,7 +7,6 @@ import type { ApiStakingState } from '../../api/types';
 import { ActiveTab, ContentTab, type Theme } from '../../global/types';
 
 import { IS_CAPACITOR, IS_CORE_WALLET } from '../../config';
-import { getStakingStateStatus } from '../../global/helpers/staking';
 import {
   selectAccountStakingState,
   selectCurrentAccount,
@@ -21,6 +20,7 @@ import { useAccentColor } from '../../util/accentColor';
 import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
+import { getStakingStateStatus } from '../../util/staking';
 import { setStatusBarStyle } from '../../util/switchTheme';
 import {
   IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD,
@@ -107,12 +107,10 @@ function Main({
     updatePendingSwaps,
   } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const cardRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const portraitContainerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const landscapeContainerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>();
+  const portraitContainerRef = useRef<HTMLDivElement>();
+  const landscapeContainerRef = useRef<HTMLDivElement>();
+
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
@@ -191,7 +189,7 @@ function Main({
       return undefined;
     }
 
-    return captureEvents(portraitContainerRef.current!, {
+    return captureEvents(portraitContainerRef.current, {
       excludedClosestSelector: '.token-card',
       onSwipe: (e, direction) => {
         if (direction === SwipeDirection.Right) {

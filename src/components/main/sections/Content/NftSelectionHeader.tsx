@@ -59,7 +59,7 @@ function NftSelectionHeader({
 
     return date ? getCountDaysToDate(date) : undefined;
   }, [allSelectedIsTonDnsNft, dnsExpiration, selectedAddresses, byAddress]);
-  const tonDnsMultiSelected = (selectedAddresses?.length ?? 0) > 0;
+  const tonDnsMultiSelected = (selectedAddresses?.length ?? 0) > 1;
 
   useHistoryBack({
     isActive,
@@ -77,7 +77,11 @@ function NftSelectionHeader({
       !isViewMode && allSelectedIsTonDnsNft && {
         name: tonDnsMultiSelected ? 'Renew All' : 'Renew',
         value: 'renew',
-        description: lang('Expires in %1$d days', dnsExpireInDays, 'i', dnsExpireInDays) as string,
+        description: dnsExpireInDays && dnsExpireInDays < 0
+          ? (tonDnsMultiSelected ? '$expired_many' : 'Expired')
+          : lang('$expires_in %days%', {
+            days: lang('$in_days', dnsExpireInDays),
+          }, undefined, selectedAddresses?.length ?? 1) as string,
       } satisfies DropdownItem<MenuHandler>,
       !IS_CORE_WALLET && {
         name: 'Hide',
@@ -93,7 +97,7 @@ function NftSelectionHeader({
         withDelimiter: true,
       },
     ]);
-  }, [allSelectedIsTonDnsNft, dnsExpireInDays, isViewMode, lang, tonDnsMultiSelected]);
+  }, [allSelectedIsTonDnsNft, dnsExpireInDays, isViewMode, lang, selectedAddresses?.length, tonDnsMultiSelected]);
 
   const handleSendClick = useLastCallback(() => {
     const nfts = selectedAddresses!.map((address) => byAddress![address]) ?? [];
@@ -122,10 +126,8 @@ function NftSelectionHeader({
 
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition>();
   const isMenuOpen = Boolean(menuAnchor);
-  // eslint-disable-next-line no-null/no-null
-  const ref = useRef<HTMLButtonElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLButtonElement>();
+  const menuRef = useRef<HTMLDivElement>();
   const handleMenuOpen = useLastCallback(() => {
     const { right: x, bottom: y } = ref.current!.getBoundingClientRect();
     setMenuAnchor({ x, y });
@@ -165,9 +167,14 @@ function NftSelectionHeader({
 
   return (
     <div className={styles.root}>
-      <Button className={styles.backButton} isSimple isText onClick={clearNftsSelection}>
+      <Button
+        isSimple
+        isText
+        ariaLabel={lang('Back')}
+        className={styles.backButton}
+        onClick={clearNftsSelection}
+      >
         <i className={buildClassName(styles.backIcon, 'icon-chevron-left')} aria-hidden />
-        <span>{lang('Back')}</span>
       </Button>
       <div className={styles.content}>
         <div className={styles.title}>
@@ -191,6 +198,7 @@ function NftSelectionHeader({
           getLayout={getLayout}
           buttonClassName={styles.menuItem}
           bubbleClassName={styles.menu}
+          itemDescriptionClassName={styles.menuItemDescription}
           items={menuItems}
           onSelect={handleMenuItemClick}
           onClose={handleMenuClose}

@@ -5,9 +5,9 @@ import { selectAccountState } from '../../selectors';
 
 addActionHandler('fetchActivityDetails', async (global, actions, { id }) => {
   const accountId = global.currentAccountId!;
-  const activity = selectAccountState(global, accountId)!.activities!.byId[id];
+  const activity = selectAccountState(global, accountId)?.activities?.byId[id];
 
-  if (!activity.shouldLoadDetails) {
+  if (!activity?.shouldLoadDetails) {
     return;
   }
 

@@ -91,7 +91,7 @@ function TransferComplete({
               tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
               previewUrl={ANIMATED_STICKERS_PATHS.thumbUpPreview}
             />
-            {nfts!.length === 1 ? <NftInfo nft={nfts![0]} /> : <NftChips nfts={nfts!} />}
+            {nfts.length === 1 ? <NftInfo nft={nfts[0]} /> : <NftChips nfts={nfts} />}
             {Boolean(txId) && (
               <div className={buildClassName(styles.buttons, styles.buttonsAfterNft)}>
                 <Button className={styles.button} onClick={onInfoClick}>{lang('Details')}</Button>

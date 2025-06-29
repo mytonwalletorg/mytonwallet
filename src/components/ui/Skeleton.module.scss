@@ -1,6 +1,6 @@
 @use "sass:math";
 
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 // The CSS variables to customize the component:
 // --skeleton-background-color
@@ -21,7 +21,7 @@ $shimmerWidth: 18rem;
   // element (Modal) cancels `background-attachment: fixed`.
   animation: shimmerMobile 1.6s linear 0.5s infinite;
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     animation-name: shimmerDesktop;
   }
 }

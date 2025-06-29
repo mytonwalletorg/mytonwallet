@@ -2,7 +2,7 @@ import React, { memo, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
-import { type Account, type HardwareConnectState, SettingsState } from '../../../global/types';
+import { type Account, SettingsState } from '../../../global/types';
 
 import { IS_CORE_WALLET } from '../../../config';
 import { selectIsPasswordPresent, selectNetworkAccounts } from '../../../global/selectors';
@@ -34,9 +34,6 @@ interface StateProps {
   isPasswordPresent: boolean;
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isOtherVersionsExist?: boolean;
 }
 
@@ -57,9 +54,6 @@ function AddAccountModal({
   hardwareWallets,
   isPasswordPresent,
   accounts,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isOtherVersionsExist,
 }: StateProps) {
   const {
@@ -68,11 +62,12 @@ function AddAccountModal({
     closeAddAccountModal,
     afterSelectHardwareWallets,
     openSettingsWithState,
+    resetHardwareWalletConnect,
     clearAccountLoading,
   } = getActions();
 
   const lang = useLang();
-  const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
+  const [renderingKey, setRenderingKey] = useState<RenderingState>(RenderingState.Initial);
 
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
 
@@ -133,6 +128,7 @@ function AddAccountModal({
   });
 
   const handleImportHardwareWalletClick = useLastCallback(() => {
+    resetHardwareWalletConnect();
     setRenderingKey(RenderingState.ConnectHardware);
   });
 
@@ -222,8 +218,7 @@ function AddAccountModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: RenderingState) {
     switch (currentKey) {
       case RenderingState.Initial:
         return renderSelector();
@@ -243,9 +238,6 @@ function AddAccountModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareWalletConnected}
             onCancel={handleBackClick}
             onClose={closeAddAccountModal}
@@ -306,12 +298,7 @@ export default memo(withGlobal((global): StateProps => {
   const versions = versionById?.[global.currentAccountId!];
   const isOtherVersionsExist = !!versions?.length;
 
-  const {
-    hardwareWallets,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
+  const { hardwareWallets } = global.hardware;
 
   return {
     isOpen: global.isAddAccountModalOpen,
@@ -320,10 +307,7 @@ export default memo(withGlobal((global): StateProps => {
 
     accounts,
     isPasswordPresent,
-    hardwareState,
     hardwareWallets,
-    isLedgerConnected,
-    isTonAppConnected,
     isOtherVersionsExist,
   };
 })(AddAccountModal));

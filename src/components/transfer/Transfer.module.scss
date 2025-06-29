@@ -1,4 +1,4 @@
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 .modalDialog {
   height: 40.5rem;
@@ -19,7 +19,6 @@
 .help,
 .label {
   padding: 0 0.5rem;
-
   font-size: 0.8125rem;
   line-height: 0.875rem;
 }
@@ -46,13 +45,11 @@
 
 .amountBottomRight {
   flex: 1;
-
   font-weight: 600;
   white-space: nowrap;
 
   &_slide {
     text-align: right;
-
     background: var(--color-background-window);
   }
 
@@ -82,13 +79,11 @@
 .help {
   margin-top: -0.5rem;
   margin-bottom: 1rem;
-
   color: var(--color-gray-1);
 }
 
 .label {
   margin-bottom: 0.5rem;
-
   font-weight: 700;
   color: var(--color-gray-2);
 }
@@ -114,6 +109,8 @@
   box-sizing: border-box;
   margin-bottom: 1.25rem;
   padding: 0.875rem 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-default);
 
   font-size: 1rem;
   font-weight: 600;
@@ -123,12 +120,11 @@
   word-break: break-all;
 
   background: var(--color-background-first);
-  border: none;
-  border-radius: var(--border-radius-default);
   outline: none;
 
   &_words {
-    word-break: break-word !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -165,7 +161,6 @@
   width: 1rem;
   height: 1rem;
   margin: auto;
-
   border: 0.25rem solid transparent;
   border-top-color: var(--color-white);
   border-radius: 50%;
@@ -191,8 +186,6 @@
 
   font-size: 0.9375rem;
 
-  border-radius: var(--border-radius-small);
-
   &:active {
     transition: none;
   }
@@ -200,15 +193,13 @@
   &:hover,
   &:focus-visible {
     text-decoration: none;
-
     background-color: var(--color-interactive-drop-down-menu-hover);
   }
 
-  @include separator();
+  @include mixins.separator();
 
   @media (pointer: coarse) {
     padding: 0.875rem 1rem;
-
     font-size: 1rem;
   }
 }
@@ -217,7 +208,6 @@
   overflow: hidden;
   display: flex;
   align-items: baseline;
-
   margin-inline-end: auto;
 }
 
@@ -242,12 +232,11 @@
 
 .savedAddressAddress {
   padding-inline-start: 0.5rem;
-
   font-size: 0.75rem;
   color: var(--color-gray-3);
   white-space: nowrap;
 
-  @include transition(opacity 150ms);
+  @include mixins.transition(opacity 150ms);
 
   .savedAddressDelete:hover + & {
     opacity: 0;
@@ -273,21 +262,20 @@
 
   opacity: 0;
 
-  @include transition("opacity 150ms, color 150ms");
+  @include mixins.transition("opacity 150ms, color 150ms");
 
   &:hover {
     opacity: 1;
   }
 
   /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     display: none;
   }
 }
 
 .savedAddressDeleteInner {
   cursor: var(--custom-cursor, pointer);
-
   color: var(--color-gray-3);
 
   &:hover,
@@ -305,18 +293,15 @@
   display: none;
 
   /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     display: block;
-
     margin-inline-start: 0.25rem;
-
     font-size: 1.25rem;
   }
 }
 
 .chainIcon {
   margin-right: 0.0625rem;
-
   vertical-align: -0.1875rem;
 }
 
@@ -357,8 +342,8 @@
 
 .inputStatic,
 .inputRichStatic {
-  background: transparent;
   border: 1px solid var(--color-separator-input-stroke);
+  background: transparent;
 }
 
 .inputStatic {
@@ -440,7 +425,6 @@ textarea.inputStatic {
 
 .transactionBanner {
   align-self: center;
-
   margin-bottom: 2rem;
 
   @media (max-height: 43.5rem) {
@@ -453,6 +437,7 @@ textarea.inputStatic {
 
   width: 100%;
   padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -460,7 +445,6 @@ textarea.inputStatic {
   text-align: center;
 
   background-color: var(--color-background-first);
-  border-radius: var(--border-radius-buttons);
 }
 
 .infoBox {
@@ -473,7 +457,6 @@ textarea.inputStatic {
 
 .burnWarning, .error {
   color: var(--color-transaction-amount-red-text);
-
   background-color: var(--color-transaction-amount-red-bg);
 }
 

@@ -33,7 +33,7 @@ describe('parseTrace + calculateActivityDetails', () => {
           amount: -5000000000n,
           slug: 'toncoin',
         },
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         traceResponse: require('./testData/tonTransferTraceResponse.json'),
         expectedFee: 2345629n,
       },
@@ -51,9 +51,28 @@ describe('parseTrace + calculateActivityDetails', () => {
           amount: -90000000n,
           slug: 'ton-eqcxe6mutq',
         },
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         traceResponse: require('./testData/usdtTransferTraceResponse.json'),
         expectedFee: 7220787n,
+      },
+      {
+        name: 'Contract call',
+        walletAddress: 'UQAD87Hs-_MrShb84GwhM1Mnwe_72i10VWQWU1eQ6v1nGkR8',
+        activityPart: {
+          id: 'aauhCIOh6YFanxo483sLtzfeVEj05q4HCozrmNGsXdI='
+            + ':57371927000002-gbNcDqRV9NJg1oMoOpC0CGXGeHv3/78rwkTj6UkNIgY=',
+          externalMsgHash: 'K6gpSRaFh9t4//KLB/+gTL9XDSQJN9apL3VFyYNH4P0=',
+          fromAddress: 'UQAD87Hs-_MrShb84GwhM1Mnwe_72i10VWQWU1eQ6v1nGkR8',
+          toAddress: 'EQBS114FhHMAASOdTNjHPWUbIG6sZ9tVFTW2ttUF5tQcd-kx',
+          isIncoming: false,
+          normalizedAddress: 'EQBS114FhHMAASOdTNjHPWUbIG6sZ9tVFTW2ttUF5tQcd-kx',
+          amount: -1014280000n,
+          slug: 'toncoin',
+          type: 'callContract',
+        },
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        traceResponse: require('./testData/contractCallTraceResponse.json'),
+        expectedFee: 5871974n,
       },
     ];
 

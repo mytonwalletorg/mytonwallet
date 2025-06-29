@@ -1,10 +1,13 @@
 import type { GlobalState } from './types';
-import { AppState,
+import {
+  AppState,
   AuthState,
   BiometricsState,
   DomainLinkingState,
   DomainRenewalState,
+  HardwareConnectState,
   SettingsState,
+  SignDataState,
   StakingState,
   SwapState,
   TransferState,
@@ -24,7 +27,7 @@ import {
 } from '../config';
 import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 39;
+export const STATE_VERSION = 41;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,
@@ -37,7 +40,9 @@ export const INITIAL_STATE: GlobalState = {
     state: BiometricsState.None,
   },
 
-  hardware: {},
+  hardware: {
+    hardwareState: HardwareConnectState.Connect,
+  },
 
   currentTransfer: {
     state: TransferState.None,
@@ -59,6 +64,10 @@ export const INITIAL_STATE: GlobalState = {
 
   currentDappTransfer: {
     state: TransferState.None,
+  },
+
+  currentDappSignData: {
+    state: SignDataState.None,
   },
 
   currentStaking: {

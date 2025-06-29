@@ -7,6 +7,6 @@ module.exports = {
   tag: '',
   // Use a custom Handlebars template
   templates: {
-    css: './plugins/brilliant-icons.css.hbs'
+    css: './plugins/brilliant-icons.css.hbs',
   },
 };

@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import type { TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, TeactNode } from '../../lib/teact/teact';
 import React, { memo, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -11,7 +10,7 @@ import LoadingDots from './LoadingDots';
 import styles from './Button.module.scss';
 
 type OwnProps = {
-  ref?: RefObject<HTMLButtonElement>;
+  ref?: ElementRef<HTMLButtonElement>;
   children: TeactNode;
   id?: string;
   className?: string;

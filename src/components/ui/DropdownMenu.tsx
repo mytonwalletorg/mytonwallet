@@ -1,13 +1,10 @@
-import React, {
-  memo, type RefObject, useEffect, useRef, useState,
-} from '../../lib/teact/teact';
+import React, { type ElementRef, memo, useRef } from '../../lib/teact/teact';
 
 import type { IAnchorPosition } from '../../global/types';
 import type { DropdownItem } from './Dropdown';
 import type { MenuPositionOptions } from './Menu';
 
 import buildClassName from '../../util/buildClassName';
-import windowSize from '../../util/windowSize';
 
 import useLang from '../../hooks/useLang';
 
@@ -17,7 +14,7 @@ import styles from './Dropdown.module.scss';
 
 interface OwnProps<T extends string> {
   isOpen: boolean;
-  ref?: RefObject<HTMLDivElement | null>;
+  ref?: ElementRef<HTMLDivElement>;
   selectedValue?: T;
   items: DropdownItem<T>[];
   withPortal?: boolean;
@@ -30,17 +27,16 @@ interface OwnProps<T extends string> {
   buttonClassName?: string;
   iconClassName?: string;
   fontIconClassName?: string;
+  itemDescriptionClassName?: string;
   shouldCleanup?: boolean;
-  onSelect?: (value: T) => void;
+  onSelect?: (value: T, e?: React.MouseEvent) => void;
   onClose: NoneToVoidFunction;
-  getTriggerElement?: () => HTMLElement | null;
-  getRootElement?: () => HTMLElement | null;
-  getMenuElement?: () => HTMLElement | null;
+  getTriggerElement?: () => HTMLElement | undefined | null;
+  getRootElement?: () => HTMLElement | undefined | null;
+  getMenuElement?: () => HTMLElement | undefined | null;
   getLayout?: () => { withPortal?: boolean };
   onCloseAnimationEnd?: NoneToVoidFunction;
 }
-
-const SAFE_POSITION_PX = 6;
 
 function DropdownMenu<T extends string>({
   isOpen,
@@ -57,6 +53,7 @@ function DropdownMenu<T extends string>({
   buttonClassName,
   iconClassName,
   fontIconClassName,
+  itemDescriptionClassName,
   shouldCleanup,
   onSelect,
   onClose,
@@ -67,26 +64,11 @@ function DropdownMenu<T extends string>({
   onCloseAnimationEnd,
 }: OwnProps<T>) {
   const lang = useLang();
-  const [menuLeft, setMenuLeft] = useState(menuAnchor?.x);
 
-  // eslint-disable-next-line no-null/no-null
-  let menuRef = useRef<HTMLDivElement>(null);
+  let menuRef = useRef<HTMLDivElement>();
   if (ref) {
     menuRef = ref;
   }
-
-  useEffect(() => {
-    if (isOpen && menuRef.current && menuAnchor) {
-      const menuWidth = menuRef.current.offsetWidth;
-      const windowWidth = windowSize.get().width;
-      let left = menuAnchor?.x;
-
-      left = Math.min(left, left - menuWidth / 2 - SAFE_POSITION_PX, windowWidth - menuWidth - SAFE_POSITION_PX);
-      left = Math.max(left, SAFE_POSITION_PX);
-
-      setMenuLeft(left);
-    }
-  }, [menuAnchor, isOpen]);
 
   // Create position options
   const menuPositionOptions: MenuPositionOptions = menuAnchor && getTriggerElement && getRootElement && getMenuElement
@@ -97,15 +79,24 @@ function DropdownMenu<T extends string>({
       getMenuElement,
       getLayout,
     }
-    : {
-      positionX: menuPositionX,
-      positionY: menuPositionY,
-      style: menuAnchor ? `left: ${menuLeft}px; top: ${menuAnchor.y}px;` : undefined,
-    };
+    : menuAnchor && getRootElement && getMenuElement
+      ? {
+        anchor: menuAnchor,
+        getRootElement,
+        getMenuElement,
+        getLayout,
+        positionX: menuPositionX,
+        positionY: menuPositionY,
+      }
+      : {
+        anchor: menuAnchor,
+        positionX: menuPositionX,
+        positionY: menuPositionY,
+      };
 
   const handleItemClick = (e: React.MouseEvent, value: T) => {
     e.stopPropagation();
-    onSelect?.(value);
+    onSelect?.(value, e);
     onClose();
   };
 
@@ -156,9 +147,11 @@ function DropdownMenu<T extends string>({
             )}
             <span className={buildClassName(styles.itemName, 'menuItemName')}>
               {shouldTranslateOptions ? lang(item.name) : item.name}
-              {item.description && (
-                <span className={styles.itemDescription}>
-                  {shouldTranslateOptions ? lang(item.description) : item.description}
+              {!!item.description && (
+                <span className={buildClassName(styles.itemDescription, itemDescriptionClassName)}>
+                  {shouldTranslateOptions && typeof item.description === 'string'
+                    ? lang(item.description)
+                    : item.description}
                 </span>
               )}
             </span>

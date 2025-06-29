@@ -3,13 +3,12 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { Account, HardwareConnectState } from '../../global/types';
+import type { Account } from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -23,16 +22,13 @@ import styles from './LedgerModal.module.scss';
 
 type OwnProps = {
   isOpen?: boolean;
+  noBackdropClose?: boolean;
   onClose: () => void;
 };
 
 type StateProps = {
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
-  isRemoteTab?: boolean;
   areSettingsOpen?: boolean;
 };
 
@@ -44,24 +40,18 @@ enum LedgerModalState {
 
 function LedgerModal({
   isOpen,
+  noBackdropClose,
   onClose,
   hardwareWallets,
   accounts,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
-  isRemoteTab,
   areSettingsOpen,
 }: OwnProps & StateProps) {
-  const {
-    afterSelectHardwareWallets,
-    resetHardwareWalletConnect,
-  } = getActions();
+  const { afterSelectHardwareWallets } = getActions();
 
-  const [currentSlide, setCurrentSlide] = useState<number>(
+  const [currentSlide, setCurrentSlide] = useState<LedgerModalState>(
     LedgerModalState.Connect,
   );
-  const [nextKey] = useState<number | undefined>(
+  const [nextKey] = useState<LedgerModalState | undefined>(
     LedgerModalState.SelectWallets,
   );
 
@@ -80,21 +70,14 @@ function LedgerModal({
 
   const handleLedgerModalClose = useLastCallback(() => {
     setCurrentSlide(LedgerModalState.Connect);
-    resetHardwareWalletConnect();
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: LedgerModalState) {
     switch (currentKey) {
       case LedgerModalState.Connect:
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            shouldDelegateToNative={IS_DELEGATING_BOTTOM_SHEET}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
-            isRemoteTab={isRemoteTab}
             onConnected={handleConnected}
             onClose={onClose}
           />
@@ -118,6 +101,7 @@ function LedgerModal({
       onClose={onClose}
       onCloseAnimationEnd={handleLedgerModalClose}
       dialogClassName={buildClassName(styles.modalDialog, areSettingsOpen && styles.modalDialogInsideSettings)}
+      noBackdropClose={noBackdropClose}
     >
       <Transition
         name={resolveSlideTransitionName()}
@@ -135,21 +119,11 @@ function LedgerModal({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accounts = selectNetworkAccounts(global);
 
-  const {
-    hardwareWallets,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-    isRemoteTab,
-  } = global.hardware;
+  const { hardwareWallets } = global.hardware;
 
   return {
     accounts,
     hardwareWallets,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-    isRemoteTab,
     areSettingsOpen: global.areSettingsOpen,
   };
 })(LedgerModal));

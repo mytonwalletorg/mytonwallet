@@ -1,4 +1,4 @@
-@import '../../styles/mixins';
+@use "../../styles/mixins";
 
 .wrapper {
   height: 100%;
@@ -9,9 +9,8 @@
     --header-padding-top: 0.625rem;
   }
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     overflow: hidden;
-
     max-width: 31.4375rem;
     margin: 0 auto;
 
@@ -48,9 +47,9 @@
   margin: 0 auto;
   padding: 0 1rem 1rem;
 
-  @include adapt-padding-to-scrollbar(1rem);
+  @include mixins.adapt-padding-to-scrollbar(1rem);
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     max-width: 31.4375rem;
   }
 
@@ -60,7 +59,6 @@
 
   &_password {
     align-items: stretch;
-
     padding-top: 3.375rem;
   }
 
@@ -68,7 +66,7 @@
     padding-bottom: max(1rem, var(--safe-area-bottom));
   }
 
-  @include respond-above(sm) {
+  @include mixins.respond-above(sm) {
     padding: 2rem;
   }
 
@@ -79,7 +77,6 @@
 
 .containerFullSize {
   overflow: hidden;
-
   padding: 0 !important;
 }
 
@@ -104,7 +101,7 @@
     transition: none !important;
   }
 
-  @include respond-above(sm) {
+  @include mixins.respond-above(sm) {
     margin-top: 0;
   }
 }
@@ -115,7 +112,6 @@
 
 .title {
   margin: 1.375rem 0 1.875rem;
-
   text-align: center;
 
   &_afterSmallSticker {
@@ -123,7 +119,7 @@
   }
 
   @media (max-width: 460px) {
-    word-break: break-word; // For Spanish localization on small screens
+    overflow-wrap: anywhere; // For Spanish localization on small screens
   }
 }
 
@@ -140,17 +136,16 @@
 
 .infoBlock {
   padding: 1rem;
+  border-radius: var(--border-radius-default);
 
   font-size: 0.9375rem;
   color: var(--color-gray-1);
 
   background: var(--color-background-first);
-  border-radius: var(--border-radius-default);
 }
 
 .text {
   margin-bottom: 0;
-
   line-height: 1.1875rem;
 
   & + & {
@@ -176,7 +171,6 @@
 
 .info {
   width: 100%;
-
   color: var(--color-gray-1);
   text-align: center;
 
@@ -210,6 +204,8 @@
   width: 14.5rem;
   height: 6.5rem;
   margin-top: 3rem;
+  border: 0.1875rem solid transparent;
+  border-radius: var(--border-radius-default);
 
   color: var(--color-accent);
 
@@ -217,8 +213,6 @@
   linear-gradient(to top, #0088CC99, #0088CC1A 50%, #0088CC00 70%) no-repeat 50% 50%;
   background-clip: content-box, border-box;
   background-origin: border-box;
-  border: 0.1875rem solid transparent;
-  border-radius: var(--border-radius-default);
 
   :global(.theme-dark) & {
     background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
@@ -239,7 +233,6 @@
 
 .counterTitle {
   margin: 1rem 0 0;
-
   font-size: 1.0625rem;
   font-weight: 600;
 }
@@ -259,7 +252,6 @@
 
   &:global(.open) {
     transform: scale(2.3);
-
     opacity: 0 !important;
   }
 
@@ -269,7 +261,6 @@
 
   :global(html.animation-level-0) & {
     transform: scale(2) !important;
-
     transition: opacity 500ms ease-out !important;
   }
 
@@ -283,7 +274,6 @@
 .small {
   max-width: 20rem;
   margin: 0 auto 1.25rem;
-
   font-size: 0.9375rem;
   font-weight: 400;
 }
@@ -318,21 +308,18 @@
 
   > .title {
     margin: 0;
-
     text-align: left;
   }
 }
 
 .backupNotice {
   margin: 2rem 1.5rem 0;
-
   font-size: 0.9375rem;
 }
 
 .backupNoticeButtons {
   display: flex;
   column-gap: 1rem;
-
   margin: 1.5rem 1rem 1rem;
 
   @supports (margin-bottom: max(var(--safe-area-bottom), 1rem)) {
@@ -348,7 +335,6 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-
   width: 100%;
 }
 
@@ -379,14 +365,12 @@
 .passwordRules {
   width: 100%;
   padding: 0 0.5rem;
-
   font-size: 0.8125rem;
   color: var(--color-gray-1);
 }
 
 .passwordRule {
   font-weight: 600;
-
   transition: color 150ms;
 
   :global(html.animation-level-0) & {
@@ -470,7 +454,6 @@
 
 .modalDialog {
   height: 37rem;
-
   font-weight: 400;
 }
 
@@ -485,7 +468,7 @@
   grid-template: repeat(12, 1fr) / repeat(2, 1fr);
   gap: 1rem;
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     grid-template: repeat(8, 1fr) / repeat(3, 1fr);
   }
 }
@@ -546,7 +529,6 @@
 .importButtons {
   display: flex;
   gap: 1rem;
-
   margin: 0 -1rem;
 }
 
@@ -555,6 +537,7 @@
 
   margin-bottom: 1rem;
   padding: 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -562,7 +545,6 @@
   white-space: nowrap;
 
   background-color: var(--color-gray-button-background-light);
-  border-radius: var(--border-radius-buttons);
 }
 
 .warning,
@@ -570,6 +552,7 @@
   align-self: center;
 
   padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -578,13 +561,11 @@
   text-align: center;
 
   background-color: var(--color-transaction-amount-red-bg);
-  border-radius: var(--border-radius-buttons);
 }
 
 .stepTransition {
   width: auto !important;
   height: auto !important;
-
   white-space: nowrap;
 }
 
@@ -600,9 +581,9 @@
   margin: 0 auto;
   padding: 0 1rem 1rem;
 
-  @include adapt-padding-to-scrollbar(1rem);
+  @include mixins.adapt-padding-to-scrollbar(1rem);
 
-  @include respond-above(xs) {
+  @include mixins.respond-above(xs) {
     max-width: 31.4375rem;
   }
 
@@ -645,7 +626,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-
   margin-top: auto;
 }
 
@@ -688,7 +668,6 @@
 
 .biometricsTitle {
   margin-bottom: 2rem;
-
   font-size: 1.6875rem;
   font-weight: 800;
   text-align: center;
@@ -710,13 +689,13 @@
 .importModalContent {
   padding-top: 1rem;
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     padding-bottom: max(calc(var(--safe-area-bottom) - 1.5rem), 0px);
   }
 }
 
 @supports (padding-bottom: var(--safe-area-bottom)) {
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     .disclaimerBackupDialog {
       padding-bottom: max(var(--safe-area-bottom), 0px);
     }

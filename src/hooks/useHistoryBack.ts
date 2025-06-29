@@ -18,8 +18,8 @@ type HistoryRecord = {
   // Should this record be replaced by the next record (for example Menu)
   shouldBeReplaced?: boolean;
   // Mark this record as replaced by the next record. Only used to check if needed to perform effectBack
-  markReplaced?: VoidFunction;
-  onBack?: VoidFunction;
+  markReplaced?: NoneToVoidFunction;
+  onBack?: NoneToVoidFunction;
   // Set if the element is closed in the UI, but not in the real history
   isClosed?: boolean;
 };
@@ -57,8 +57,8 @@ if (IS_TEST) {
 }
 
 function applyDeferredHistoryOperations() {
-  const goOperations = deferredHistoryOperations.filter((op) => op.type === 'go') as HistoryOperationGo[];
-  const stateOperations = deferredHistoryOperations.filter((op) => op.type !== 'go') as HistoryOperationState[];
+  const goOperations = deferredHistoryOperations.filter((op) => op.type === 'go');
+  const stateOperations = deferredHistoryOperations.filter((op) => op.type !== 'go');
   const goCount = goOperations.reduce((acc, op) => acc + op.delta, 0);
 
   deferredHistoryOperations = [];
@@ -195,7 +195,7 @@ export default function useHistoryBack({
   isActive?: boolean;
   shouldBeReplaced?: boolean;
   shouldIgnoreForTelegram?: boolean;
-  onBack: VoidFunction;
+  onBack: NoneToVoidFunction;
 }) {
   const lastOnBack = useLastCallback(onBack);
 

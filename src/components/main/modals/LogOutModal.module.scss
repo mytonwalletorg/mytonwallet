@@ -1,6 +1,5 @@
 .checkbox {
   margin: 0 0 1rem 0.25rem;
-
   line-height: 1.75rem;
 }
 
@@ -10,14 +9,11 @@
 
 .accountLink {
   display: inline-flex;
-
   max-width: 100%;
-
   font-weight: 600;
 
   &_inner {
     overflow: hidden;
-
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -25,21 +21,17 @@
 
 .accountLink::after {
   content: ', ';
-
   margin: 0 0.25rem 0 0;
-
   font-weight: 400;
 }
 
 .accountLink.penultimate::after {
   content: ' and ';
-
   margin: 0 0.25rem;
 
 }
 
 .accountLink:last-of-type::after {
   content: '';
-
   display: none !important;
 }

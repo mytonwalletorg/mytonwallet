@@ -1,5 +1,4 @@
-import type { RefObject } from '../../lib/teact/teact';
-import { useLayoutEffect } from '../../lib/teact/teact';
+import { type ElementRef, useLayoutEffect } from '../../lib/teact/teact';
 import { setExtraStyles, toggleExtraClass } from '../../lib/teact/teact-dom';
 
 import type { ApiNft } from '../../api/types';
@@ -22,7 +21,7 @@ const HEX_80_PERCENT = 'CC';
 const HEX_10_PERCENT = '1A';
 
 export function useAccentColor(
-  elementRefOrBody: RefObject<HTMLElement | null> | 'body',
+  elementRefOrBody: ElementRef<HTMLElement> | 'body',
   appTheme: AppTheme,
   accentColorIndex: number | undefined,
 ) {
@@ -46,7 +45,7 @@ export function useAccentColor(
 }
 
 export async function getAccentColorIndexFromNft(nft: ApiNft) {
-  const { mtwCardType, mtwCardBorderShineType } = nft.metadata!;
+  const { mtwCardType, mtwCardBorderShineType } = nft.metadata;
 
   if (mtwCardBorderShineType === 'radioactive') {
     return ACCENT_RADIOACTIVE_INDEX;

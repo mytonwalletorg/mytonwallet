@@ -29,13 +29,13 @@ export default function useVesting(
   const amount = useMemo(() => {
     if (!hasVesting) return undefined;
 
-    return calcVestingAmountByStatus(vesting!, ['frozen', 'ready']);
+    return calcVestingAmountByStatus(vesting, ['frozen', 'ready']);
   }, [hasVesting, vesting]);
 
   const unfreezeEndDate = useMemo(() => {
     if (!hasVesting) return undefined;
 
-    for (const { parts } of vesting!) {
+    for (const { parts } of vesting) {
       for (const part of parts) {
         if (part.status === 'ready') {
           return new Date(part.timeEnd).getTime();

@@ -27,6 +27,7 @@ const ALLOWED_METHODS = new Set([
   'tonConnect_disconnect',
   'tonConnect_sendTransaction',
   'tonConnect_deactivate',
+  'tonConnect_signData',
 ]);
 
 createExtensionInterface(CONTENT_SCRIPT_PORT, (

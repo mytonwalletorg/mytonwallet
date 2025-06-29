@@ -64,13 +64,6 @@ export function updateAccountStakingStatePartial(
   });
 }
 
-export function updateStakingInfo(global: GlobalState, stakingInfo: GlobalState['stakingInfo']) {
-  return {
-    ...global,
-    stakingInfo,
-  };
-}
-
 export function updateStakingDefault(global: GlobalState, state: ApiStakingState) {
   return {
     ...global,

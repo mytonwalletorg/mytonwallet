@@ -5,7 +5,6 @@ $animation-time: 200ms;
 
 .root {
   display: inline-flex;
-
   white-space: pre;
 
   &[dir="rtl"] {
@@ -20,13 +19,11 @@ $animation-time: 200ms;
 @keyframes character-disappear {
   from {
     transform: none;
-
     opacity: 1;
   }
 
   to {
     transform: perspective($perspective) translateY($translate) rotateX(-$rotate);
-
     opacity: 0;
   }
 }
@@ -34,20 +31,17 @@ $animation-time: 200ms;
 @keyframes character-appear {
   from {
     transform: perspective($perspective) translateY(-$translate) rotateX($rotate);
-
     opacity: 0;
   }
 
   to {
     transform: none;
-
     opacity: 1;
   }
 }
 
 .character {
   white-space: pre;
-
   visibility: hidden;
 }
 
@@ -55,7 +49,6 @@ $animation-time: 200ms;
   position: absolute;
   top: 0;
   left: 0;
-
   animation: $animation-time ease-out character-disappear forwards;
 }
 
@@ -63,6 +56,5 @@ $animation-time: 200ms;
   position: absolute;
   top: 0;
   left: 0;
-
   animation: $animation-time ease-out character-appear forwards;
 }

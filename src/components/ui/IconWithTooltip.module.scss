@@ -19,12 +19,12 @@
   width: max-content;
   max-width: 16rem;
   padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-default);
 
   font-weight: 500;
   color: var(--color-gray-1);
 
   background: var(--color-background-drop-down);
-  border-radius: var(--border-radius-default);
   box-shadow: 0 0 1.25rem rgba(49, 61, 79, 0.12);
 
   &.small {
@@ -45,9 +45,9 @@
 
   width: 0.6875rem;
   height: 0.6875rem;
+  border-radius: 0.125rem;
 
   background: var(--color-background-drop-down);
-  border-radius: 0.125rem;
 }
 
 .icon {

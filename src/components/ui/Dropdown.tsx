@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -15,7 +16,7 @@ export interface DropdownItem<T extends string = string> {
   value: T;
   name: string;
   selectedName?: string;
-  description?: string;
+  description?: string | TeactNode;
   icon?: string;
   overlayIcon?: string;
   fontIcon?: string;

@@ -63,21 +63,18 @@ const MIN_ZOOM = 1;
 
 const { easeOutCubic, easeOutQuart } = timingFunctions;
 
-let cancelAnimation: Function | undefined;
-let cancelZoomAnimation: Function | undefined;
+let cancelAnimation: ReturnType<typeof animateNumber> | undefined;
+let cancelZoomAnimation: ReturnType<typeof animateNumber> | undefined;
 
 function Slides({
   isOpen, mediaId, selectMedia, getMediaId, withAnimation, onClose,
 }: OwnProps) {
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const activeSlideRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const leftSlideRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const rightSlideRef = useRef<HTMLDivElement>(null);
+
+  const containerRef = useRef<HTMLDivElement>();
+  const activeSlideRef = useRef<HTMLDivElement>();
+  const leftSlideRef = useRef<HTMLDivElement>();
+  const rightSlideRef = useRef<HTMLDivElement>();
   const lastTransformRef = useRef<Transform>({ x: 0, y: 0, scale: 1 });
   const swipeDirectionRef = useRef<SwipeDirection | undefined>(undefined);
   const initialContentRectRef = useRef<DOMRect | undefined>(undefined);
@@ -447,7 +444,7 @@ function Slides({
           // If user is swiping horizontally or horizontal shift is dominant
           // we change only horizontal position
           if (swipeDirectionRef.current === SwipeDirection.Horizontal
-              || Math.abs(x) > SWIPE_DIRECTION_THRESHOLD || absOffsetX / absOffsetY > SWIPE_DIRECTION_TOLERANCE) {
+            || Math.abs(x) > SWIPE_DIRECTION_THRESHOLD || absOffsetX / absOffsetY > SWIPE_DIRECTION_TOLERANCE) {
             swipeDirectionRef.current = SwipeDirection.Horizontal;
             const limit = windowWidth + SLIDES_GAP;
             const x1 = clamp(dragOffsetX, -limit, limit);
@@ -468,7 +465,7 @@ function Slides({
         }
         // If vertical shift is dominant we change only vertical position
         if (swipeDirectionRef.current === SwipeDirection.Vertical
-            || Math.abs(y) > SWIPE_DIRECTION_THRESHOLD || absOffsetY / absOffsetX > SWIPE_DIRECTION_TOLERANCE) {
+          || Math.abs(y) > SWIPE_DIRECTION_THRESHOLD || absOffsetY / absOffsetX > SWIPE_DIRECTION_TOLERANCE) {
           swipeDirectionRef.current = SwipeDirection.Vertical;
           const limit = windowHeight;
           const y1 = clamp(dragOffsetY, -limit, limit);

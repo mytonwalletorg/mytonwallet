@@ -1,5 +1,9 @@
 import {
-  BRILLIANT_API_BASE_URL, DEFAULT_ERROR_PAUSE, DEFAULT_RETRIES, DEFAULT_TIMEOUT,
+  DEFAULT_ERROR_PAUSE,
+  DEFAULT_RETRIES,
+  DEFAULT_TIMEOUT,
+  IPFS_GATEWAY_BASE_URL,
+  PROXY_API_BASE_URL,
 } from '../config';
 import { ApiServerError } from '../api/errors';
 import { logDebug } from './logs';
@@ -9,15 +13,8 @@ type QueryParams = Record<string, string | number | boolean | string[]>;
 
 const MAX_TIMEOUT = 30000; // 30 sec
 
-export async function fetchJsonWithProxy(url: string | URL, data?: QueryParams, init?: RequestInit) {
-  try {
-    return await fetchJson(url, data, init);
-  } catch (err) {
-    if (err instanceof ApiServerError && (!err.statusCode || err.statusCode === 403)) {
-      return fetchJson(`${BRILLIANT_API_BASE_URL}/proxy/?url=${url.toString()}`, data, init);
-    }
-    throw err;
-  }
+export function fetchJsonWithProxy(url: string | URL, data?: QueryParams, init?: RequestInit) {
+  return fetchJson(getProxiedJsonUrl(url.toString()), data, init);
 }
 
 export async function fetchJson(url: string | URL, data?: QueryParams, init?: RequestInit) {
@@ -124,4 +121,16 @@ export async function handleFetchErrors(response: Response, ignoreHttpCodes?: nu
 
 function isNotTemporaryError(message?: string, statusCode?: number) {
   return statusCode && [400, 404].includes(statusCode);
+}
+
+export function getProxiedJsonUrl(url: string) {
+  return `${PROXY_API_BASE_URL}/download-json?url=${encodeURIComponent(url)}`;
+}
+
+export function getProxiedLottieUrl(url: string) {
+  return `${PROXY_API_BASE_URL}/download-lottie?url=${encodeURIComponent(url)}`;
+}
+
+export function fixIpfsUrl(url: string) {
+  return url.replace('ipfs://', IPFS_GATEWAY_BASE_URL);
 }

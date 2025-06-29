@@ -160,6 +160,7 @@ Received: 已收到
 Sent: 已发送
 $transaction_from: 从 %address%
 $transaction_to: 至 %address%
+$transaction_on: 上 %address%
 Wallet is not backed up: 钱包未备份
 Testnet Version: 测试网版本
 Error reading clipboard: 读取剪切板时出现错误
@@ -788,6 +789,9 @@ Bidding at NFT Auction: NFT 拍卖中出价
 NFT Bought: 已购买 NFT
 Buying NFT: 正在购买 NFT
 $buy_nft_action: 购买 NFT
+NFT Sold: 已售出 NFT
+Selling NFT: 正在出售 NFT
+$sell_nft_action: 出售 NFT
 Receiving: 接收中
 $receive_action: 接收
 Change Palette: 更改调色板
@@ -827,7 +831,7 @@ Exit all wallets: 退出所有钱包
 Can't confirm?: 无法登录？
 $safe_staking_ethena_description1: 质押完全去中心化，由**Ethena官方**审计的流动性质押**智能合约**运营。
 $safe_staking_ethena_description2: 质押的USDe将用于Ethena的**交易和投资策略**，自动透明地产生收益。
-$safe_staking_ethena_description3: 您可以**随时提取**质押资产及收益，根据Ethena标准提现周期，资金将在**7天内**返还至您的账户。
+$safe_staking_ethena_description3: 您可随时**提取存款**及累计利息——根据Ethena标准提款周期，资金将在**7天**后返还至您的主账户。
 Unstake %amount%: 解除质押 %amount%
 Request Unstaking: 申请取消质押
 $unstaking_when_receive_ethena: 您将在 **7 天** 后收到已解除质押的存款。
@@ -835,17 +839,12 @@ Coins have been unstaked!: 代币已解锁！
 Confirm Upgrading: 确认升级
 How does it work?: 它是如何运作的？
 Multisend: 批量发送
-Expires in %1$d days:
-  zeroValue: 今日到期
-  otherValue: "%1$d 天后到期"
 Renew All: 全部续费
 Renew: 续费
 Renew Domain: 续费域名
 Renew Domains: 续费域名
 Some domains are about to expire: 部分域名即将到期
-$domain_expire:
-  zeroValue: "%domain% 今天到期"
-  otherValue: "%domain% 将在 %days% 天后到期"
+$domain_expire: "**%domain%** 将于%days%到期"
 '%token% Staking': '%token% 质押'
 Add Tab: 添加标签页
 Remove Tab: 移除标签页
@@ -871,19 +870,39 @@ Confirm Renewing: 确认续费
 Confirm Linking: 确认链接
 $domains_expire:
   zeroValue: "没有域名将于%days%到期"
-  oneValue: "%domain%个域名将于%days%到期"
-  otherValue: "%domain%个域名将于%days%到期"
+  oneValue: "**%domain%个域名** 将于%days%到期"
+  otherValue: "**%domain%个域名** 将于%days%到期"
 $in_days:
   zeroValue: "今天"
   oneValue: "明天"
   otherValue: "%1$d天后"
-$domain_was_expired: "%domain% 已过期"
+$domain_was_expired: "**%domain%** 已过期"
 $domains_was_expired:
   zeroValue: "没有域名过期"
-  oneValue: "%domain%个域名已过期"
-  otherValue: "%domain%个域名已过期"
-
+  oneValue: "**%domain%个域名** 已过期"
+  otherValue: "**%domain%个域名** 已过期"
 Reload: 重新加载
 Copy Link: 复制链接
 Check eligibility for max APY: 检查最大 APY 资格
 Check eligibility: 检查资格
+$expired_many: 已过期
+$expires_in %days%:
+  zeroValue: "将于%days%到期"
+  oneValue: "将于%days%到期"
+  otherValue: "将于%days%到期"
+Message: 消息
+Binary Data: 二进制数据
+The binary data content is unclear. Sign it only if you trust the service.: 二进制数据内容不明确。请仅在信任该服务的情况下签署。
+Cell Schema: 单元结构
+Cell Data: 单元数据
+Sign Data: 签署数据
+Please confirm signature on your Ledger: 请在您的Ledger上确认签名
+Utilities: 实用工具
+Games: 游戏
+Entertainment: 娱乐
+Toggle to landscape layout: 切换至横屏模式
+Toggle to portrait layout: 切换至竖屏模式
+Attributes: 属性
+Show All: 显示全部
+Description: 描述
+No additional data.: 无附加数据。

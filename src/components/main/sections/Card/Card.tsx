@@ -1,5 +1,5 @@
-import type { Ref } from 'react';
 import React, {
+  type ElementRef,
   memo, useEffect, useMemo, useState,
 } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
@@ -45,7 +45,7 @@ import TokenCard from './TokenCard';
 import styles from './Card.module.scss';
 
 interface OwnProps {
-  ref?: Ref<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   forceCloseAccountSelector?: boolean;
   onTokenCardClose: NoneToVoidFunction;
   onYieldClick: (stakingId?: string) => void;

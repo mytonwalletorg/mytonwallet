@@ -7,7 +7,6 @@ import memoize from '../../util/memoize';
 import withCache from '../../util/withCache';
 import { selectAccountState } from './accounts';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const selectAccountStakingStatesMemoizedFor = withCache((accountId: string) => memoize((
   stateDefault: ApiStakingState,
   stateById?: Record<string, ApiStakingState>,
@@ -21,7 +20,6 @@ export function selectAccountStakingStates(global: GlobalState, accountId: strin
   return selectAccountStakingStatesMemoizedFor(accountId)(global.stakingDefault, stateById);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const selectAccountStakingStatesBySlugMemoizedFor = withCache((accountId: string) => memoize(
   (stakingStates: ApiStakingState[]) => buildCollectionByKey(stakingStates, 'tokenSlug'),
 ));

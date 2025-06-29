@@ -3,11 +3,25 @@ import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { ApiTokenWithPrice, ApiTransactionActivity, ApiYieldType } from '../../../../api/types';
+import type {
+  ApiBaseCurrency,
+  ApiNft,
+  ApiTokenWithPrice,
+  ApiTransactionActivity,
+  ApiTransactionType,
+  ApiYieldType,
+} from '../../../../api/types';
 import type { Account, AppTheme, SavedAddress } from '../../../../global/types';
 import { MediaType } from '../../../../global/types';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, FRACTION_DIGITS, TONCOIN, TRANSACTION_ADDRESS_SHIFT } from '../../../../config';
+import {
+  ANIMATED_STICKER_TINY_ICON_PX,
+  FRACTION_DIGITS,
+  SWAP_DEX_LABELS,
+  TONCOIN,
+  TRANSACTION_ADDRESS_SHIFT,
+  WHOLE_PART_DELIMITER,
+} from '../../../../config';
 import {
   DNS_TRANSACTION_TYPES,
   getIsTxIdLocal,
@@ -23,7 +37,8 @@ import { bigintAbs } from '../../../../util/bigint';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
-import { formatCurrencyExtended } from '../../../../util/formatNumber';
+import { getDnsDomainZone } from '../../../../util/dns';
+import { formatBaseCurrencyAmount, formatCurrencyExtended } from '../../../../util/formatNumber';
 import { getLocalAddressName } from '../../../../util/getLocalAddressName';
 import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
@@ -32,6 +47,7 @@ import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import TokenIcon from '../../../common/TokenIcon';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import SensitiveData from '../../../ui/SensitiveData';
@@ -56,6 +72,7 @@ type OwnProps = {
   isFuture?: boolean;
   accounts?: Record<string, Account>;
   currentAccountId: string;
+  baseCurrency?: ApiBaseCurrency;
   onClick?: (id: string) => void;
 };
 
@@ -63,6 +80,10 @@ const TRANSACTION_HEIGHT = 4; // rem
 const NFT_EXTRA_HEIGHT = 3.875; // rem
 const COMMENT_EXTRA_HEIGHT = 2.375; // rem
 const SUBHEADER_RELEASE_HEIGHT = 1.25; // rem
+
+const OUT_TRANSACTION_TYPES = new Set<ApiTransactionType>([
+  undefined, 'unstakeRequest', 'nftTrade', 'auctionBid', 'liquidityDeposit',
+]);
 
 function Transaction({
   ref,
@@ -80,6 +101,7 @@ function Transaction({
   isFuture,
   accounts,
   currentAccountId,
+  baseCurrency,
   onClick,
 }: OwnProps) {
   const { openMediaViewer } = getActions();
@@ -98,9 +120,9 @@ function Transaction({
     metadata,
     slug,
     nft,
+    extra,
   } = transaction;
 
-  const isStake = type === 'stake';
   const isStaking = STAKING_TRANSACTION_TYPES.has(type);
   const isDnsOperation = DNS_TRANSACTION_TYPES.has(type);
 
@@ -119,12 +141,11 @@ function Transaction({
     });
   }, [accounts, address, chain, currentAccountId, savedAddresses]);
   const addressName = localAddressName || metadata?.name;
+  const dnsIconText = useMemo(() => isDnsOperation ? getDnsIconText(nft) : '', [isDnsOperation, nft]);
   const isLocal = getIsTxIdLocal(txId);
   const amountCols = useMemo(() => getPseudoRandomNumber(5, 13, timestamp.toString()), [timestamp]);
   const attachmentsTakeSubheader = shouldAttachmentTakeSubheader(transaction, isFuture);
-  const isNoSubheaderLeft = !!isFuture;
-  const isNoSubheaderRight = !shouldShowTransactionAddress(transaction)
-    && !shouldShowTransactionAnnualYield(transaction);
+  const isNoSubheaderLeft = getIsNoSubheaderLeft(transaction, isFuture);
 
   let operationColorClass: string | undefined;
   let waitingIconName: keyof typeof ANIMATED_STICKERS_PATHS.light.preview = 'iconClockGray';
@@ -132,11 +153,14 @@ function Transaction({
     operationColorClass = styles.colorNegative;
     waitingIconName = 'iconClockRed';
   } else if (isIncoming) {
-    operationColorClass = styles.colorPositive;
+    operationColorClass = styles.colorIn;
     waitingIconName = 'iconClockGreen';
-  } else if (isStake) {
+  } else if (type === 'stake') {
     operationColorClass = styles.colorStake;
     waitingIconName = 'iconClockPurpleWhite';
+  } else if (OUT_TRANSACTION_TYPES.has(type)) {
+    operationColorClass = styles.colorOut;
+    waitingIconName = 'iconClockBlue';
   }
 
   const handleNftClick = useLastCallback((event: React.MouseEvent) => {
@@ -151,9 +175,6 @@ function Transaction({
           styles.attachment,
           styles.nft,
           !doesNftExist && styles.nonInteractive,
-          isIncoming && styles.received,
-          comment && styles.nftWithComment,
-          operationColorClass,
           'transaction-nft',
         )}
         onClick={doesNftExist ? handleNftClick : undefined}
@@ -173,7 +194,7 @@ function Transaction({
     const className = buildClassName(
       styles.attachment,
       styles.comment,
-      isIncoming && styles.received,
+      !isIncoming && styles.outgoing,
       operationColorClass,
     );
 
@@ -192,15 +213,15 @@ function Transaction({
     } else if (type === 'callContract' || type === 'contractDeploy') {
       iconName = 'icon-cog';
     } else if (isDnsOperation) {
-      iconName = 'icon-globe-alt';
+      iconName = buildClassName('rounded-font', styles.dnsIcon);
     } else if (type === 'mint') {
       iconName = 'icon-magic-wand';
     } else if (type === 'burn') {
       iconName = 'icon-fire';
     } else if (type === 'auctionBid') {
       iconName = 'icon-auction-alt';
-    } else if (type === 'nftPurchase') {
-      iconName = 'icon-purchase';
+    } else if (type === 'nftTrade') {
+      iconName = isIncoming ? 'icon-tag' : 'icon-purchase';
     } else if (type === 'liquidityDeposit') {
       iconName = 'icon-can-in';
     } else if (type === 'liquidityWithdraw') {
@@ -213,6 +234,11 @@ function Transaction({
 
     return (
       <i className={buildClassName(styles.icon, iconName, operationColorClass)} aria-hidden>
+        {isDnsOperation && (
+          <span style={isDnsOperation ? `font-size: ${Math.min(1, 4 / dnsIconText.length) * 100}%` : undefined}>
+            {dnsIconText}
+          </span>
+        )}
         {isLocal && (
           <AnimatedIconWithPreview
             play
@@ -231,64 +257,92 @@ function Transaction({
 
   function renderAmount() {
     const amountDisplayMode = getTransactionAmountDisplayMode(transaction);
-    let content: TeactNode;
-    let isSensitiveData = false;
+    const noSign = amountDisplayMode === 'noSign';
 
-    if (amountDisplayMode !== 'hide') {
-      const noSign = amountDisplayMode === 'noSign';
-      content = formatCurrencyExtended(
-        toDecimal(noSign ? bigintAbs(amount) : amount, token?.decimals ?? FRACTION_DIGITS),
-        token?.symbol || TONCOIN.symbol,
-        noSign,
-        undefined,
-        !isIncoming,
-      );
-      isSensitiveData = true;
-    } else if (isDnsOperation) {
-      content = 'TON DNS';
-    } else if (nft) {
-      content = 'NFT';
-    } else {
+    if (amountDisplayMode === 'hide') {
+      return;
+    }
+
+    return (
+      <SensitiveData
+        isActive={isSensitiveDataHidden}
+        cols={amountCols}
+        rows={2}
+        cellSize={8}
+        align="right"
+        contentClassName={buildClassName(
+          styles.amount,
+          operationColorClass !== styles.colorOut && operationColorClass,
+        )}
+      >
+        {formatCurrencyExtended(
+          toDecimal(noSign ? bigintAbs(amount) : amount, token?.decimals ?? FRACTION_DIGITS),
+          token?.symbol || TONCOIN.symbol,
+          noSign,
+          undefined,
+          !isIncoming,
+        )}
+        {token && <TokenIcon token={token} size="x-small" className={styles.amountTokenIcon} />}
+      </SensitiveData>
+    );
+  }
+
+  function renderBaseCurrencyAmount() {
+    if (getTransactionAmountDisplayMode(transaction) === 'hide' || !token) {
       return undefined;
     }
 
     return (
       <SensitiveData
-        isActive={isSensitiveDataHidden && isSensitiveData}
-        cols={amountCols}
+        isActive={isSensitiveDataHidden}
+        cols={Math.round(3 + (amountCols - 5) / 3)}
         rows={2}
         cellSize={8}
         align="right"
-        className={buildClassName(
-          styles.amount,
-          operationColorClass,
-          isNoSubheaderRight && attachmentsTakeSubheader === 'none' && styles.atMiddle,
-        )}
       >
-        {content}
+        {formatBaseCurrencyAmount(amount, baseCurrency, token)}
       </SensitiveData>
     );
   }
 
-  function renderAddress() {
-    return (
-      <div className={styles.address}>
-        {shouldShowTransactionAddress(transaction) && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
+  function renderAddressAndDate() {
+    const children: TeactNode[] = [];
+    const delimiter = `${WHOLE_PART_DELIMITER}∙${WHOLE_PART_DELIMITER}`;
+
+    if (shouldShowTransactionAddress(transaction)) {
+      const dexName = extra?.dex && SWAP_DEX_LABELS[extra?.dex];
+
+      children.push(delimiter, lang(
+        dexName ? '$transaction_on' : isIncoming ? '$transaction_from' : '$transaction_to',
+        {
           address: (
-            <span className={styles.addressValue}>
+            <span className={styles.subheaderHighlight}>
               {withChainIcon && Boolean(chain) && (
                 <i
                   className={buildClassName(styles.chainIcon, `icon-chain-${chain.toLowerCase()}`)}
                   aria-label={chain}
                 />
               )}
-              {addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
+              {dexName || addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
             </span>
           ),
-        })}
-        {shouldShowTransactionAnnualYield(transaction) && lang('at %annual_yield%', {
-          annual_yield: <span className={styles.addressValue}>{yieldType} {annualYield}%</span>,
-        })}
+        },
+      ));
+    }
+
+    if (shouldShowTransactionAnnualYield(transaction)) {
+      children.push(delimiter, lang('at %annual_yield%', {
+        annual_yield: <span className={styles.subheaderHighlight}>{yieldType} {annualYield}%</span>,
+      }));
+    }
+
+    if (!isFuture) {
+      children.push(delimiter, formatTime(timestamp));
+    }
+
+    return (
+      <div className={styles.date}>
+        {children.slice(1)}
       </div>
     );
   }
@@ -302,7 +356,7 @@ function Transaction({
         isActive && styles.active,
         onClick && styles.interactive,
         attachmentsTakeSubheader === 'full' ? styles.attachmentsInFullSubheader
-          : attachmentsTakeSubheader === 'half' ? styles.attachmentsInHalfSubheader : undefined,
+          : attachmentsTakeSubheader === 'left' ? styles.attachmentsInLeftSubheader : undefined,
       )}
       onClick={onClick && (() => onClick(txId))}
       isSimple
@@ -321,8 +375,8 @@ function Transaction({
         {renderAmount()}
       </div>
       <div className={styles.subheader}>
-        <div>{!isFuture && formatTime(timestamp)}</div>
-        {renderAddress()}
+        {renderAddressAndDate()}
+        {renderBaseCurrencyAmount()}
       </div>
       {nft && renderNft()}
       {shouldShowTransactionComment(transaction) && renderComment()}
@@ -342,16 +396,38 @@ export function getTransactionHeight(transaction: ApiTransactionActivity, isFutu
 function shouldAttachmentTakeSubheader(
   transaction: ApiTransactionActivity,
   isFuture?: boolean,
-): 'none' | 'half' | 'full' {
+): 'none' | 'left' | 'full' {
   if (!transaction.nft && !shouldShowTransactionComment(transaction)) {
     return 'none';
   }
 
-  const isNoSubheaderLeft = !!isFuture;
-  const isNoSubheaderRight = !shouldShowTransactionAddress(transaction)
-    && !shouldShowTransactionAnnualYield(transaction);
+  if (!getIsNoSubheaderLeft(transaction, isFuture)) {
+    return 'none'; // The attachment won't fit in the right slot, because the left subheader is too wide
+  }
 
-  return transaction.isIncoming
-    ? isNoSubheaderLeft ? isNoSubheaderRight ? 'full' : 'half' : 'none'
-    : isNoSubheaderRight ? isNoSubheaderLeft ? 'full' : 'half' : 'none';
+  if (getIsNoSubheaderRight(transaction)) {
+    return 'full';
+  }
+
+  const isAttachmentOnTheLeft = transaction.nft || transaction.isIncoming;
+  return isAttachmentOnTheLeft ? 'left' : 'none';
+}
+
+function getIsNoSubheaderLeft(transaction: ApiTransactionActivity, isFuture?: boolean) {
+  return isFuture && !shouldShowTransactionAddress(transaction) && !shouldShowTransactionAnnualYield(transaction);
+}
+
+function getIsNoSubheaderRight(transaction: ApiTransactionActivity) {
+  return getTransactionAmountDisplayMode(transaction) === 'hide';
+}
+
+function getDnsIconText(nft: ApiNft | undefined) {
+  if (nft?.name) {
+    const resolved = getDnsDomainZone(nft.name);
+    if (resolved) {
+      return `.${resolved.zone.suffixes[0]}`;
+    }
+  }
+
+  return 'DNS';
 }

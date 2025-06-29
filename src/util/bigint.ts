@@ -33,7 +33,6 @@ export function bigintRandom(bytes: number) {
   let value = BigInt(0);
   for (const randomNumber of randomBytes(bytes)) {
     const randomBigInt = BigInt(randomNumber);
-    // eslint-disable-next-line no-bitwise
     value = (value << BigInt(8)) + randomBigInt;
   }
   return value;

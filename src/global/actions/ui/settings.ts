@@ -1,19 +1,21 @@
 import { addCallback } from '../../../lib/teact/teactn';
 
 import type { GlobalState } from '../../types';
+import { SettingsState } from '../../types';
 
 import { setInMemoryPasswordSignal } from '../../../util/authApi/inMemoryPasswordStore';
 import { setLanguage } from '../../../util/langProvider';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import switchTheme from '../../../util/switchTheme';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
-import { addActionHandler } from '../..';
+import { addActionHandler, setGlobal } from '../..';
+import { resetHardware, updateSettings } from '../../reducers';
 import { selectIsBiometricAuthEnabled } from '../../selectors';
 
 let prevGlobal: GlobalState | undefined;
 
 addCallback((global: GlobalState) => {
-  if (!prevGlobal) {
+  if (!prevGlobal || !(prevGlobal as AnyLiteral).settings) {
     prevGlobal = global;
     return;
   }
@@ -91,4 +93,11 @@ addActionHandler('setInMemoryPassword', (global, actions, { password, isFinalCal
   }
 
   return global;
+});
+
+addActionHandler('openSettingsHardwareWallet', (global) => {
+  global = resetHardware(global);
+  global = updateSettings(global, { state: SettingsState.LedgerConnectHardware });
+
+  setGlobal(global);
 });

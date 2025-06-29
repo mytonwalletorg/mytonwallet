@@ -1,48 +1,46 @@
 PODS:
-  - Capacitor (7.1.0):
+  - Capacitor (7.2.0):
     - CapacitorCordova
-  - CapacitorApp (7.0.0):
+  - CapacitorApp (7.0.1):
     - Capacitor
-  - CapacitorAppLauncher (7.0.0):
+  - CapacitorAppLauncher (7.0.1):
     - Capacitor
-  - CapacitorClipboard (7.0.0):
+  - CapacitorClipboard (7.0.1):
     - Capacitor
   - CapacitorCommunityBluetoothLe (7.0.0):
     - Capacitor
-  - CapacitorCordova (7.1.0)
+  - CapacitorCordova (7.2.0)
   - CapacitorDialog (7.0.0):
     - Capacitor
-  - CapacitorFilesystem (7.0.0):
+  - CapacitorFilesystem (7.0.1):
     - Capacitor
-  - CapacitorHaptics (7.0.0):
+  - CapacitorHaptics (7.0.1):
     - Capacitor
-  - CapacitorKeyboard (7.0.0):
+  - CapacitorKeyboard (7.0.1):
     - Capacitor
-  - CapacitorMlkitBarcodeScanning (7.1.0):
+  - CapacitorMlkitBarcodeScanning (7.2.1):
     - Capacitor
     - GoogleMLKit/BarcodeScanning (= 7.0.0)
   - CapacitorNativeSettings (7.0.1):
     - Capacitor
   - CapacitorPluginSafeArea (4.0.0):
     - Capacitor
-  - CapacitorPushNotifications (7.0.0):
+  - CapacitorPushNotifications (7.0.1):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.11.0):
     - Capacitor
     - SwiftKeychainWrapper
-  - CapacitorShare (7.0.0):
+  - CapacitorShare (7.0.1):
     - Capacitor
   - CapacitorSplashScreen (7.0.0):
     - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
-  - CapawesomeCapacitorTorch (7.0.2):
-    - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
   - CapgoNativeAudio (7.1.2):
     - Capacitor
-  - CordovaPlugins (7.1.0):
+  - CordovaPlugins (7.2.0):
     - CapacitorCordova
   - FirebaseCore (11.9.0):
     - FirebaseCoreInternal (~> 11.9.0)
@@ -154,7 +152,6 @@ DEPENDENCIES:
   - "CapacitorShare (from `../../../node_modules/@capacitor/share`)"
   - "CapacitorSplashScreen (from `../../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../../node_modules/@capacitor/status-bar`)"
-  - "CapawesomeCapacitorTorch (from `../../../node_modules/@capawesome/capacitor-torch`)"
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
@@ -220,8 +217,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
     :path: "../../../node_modules/@capacitor/status-bar"
-  CapawesomeCapacitorTorch:
-    :path: "../../../node_modules/@capawesome/capacitor-torch"
   CapgoCapacitorNativeBiometric:
     :path: "../../../node_modules/@capgo/capacitor-native-biometric"
   CapgoNativeAudio:
@@ -244,28 +239,27 @@ CHECKOUT OPTIONS:
     :git: https://github.com/mytonwalletorg/FloatingPanel
 
 SPEC CHECKSUMS:
-  Capacitor: bceb785fb78f5e81e4a9e37843bc1c24bd9c7194
-  CapacitorApp: 9cb31064a6c6bb2b1438583733a7bf45557fc1da
-  CapacitorAppLauncher: e2c8917b37032e53694869df963e581ddcf112fb
-  CapacitorClipboard: 007d79cd6c104002b274546d13873526ca20beb7
+  Capacitor: 03bc7cbdde6a629a8b910a9d7d78c3cc7ed09ea7
+  CapacitorApp: febecbb9582cb353aed037e18ec765141f880fe9
+  CapacitorAppLauncher: bab4ca931a308252d2bafcb78ca6a364bd1d4c4e
+  CapacitorClipboard: 70bfdb42b877b320a6e511ab94fa7a6a55d57ecb
   CapacitorCommunityBluetoothLe: f911fcbecc25033bca1cfcc5782c46c11ebf62ec
-  CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
+  CapacitorCordova: 5967b9ba03915ef1d585469d6e31f31dc49be96f
   CapacitorDialog: 128228f7256464205eba2479629f2c00743f39a5
-  CapacitorFilesystem: 59a2b7b56a897c6a3de4d04c5718e1d80de9d2f5
-  CapacitorHaptics: 7be406a91e4eb87287f321c6c68e1709d6837b3a
-  CapacitorKeyboard: 4db71e694e7afb5d7c0be09b05495c19f7d6c914
-  CapacitorMlkitBarcodeScanning: 8ed3b0c5b015c0f65ecdaf8d99aaa08b4e647693
+  CapacitorFilesystem: e6261c410436f54908c11f94336c5b58286b1db0
+  CapacitorHaptics: 1f1e17041f435d8ead9ff2a34edd592c6aa6a8d6
+  CapacitorKeyboard: 09fd91dcde4f8a37313e7f11bde553ad1ed52036
+  CapacitorMlkitBarcodeScanning: 147c172f6e423618b156e050f715cfb963680ef4
   CapacitorNativeSettings: bef37b3c7e2184da7416a3f162c71de19fd27593
   CapacitorPluginSafeArea: 22031c3436269ca80fac90ec2c94bc7c1e59a81d
-  CapacitorPushNotifications: 2e0132cd2f1a5d696bcbfc3725c2b6ffcb9275d4
+  CapacitorPushNotifications: 6a2794788c583dd89215f1805ca4bced1b13dbdf
   CapacitorSecureStoragePlugin: 450d402026ee3bcc018fa206504d9c0572fee78d
-  CapacitorShare: d94c53d7656f1ce8f6712ae8d19ab0c18a69259f
+  CapacitorShare: e573823f511f260f598d0423c33b1e3d7bbe5fd1
   CapacitorSplashScreen: 7e7a0a1113833032f196b3af6fa437baccacf5bc
   CapacitorStatusBar: a8c4c83ed2e973bdafb979e80e4b00d027832cb7
-  CapawesomeCapacitorTorch: d3bf7695fbf36923ea66cacc9b384acf66d2a064
   CapgoCapacitorNativeBiometric: be4ceeff38739d9c0f59b8c41456a3b01cfeddf0
   CapgoNativeAudio: e4560ab0b858c4c1eaec42017c35ed8692b2c26d
-  CordovaPlugins: 024993b4d5afaf589f8ee3bf7b4c02140a86ca35
+  CordovaPlugins: 09eaf3779c4d1fa6331773fcd29e29dcd8a7afd6
   FirebaseCore: 7cfcf7e8b33985c06478fd2b96e2f7101eb61a1c
   FirebaseCoreInternal: 154779013b85b4b290fdba38414df475f42e3096
   FirebaseInstallations: c76d4931a485fc0cc2dc1d62d3ed0369846ea4b8
@@ -287,6 +281,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 717d09e683cb12c1762093716186ac18aec151f8
+PODFILE CHECKSUM: 7b67cd7764bd3900dc8d22bbee374d113645c998
 
 COCOAPODS: 1.16.2

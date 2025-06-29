@@ -2,7 +2,7 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiActivity, ApiDappTransfer, ApiToken } from '../../api/types';
-import type { GlobalState, HardwareConnectState } from '../../global/types';
+import type { GlobalState } from '../../global/types';
 import { TransferState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
@@ -10,9 +10,7 @@ import { selectCurrentDappTransferTotals } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import { isNftTransferPayload } from '../../util/ton/transfer';
 
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
@@ -23,7 +21,6 @@ import { getActivityHeight } from '../main/sections/Content/Activity';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
-import Skeleton from '../ui/Skeleton';
 import Transition from '../ui/Transition';
 import DappLedgerWarning from './DappLedgerWarning';
 import DappTransaction from './DappTransaction';
@@ -35,16 +32,12 @@ import styles from './Dapp.module.scss';
 interface StateProps {
   currentDappTransfer: GlobalState['currentDappTransfer'];
   tokensBySlug: Record<string, ApiToken>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isMediaViewerOpen?: boolean;
   isDangerous: boolean;
 }
 
 function DappTransferModal({
   currentDappTransfer: {
-    dapp,
     isLoading,
     viewTransactionOnIdx,
     state,
@@ -53,9 +46,6 @@ function DappTransferModal({
     error,
   },
   tokensBySlug,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isMediaViewerOpen,
   isDangerous,
 }: StateProps) {
@@ -73,8 +63,6 @@ function DappTransferModal({
   const isOpen = state !== TransferState.None;
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
-  const renderingTransactions = useCurrentOrPrev(transactions, true);
-  const isDappLoading = dapp === undefined;
   const needsExtraHeight = useMemo(
     () => shouldForceFullScreen(transactions, emulation?.activities, isDangerous),
     [transactions, emulation, isDangerous],
@@ -120,53 +108,11 @@ function DappTransferModal({
     );
   }
 
-  function renderWaitForConnection() {
-    const renderRow = (isLarge?: boolean, hasFee?: boolean) => (
-      <div className={styles.rowContainerSkeleton}>
-        <Skeleton className={buildClassName(styles.rowLabelSkeleton, isLarge && styles.rowTextLargeSkeleton)} />
-        <Skeleton className={buildClassName(styles.rowSkeleton, isLarge && styles.rowLargeSkeleton)} />
-        {hasFee && <Skeleton className={styles.rowFeeSkeleton} />}
-      </div>
-    );
-
-    return (
-      <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
-        <div className={styles.transactionDirection}>
-          <div className={styles.transactionDirectionLeftSkeleton}>
-            <Skeleton className={buildClassName(styles.nameSkeleton, styles.nameDappSkeleton)} />
-            <Skeleton className={buildClassName(styles.descSkeleton, styles.descDappSkeleton)} />
-          </div>
-          <div className={styles.transactionDirectionRightSkeleton}>
-            <Skeleton className={styles.dappInfoIconSkeleton} />
-            <div className={styles.dappInfoDataSkeleton}>
-              <Skeleton className={buildClassName(styles.nameSkeleton, styles.nameDappSkeleton)} />
-              <Skeleton className={buildClassName(styles.descSkeleton, styles.descDappSkeleton)} />
-            </div>
-          </div>
-        </div>
-        {renderRow()}
-        {renderRow(true, true)}
-      </div>
-    );
-  }
-
-  function renderTransferInitialWithSkeleton() {
-    return (
-      <Transition name="semiFade" activeKey={isDappLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
-        <ModalHeader
-          title={lang(isNftTransferPayload(renderingTransactions?.[0]?.payload) ? 'Send NFT' : 'Send Transaction')}
-          onClose={closeDappTransfer}
-        />
-        {isDappLoading ? renderWaitForConnection() : <DappTransferInitial onClose={closeDappTransfer} />}
-      </Transition>
-    );
-  }
-
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: TransferState) {
     switch (currentKey) {
       case TransferState.Initial:
-        return renderTransferInitialWithSkeleton();
+        return <DappTransferInitial onClose={closeDappTransfer} />;
+
       case TransferState.WarningHardware:
         return (
           <>
@@ -174,6 +120,7 @@ function DappTransferModal({
             <DappLedgerWarning />
           </>
         );
+
       case TransferState.Confirm:
         return (
           <DappTransaction
@@ -184,19 +131,19 @@ function DappTransferModal({
             onClose={closeDappTransfer}
           />
         );
+
       case TransferState.Password:
         return renderPassword(isActive);
+
       case TransferState.ConnectHardware:
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isTonAppConnected={isTonAppConnected}
-            isLedgerConnected={isLedgerConnected}
             onConnected={handleLedgerConnect}
             onClose={closeDappTransfer}
           />
         );
+
       case TransferState.ConfirmHardware:
         return (
           <LedgerConfirmOperation
@@ -216,6 +163,7 @@ function DappTransferModal({
       noBackdropClose
       dialogClassName={buildClassName(styles.modalDialog, needsExtraHeight && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       forceFullNative={needsExtraHeight || renderingKey === TransferState.Password}
       onClose={closeDappTransfer}
       onCloseAnimationEnd={handleResetTransfer}
@@ -235,19 +183,11 @@ function DappTransferModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
   const { isDangerous } = selectCurrentDappTransferTotals(global);
 
   return {
     currentDappTransfer: global.currentDappTransfer,
     tokensBySlug: global.tokenInfo.bySlug,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     isDangerous,
   };

@@ -40,7 +40,6 @@ import useDebouncedCallback from '../../hooks/useDebouncedCallback';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import usePrevious from '../../hooks/usePrevious';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
 import SelectTokenButton from '../common/SelectTokenButton';
@@ -63,11 +62,11 @@ interface OwnProps {
 interface StateProps {
   addressByChain?: Account['addressByChain'];
   currentSwap: GlobalState['currentSwap'];
-  accountId?: string;
   tokens?: UserSwapToken[];
   isMultichainAccount?: boolean;
   swapType: SwapType;
   isSensitiveDataHidden?: true;
+  pairsBySlug?: Record<string, AssetPairs>;
 }
 
 const ESTIMATE_REQUEST_INTERVAL = 1_000;
@@ -87,13 +86,11 @@ function SwapInitial({
     inputSource,
     limits,
     isLoading,
-    pairs,
     dieselStatus,
     ourFee,
     ourFeePercent,
     dieselFee,
   },
-  accountId,
   addressByChain,
   tokens,
   isActive,
@@ -101,6 +98,7 @@ function SwapInitial({
   isMultichainAccount,
   swapType,
   isSensitiveDataHidden,
+  pairsBySlug,
 }: OwnProps & StateProps) {
   const {
     setDefaultSwapParams,
@@ -109,22 +107,17 @@ function SwapInitial({
     switchSwapTokens,
     estimateSwap,
     setSwapScreen,
-    loadSwapPairs,
     setSwapCexAddress,
     authorizeDiesel,
     showNotification,
   } = getActions();
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const inputInRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const inputOutRef = useRef<HTMLDivElement>(null);
+  const inputInRef = useRef<HTMLDivElement>();
+  const inputOutRef = useRef<HTMLDivElement>();
 
   const currentTokenInSlug = tokenInSlug ?? TONCOIN.slug;
   const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;
-
-  const accountIdPrev = usePrevious(accountId, true);
 
   const tokenIn = useMemo(
     () => tokens?.find((token) => token.slug === currentTokenInSlug),
@@ -211,7 +204,7 @@ function SwapInitial({
 
   const [isBuyAmountInputDisabled, handleBuyAmountInputClick] = useReverseProhibited(
     isCrosschain,
-    pairs?.bySlug,
+    pairsBySlug,
     currentTokenInSlug,
     currentTokenOutSlug,
     showNotification,
@@ -247,17 +240,6 @@ function SwapInitial({
     const intervalId = setInterval(handleEstimateSwap, ESTIMATE_REQUEST_INTERVAL);
     return () => clearInterval(intervalId);
   }, [isEstimating]);
-
-  useEffect(() => {
-    const shouldForceUpdate = accountId !== accountIdPrev;
-
-    if (currentTokenInSlug) {
-      loadSwapPairs({ tokenSlug: currentTokenInSlug, shouldForceUpdate });
-    }
-    if (currentTokenOutSlug) {
-      loadSwapPairs({ tokenSlug: currentTokenOutSlug, shouldForceUpdate });
-    }
-  }, [accountId, accountIdPrev, currentTokenInSlug, currentTokenOutSlug]);
 
   const handleAmountInChange = useLastCallback(
     (amount: string | undefined) => {
@@ -532,13 +514,13 @@ export default memo(
       const account = selectCurrentAccount(global);
 
       return {
-        accountId: global.currentAccountId,
         currentSwap: global.currentSwap,
         tokens: selectSwapTokens(global),
         addressByChain: account?.addressByChain,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
         swapType: selectSwapType(global),
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+        pairsBySlug: global.swapPairs?.bySlug,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

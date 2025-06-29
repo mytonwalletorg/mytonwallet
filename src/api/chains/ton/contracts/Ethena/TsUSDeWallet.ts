@@ -16,7 +16,6 @@ export class TsUSDeWallet extends JettonWallet {
     return new TsUSDeWallet(address);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async getTimeLockData(provider: ContractProvider): Promise<{
     lockedBalance: bigint;
     unlockTime?: number;

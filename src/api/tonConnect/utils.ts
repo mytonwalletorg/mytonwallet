@@ -14,7 +14,6 @@ export function isValidUrl(url: string) {
   if (!isString) return false;
 
   try {
-    // eslint-disable-next-line no-new
     new URL(url);
     return true;
   } catch (err) {

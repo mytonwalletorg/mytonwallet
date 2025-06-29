@@ -8,11 +8,6 @@ import { SettingsState } from '../../../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CORE_WALLET } from '../../../../config';
 import {
-  getFullStakingBalance,
-  getIsActiveStakingState,
-  getStakingStateStatus,
-} from '../../../../global/helpers/staking';
-import {
   selectAccountStakingStates,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -26,6 +21,7 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import { toDecimal } from '../../../../util/decimals';
 import { buildCollectionByKey } from '../../../../util/iteratees';
+import { getFullStakingBalance, getIsActiveStakingState, getStakingStateStatus } from '../../../../util/staking';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
@@ -95,8 +91,7 @@ function Assets({
   const lang = useLang();
   const { openSettingsWithState } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>();
   const renderedTokens = useCurrentOrPrev(tokens, true);
   const renderedMycoin = useCurrentOrPrev(mycoin, true);
 

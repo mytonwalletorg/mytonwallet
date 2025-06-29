@@ -1,4 +1,3 @@
-// eslint-disable-next-line max-classes-per-file
 export abstract class Op {
   static transfer = 0xf8a7ea5;
 

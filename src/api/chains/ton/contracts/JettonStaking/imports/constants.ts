@@ -1,6 +1,6 @@
 import type { Address, Dictionary } from '@ton/core';
 
-export type AddrList = Dictionary<Address, Boolean>;
+export type AddrList = Dictionary<Address, boolean>;
 
 export const JettonStakingOpCodes = {
   GET_STATIC_DATA: 0X2FCB26A2,

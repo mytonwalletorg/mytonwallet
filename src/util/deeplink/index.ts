@@ -1,6 +1,7 @@
 import { getActions, getGlobal } from '../../global';
 
 import type { ActionPayloads, GlobalState } from '../../global/types';
+import type { OpenUrlOptions } from '../openUrl';
 import { ActiveTab, ContentTab } from '../../global/types';
 
 import {
@@ -55,11 +56,14 @@ export function processDeeplinkAfterSignIn() {
   urlAfterSignIn = undefined;
 }
 
-export function openDeeplinkOrUrl(url: string, isExternal = false, isFromInAppBrowser = false) {
+export async function openDeeplinkOrUrl(
+  url: string,
+  { isFromInAppBrowser, ...urlOptions }: OpenUrlOptions & { isFromInAppBrowser?: boolean },
+) {
   if (isTonDeeplink(url) || isTonConnectDeeplink(url) || isSelfDeeplink(url)) {
-    void processDeeplink(url, isFromInAppBrowser);
+    await processDeeplink(url, isFromInAppBrowser);
   } else {
-    void openUrl(url, { isExternal });
+    await openUrl(url, urlOptions);
   }
 }
 

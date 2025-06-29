@@ -46,7 +46,7 @@ export async function validateDexSwapTransfers(
       assert(FEE_ADDRESSES.includes(toBase64Address(feeTransfer.toAddress, false)), 'Unexpected fee transfer address');
     }
   } else {
-    const token = getTokenByAddress(request.from)!;
+    const token = getTokenByAddress(request.from);
     assert(!!token, 'Unknown "from" token');
 
     const maxAmount = fromDecimal(request.fromAmount, token.decimals)

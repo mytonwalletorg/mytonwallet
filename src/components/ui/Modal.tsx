@@ -1,11 +1,14 @@
-import type { RefObject } from 'react';
 import type { BottomSheetKeys } from '@mytonwallet/native-bottom-sheet';
 import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
-import type { TeactNode } from '../../lib/teact/teact';
+import type { ElementRef, RefObject, TeactNode } from '../../lib/teact/teact';
 import React, {
   beginHeavyAnimation,
-  useEffect, useLayoutEffect, useRef, useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
 
 import { ANIMATION_END_DELAY, IS_EXTENSION, IS_TELEGRAM_APP } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -29,7 +32,9 @@ import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useHideBrowser from '../../hooks/useHideBrowser';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
+import useToggleClass from '../../hooks/useToggleClass';
 
 import Button from './Button';
 import { getInAppBrowser } from './InAppBrowser';
@@ -58,7 +63,11 @@ type OwnProps = {
   onClose: NoneToVoidFunction;
   onCloseAnimationEnd?: NoneToVoidFunction;
   onEnter?: NoneToVoidFunction;
-  dialogRef?: RefObject<HTMLDivElement>;
+  dialogRef?: ElementRef<HTMLDivElement>;
+};
+
+type StateProps = {
+  isTemporarilyClosed: boolean;
 };
 
 export const CLOSE_DURATION = 350;
@@ -71,6 +80,13 @@ export function closeModal() {
   setModalCloseSignal(Date.now());
 }
 
+// Track open modals with nativeBottomSheetKey
+const openNativeBottomSheetModals = new Set<BottomSheetKeys>();
+
+export function getIsAnyNativeBottomSheetModalOpen(): boolean {
+  return openNativeBottomSheetModals.size > 0;
+}
+
 function Modal({
   dialogRef,
   title,
@@ -78,7 +94,8 @@ function Modal({
   dialogClassName,
   titleClassName,
   contentClassName,
-  isOpen,
+  isOpen: doesWantToBeOpened,
+  isTemporarilyClosed,
   isCompact,
   nativeBottomSheetKey,
   forceFullNative,
@@ -90,18 +107,24 @@ function Modal({
   header,
   hasCloseButton,
   children,
-  onClose,
+  onClose: onCloseProp,
   onCloseAnimationEnd,
   onEnter,
-}: OwnProps): TeactJsx {
+}: OwnProps & StateProps): TeactJsx {
+  const isOpen = doesWantToBeOpened && !isTemporarilyClosed;
+  const onClose = useLastCallback(() => {
+    if (isTemporarilyClosed && doesWantToBeOpened) {
+      return undefined;
+    }
+
+    return onCloseProp();
+  });
+
   const lang = useLang();
 
-  // eslint-disable-next-line no-null/no-null
-  const modalRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const localDialogRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const swipeDownDateRef = useRef<number>(null);
+  const modalRef = useRef<HTMLDivElement>();
+  const localDialogRef = useRef<HTMLDivElement>();
+  const swipeDownDateRef = useRef<number>();
   dialogRef ||= localDialogRef;
 
   const { isPortrait } = useDeviceScreen();
@@ -143,28 +166,51 @@ function Modal({
     [isOpen, onClose, onEnter],
   );
   useEffect(() => (isOpen && modalRef.current ? trapFocus(modalRef.current) : undefined), [isOpen]);
+  useToggleClass({ className: 'is-modal-open', isActive: !isCompact && isOpen });
 
   useLayoutEffect(() => (
     isOpen ? beginHeavyAnimation(animationDuration) : undefined
   ), [animationDuration, isOpen]);
 
+  // Track modal state for modals with nativeBottomSheetKey
+  useEffect(() => {
+    if (!nativeBottomSheetKey) return;
+
+    if (isOpen) {
+      openNativeBottomSheetModals.add(nativeBottomSheetKey);
+    } else {
+      openNativeBottomSheetModals.delete(nativeBottomSheetKey);
+    }
+
+    return () => {
+      openNativeBottomSheetModals.delete(nativeBottomSheetKey);
+    };
+  }, [isOpen, nativeBottomSheetKey]);
+
   // Make sure to hide browser before presenting modals
   const [isBrowserHidden, setIsBrowserHidden] = useState(false);
   useEffect(() => {
+    const browser = getInAppBrowser();
     if (!isOpen) {
       setIsBrowserHidden(false); // Reset to re-hide it next time
+      // Before showing browser, make sure that closed modals are updated state properly
+      requestAnimationFrame(() => {
+        browser?.show();
+      });
       return;
     }
-    const browser = getInAppBrowser();
+
     void browser?.hide().then(() => {
       setIsBrowserHidden(true);
     });
   }, [isOpen]);
 
-  const isDelegatingToNative = useDelegatingBottomSheet(nativeBottomSheetKey,
+  const isDelegatingToNative = useDelegatingBottomSheet(
+    nativeBottomSheetKey,
     isPortrait,
     isOpen && (!getInAppBrowser() || isBrowserHidden),
-    onClose);
+    onClose,
+  );
 
   useDelegatedBottomSheet(
     nativeBottomSheetKey,
@@ -266,9 +312,17 @@ function Modal({
   );
 }
 
-export default freezeWhenClosed(Modal);
+const FreezeWhenClosedModal = freezeWhenClosed(Modal);
 
-function getCanCloseModal(lastScrollRef: { current: number | null }, el?: HTMLElement) {
+export default withGlobal((global, { isInAppLock }: OwnProps): StateProps => {
+  return {
+    // This behavior is intended to prevent NBS from rendering above the app lock screen,
+    // which is an iOS-only issue. We retain this fix on all platforms to unify behavior.
+    isTemporarilyClosed: !(isInAppLock || !global.isAppLockActive),
+  };
+})(FreezeWhenClosedModal);
+
+function getCanCloseModal(lastScrollRef: RefObject<number | undefined>, el?: HTMLElement) {
   if (windowSize.getIsKeyboardVisible() || getIsSwipeToCloseDisabled()) {
     return false;
   }

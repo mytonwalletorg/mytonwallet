@@ -30,7 +30,6 @@
 
 .info {
   width: 100%;
-
   color: var(--color-gray-1);
   text-align: center;
 }
@@ -44,6 +43,7 @@
 
   margin-bottom: 2rem;
   padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-buttons);
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -52,7 +52,6 @@
   text-align: center;
 
   background-color: var(--color-transaction-amount-red-bg);
-  border-radius: var(--border-radius-buttons);
 }
 
 .words {
@@ -101,7 +100,6 @@
 .small {
   max-width: 20rem;
   margin: 0 auto 1.25rem;
-
   font-size: 0.9375rem;
   font-weight: 400;
 }

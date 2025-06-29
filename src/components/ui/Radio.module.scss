@@ -5,8 +5,8 @@
 
   width: 1.25rem;
   height: 1.25rem;
-
   border-radius: 50%;
+
   box-shadow: 0 0 0 0.125rem #00000029;
 
   transition: box-shadow 150ms;
@@ -24,16 +24,14 @@
   }
 
   &::before {
-    background-color: transparent;
     border-radius: 50%;
-
+    background-color: transparent;
     transition: background-color 150ms;
   }
 
   &::after {
     opacity: 0;
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMSIgaGVpZ2h0PSIxMSIgZmlsbD0ibm9uZSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTQuODI0IDEwLjc4NmMuMzk1IDAgLjczNi0uMTk3Ljk2Ny0uNTQ5bDQuOTEtNy42OGMuMTQzLS4yMy4yNzUtLjQ5NC4yNzUtLjc0NiAwLS41MzktLjQ4My0uOTAxLTEtLjkwMS0uMzI5IDAtLjYyNi4xNzUtLjg1Ni41NDlMNC43OCA4LjQyNCAyLjczNyA1LjgyMWMtLjI2NC0uMzQxLS41MjgtLjQ2Mi0uODU3LS40NjItLjUzOSAwLS45NTYuNDI5LS45NTYuOTc4IDAgLjI2NC4wOTkuNTA1LjI4NS43MzZsMi41OTMgMy4xNjRjLjI5Ny4zODUuNjE1LjU1IDEuMDIyLjU1WiIvPjwvc3ZnPg==) no-repeat center center;
-
     transition: opacity 150ms;
   }
 }

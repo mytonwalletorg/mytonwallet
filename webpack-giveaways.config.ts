@@ -77,7 +77,7 @@ export default function createConfig(
     module: {
       rules: [
         {
-          test: /\.(ts|tsx|js)$/,
+          test: /\.(ts|tsx|js|mjs|cjs)$/,
           loader: 'babel-loader',
           exclude: /node_modules/,
         },
@@ -135,7 +135,7 @@ export default function createConfig(
     },
 
     resolve: {
-      extensions: ['.js', '.ts', '.tsx'],
+      extensions: ['.js', '.cjs', '.mjs', '.ts', '.tsx'],
       fallback: {
         stream: require.resolve('stream-browserify'),
         process: require.resolve('process/browser'),

@@ -1,6 +1,6 @@
 @use "sass:color";
 
-@import "../../styles/mixins";
+@use "../../styles/mixins";
 
 $scrollOffset: 0.1875rem;
 
@@ -18,10 +18,10 @@ $scrollOffset: 0.1875rem;
     padding-top: 1.875rem !important;
   }
 
-  @include adapt-padding-to-scrollbar(0.75rem, !important);
+  @include mixins.adapt-padding-to-scrollbar(0.75rem, !important);
 
   @supports (padding-bottom: var(--safe-area-bottom)) {
-    @include respond-above(xs) {
+    @include mixins.respond-above(xs) {
       padding-bottom: max(var(--safe-area-bottom), 1rem) !important;
     }
   }
@@ -87,11 +87,10 @@ $scrollOffset: 0.1875rem;
 .sidebar {
   display: flex;
   flex-direction: column;
-
   height: 100%;
   min-height: 0;
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     padding-bottom: 1rem;
   }
 }

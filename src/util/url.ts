@@ -114,5 +114,5 @@ export function isTelegramUrl(url: string) {
 }
 
 export function getCardNftImageUrl(nft: ApiNft): string | undefined {
-  return `${MTW_CARDS_BASE_URL}${nft.metadata!.mtwCardId}.webp`;
+  return `${MTW_CARDS_BASE_URL}${nft.metadata.mtwCardId}.webp`;
 }

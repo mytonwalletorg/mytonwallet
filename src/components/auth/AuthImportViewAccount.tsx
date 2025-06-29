@@ -37,8 +37,8 @@ function AuthImportViewAccount({
   const { importViewAccount } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  const inputRef = useRef<HTMLInputElement>();
   const [value, setValue] = useState<string>('');
   const [isInvalidAddress, setIsInvalidAddress] = useState<boolean>(false);
 

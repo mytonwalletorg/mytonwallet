@@ -52,8 +52,8 @@ function ImageSection({ status }: OwnProps) {
         nonInteractive
         size={160}
         className={styles.thumbnail}
-        tgsUrl={AnimationStickerContent[status!].tgsUrl}
-        previewUrl={AnimationStickerContent[status!].previewUrl}
+        tgsUrl={AnimationStickerContent[status].tgsUrl}
+        previewUrl={AnimationStickerContent[status].previewUrl}
       />
     </div>
   );

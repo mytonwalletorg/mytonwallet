@@ -27,7 +27,7 @@ declare global {
 }
 
 // This is imported from @tonconnect/protocol library
-// eslint-disable-next-line @typescript-eslint/naming-convention
+
 enum CONNECT_EVENT_ERROR_CODES {
   UNKNOWN_ERROR = 0,
   BAD_REQUEST_ERROR = 1,

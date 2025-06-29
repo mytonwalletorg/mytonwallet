@@ -1,4 +1,4 @@
-import type { ApiSwapHistoryItem } from './backend';
+import type { ApiSwapDexLabel, ApiSwapHistoryItem } from './backend';
 import type { ApiTransaction } from './misc';
 
 type BaseActivity = {
@@ -9,6 +9,7 @@ type BaseActivity = {
   shouldLoadDetails?: boolean;
   extra?: {
     withW5Gasless?: boolean; // Only for TON
+    dex?: ApiSwapDexLabel; // Only for TON liquidity deposit and withdrawal
     // TODO Move other extra fields here (externalMsgHash, ...)
   };
 };

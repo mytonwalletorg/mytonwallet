@@ -6,7 +6,7 @@ import { MediaType } from '../../global/types';
 import { GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../config';
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { handleOpenUrl } from '../../util/openUrl';
+import { handleUrlClick } from '../../util/openUrl';
 import { shortenAddress } from '../../util/shortenAddress';
 
 import useLang from '../../hooks/useLang';
@@ -14,7 +14,7 @@ import useLang from '../../hooks/useLang';
 import styles from './MediaViewer.module.scss';
 
 type OwnProps = {
-  // eslint-disable-next-line react/no-unused-prop-types
+
   mediaId?: string;
 };
 
@@ -36,7 +36,7 @@ function MediaInfo({ title, description, descriptionUrl }: OwnProps & StateProps
         aria-label={lang('Open NFT Collection')}
         className={styles.mediaInfoDescription}
         rel="noreferrer"
-        onClick={handleOpenUrl}
+        onClick={handleUrlClick}
       >
         <span className={styles.descriptionText}>{description}</span>
         <i className={buildClassName('icon-tooltip', styles.tooltip)} aria-hidden />

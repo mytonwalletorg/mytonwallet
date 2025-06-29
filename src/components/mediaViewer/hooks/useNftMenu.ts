@@ -1,3 +1,4 @@
+import type React from '../../../lib/teact/teact';
 import { useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
@@ -20,8 +21,8 @@ import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
 export type NftMenuHandler = 'send' | 'tondns' | 'fragment' | 'getgems' | 'tonExplorer' | 'collection' | 'hide'
-| 'unhide' | 'not_scam' | 'burn' | 'select' | 'installCard' | 'resetCard' | 'installAccentColor' | 'resetAccentColor'
-| 'renew' | 'linkDomain';
+  | 'unhide' | 'not_scam' | 'burn' | 'select' | 'installCard' | 'resetCard' | 'installAccentColor' | 'resetAccentColor'
+  | 'renew' | 'linkDomain';
 
 const ON_SALE_ITEM: DropdownItem<NftMenuHandler> = {
   name: 'Cannot be sent',
@@ -135,6 +136,7 @@ export default function useNftMenu({
     addNftsToBlacklist,
     addNftsToWhitelist,
     closeMediaViewer,
+    closeNftAttributesModal,
     openUnhideNftModal,
     setCardBackgroundNft,
     clearCardBackgroundNft,
@@ -146,8 +148,17 @@ export default function useNftMenu({
 
   const lang = useLang();
 
-  const handleMenuItemSelect = useLastCallback((value: NftMenuHandler) => {
+  function closeOverlays() {
+    closeMediaViewer();
+    closeNftAttributesModal();
+  }
+
+  const handleMenuItemSelect = useLastCallback((
+    value: NftMenuHandler,
+    e?: React.MouseEvent,
+  ) => {
     const { isTestnet } = getGlobal().settings;
+    const isExternal = e?.shiftKey || e?.ctrlKey || e?.metaKey;
 
     switch (value) {
       case 'send': {
@@ -155,7 +166,7 @@ export default function useNftMenu({
           isPortrait: getIsPortrait(),
           nfts: [nft!],
         });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
@@ -163,7 +174,7 @@ export default function useNftMenu({
       case 'tonExplorer': {
         const url = getExplorerNftUrl(nft!.address, isTestnet)!;
 
-        void openUrl(url);
+        void openUrl(url, { isExternal });
         break;
       }
 
@@ -173,14 +184,14 @@ export default function useNftMenu({
           ? `${getgemsBaseUrl}collection/${nft!.collectionAddress}/${nft!.address}`
           : `${getgemsBaseUrl}nft/${nft!.address}`;
 
-        void openUrl(getgemsUrl);
+        void openUrl(getgemsUrl, { isExternal });
         break;
       }
 
       case 'tondns': {
         const url = `https://dns.ton.org/#${(nft!.name || '').replace(/\.ton$/i, '')}`;
 
-        void openUrl(url);
+        void openUrl(url, { isExternal });
         break;
       }
 
@@ -218,19 +229,20 @@ export default function useNftMenu({
           url = `https://fragment.com/username/${encodeURIComponent(name?.substring(1) || '')}`;
         }
 
-        void openUrl(url);
+        void openUrl(url, { isExternal });
         break;
       }
 
       case 'collection': {
         openNftCollection({ address: nft!.collectionAddress! }, { forceOnHeavyAnimation: true });
+        closeOverlays();
 
         break;
       }
 
       case 'hide': {
         addNftsToBlacklist({ addresses: [nft!.address] });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
@@ -243,14 +255,14 @@ export default function useNftMenu({
 
       case 'unhide': {
         addNftsToWhitelist({ addresses: [nft!.address] });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
 
       case 'burn': {
         burnNfts({ nfts: [nft!] });
-        closeMediaViewer();
+        closeOverlays();
 
         break;
       }
@@ -282,10 +294,12 @@ export default function useNftMenu({
     const isCard = !IS_CORE_WALLET && nft.collectionAddress === MTW_CARDS_COLLECTION;
 
     return compact([
-      isOnSale ? ON_SALE_ITEM : SEND_ITEM,
+      !isViewMode && (isOnSale ? ON_SALE_ITEM : SEND_ITEM),
       !isViewMode && isTonDns && !isOnSale && dnsExpireInDays !== undefined && {
         ...RENEW_ITEM,
-        description: lang('Expires in %1$d days', dnsExpireInDays, 'i') as string,
+        description: dnsExpireInDays < 0
+          ? 'Expired'
+          : lang('$expires_in %days%', { days: lang('$in_days', dnsExpireInDays) }, undefined, 1),
       },
       !isViewMode && isTonDns && !isOnSale && (linkedAddress ? CHANGE_LINKED_ADDRESS : LINK_TO_ADDRESS),
       !IS_CORE_WALLET && ((!isScam && !isNftBlacklisted) || isNftWhitelisted) && HIDE_ITEM,

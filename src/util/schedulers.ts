@@ -1,4 +1,10 @@
+import Deferred from './Deferred';
+
 export type Scheduler = typeof requestAnimationFrame | typeof onTickEnd;
+
+export const pause = (ms: number) => new Promise<void>((resolve) => {
+  setTimeout(() => resolve(), ms);
+});
 
 export function debounce<F extends AnyToVoidFunction>(
   fn: F,
@@ -16,7 +22,6 @@ export function debounce<F extends AnyToVoidFunction>(
       fn(...args);
     }
 
-    // eslint-disable-next-line no-restricted-globals
     waitingTimeout = self.setTimeout(() => {
       if (shouldRunLast) {
         fn(...args);
@@ -27,37 +32,50 @@ export function debounce<F extends AnyToVoidFunction>(
   };
 }
 
-export function throttle<F extends AnyToVoidFunction>(
+/**
+ * An important feature of this throttle implementation is that it waits for `fn` to finish before scheduling the new
+ * execution. That is, `fn` never gets executed in parallel with itself.
+ */
+export function throttle<F extends AnyFunction>(
   fn: F,
   ms: number,
   shouldRunFirst = true,
 ) {
-  let interval: number | undefined;
-  let isPending: boolean;
-  let args: Parameters<F>;
+  let args: Parameters<F> | undefined;
+  let isRunning = false;
+
+  async function scheduleFn() {
+    await pause(ms);
+    void runFn();
+  }
+
+  async function runFn() {
+    if (!args) {
+      isRunning = false;
+      return;
+    }
+
+    try {
+      const localArgs = args;
+      args = undefined;
+      await fn(...localArgs);
+    } finally {
+      // Voiding the promise to let the error produced by `fn` be thrown immediately
+      void scheduleFn();
+    }
+  }
 
   return (..._args: Parameters<F>) => {
-    isPending = true;
     args = _args;
 
-    if (!interval) {
+    if (!isRunning) {
+      isRunning = true;
+
       if (shouldRunFirst) {
-        isPending = false;
-        fn(...args);
+        void runFn();
+      } else {
+        void scheduleFn();
       }
-
-      // eslint-disable-next-line no-restricted-globals
-      interval = self.setInterval(() => {
-        if (!isPending) {
-          // eslint-disable-next-line no-restricted-globals
-          self.clearInterval(interval!);
-          interval = undefined;
-          return;
-        }
-
-        isPending = false;
-        fn(...args);
-      }, ms);
     }
   };
 }
@@ -83,10 +101,6 @@ export function throttleWith<F extends AnyToVoidFunction>(schedulerFn: Scheduler
     }
   };
 }
-
-export const pause = (ms: number) => new Promise<void>((resolve) => {
-  setTimeout(() => resolve(), ms);
-});
 
 export function rafPromise() {
   return new Promise<void>((resolve) => {
@@ -171,7 +185,6 @@ const IDLE_TIMEOUT = 500;
 let onIdleCallbacks: NoneToVoidFunction[] | undefined;
 
 export function onIdle(callback: NoneToVoidFunction) {
-  // eslint-disable-next-line no-restricted-globals
   if (!self.requestIdleCallback) {
     onTickEnd(callback);
     return;
@@ -210,7 +223,7 @@ let beforeUnloadCallbacks: NoneToVoidFunction[] | undefined;
 export function onBeforeUnload(callback: NoneToVoidFunction, isLast = false) {
   if (!beforeUnloadCallbacks) {
     beforeUnloadCallbacks = [];
-    // eslint-disable-next-line no-restricted-globals
+
     self.addEventListener('beforeunload', () => {
       beforeUnloadCallbacks!.forEach((cb) => cb());
     });
@@ -239,4 +252,55 @@ export async function waitFor(cb: () => boolean, interval: number, attempts: num
   }
 
   return result;
+}
+
+export function setCancellableTimeout(ms: number, cb: NoneToVoidFunction) {
+  const timeoutId = setTimeout(cb, ms);
+  return () => clearTimeout(timeoutId);
+}
+
+/**
+ * Returns a function that executes every given functions (tasks) with limited concurrency (not more than
+ * `maxConcurrency` at a time). The tasks are executed in the same order that they are given. Unlike throttle, executes
+ * every given task.
+ */
+export function createTaskQueue(maxConcurrency = 1) {
+  const queue: AnyAsyncFunction[] = [];
+  let concurrency = 0;
+
+  const runTasks = async () => {
+    concurrency++;
+    while (queue.length) {
+      const task = queue.shift()!;
+      await task(); // Expected never to throw, because the errors are caught below
+    }
+    concurrency--;
+  };
+
+  /** Schedules execution of the given function right now. The returned promise settles with the task result. */
+  const run = <T>(task: () => MaybePromise<T>): Promise<T> => {
+    const deferred = new Deferred<T>();
+    queue.push(async () => {
+      try {
+        deferred.resolve(await task());
+      } catch (err) {
+        deferred.reject(err);
+      }
+    });
+
+    if (concurrency < maxConcurrency) {
+      void runTasks();
+    }
+
+    return deferred.promise;
+  };
+
+  /** Returns the same task function, but with limited concurrency */
+  const wrap = <Args extends unknown[], Return>(
+    task: (...args: Args) => MaybePromise<Return>,
+  ): (...args: Args) => Promise<Return> => {
+    return (...args: Args) => run(() => task(...args));
+  };
+
+  return { run, wrap };
 }

@@ -18,7 +18,6 @@ import {
   selectAccountStakingStatesBySlug,
   selectCurrentAccountState,
   selectCurrentDappTransferTotals,
-  selectCurrentToncoinBalance,
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -36,8 +35,11 @@ import Activity from '../main/sections/Content/Activity';
 import Button from '../ui/Button';
 import FeeLine from '../ui/FeeLine';
 import IconWithTooltip from '../ui/IconWithTooltip';
+import ModalHeader from '../ui/ModalHeader';
+import Transition from '../ui/Transition';
 import DappAmountField from './DappAmountField';
-import DappInfo from './DappInfo';
+import DappInfoWithAccount from './DappInfoWithAccount';
+import DappSkeletonWithContent, { type DappSkeletonRow } from './DappSkeletonWithContent';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
@@ -49,7 +51,6 @@ interface OwnProps {
 }
 
 interface StateProps {
-  toncoinBalance: bigint;
   transactions?: ApiDappTransfer[];
   totalAmountsBySlug: Record<string, bigint>;
   emulation?: Pick<ApiEmulationResult, 'activities' | 'realFee'>;
@@ -75,8 +76,12 @@ interface SortedDappTransfer extends ApiDappTransfer {
 
 const NFT_FAKE_COST_USD = 1_000_000_000;
 
+const skeletonRows: DappSkeletonRow[] = [
+  { isLarge: false, hasFee: false },
+  { isLarge: true, hasFee: true },
+];
+
 function DappTransferInitial({
-  toncoinBalance,
   transactions,
   totalAmountsBySlug,
   emulation,
@@ -95,7 +100,7 @@ function DappTransferInitial({
   accounts,
   onClose,
 }: OwnProps & StateProps) {
-  const { showDappTransfer, submitDappTransferConfirm } = getActions();
+  const { closeDappTransfer, showDappTransferTransaction, submitDappTransferConfirm } = getActions();
 
   const lang = useLang();
   const appTheme = useAppTheme(theme);
@@ -104,21 +109,33 @@ function DappTransferInitial({
     () => sortTransactions(renderingTransactions, tokensBySlug),
     [renderingTransactions, tokensBySlug],
   );
+  const isDappLoading = dapp === undefined;
 
-  function renderDapp() {
+  function renderContent() {
     return (
-      <div className={styles.transactionDirection}>
-        <div className={styles.transactionAccount}>
-          <div className={styles.accountTitle}>{accounts?.[currentAccountId]?.title}</div>
-          <div className={styles.accountBalance}>{formatCurrency(toDecimal(toncoinBalance), TONCOIN.symbol)}</div>
-        </div>
+      <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
+        <DappInfoWithAccount dapp={dapp} />
+        {isDangerous && (
+          <div className={buildClassName(styles.transferWarning, styles.warningForPayload)}>
+            {renderText(lang('$hardware_payload_warning'))}
+          </div>
+        )}
+        {renderTransactions()}
+        {renderEmulation()}
 
-        <DappInfo
-          iconUrl={dapp?.iconUrl}
-          name={dapp?.name}
-          url={dapp?.url}
-          className={styles.transactionDapp}
-        />
+        <div className={buildClassName(modalStyles.buttons, styles.transferButtons)}>
+          <Button className={modalStyles.button} onClick={onClose}>{lang('Cancel')}</Button>
+          <Button
+            isPrimary
+            isSubmit
+            isLoading={isLoading}
+            isDisabled={isScam}
+            className={modalStyles.button}
+            onClick={!isScam ? submitDappTransferConfirm : undefined}
+          >
+            {lang('Send')}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -144,7 +161,7 @@ function DappTransferInitial({
       <div
         key={transaction.index}
         className={styles.transactionRow}
-        onClick={() => showDappTransfer({ transactionIdx: transaction.index })}
+        onClick={() => showDappTransferTransaction({ transactionIdx: transaction.index })}
       >
         {transaction.isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         <span className={buildClassName(styles.transactionRowAmount, transaction.isScam && styles.scam)}>
@@ -201,7 +218,7 @@ function DappTransferInitial({
               key={activity.id}
               activity={activity}
               isFuture
-              isLast={index === activities!.length - 1}
+              isLast={index === activities.length - 1}
               tokensBySlug={tokensBySlug}
               swapTokensBySlug={swapTokensBySlug}
               appTheme={appTheme}
@@ -226,30 +243,13 @@ function DappTransferInitial({
   }
 
   return (
-    <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
-      {renderDapp()}
-      {isDangerous && (
-        <div className={buildClassName(styles.transferWarning, styles.warningForPayload)}>
-          {renderText(lang('$hardware_payload_warning'))}
-        </div>
-      )}
-      {renderTransactions()}
-      {renderEmulation()}
-
-      <div className={buildClassName(modalStyles.buttons, styles.transferButtons)}>
-        <Button className={modalStyles.button} onClick={onClose}>{lang('Cancel')}</Button>
-        <Button
-          isPrimary
-          isSubmit
-          isLoading={isLoading}
-          isDisabled={isScam}
-          className={modalStyles.button}
-          onClick={!isScam ? submitDappTransferConfirm : undefined}
-        >
-          {lang('Send')}
-        </Button>
-      </div>
-    </div>
+    <Transition name="semiFade" activeKey={isDappLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
+      <ModalHeader
+        title={lang(isNftTransferPayload(renderingTransactions?.[0]?.payload) ? 'Send NFT' : 'Send Transaction')}
+        onClose={closeDappTransfer}
+      />
+      {isDappLoading ? <DappSkeletonWithContent rows={skeletonRows} /> : renderContent()}
+    </Transition>
   );
 }
 
@@ -268,7 +268,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   } = selectCurrentDappTransferTotals(global);
 
   return {
-    toncoinBalance: selectCurrentToncoinBalance(global),
     transactions,
     totalAmountsBySlug,
     emulation,

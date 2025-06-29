@@ -8,7 +8,7 @@ import { stopEvent } from '../../util/domEvents';
 import { shortenAddress } from '../../util/shortenAddress';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
-import styles from './Transfer.module.scss';
+import styles from '../transfer/Transfer.module.scss';
 
 interface OwnProps {
   address: string;
@@ -31,7 +31,9 @@ function AddressBookItem({
   onClick,
   onDeleteClick,
 }: OwnProps) {
-  const handleClick = () => { onClick(address); };
+  const handleClick = () => {
+    onClick(address);
+  };
 
   const handleDeleteClick = (e: MouseEvent) => {
     stopEvent(e);

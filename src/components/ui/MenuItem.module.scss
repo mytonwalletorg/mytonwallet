@@ -7,6 +7,7 @@
 
   width: 100%;
   padding: 0.75rem 1rem;
+  border: none !important;
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -16,7 +17,6 @@
   white-space: nowrap;
 
   background: none;
-  border: none !important;
   outline: none !important;
   box-shadow: none !important;
 
@@ -24,7 +24,6 @@
 
   @media (pointer: coarse) {
     padding: 0.875rem 1rem;
-
     font-size: 1rem;
   }
 
@@ -33,7 +32,6 @@
     &:focus-visible {
       color: var(--color-accent);
       text-decoration: none;
-
       background-color: var(--color-interactive-popup-menu-hover);
     }
   }
@@ -42,7 +40,6 @@
     &:active {
       color: var(--color-accent);
       text-decoration: none;
-
       background-color: var(--color-interactive-popup-menu-hover);
     }
   }

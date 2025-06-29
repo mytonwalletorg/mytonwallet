@@ -13,7 +13,8 @@ export default {
   removeItem: (name: StorageKey) => idb.del(name, store),
   clear: () => idb.clear(store),
   getAll: async () => {
-    const keys = await idb.keys(store) as string[];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const keys = (await idb.keys(store)) as string[];
     const values = await idb.getMany(keys, store);
     return fromKeyValueArrays(keys, values);
   },

@@ -43,8 +43,7 @@ export function useDappBridge({
 }: OwnProps) {
   const { openLoadingOverlay, closeLoadingOverlay } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const inAppBrowserRef = useRef<CustomInAppBrowserObject>(null);
+  const inAppBrowserRef = useRef<CustomInAppBrowserObject>();
   const [requestId, setRequestId] = useState(0);
   const origin = useMemo(() => {
     return endpoint ? new URL(endpoint).origin.toLowerCase() : undefined;
@@ -194,14 +193,16 @@ export function useDappBridge({
               return callResponse!;
             }
 
-            default:
+            default: {
+              const anyRequest = request;
               return {
                 error: {
                   code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                  message: `Method "${request!.method}" is not supported`,
+                  message: `Method "${anyRequest.method}" is not supported`,
                 },
-                id: request!.id.toString(),
+                id: anyRequest.id.toString(),
               };
+            }
           }
         } catch (err: any) {
           logDebugError('useDAppBridge:send', err);
@@ -212,7 +213,7 @@ export function useDappBridge({
               code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR,
               message: err?.message,
             },
-            id: request!.id.toString(),
+            id: request.id.toString(),
           };
         }
       },

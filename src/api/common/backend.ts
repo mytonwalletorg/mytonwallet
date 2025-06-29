@@ -52,7 +52,7 @@ export function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers
   });
 }
 
-function getBackendHeaders() {
+export function getBackendHeaders() {
   return {
     ...getEnvironment().apiHeaders,
     'X-App-Version': APP_VERSION,

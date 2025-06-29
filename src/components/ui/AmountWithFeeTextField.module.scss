@@ -7,6 +7,8 @@
   box-sizing: border-box;
   margin-bottom: 1.25rem;
   padding: 0.875rem 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-default);
 
   font-size: 1rem;
   font-weight: 600;
@@ -16,14 +18,11 @@
   word-break: break-all;
 
   background: var(--color-background-first);
-  border: none;
-  border-radius: var(--border-radius-default);
   outline: none;
 }
 
 .suffix {
   margin-left: 0.25rem;
-
   color: var(--color-gray-3);
 }
 
@@ -47,6 +46,5 @@
 .feeConfirm {
   margin-left: auto;
   padding-left: 1rem;
-
   color: var(--color-gray-3);
 }

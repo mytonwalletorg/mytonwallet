@@ -6,12 +6,11 @@ import { ContentTab } from '../../../../global/types';
 import { IS_CORE_WALLET } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { createSignal } from '../../../../util/signals';
 
 import useEffectOnce from '../../../../hooks/useEffectOnce';
+import { getIsBottomBarHidden, subscribeToBottomBarVisibility } from '../../../../hooks/useHideBottomBar';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
-import useLastCallback from '../../../../hooks/useLastCallback';
 
 import Button from '../../../ui/Button';
 
@@ -23,63 +22,22 @@ interface StateProps {
   isExploreOpen?: boolean;
 }
 
-const [getHideCounter, setHideCounter] = createSignal(0);
-
-export function hideBottomBar() {
-  const currentCounter = getHideCounter();
-  setHideCounter(currentCounter + 1);
-}
-
-export function showBottomBar() {
-  const currentCounter = getHideCounter();
-  setHideCounter(Math.max(0, currentCounter - 1));
-}
-
-function getIsBottomBarHidden() {
-  return getHideCounter() > 0;
-}
-
 function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StateProps) {
-  const {
-    openSettings, closeSettings, setActiveContentTab, closeSiteCategory, selectToken, openExplore, closeExplore,
-  } = getActions();
+  const { switchToWallet, switchToExplore, switchToSettings } = getActions();
+
   const lang = useLang();
   const [isHidden, setIsHidden] = useState(getIsBottomBarHidden());
   const isWalletTabActive = !isExploreOpen && !areSettingsOpen;
 
   useEffectOnce(() => {
-    return getHideCounter.subscribe(() => {
+    return subscribeToBottomBarVisibility(() => {
       setIsHidden(getIsBottomBarHidden());
     });
   });
 
-  const handleWalletClick = useLastCallback(() => {
-    closeExplore(undefined, { forceOnHeavyAnimation: true });
-    closeSettings(undefined, { forceOnHeavyAnimation: true });
-
-    if (!areAssetsActive && isWalletTabActive) {
-      selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
-      setActiveContentTab({ tab: ContentTab.Assets }, { forceOnHeavyAnimation: true });
-    }
-  });
-
-  const handleExploreClick = useLastCallback(() => {
-    if (isExploreOpen) {
-      closeSiteCategory(undefined, { forceOnHeavyAnimation: true });
-    }
-
-    closeSettings(undefined, { forceOnHeavyAnimation: true });
-    openExplore(undefined, { forceOnHeavyAnimation: true });
-  });
-
-  const handleSettingsClick = useLastCallback(() => {
-    closeExplore(undefined, { forceOnHeavyAnimation: true });
-    openSettings(undefined, { forceOnHeavyAnimation: true });
-  });
-
   useHistoryBack({
     isActive: isExploreOpen,
-    onBack: handleWalletClick,
+    onBack: switchToWallet,
   });
 
   return (
@@ -87,7 +45,7 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
       <Button
         isSimple
         className={buildClassName(styles.button, isWalletTabActive && styles.active)}
-        onClick={handleWalletClick}
+        onClick={switchToWallet}
       >
         <i className={buildClassName(styles.icon, 'icon-wallet')} />
         <span className={styles.label}>{lang('Wallet')}</span>
@@ -96,7 +54,7 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
         <Button
           isSimple
           className={buildClassName(styles.button, isExploreOpen && styles.active)}
-          onClick={handleExploreClick}
+          onClick={switchToExplore}
         >
           <i className={buildClassName(styles.icon, 'icon-explore')} />
           <span className={styles.label}>{lang('Explore')}</span>
@@ -105,7 +63,7 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
       <Button
         isSimple
         className={buildClassName(styles.button, areSettingsOpen && styles.active)}
-        onClick={handleSettingsClick}
+        onClick={switchToSettings}
       >
         <i className={buildClassName(styles.icon, 'icon-settings')} />
         <span className={styles.label}>{lang('Settings')}</span>

@@ -4,6 +4,7 @@ import { getActions } from '../../global';
 import type { ApiSite, ApiSiteCategory } from '../../api/types';
 
 import buildClassName from '../../util/buildClassName';
+import { stopEvent } from '../../util/domEvents';
 import { openUrl } from '../../util/openUrl';
 import { getHostnameFromUrl } from '../../util/url';
 
@@ -48,13 +49,18 @@ function Category({ category, sites }: OwnProps) {
         {lang(category.name)}
       </h3>
 
-      <div className={styles.folder}>
+      <div
+        className={buildClassName(styles.folder, smallSites.length > 0 && styles.interactive)}
+        onClick={smallSites.length > 0 ? handleCategoryClick : undefined}
+      >
         {bigSites.map((site) => (
           <button
             key={`${site.url}-${site.name}`}
             type="button"
             className={buildClassName(styles.site, styles.scalable)}
-            onClick={() => {
+            onClick={(e: React.MouseEvent) => {
+              stopEvent(e);
+
               void openUrl(
                 site.url, { isExternal: site.isExternal, title: site.name, subtitle: getHostnameFromUrl(site.url) },
               );
@@ -68,7 +74,7 @@ function Category({ category, sites }: OwnProps) {
           </button>
         ))}
         {smallSites.length > 0 && (
-          <div className={buildClassName(styles.subfolder, styles.scalable)} onClick={handleCategoryClick}>
+          <div className={buildClassName(styles.subfolder, styles.scalable)}>
             {smallSites.map((site) => (
               <Image
                 key={`${site.url}-${site.name}`}

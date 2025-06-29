@@ -83,8 +83,7 @@ function SensitiveDataMask({
   className,
   theme,
 }: OwnProps & StateProps) {
-  // eslint-disable-next-line no-null/no-null
-  let canvasRef = useRef<HTMLCanvasElement>(null);
+  let canvasRef = useRef<HTMLCanvasElement>();
   if (ref) {
     canvasRef = ref;
   }

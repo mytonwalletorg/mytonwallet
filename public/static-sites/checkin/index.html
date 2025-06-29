@@ -12,51 +12,26 @@
 <body>
 <div class="container">
   <div id="slide-container">
-    <div id="checkin" class="slide">
+    <div id="checkin" class="slide faded">
       <a href="#" target="_blank" id="checkin-btn" class="download-btn disabled animate-opacity">Checking In...</a>
     </div>
     <div id="cf-turnstile" class="slide faded">Loading...</div>
     <div id="error" class="slide faded"></div>
     <div id="processing" class="slide faded">Loading...</div>
-    <div id="ref-container" class="slide faded">
-      <div>
-        <b>Your referral link</b>
-      </div>
-      <div id="ref-link-container">
-        <a href="about:blank" target="_blank" class="gradient-text mono animate-opacity">my.tt/r/</a>
-        <div>
-          <a href="about:blank" id="copy-btn" class="download-btn hidden animate-opacity">
-            Copy
-          </a>
-          <a href="about:blank" id="share-btn" class="download-btn hidden animate-opacity">
-            Share
-          </a>
-        </div>
-      </div>
-      <div id="join-giveaway">
-        <a href="https://t.me/community_bot/join?startapp=id_411" target="_blank" class="gradient-text">
-          Join the giveaway
-        </a> on <b>Community Bot</b>.
-      </div>
+    <div id="tron" class="slide faded">
+      <p>If you made a deposit using the TRON network, please <b>enter your TRON address</b> below to receive your reward.</p>
+      <p>If your deposit was made via the TON network, you don’t need to enter an address — <b>just press “Continue” to submit.</b></p>
+      <input type="text" id="tron-address" placeholder="TRON address">
+      <a href="#" id="tron-btn" class="download-btn animate-opacity">Continue</a>
     </div>
-    <div id="connect-bot" class="slide faded">
+    <div id="success" class="slide faded">
       <div>
-        <a href="#" target="_blank" id="connect-bot-btn" class="download-btn">Connect MyTonWallet Bot</a>
-        <p class="caption">
-          After connecting, close this window
-          <br />to return to MyTonWallet.
-        </p>
+        <p><b>Thank you for completing the MyTonWallet Quest at NFC Summit!</b></p>
+        <p>We’re really glad you decided to try out our wallet — hope you’ll enjoy using it!</p>
+        <p>Rewards will be distributed after the event has fully concluded.</p>
       </div>
     </div>
   </div>
-</div>
-<a href="#" id="show-referral-stats" class="white-link faded animate-opacity">Show referral stats</a>
-<div id="referral-stats" class="container hidden faded animate-opacity">
-  <p>
-    <b>Referral stats</b>
-  </p>
-  <p>Invited me: <b id="invited-me" class="gradient-text mono">…</b></p>
-  <p>Invited by me: <b id="invited-by-me" class="gradient-text">…</b></p>
 </div>
 <script src="./checkin.js"></script>
 </body>

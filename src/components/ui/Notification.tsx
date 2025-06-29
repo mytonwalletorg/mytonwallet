@@ -28,8 +28,7 @@ const Notification: FC<OwnProps> = ({
   icon, message, containerId, onDismiss,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
-  // eslint-disable-next-line no-null/no-null
-  const timerRef = useRef<number | undefined>(null);
+  const timerRef = useRef<number | undefined>();
 
   const { ref } = useShowTransition({ isOpen });
 

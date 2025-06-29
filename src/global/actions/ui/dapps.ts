@@ -1,25 +1,24 @@
-import { TransferState } from '../../types';
+import { SignDataState, TransferState } from '../../types';
 
 import { BROWSER_HISTORY_LIMIT } from '../../../config';
 import { getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { unique } from '../../../util/iteratees';
-import { callActionInMain } from '../../../util/multitab';
-import { openUrl } from '../../../util/openUrl';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
-import { closeAllOverlays } from '../../helpers/misc';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
-  clearDappConnectRequestError, updateCurrentAccountState, updateCurrentDappTransfer,
+  clearDappConnectRequestError,
+  resetHardware,
+  updateCurrentAccountState,
+  updateCurrentDappSignData,
+  updateCurrentDappTransfer,
 } from '../../reducers';
 import { selectCurrentAccountState, selectIsHardwareAccount } from '../../selectors';
-import { switchAccount } from '../api/auth';
 
 addActionHandler('clearDappConnectRequestError', (global) => {
   global = clearDappConnectRequestError(global);
   setGlobal(global);
 });
 
-addActionHandler('showDappTransfer', (global, actions, payload) => {
+addActionHandler('showDappTransferTransaction', (global, actions, payload) => {
   const { transactionIdx } = payload;
 
   global = updateCurrentDappTransfer(global, {
@@ -42,13 +41,13 @@ addActionHandler('submitDappTransferConfirm', async (global, actions) => {
   global = getGlobal();
 
   if (selectIsHardwareAccount(global)) {
-    actions.resetHardwareWalletConnect();
-    global = updateCurrentDappTransfer(getGlobal(), { state: TransferState.ConnectHardware });
+    global = resetHardware(global);
+    global = updateCurrentDappTransfer(global, { state: TransferState.ConnectHardware });
     setGlobal(global);
   } else if (inMemoryPassword) {
     global = updateCurrentDappTransfer(global, { isLoading: true });
     setGlobal(global);
-    await actions.submitDappTransferPassword({ password: inMemoryPassword });
+    actions.submitDappTransferPassword({ password: inMemoryPassword });
   } else {
     global = updateCurrentDappTransfer(global, { state: TransferState.Password });
     setGlobal(global);
@@ -124,19 +123,36 @@ addActionHandler('closeSiteCategory', (global) => {
   return updateCurrentAccountState(global, { currentSiteCategoryId: undefined });
 });
 
-addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('switchAccountAndOpenUrl', payload);
-    return;
+addActionHandler('closeDappTransfer', (global) => {
+  global = updateCurrentDappTransfer(global, { state: TransferState.None });
+  setGlobal(global);
+});
+
+addActionHandler('setDappSignDataScreen', (global, actions, payload) => {
+  const { state } = payload;
+
+  return updateCurrentDappSignData(global, { state });
+});
+
+addActionHandler('submitDappSignDataConfirm', async (global, actions) => {
+  const inMemoryPassword = await getInMemoryPassword();
+
+  global = getGlobal();
+
+  if (inMemoryPassword) {
+    global = updateCurrentDappSignData(global, { isLoading: true });
+    setGlobal(global);
+    actions.submitDappSignDataPassword({ password: inMemoryPassword });
+  } else {
+    global = updateCurrentDappSignData(global, { state: SignDataState.Password });
+    setGlobal(global);
   }
+});
 
-  await Promise.all([
-    // The browser is closed before opening the new URL, because otherwise the browser won't apply the new
-    // parameters from `payload`. It's important to wait for `closeAllOverlays` to finish, because until the in-app
-    // browser is closed, it won't open again.
-    closeAllOverlays(),
-    payload.accountId && switchAccount(global, payload.accountId, payload.network),
-  ]);
+addActionHandler('clearDappSignDataError', (global) => {
+  return updateCurrentDappSignData(global, { error: undefined });
+});
 
-  await openUrl(payload.url, payload);
+addActionHandler('closeDappSignData', (global) => {
+  return updateCurrentDappSignData(global, { state: SignDataState.None });
 });

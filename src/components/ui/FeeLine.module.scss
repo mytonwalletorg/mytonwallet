@@ -18,11 +18,8 @@
 
 .details {
   cursor: var(--custom-cursor, pointer);
-
   color: var(--color-accent);
-
   opacity: 0.85;
-
   transition: color 150ms;
 
   &:active {

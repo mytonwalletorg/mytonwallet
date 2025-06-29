@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiStakingHistory, ApiStakingState, ApiTokenWithPrice } from '../../api/types';
-import type { GlobalState, Theme, UserToken } from '../../global/types';
+import type { Theme, UserToken } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
@@ -12,7 +12,6 @@ import {
   SHORT_FRACTION_DIGITS,
   TONCOIN,
 } from '../../config';
-import { buildStakingDropdownItems, getStakingStateStatus } from '../../global/helpers/staking';
 import {
   selectAccountStakingHistory,
   selectAccountStakingState,
@@ -27,8 +26,9 @@ import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { openUrl } from '../../util/openUrl';
-import { getUnstakeTime } from '../../util/staking';
+import { getStakingStateStatus, getUnstakeTime } from '../../util/staking';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { buildStakingDropdownItems } from './helpers/buildStakingDropdownItems';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useForceUpdate from '../../hooks/useForceUpdate';
@@ -60,7 +60,6 @@ interface StateProps {
   isViewMode: boolean;
   states?: ApiStakingState[];
   stakingState?: ApiStakingState;
-  stakingInfo?: GlobalState['stakingInfo'];
   totalProfit: bigint;
   stakingHistory?: ApiStakingHistory;
   tokens?: UserToken[];
@@ -77,7 +76,6 @@ const FRACTION_DIGITS = 2;
 function StakingInfoContent({
   states,
   stakingState,
-  stakingInfo,
   isActive,
   isStatic,
   totalProfit,
@@ -107,7 +105,7 @@ function StakingInfoContent({
     type: stakingType,
   } = stakingState ?? {};
 
-  const unstakeTime = getUnstakeTime(stakingState, stakingInfo);
+  const unstakeTime = getUnstakeTime(stakingState);
   const canBeClaimed = stakingState ? getStakingStateStatus(stakingState) === 'readyToClaim' : undefined;
 
   const token = useMemo(() => {
@@ -126,7 +124,7 @@ function StakingInfoContent({
     isOpen: isLoading && isActive,
     withShouldRender: true,
   });
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug)!, [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens])!;
   const forceUpdate = useForceUpdate();
   const { height } = useWindowSize();
   const appTheme = useAppTheme(theme);
@@ -364,11 +362,13 @@ function StakingInfoContent({
                 />
                 {stakingType === 'ethena' && !canBeClaimed && !!unstakeRequestAmount && renderUnstakeDescription()}
                 {!isViewMode && (
-                  <div className={buildClassName(
-                    styles.stakingInfoButtons,
-                    stakingType === 'ethena' && styles.stakingInfoButtonsAdaptiveWidth,
-                    !!unclaimedRewards && styles.stakingInfoButtonsWithMargin,
-                  )}>
+                  <div
+                    className={buildClassName(
+                      styles.stakingInfoButtons,
+                      stakingType === 'ethena' && styles.stakingInfoButtonsAdaptiveWidth,
+                      !!unclaimedRewards && styles.stakingInfoButtonsWithMargin,
+                    )}
+                  >
                     <Button
                       className={styles.stakingInfoButton}
                       isPrimary
@@ -395,7 +395,7 @@ function StakingInfoContent({
                         {lang('Unstake %amount%', {
                           amount: isSensitiveDataHidden
                             ? `*** ${symbol}`
-                            : formatCurrency(toDecimal(unstakeRequestAmount!, decimals!), symbol!, FRACTION_DIGITS),
+                            : formatCurrency(toDecimal(unstakeRequestAmount!, decimals), symbol!, FRACTION_DIGITS),
                         })}
                       </Button>
                     )}
@@ -435,7 +435,6 @@ function StakingInfoContent({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountId = global.currentAccountId;
   const {
-    stakingInfo,
     settings: { theme, isSensitiveDataHidden },
     tokenInfo: { bySlug: tokenBySlug },
   } = global;
@@ -450,7 +449,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
     stakingState,
     states,
-    stakingInfo,
     totalProfit,
     stakingHistory,
     tokens: selectCurrentAccountTokens(global),

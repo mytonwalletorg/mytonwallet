@@ -1,4 +1,4 @@
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 .root {
   position: fixed;
@@ -43,7 +43,6 @@
 
   &:global(.open) {
     pointer-events: auto;
-
     opacity: 1;
   }
 
@@ -51,7 +50,7 @@
     padding-top: var(--safe-area-top);
   }
 
-  @include respond-below(xs) {
+  @include mixins.respond-below(xs) {
     // Fix for opera, dead zone of 37 pixels in extension window on windows
     :global(html.is-windows.is-opera.is-extension) & {
       padding-top: 1rem !important;
@@ -98,7 +97,6 @@
 
 .menuButton {
   position: static;
-
   grid-area: menu;
   justify-self: end;
 
@@ -133,7 +131,6 @@
 .iconCaretFraction {
   position: relative;
   top: 0.0625rem;
-
   color: var(--second-text, var(--color-card-second-text));
 }
 

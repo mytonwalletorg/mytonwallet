@@ -2,7 +2,7 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
-import type { HardwareConnectState, UserToken } from '../../global/types';
+import type { UserToken } from '../../global/types';
 import { VestingUnfreezeState } from '../../global/types';
 
 import { CLAIM_AMOUNT, TONCOIN } from '../../config';
@@ -46,9 +46,6 @@ interface StateProps {
   error?: string;
   state?: VestingUnfreezeState;
   mycoin?: ApiTokenWithPrice;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isHardwareAccount?: boolean;
   isMultichainAccount: boolean;
 }
@@ -61,9 +58,6 @@ function VestingPasswordModal({
   error,
   mycoin,
   state = VestingUnfreezeState.Password,
-  hardwareState,
-  isLedgerConnected,
-  isTonAppConnected,
   isHardwareAccount,
   isMultichainAccount,
 }: StateProps) {
@@ -125,16 +119,12 @@ function VestingPasswordModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: VestingUnfreezeState) {
     switch (currentKey) {
       case VestingUnfreezeState.ConnectHardware:
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareSubmit}
             onClose={cancelClaimingVesting}
           />
@@ -207,12 +197,6 @@ export default memo(withGlobal((global): StateProps => {
   } = accountState?.vesting || {};
   const tokens = selectCurrentAccountTokens(global);
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     isOpen,
     vesting,
@@ -222,9 +206,6 @@ export default memo(withGlobal((global): StateProps => {
     address: addressByChain?.ton,
     state: unfreezeState,
     mycoin: selectMycoin(global),
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isHardwareAccount,
     isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };

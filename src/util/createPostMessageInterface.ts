@@ -3,19 +3,24 @@ import type {
   CancellableCallback, OriginMessageData, OriginMessageEvent, WorkerMessageData,
 } from './PostMessageConnector';
 
-import { DETACHED_TAB_URL } from './ledger/tab';
-import { bigintReviver } from './bigint';
 import { logDebugError } from './logs';
+
+import { decodeExtensionMessage, encodeExtensionMessage } from './PostMessageConnector';
 
 declare const self: WorkerGlobalScope;
 
 const callbackState = new Map<string, CancellableCallback>();
 
 type ApiConfig =
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   ((name: string, ...args: any[]) => any | [any, ArrayBuffer[]])
-  | Record<string, Function>;
+  | Record<string, AnyFunction>;
 type SendToOrigin = (data: WorkerMessageData, transferables?: Transferable[]) => void;
 
+/**
+ * Provides functions, defined in this messenger (a window, a worker), to another messenger.
+ * The other messenger can call the functions using `createConnector`.
+ */
 export function createPostMessageInterface(
   api: ApiConfig,
   channel?: string,
@@ -43,6 +48,10 @@ export function createPostMessageInterface(
   });
 }
 
+/**
+ * Provides functions, defined in this extension service worker, to a window.
+ * The window can call the functions using `createExtensionConnector`.
+ */
 export function createExtensionInterface(
   portName: string,
   api: ApiConfig,
@@ -55,15 +64,7 @@ export function createExtensionInterface(
       return;
     }
 
-    /**
-     * If the sender's URL includes the DETACHED_TAB_URL, we skip further processing
-     * This condition ensures that we don't interact with tabs that have already been closed.
-     */
     const url = port.sender?.url;
-    if (url?.includes(DETACHED_TAB_URL)) {
-      return;
-    }
-
     const origin = url ? new URL(url).origin : undefined;
 
     const dAppUpdater = (update: ApiUpdate) => {
@@ -75,16 +76,13 @@ export function createExtensionInterface(
 
     function sendToOrigin(data: WorkerMessageData) {
       data.channel = channel;
-      const json = JSON.stringify(data);
-      port.postMessage(json);
+      port.postMessage(encodeExtensionMessage(data));
     }
 
     handleErrors(sendToOrigin);
 
     port.onMessage.addListener((data: OriginMessageData | string) => {
-      if (typeof data === 'string') {
-        data = JSON.parse(data, bigintReviver) as OriginMessageData;
-      }
+      data = decodeExtensionMessage(data);
       if (data.channel === channel) {
         void onMessage(api, data, sendToOrigin, dAppUpdater, origin);
       }
@@ -95,9 +93,40 @@ export function createExtensionInterface(
     });
 
     if (withAutoInit) {
-      void onMessage(api, { type: 'init', name: 'init', args: [] }, sendToOrigin, dAppUpdater);
+      void onMessage(api, { type: 'init', args: [] }, sendToOrigin, dAppUpdater);
     }
   });
+}
+
+/**
+ * Provides functions, defined in this window, to the extension service worker.
+ * The service worker can call the functions using `createReverseExtensionConnector`.
+ */
+export function createReverseExtensionInterface(
+  portName: string,
+  api: ApiConfig,
+) {
+  let port: chrome.runtime.Port;
+
+  function sendToServiceWorker(data: WorkerMessageData) {
+    port.postMessage(encodeExtensionMessage(data));
+  }
+
+  function connect() {
+    port = chrome.runtime.connect({ name: portName });
+
+    port.onMessage.addListener((data: OriginMessageData | string) => {
+      data = decodeExtensionMessage(data);
+      void onMessage(api, data, sendToServiceWorker);
+    });
+
+    // For some reason port can suddenly get disconnected
+    port.onDisconnect.addListener(() => {
+      connect();
+    });
+  }
+
+  connect();
 }
 
 async function onMessage(

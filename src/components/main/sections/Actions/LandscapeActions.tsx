@@ -1,11 +1,9 @@
-import React, {
-  memo, useEffect, useMemo, useRef,
-} from '../../../../lib/teact/teact';
+import React, { type ElementRef, memo, useEffect, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
-import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { Theme } from '../../../../global/types';
+import type { StakingStateStatus } from '../../../../util/staking';
 import { ActiveTab } from '../../../../global/types';
 
 import {
@@ -46,7 +44,7 @@ import WithContextMenu from '../../../ui/WithContextMenu';
 import styles from './LandscapeActions.module.scss';
 
 interface OwnProps {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: ElementRef<HTMLDivElement>;
   stakingStatus: StakingStateStatus;
   isLedger?: boolean;
   theme: Theme;
@@ -227,7 +225,7 @@ function LandscapeActions({
           {({ ref, ...restButtonProps }) => (
             <div
               {...restButtonProps}
-              ref={ref as React.RefObject<HTMLDivElement>}
+              ref={ref as ElementRef<HTMLDivElement>}
               className={buildClassName(
                 styles.tab,
                 activeTabIndex === ActiveTab.Transfer && styles.active,
@@ -351,23 +349,19 @@ function useTabHeightAnimation(
   contentBackgroundClassName?: string,
   isUnstaking = false,
 ) {
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const contentBgRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const contentFooterRef = useRef<HTMLDivElement>(null);
-
+  const transitionRef = useRef<HTMLDivElement>();
+  const contentBgRef = useRef<HTMLDivElement>();
+  const contentFooterRef = useRef<HTMLDivElement>();
   const lastHeightRef = useRef<number>();
 
   const adjustBg = useLastCallback((noTransition = false) => {
     const activeSlideSelector = `.${slideClassName}.${ACTIVE_SLIDE_CLASS_NAME}`;
     const toSlideSelector = `.${slideClassName}.${TO_SLIDE_CLASS_NAME}`;
     const suffix = isUnstaking ? ' .staking-info' : '';
-    // eslint-disable-next-line max-len
+    // eslint-disable-next-line @stylistic/max-len
     const transferQuery = `${activeSlideSelector} .${transferSlideClassName}.${TO_SLIDE_CLASS_NAME}, ${activeSlideSelector} .${transferSlideClassName}.${ACTIVE_SLIDE_CLASS_NAME}`;
     const query = `${toSlideSelector}${suffix}, ${activeSlideSelector}${suffix}`;
-    const slide = transitionRef.current?.querySelector(transferQuery) || transitionRef.current?.querySelector(query)!;
+    const slide = (transitionRef.current?.querySelector(transferQuery) || transitionRef.current?.querySelector(query))!;
     const rect = slide.getBoundingClientRect();
     const shouldRenderWithoutTransition = !lastHeightRef.current || noTransition;
 
@@ -377,7 +371,7 @@ function useTabHeightAnimation(
       if (!contentBgRef.current || !contentFooterRef.current) return;
 
       const contentBgStyle = contentBgRef.current.style;
-      const contentFooterStyle = contentFooterRef.current!.style;
+      const contentFooterStyle = contentFooterRef.current.style;
 
       if (shouldRenderWithoutTransition) {
         contentBgStyle.transition = 'none';

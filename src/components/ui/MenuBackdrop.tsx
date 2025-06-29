@@ -1,15 +1,16 @@
-import React, { memo, useLayoutEffect } from '../../lib/teact/teact';
+import React, { type ElementRef, memo, useLayoutEffect } from '../../lib/teact/teact';
 import { toggleExtraClass } from '../../lib/teact/teact-dom';
 
 import buildClassName from '../../util/buildClassName';
 
 import useShowTransition from '../../hooks/useShowTransition';
+import useToggleClass from '../../hooks/useToggleClass';
 
 import styles from './MenuBackdrop.module.scss';
 
 interface OwnProps {
   isMenuOpen?: boolean;
-  contentRef: React.RefObject<HTMLElement>;
+  contentRef: ElementRef<HTMLElement>;
   contentClassName?: string;
 }
 
@@ -25,13 +26,14 @@ function MenuBackdrop({ isMenuOpen, contentRef, contentClassName }: OwnProps) {
   useLayoutEffect(() => {
     if (!contentRef.current) return;
 
-    toggleExtraClass(document.documentElement, 'with-menu-backdrop', isMenuOpen);
     toggleExtraClass(contentRef.current, styles.wrapperVisible, menuBackdropShouldRender);
     toggleExtraClass(contentRef.current, styles.wrapperHide, menuBackdropShouldRender && !isMenuOpen);
     if (contentClassName) {
       toggleExtraClass(contentRef.current, contentClassName, menuBackdropShouldRender);
     }
   }, [contentClassName, contentRef, isMenuOpen, menuBackdropShouldRender]);
+
+  useToggleClass({ className: 'with-menu-backdrop', isActive: isMenuOpen });
 
   if (!menuBackdropShouldRender) return undefined;
 

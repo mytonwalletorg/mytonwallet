@@ -48,7 +48,7 @@ function TronContent({
 
       <InteractiveTextField
         chain="tron"
-        address={address!}
+        address={address}
         className={isStatic ? styles.copyButtonStatic : styles.addressWrapper}
         copyNotification={lang('Your address was copied!')}
         noSavedAddress

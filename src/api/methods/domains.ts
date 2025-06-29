@@ -28,7 +28,7 @@ export async function submitDnsRenewal(accountId: string, password: string, nfts
     results.push(pick(result, ['msgHashNormalized']));
 
     for (const [index, address] of addresses.entries()) {
-      const nft = nftByAddress[address]!;
+      const nft = nftByAddress[address];
       createLocalTransaction(accountId, 'ton', {
         txId: result.msgHashNormalized,
         amount: 0n,

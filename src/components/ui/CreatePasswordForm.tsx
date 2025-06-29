@@ -9,7 +9,6 @@ import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
-import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
@@ -36,8 +35,7 @@ function CreatePasswordForm({
   const lang = useLang();
   const isMobile = IS_IOS || IS_ANDROID;
 
-  // eslint-disable-next-line no-null/no-null
-  const firstInputRef = useRef<HTMLInputElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>();
 
   const [isJustSubmitted, setIsJustSubmitted] = useState<boolean>(false);
   const [firstPassword, setFirstPassword] = useState<string>('');
@@ -60,8 +58,6 @@ function CreatePasswordForm({
   });
 
   useFocusAfterAnimation(firstInputRef, !isActive);
-
-  useHideBottomBar(Boolean(isActive));
 
   useEffect(() => {
     setIsPasswordsNotEqual(false);

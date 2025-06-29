@@ -22,6 +22,7 @@ import {
 } from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
 import { fetchStoredTonWallet } from '../../common/accounts';
+import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import {
   NFT_PAYLOAD_SAFE_MARGIN,
   NFT_TRANSFER_AMOUNT,
@@ -35,17 +36,19 @@ import { isActiveSmartContract } from './wallet';
 export async function getAccountNfts(accountId: string, offset?: number, limit?: number): Promise<ApiNft[]> {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
-  return compact(rawNfts.map((rawNft) => parseTonapiioNft(network, rawNft)));
+  return compact(rawNfts.map((rawNft) => parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress)));
 }
 
 export async function checkNftOwnership(accountId: string, nftAddress: string) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
-
   const rawNft = await fetchNftByAddress(network, nftAddress);
-  const nft = parseTonapiioNft(network, rawNft);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
+
+  const nft = parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress);
 
   return address === nft?.ownerAddress;
 }
@@ -53,6 +56,7 @@ export async function checkNftOwnership(accountId: string, nftAddress: string) {
 export async function getNftUpdates(accountId: string, fromSec: number) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const events = await fetchAccountEvents(network, address, fromSec);
   fromSec = events[0]?.timestamp ?? fromSec;
@@ -69,11 +73,11 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
       if (action.NftItemTransfer) {
         const { sender, recipient, nft: rawNftAddress } = action.NftItemTransfer;
         if (!sender || !recipient) continue;
-        to = toBase64Address(recipient.address, undefined, network);
+        to = recipient.address;
         nftAddress = toBase64Address(rawNftAddress, true, network);
       } else if (action.NftPurchase) {
         const { buyer } = action.NftPurchase;
-        to = toBase64Address(buyer.address, undefined, network);
+        to = buyer.address;
         rawNft = action.NftPurchase.nft;
         if (!rawNft) {
           continue;
@@ -83,13 +87,13 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         continue;
       }
 
-      if (to === address) {
+      if (Address.parse(to).equals(Address.parse(address))) {
         if (!rawNft) {
           [rawNft] = await fetchNftItems(network, [nftAddress]);
         }
 
         if (rawNft) {
-          const nft = parseTonapiioNft(network, rawNft);
+          const nft = parseTonapiioNft(network, rawNft, nftSuperCollectionsByCollectionAddress);
 
           if (nft) {
             updates.push({
@@ -189,7 +193,6 @@ function buildNftTransferMessage(nft: ApiNft, fromAddress: string, toAddress: st
 }
 
 function buildNotcoinVoucherExchange(fromAddress: string, nftAddress: string, nftIndex: number) {
-  // eslint-disable-next-line no-bitwise
   const first4Bits = Address.parse(nftAddress).hash.readUint8() >> 4;
   const toAddress = NOTCOIN_EXCHANGERS[first4Bits];
 

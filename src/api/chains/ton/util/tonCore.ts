@@ -34,24 +34,24 @@ import { generateQueryId } from './index';
 import { TonClient } from './TonClient';
 
 type TonWalletType = typeof WalletContractV1R1
-| typeof WalletContractV1R2
-| typeof WalletContractV1R3
-| typeof WalletContractV2R1
-| typeof WalletContractV2R2
-| typeof WalletContractV3R1
-| typeof WalletContractV3R2
-| typeof WalletContractV4
-| typeof WalletContractV5R1;
+  | typeof WalletContractV1R2
+  | typeof WalletContractV1R3
+  | typeof WalletContractV2R1
+  | typeof WalletContractV2R2
+  | typeof WalletContractV3R1
+  | typeof WalletContractV3R2
+  | typeof WalletContractV4
+  | typeof WalletContractV5R1;
 
 export type TonWallet = WalletContractV1R1
-| WalletContractV1R2
-| WalletContractV1R3
-| WalletContractV2R1
-| WalletContractV2R2
-| WalletContractV3R1
-| WalletContractV3R2
-| WalletContractV4
-| WalletContractV5R1;
+  | WalletContractV1R2
+  | WalletContractV1R3
+  | WalletContractV2R1
+  | WalletContractV2R2
+  | WalletContractV3R1
+  | WalletContractV3R2
+  | WalletContractV4
+  | WalletContractV5R1;
 
 const TON_MAX_COMMENT_BYTES = 127;
 
@@ -377,6 +377,7 @@ export function buildJettonClaimPayload(poolWallets: string[], queryId?: bigint)
     .endCell();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export function unpackDicts(obj: Record<string, any | Dictionary<any, any>>): AnyLiteral {
   if (!isSimpleObject(obj)) {
     return obj;

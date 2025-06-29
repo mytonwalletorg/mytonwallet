@@ -4,6 +4,7 @@ import type { LangFn } from '../../hooks/useLang';
 
 import buildClassName from '../../util/buildClassName';
 import { SECOND } from '../../util/dateFormat';
+import { setCancellableTimeout } from '../../util/schedulers';
 
 import useLang from '../../hooks/useLang';
 
@@ -28,17 +29,17 @@ function Countdown({
   const shouldShowWarning = secondsLeft <= WARNING_TIME;
 
   useEffect(() => {
-    const timerId = setTimeout(() => {
+    const clearTimer = setCancellableTimeout(SECOND, () => {
       if (secondsLeft <= 0) return;
 
       setSecondsLeft(Math.floor((timestamp + deadline - Date.now()) / SECOND));
-    }, SECOND);
+    });
 
     if (secondsLeft <= 0) {
       onCompleted?.();
     }
 
-    return () => clearTimeout(timerId);
+    return clearTimer;
   }, [secondsLeft, onCompleted, timestamp, deadline]);
 
   return (

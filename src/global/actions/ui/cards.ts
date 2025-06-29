@@ -5,7 +5,7 @@ import { getAccentColorIndexFromNft } from '../../../util/accentColor';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
-import { updateCurrentAccountSettings, updateMintCards } from '../../reducers';
+import { resetHardware, updateCurrentAccountSettings, updateMintCards } from '../../reducers';
 import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('openMintCardModal', (global): GlobalState => {
@@ -17,12 +17,14 @@ addActionHandler('closeMintCardModal', (global): GlobalState => {
 });
 
 addActionHandler('startCardMinting', (global, action, { type }): GlobalState => {
-  const isHardware = selectIsHardwareAccount(global);
+  if (selectIsHardwareAccount(global)) {
+    global = resetHardware(global);
+    global = updateMintCards(global, { state: MintCardState.ConnectHardware });
+  } else {
+    global = updateMintCards(global, { state: MintCardState.Password });
+  }
 
-  return updateMintCards(global, {
-    type,
-    state: isHardware ? MintCardState.ConnectHardware : MintCardState.Password,
-  });
+  return global;
 });
 
 addActionHandler('clearMintCardError', (global): GlobalState => {

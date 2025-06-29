@@ -1,16 +1,14 @@
-import { Crypto } from '@peculiar/webcrypto';
+import 'dotenv/config';
+
 import { Buffer } from 'buffer/';
+import { webcrypto as crypto } from 'node:crypto';
 import { CompressionStream, DecompressionStream } from 'node:stream/web';
 import { TextDecoder, TextEncoder } from 'node:util';
-
-require('dotenv')
-  .config();
 
 jest.mock('../src/lib/rlottie/RLottie');
 
 Object.assign(global, {
   Buffer,
-  crypto: new Crypto(),
 });
 
 Object.defineProperty(window, 'matchMedia', {
@@ -43,15 +41,12 @@ Object.defineProperty(global, 'IntersectionObserver', {
   writable: true,
   configurable: true,
   value: class {
-    // eslint-disable-next-line class-methods-use-this
     observe() {
     }
 
-    // eslint-disable-next-line class-methods-use-this
     unobserve() {
     }
 
-    // eslint-disable-next-line class-methods-use-this
     disconnect() {
     }
   },
@@ -67,13 +62,19 @@ Object.defineProperty(global, 'indexedDB', {
   },
 });
 
-// These APIs are available in the Node.js global scope, but JSDOM removes them, so we need to retrieve them
+// These APIs are available in the Node.js global scope, but JSDOM removes or breaks them, so we need to retrieve them
 Object.assign(global, {
   TextEncoder,
   TextDecoder,
   CompressionStream,
   DecompressionStream,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Uint8Array: Object.getPrototypeOf(Object.getPrototypeOf(require('node:buffer').Buffer.from(''))).constructor, // The JSDOM's implementation isn't compatible with 'node:crypto'
+});
+Object.defineProperty(global, 'crypto', {
+  value: crypto,
+  configurable: true,
 });
 
 // Importing dynamically, because the file execution fails without the above mocks
-import('./initGlobal');
+void import('./initGlobal');

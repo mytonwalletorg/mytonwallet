@@ -1,8 +1,11 @@
+import { Address } from '@ton/core';
+
 import type { ApiSubmitTransferTonResult } from '../chains/ton/types';
 import type {
   ApiEthenaStakingState,
   ApiJettonStakingState,
   ApiStakingCommonData,
+  ApiStakingCommonResponse,
   ApiStakingHistory,
   ApiStakingState,
   ApiTransactionActivity,
@@ -12,10 +15,13 @@ import { TONCOIN } from '../../config';
 import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import chains from '../chains';
+import { getTonClient } from '../chains/ton/util/tonCore';
 import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { setStakingCommonCache } from '../common/cache';
 import { createLocalTransaction } from './transactions';
+
+import { StakingPool } from '../chains/ton/contracts/JettonStaking/StakingPool';
 
 const { ton } = chains;
 
@@ -123,16 +129,32 @@ export async function getStakingHistory(
 
 export async function tryUpdateStakingCommonData() {
   try {
-    const data = await callBackendGet('/staking/common');
+    const tonClient = getTonClient('mainnet');
+    const response = await callBackendGet<ApiStakingCommonResponse>('/staking/common');
+
+    const data: ApiStakingCommonData = {
+      ...response,
+      liquid: {
+        ...response.liquid,
+        available: fromDecimal(response.liquid.available),
+      },
+      jettonPools: await Promise.all(response.jettonPools.map(async (pool) => {
+        const poolContract = tonClient.open(StakingPool.createFromAddress(Address.parse(pool.pool)));
+        const poolConfig = await poolContract.getStorageData();
+        return {
+          ...pool,
+          poolConfig,
+        };
+      })),
+    };
     data.round.start *= 1000;
     data.round.end *= 1000;
     data.round.unlock *= 1000;
     data.prevRound.start *= 1000;
     data.prevRound.end *= 1000;
     data.prevRound.unlock *= 1000;
-    data.liquid.available = fromDecimal(data.liquid.available);
 
-    setStakingCommonCache(data as ApiStakingCommonData);
+    setStakingCommonCache(data);
   } catch (err) {
     logDebugError('tryUpdateLiquidStakingState', err);
   }

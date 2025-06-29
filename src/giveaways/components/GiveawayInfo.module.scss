@@ -6,6 +6,7 @@
   width: 100%;
   margin-top: 2rem;
   padding: 0.875rem 0.75rem;
+  border-radius: 1rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -13,17 +14,16 @@
   color: var(--color-black);
 
   background-color: var(--color-background-first);
-  border-radius: 1rem;
 }
 
 .instantBadge {
   margin-top: 2rem;
   padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
 
   color: var(--color-activity-red-text);
 
   background-color: var(--color-transaction-amount-red-bg);
-  border-radius: 0.75rem;
 }
 
 .sectionFlex {

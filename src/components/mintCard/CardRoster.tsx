@@ -54,10 +54,10 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
   const { closeMintCardModal } = getActions();
 
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const transitionRef = useRef<HTMLDivElement>(null);
-  const [currentSlide, setCurrentSlide] = useState<number>(CardSlides.Standard);
-  const [nextKey, setNextKey] = useState<number>(CardSlides.Silver);
+
+  const transitionRef = useRef<HTMLDivElement>();
+  const [currentSlide, setCurrentSlide] = useState<CardSlides>(CardSlides.Standard);
+  const [nextKey, setNextKey] = useState<CardSlides>(CardSlides.Silver);
 
   const showNextSlide = useLastCallback(() => {
     setCurrentSlide((current) => (current === CardSlides.Black ? CardSlides.Standard : current + 1));
@@ -121,8 +121,7 @@ function CardRoster({ cardsInfo, tonBalance }: OwnProps & StateProps) {
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: CardSlides) {
     const defaultProps = {
       lang,
       tonBalance,

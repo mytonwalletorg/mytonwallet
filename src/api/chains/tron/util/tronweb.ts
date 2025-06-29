@@ -6,12 +6,10 @@ import { getChainConfig } from '../../../../util/chain';
 
 let clientByNetwork: Record<ApiNetwork, TronWeb> | undefined;
 
-const parametersByNetwork: {
-  [network in ApiNetwork]?: {
-    energyUnitFee: number;
-    bandwidthUnitFee: number;
-  }
-} = {};
+const parametersByNetwork: Partial<Record<ApiNetwork, {
+  energyUnitFee: number;
+  bandwidthUnitFee: number;
+}>> = {};
 
 const chainConfig = getChainConfig('tron');
 

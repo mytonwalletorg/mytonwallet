@@ -5,7 +5,7 @@ import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
-import { setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
+import { resetHardware, setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
 import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
@@ -88,13 +88,13 @@ addActionHandler('submitTransferConfirm', async (global, actions) => {
   global = getGlobal();
 
   if (selectIsHardwareAccount(global)) {
+    global = resetHardware(global);
     global = updateCurrentTransfer(global, { state: TransferState.ConnectHardware });
     setGlobal(global);
-    actions.resetHardwareWalletConnect();
   } else if (inMemoryPassword) {
     global = updateCurrentTransfer(global, { isLoading: true });
     setGlobal(global);
-    await actions.submitTransferPassword({ password: inMemoryPassword });
+    actions.submitTransferPassword({ password: inMemoryPassword });
   } else {
     global = updateCurrentTransfer(global, { state: TransferState.Password });
     setGlobal(global);

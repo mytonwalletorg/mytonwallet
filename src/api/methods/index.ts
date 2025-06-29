@@ -5,7 +5,11 @@ export * from './wallet';
 export * from './transactions';
 export * from './nfts';
 export * from './domains';
-export * from './polling';
+export {
+  initPolling,
+  tryUpdateTokens,
+  tryUpdateSwapTokens,
+} from './polling';
 export * from './accounts';
 export * from './staking';
 export * from './tokens';

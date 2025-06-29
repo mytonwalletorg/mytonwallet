@@ -101,7 +101,7 @@ export async function validateAndProcessTransfer(transfer: {
     } catch (domainError) {
       return {
         isValid: false,
-        // eslint-disable-next-line max-len
+        // eslint-disable-next-line @stylistic/max-len
         error: `Failed to resolve TON domain ${receiver}: ${domainError instanceof Error ? domainError.message : 'Unknown error'}`,
       };
     }

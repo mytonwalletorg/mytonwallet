@@ -26,7 +26,7 @@ function SecretWordsList({
       </p>
       <ol className={styles.words}>
         {mnemonic?.map((word, i) => (
-          // eslint-disable-next-line react/no-array-index-key
+
           <li key={i} className={styles.word}>{word}</li>
         ))}
       </ol>

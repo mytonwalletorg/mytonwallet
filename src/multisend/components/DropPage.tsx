@@ -41,8 +41,7 @@ function DropPage({
   const [validationError, setValidationError] = useState<ValidationError | undefined>();
   const [isValidatingCsv, setIsValidatingCsv] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | undefined>();
-  // eslint-disable-next-line no-null/no-null
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>();
 
   const maxMessages = wallet?.device.features
     .find((f) => typeof f === 'object' && 'maxMessages' in f)?.maxMessages || 255;
@@ -76,7 +75,7 @@ function DropPage({
       let error: ValidationError | undefined;
 
       for (let i = 0; i < rows.length; i++) {
-        const line = rows[i].trim()!;
+        const line = rows[i].trim();
         const columns = line.split(',').map((col) => col.trim());
 
         if (columns.length < 3) {

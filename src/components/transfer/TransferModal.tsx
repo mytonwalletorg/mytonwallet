@@ -3,9 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type {
-  GlobalState, HardwareConnectState, SavedAddress, UserToken,
-} from '../../global/types';
+import type { GlobalState, SavedAddress, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
 
 import { BURN_ADDRESS, NFT_BATCH_SIZE } from '../../config';
@@ -48,9 +46,6 @@ interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
   savedAddresses?: SavedAddress[];
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
   isMediaViewerOpen?: boolean;
   isMultichainAccount: boolean;
 }
@@ -71,7 +66,10 @@ function TransferModal({
     sentNftsCount,
     diesel,
   },
-  tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen, isMultichainAccount,
+  tokens,
+  savedAddresses,
+  isMediaViewerOpen,
+  isMultichainAccount,
 }: StateProps) {
   const {
     submitTransferConfirm,
@@ -133,8 +131,7 @@ function TransferModal({
     submitTransferHardware();
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: TransferState) {
     switch (currentKey) {
       case TransferState.Initial:
         return (
@@ -169,8 +166,8 @@ function TransferModal({
               imageUrl={nfts?.[0]?.thumbnail}
               withChainIcon={isMultichainAccount}
               text={isNftTransfer
-                ? (nfts!.length > 1 ? lang('%amount% NFTs', { amount: nfts!.length }) : nfts![0]?.name || 'NFT')
-                : formatCurrency(toDecimal(amount!, decimals), symbol)}
+                ? (nfts.length > 1 ? lang('%amount% NFTs', { amount: nfts.length }) : nfts[0]?.name || 'NFT')
+                : formatCurrency(toDecimal(amount!, decimals), symbol, decimals)}
               className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
               secondText={shortenAddress(toAddress!)}
             />
@@ -180,9 +177,6 @@ function TransferModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isLedgerConnected={isLedgerConnected}
-            isTonAppConnected={isTonAppConnected}
             onConnected={handleLedgerConnect}
             onClose={handleModalCloseWithReset}
           />
@@ -228,6 +222,7 @@ function TransferModal({
       noBackdropClose
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="transfer"
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       forceFullNative={screenHeight <= SCREEN_HEIGHT_FOR_FORCE_FULLSIZE_NBS || renderingKey === TransferState.Password}
       onClose={handleModalCloseWithReset}
       onCloseAnimationEnd={handleModalClose}
@@ -249,19 +244,10 @@ function TransferModal({
 export default memo(withGlobal((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     currentTransfer: global.currentTransfer,
     tokens: selectCurrentAccountTokens(global),
     savedAddresses: accountState?.savedAddresses,
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };

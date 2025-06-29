@@ -1,10 +1,11 @@
+import type { SignDataPayload } from '@tonconnect/protocol';
+
 import type { GlobalState } from '../../global/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiTonConnectProof } from '../tonConnect/types';
 import type { ApiActivity } from './activity';
 import type {
   ApiAccountConfig,
-  ApiStakingCommonData,
   ApiSwapAsset,
   ApiVestingInfo,
 } from './backend';
@@ -15,6 +16,7 @@ import type {
   ApiBaseCurrency,
   ApiChain,
   ApiCountryCode,
+  ApiDappConnectionType,
   ApiDappTransfer,
   ApiNft,
   ApiStakingState,
@@ -92,9 +94,16 @@ export type ApiUpdateStaking = {
   type: 'updateStaking';
   accountId: string;
   states: ApiStakingState[];
-  common: ApiStakingCommonData;
   totalProfit: bigint;
   shouldUseNominators?: boolean;
+};
+
+export type ApiUpdateDappSignData = {
+  type: 'dappSignData';
+  promiseId: string;
+  accountId: string;
+  dapp: ApiDapp;
+  payloadToSign: SignDataPayload;
 };
 
 export type ApiUpdateDappSendTransactions = {
@@ -132,13 +141,14 @@ export type ApiUpdateDappDisconnect = {
 
 export type ApiUpdateDappLoading = {
   type: 'dappLoading';
-  connectionType: 'connect' | 'sendTransaction';
+  connectionType: ApiDappConnectionType;
   isSse?: boolean;
   accountId?: string;
 };
 
 export type ApiUpdateDappCloseLoading = {
   type: 'dappCloseLoading';
+  connectionType: ApiDappConnectionType;
 };
 
 export type ApiUpdateDapps = {
@@ -287,6 +297,7 @@ export type ApiUpdate =
   | ApiUpdateDappDisconnect
   | ApiUpdateDappLoading
   | ApiUpdateDappCloseLoading
+  | ApiUpdateDappSignData
   | ApiUpdateDapps
   | ApiUpdatePrepareTransaction
   | ApiUpdateProcessDeeplink

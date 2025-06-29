@@ -1,4 +1,4 @@
-import React, { memo, type RefObject, useState } from '../../lib/teact/teact';
+import React, { type ElementRef, memo, useState } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { Theme } from '../../global/types';
@@ -21,7 +21,7 @@ const PINPAD_RESET_DELAY = 300;
 
 interface OwnProps {
   isActive: boolean;
-  ref: RefObject<HTMLDivElement | null>;
+  ref: ElementRef<HTMLDivElement>;
   theme: Theme;
   innerContentTopPosition?: number;
   shouldHideBiometrics: boolean;

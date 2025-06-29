@@ -3,7 +3,7 @@ import { VestingUnfreezeState } from '../../types';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, setGlobal } from '../../index';
-import { updateVesting } from '../../reducers';
+import { resetHardware, updateVesting } from '../../reducers';
 import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('openVestingModal', (global) => {
@@ -21,12 +21,14 @@ addActionHandler('startClaimingVesting', (global) => {
   }
 
   const accountId = global.currentAccountId!;
-  const isHardware = selectIsHardwareAccount(global);
   global = { ...global, isVestingModalOpen: undefined };
-  global = updateVesting(global, accountId, {
-    isConfirmRequested: true,
-    unfreezeState: isHardware ? VestingUnfreezeState.ConnectHardware : VestingUnfreezeState.Password,
-  });
+  global = updateVesting(global, accountId, { isConfirmRequested: true });
+  if (selectIsHardwareAccount(global)) {
+    global = resetHardware(global);
+    global = updateVesting(global, accountId, { unfreezeState: VestingUnfreezeState.ConnectHardware });
+  } else {
+    global = updateVesting(global, accountId, { unfreezeState: VestingUnfreezeState.Password });
+  }
   setGlobal(global);
 });
 

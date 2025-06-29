@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
+import React, { type ElementRef, memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency, ApiNft, ApiStakingState } from '../../../../api/types';
@@ -28,7 +27,7 @@ import CustomCardManager from './CustomCardManager';
 import styles from './StickyCard.module.scss';
 
 interface OwnProps {
-  ref?: RefObject<HTMLDivElement>;
+  ref?: ElementRef<HTMLDivElement>;
   classNames?: string;
 }
 

@@ -34,7 +34,7 @@ function CalendarIcon({ type, className }: OwnProps) {
       <g clip-path="url(#clip0_15804_30504)">
         <path
           className={styles.calendarIconFill}
-          // eslint-disable-next-line max-len
+
           d="M18 36C27.9411 36 36 27.9411 36 18C36 8.05887 27.9411 0 18 0C8.05887 0 0 8.05887 0 18C0 27.9411 8.05887 36 18 36Z"
         />
         <path
@@ -46,7 +46,7 @@ function CalendarIcon({ type, className }: OwnProps) {
         />
         <path
           className={styles.calendarIconStroke}
-          // eslint-disable-next-line max-len
+
           d="M23.6 11.2002H12.4C11.5164 11.2002 10.8 11.9165 10.8 12.8002V24.0002C10.8 24.8839 11.5164 25.6002 12.4 25.6002H23.6C24.4837 25.6002 25.2 24.8839 25.2 24.0002V12.8002C25.2 11.9165 24.4837 11.2002 23.6 11.2002Z"
           stroke-width="1.5"
           stroke-linecap="round"

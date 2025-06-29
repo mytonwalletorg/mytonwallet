@@ -61,15 +61,14 @@ const Auth = ({
     true,
   ) ?? -1;
 
-  const [prevKey, setPrevKey] = useState<number | undefined>(undefined);
+  const [prevKey, setPrevKey] = useState<AuthState | undefined>(undefined);
   const [nextKey, setNextKey] = useState(renderingAuthState + 1);
   const updateRenderingKeys = useLastCallback(() => {
     setNextKey(renderingAuthState + 1);
     setPrevKey(renderingAuthState === AuthState.confirmPin ? AuthState.createPin : undefined);
   });
 
-  // eslint-disable-next-line consistent-return
-  function renderAuthScreen(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderAuthScreen(isActive: boolean, isFrom: boolean, currentKey: AuthState) {
     switch (currentKey) {
       case AuthState.none:
         return <AuthStart isActive={isActive} />;

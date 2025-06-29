@@ -1,9 +1,15 @@
 import extension from 'webextension-polyfill';
 
-import { IS_FIREFOX_EXTENSION, PROXY_HOSTS } from '../../config';
+import {
+  DEFAULT_LANDSCAPE_WINDOW_SIZE,
+  DEFAULT_PORTRAIT_WINDOW_SIZE,
+  IS_FIREFOX_EXTENSION,
+  PROXY_HOSTS,
+} from '../../config';
 import { sample } from '../../util/random';
 import { storage } from '../storages';
 import { updateSites } from './sites';
+import { updateWindowSize } from './window';
 
 type ProxyType = 'http' | 'https' | 'socks' | 'socks5';
 
@@ -22,13 +28,12 @@ type FirefoxProxyInfo = Proxy & {
   connectionIsolationKey?: string;
 };
 
-const proxies: Proxy[] = (PROXY_HOSTS ?? '').split(' ').map(((hostWithPort) => {
+const proxies: Proxy[] = (PROXY_HOSTS ?? '').split(' ').map((hostWithPort) => {
   const [host, port] = hostWithPort.split(':');
   return { type: 'http', host, port };
-}));
+});
 const proxy = sample(proxies);
 
-// eslint-disable-next-line max-len
 const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) {
   return host.endsWith('.ton') || host.endsWith('.adnl') || host.endsWith('.bag')
     ? 'PROXY ${proxy.host}:${proxy.port}'
@@ -106,4 +111,12 @@ export function doDeeplinkHook(isEnabled: boolean) {
     type: 'updateDeeplinkHook',
     isEnabled,
   });
+}
+
+export async function setAppLayout(layout: 'portrait' | 'landscape') {
+  await updateWindowSize(
+    layout === 'portrait'
+      ? DEFAULT_PORTRAIT_WINDOW_SIZE
+      : DEFAULT_LANDSCAPE_WINDOW_SIZE,
+  );
 }

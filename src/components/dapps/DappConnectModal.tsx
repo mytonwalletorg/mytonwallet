@@ -5,9 +5,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
-import type {
-  Account, AccountSettings, AccountType, HardwareConnectState,
-} from '../../global/types';
+import type { Account, AccountSettings, AccountType } from '../../global/types';
 import { DappConnectState } from '../../global/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
@@ -48,9 +46,6 @@ interface StateProps {
   currentAccountId: string;
   accounts?: Record<string, Account>;
   settingsByAccountId?: Record<string, AccountSettings>;
-  hardwareState?: HardwareConnectState;
-  isLedgerConnected?: boolean;
-  isTonAppConnected?: boolean;
 }
 
 function DappConnectModal({
@@ -62,16 +57,14 @@ function DappConnectModal({
   requiredProof,
   accounts,
   currentAccountId,
-  hardwareState,
   settingsByAccountId,
-  isLedgerConnected,
-  isTonAppConnected,
 }: StateProps) {
   const {
     submitDappConnectRequestConfirm,
     submitDappConnectRequestConfirmHardware,
     cancelDappConnectRequestConfirm,
     setDappConnectRequestState,
+    resetHardwareWalletConnect,
   } = getActions();
 
   const lang = useLang();
@@ -109,6 +102,7 @@ function DappConnectModal({
 
       cancelDappConnectRequestConfirm();
     } else if (isHardware) {
+      resetHardwareWalletConnect();
       setDappConnectRequestState({ state: DappConnectState.ConnectHardware });
     } else if (getHasInMemoryPassword()) {
       submitDappConnectRequestConfirm({
@@ -161,7 +155,7 @@ function DappConnectModal({
         accountType={accountType}
         isActive={accountId === selectedAccount}
         isLoading={isLoading}
-        // eslint-disable-next-line react/jsx-no-bind
+
         onClick={onClick}
         cardBackgroundNft={cardBackgroundNft}
       />
@@ -235,8 +229,7 @@ function DappConnectModal({
     );
   }
 
-  // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: DappConnectState) {
     switch (currentKey) {
       case DappConnectState.Info:
         return renderDappInfoWithSkeleton();
@@ -254,9 +247,6 @@ function DappConnectModal({
         return (
           <LedgerConnect
             isActive={isActive}
-            state={hardwareState}
-            isTonAppConnected={isTonAppConnected}
-            isLedgerConnected={isLedgerConnected}
             onConnected={submitDappConnectRequestHardware}
             onClose={handlePasswordCancel}
           />
@@ -280,6 +270,7 @@ function DappConnectModal({
         isOpen={isOpen}
         dialogClassName={styles.modalDialog}
         nativeBottomSheetKey="dapp-connect"
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
         forceFullNative={renderingKey !== DappConnectState.Info}
         onClose={cancelDappConnectRequestConfirm}
         onCloseAnimationEnd={cancelDappConnectRequestConfirm}
@@ -324,12 +315,6 @@ export default memo(withGlobal((global): StateProps => {
 
   const currentAccountId = accountId || global.currentAccountId!;
 
-  const {
-    hardwareState,
-    isLedgerConnected,
-    isTonAppConnected,
-  } = global.hardware;
-
   return {
     state,
     hasConnectRequest,
@@ -339,9 +324,6 @@ export default memo(withGlobal((global): StateProps => {
     requiredProof: proof,
     currentAccountId,
     accounts,
-    hardwareState,
     settingsByAccountId: global.settings.byAccountId,
-    isLedgerConnected,
-    isTonAppConnected,
   };
 })(DappConnectModal));
