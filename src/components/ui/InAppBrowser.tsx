@@ -19,6 +19,8 @@ import { useDappBridge } from '../explore/hooks/useDappBridge';
 
 import { getIsAnyNativeBottomSheetModalOpen } from './Modal';
 
+import pkg from '../../../package.json';
+
 interface StateProps {
   title?: string;
   subtitle?: string;
@@ -87,6 +89,7 @@ function InAppBrowser({
       `sharecaption=${lang('Share')}`,
       `theme=${theme}`,
       `animated=${animationLevel ?? ANIMATION_LEVEL_DEFAULT > 0 ? 'yes' : 'no'}`,
+      `appendUserAgent=MyTonWallet/${pkg.version} (${theme})`
     ]).join(',')}`;
     inAppBrowser = cordova.InAppBrowser.open(url,
       '_blank',
