@@ -1,0 +1,11 @@
+What's New in v3.8
+
+· Faster and Lighter · Optimized performance, lower battery usage, improved security.
+
+· NFT Attributes Viewer · Explore detailed attributes like rarity, textures, and models for NFTs.
+
+· Redesigned Activity Feed · Enjoy a smarter feed with token icons, base currency values, and dapp references.
+
+· Quick Layout Switch · Instantly toggle between portrait and landscape views—perfect for desktop and browser extension users.
+
+· Sign Data in Dapps · Securely sign messages, files, or contracts via TON Connect—fully supported in MyTonWallet.

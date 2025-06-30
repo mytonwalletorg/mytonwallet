@@ -31,7 +31,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const title = lang(dialog?.title ?? 'Something went wrong');
 
   useEffect(() => {
-    if (IS_CAPACITOR && typeof dialog.message == 'string') {
+    if (IS_CAPACITOR && typeof dialog?.message == 'string') {
       if (dialog) {
         void Dialog.alert({
           title,
