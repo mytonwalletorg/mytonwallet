@@ -312,7 +312,6 @@ jobs:
       HASH_FILENAME: checksum.sha256
     needs:
       # - electron-sign-for-windows
-      - electron-release
       - extensions-package
       - android-release
     runs-on: ubuntu-latest
@@ -492,7 +491,6 @@ jobs:
     needs:
       - android-release
       # - electron-sign-for-windows
-      - electron-release
     if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master' && vars.PUBLISH_REPO != ''
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
