@@ -522,7 +522,7 @@ function TransactionModal({
 
         {isTransactionWithPoisoning && renderTransactionWithPoisoningWarning()}
 
-        {transaction && shouldShowTransactionAddress(transaction) && (
+        {transaction && shouldShowTransactionAddress(transaction).includes('modal') && (
           <>
             <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
             <InteractiveTextField

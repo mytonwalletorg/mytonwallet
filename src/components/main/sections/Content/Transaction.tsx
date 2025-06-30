@@ -17,6 +17,7 @@ import { MediaType } from '../../../../global/types';
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
   FRACTION_DIGITS,
+  NFT_MARKETPLACE_TITLES,
   SWAP_DEX_LABELS,
   TONCOIN,
   TRANSACTION_ADDRESS_SHIFT,
@@ -309,11 +310,12 @@ function Transaction({
     const children: TeactNode[] = [];
     const delimiter = `${WHOLE_PART_DELIMITER}∙${WHOLE_PART_DELIMITER}`;
 
-    if (shouldShowTransactionAddress(transaction)) {
-      const dexName = extra?.dex && SWAP_DEX_LABELS[extra?.dex];
+    if (shouldShowTransactionAddress(transaction).includes('list')) {
+      const dexName = extra?.dex && SWAP_DEX_LABELS[extra.dex];
+      const marketplaceName = extra?.marketplace && NFT_MARKETPLACE_TITLES[extra.marketplace];
 
       children.push(delimiter, lang(
-        dexName ? '$transaction_on' : isIncoming ? '$transaction_from' : '$transaction_to',
+        (dexName || marketplaceName) ? '$transaction_on' : isIncoming ? '$transaction_from' : '$transaction_to',
         {
           address: (
             <span className={styles.subheaderHighlight}>
@@ -323,7 +325,7 @@ function Transaction({
                   aria-label={chain}
                 />
               )}
-              {dexName || addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
+              {dexName || marketplaceName || addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
             </span>
           ),
         },
@@ -414,7 +416,9 @@ function shouldAttachmentTakeSubheader(
 }
 
 function getIsNoSubheaderLeft(transaction: ApiTransactionActivity, isFuture?: boolean) {
-  return isFuture && !shouldShowTransactionAddress(transaction) && !shouldShowTransactionAnnualYield(transaction);
+  return isFuture
+    && !shouldShowTransactionAddress(transaction).includes('list')
+    && !shouldShowTransactionAnnualYield(transaction);
 }
 
 function getIsNoSubheaderRight(transaction: ApiTransactionActivity) {

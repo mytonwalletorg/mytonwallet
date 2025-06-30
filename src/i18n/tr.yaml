@@ -178,6 +178,13 @@ Incorrect address.: Hatalı adres.
 Paste: Yapıştır
 Insufficient balance: Yetersiz bakiye
 Insufficient Balance: Yetersiz Bakiye
+$seed_phrase_scam_warning: |
+  **Dikkat!** Yakın zamanda, token çekimi için gereken işlem ücretini karşılayacak yeterli bakiyesi olmayan bir cüzdan içe aktardınız.
+
+  Bu durum, ücretleri karşılamak için kendi paranızı yatırmaya yönelten yaygın bir dolandırıcılık türüne benziyor.
+
+  **Kendi paranızı yatırmayın, aksi halde kaybedebilirsiniz!** Bu ve diğer dolandırıcılık türleri hakkında daha fazla bilgiyi %help_center_link%'de bulabilirsiniz.
+$help_center_prepositional: Bilgi Tabanımız
 Optional: Opsiyonel
 $send_token_symbol: "%1$s gönder"
 Is it all ok?: Herşey tamam mı?

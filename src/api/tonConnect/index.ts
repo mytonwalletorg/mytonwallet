@@ -93,10 +93,10 @@ const initPromise = new Promise((resolve) => {
   resolveInit = resolve;
 });
 
-let onPopupUpdate: OnApiUpdate;
+let onUpdate: OnApiUpdate;
 
-export function initTonConnect(_onPopupUpdate: OnApiUpdate) {
-  onPopupUpdate = _onPopupUpdate;
+export function initTonConnect(_onUpdate: OnApiUpdate) {
+  onUpdate = _onUpdate;
   resolveInit();
 }
 
@@ -104,7 +104,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
   try {
     await openExtensionPopup(true);
 
-    onPopupUpdate({
+    onUpdate({
       type: 'dappLoading',
       connectionType: 'connect',
       isSse: request && 'sseOptions' in request,
@@ -147,7 +147,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
       }),
     };
 
-    onPopupUpdate({
+    onUpdate({
       type: 'dappConnect',
       identifier: 'identifier' in request ? request.identifier : undefined,
       promiseId,
@@ -191,8 +191,8 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
       items.push(proofReplyItem);
     }
 
-    onPopupUpdate({ type: 'updateDapps' });
-    onPopupUpdate({ type: 'dappConnectComplete' });
+    onUpdate({ type: 'updateDapps' });
+    onUpdate({ type: 'dappConnectComplete' });
 
     return {
       event: 'connect',
@@ -206,7 +206,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     logDebugError('tonConnect:connect', err);
 
     safeExec(() => {
-      onPopupUpdate({
+      onUpdate({
         type: 'dappCloseLoading',
         connectionType: 'connect',
       });
@@ -256,7 +256,7 @@ export async function disconnect(
     const { origin, accountId } = await validateRequest(request);
 
     await deleteDapp(accountId, origin, true);
-    onPopupUpdate({ type: 'updateDapps' });
+    onUpdate({ type: 'updateDapps' });
   } catch (err) {
     logDebugError('tonConnect:disconnect', err);
   }
@@ -319,7 +319,7 @@ export async function sendTransaction(
 
     await openExtensionPopup(true);
 
-    onPopupUpdate({
+    onUpdate({
       type: 'dappLoading',
       connectionType: 'sendTransaction',
       accountId,
@@ -340,7 +340,7 @@ export async function sendTransaction(
 
     const { promiseId, promise } = createDappPromise();
 
-    onPopupUpdate({
+    onUpdate({
       type: 'dappSendTransactions',
       promiseId,
       accountId,
@@ -370,7 +370,7 @@ export async function sendTransaction(
 
       if (submitResult.successNumber > 0) {
         if (submitResult.successNumber < messages.length) {
-          onPopupUpdate({
+          onUpdate({
             type: 'showError',
             error: ApiTransactionError.PartialTransactionFailure,
           });
@@ -424,7 +424,7 @@ function handleMethodError(
   connectionType: ApiDappConnectionType,
 ): WalletResponseTemplateError {
   safeExec(() => {
-    onPopupUpdate({
+    onUpdate({
       type: 'dappCloseLoading',
       connectionType,
     });
@@ -447,8 +447,8 @@ function handleMethodError(
     displayError = ApiCommonError.Unexpected;
   }
 
-  if (onPopupUpdate && isUpdaterAlive(onPopupUpdate) && displayError) {
-    onPopupUpdate({
+  if (onUpdate && isUpdaterAlive(onUpdate) && displayError) {
+    onUpdate({
       type: 'showError',
       error: displayError,
     });
@@ -487,7 +487,7 @@ export async function signData(
 
     await openExtensionPopup(true);
 
-    onPopupUpdate({
+    onUpdate({
       type: 'dappLoading',
       connectionType: 'signData',
       accountId,
@@ -498,7 +498,7 @@ export async function signData(
     const dapp = (await getDappsByOrigin(accountId))[origin];
     const payloadToSign = JSON.parse(message.params[0]) as SignDataPayload;
 
-    onPopupUpdate({
+    onUpdate({
       type: 'dappSignData',
       promiseId,
       accountId,
@@ -733,7 +733,7 @@ async function validateRequest(request: ApiDappRequest, skipConnection = false) 
 }
 
 async function openExtensionPopup(force?: boolean) {
-  if (!IS_EXTENSION || (!force && onPopupUpdate && isUpdaterAlive(onPopupUpdate))) {
+  if (!IS_EXTENSION || (!force && onUpdate && isUpdaterAlive(onUpdate))) {
     return false;
   }
 

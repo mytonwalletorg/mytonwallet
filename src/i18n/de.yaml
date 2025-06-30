@@ -178,6 +178,13 @@ Incorrect address.: Falsche Adresse.
 Paste: Einfügen
 Insufficient balance: Unzureichendes Guthaben
 Insufficient Balance: Unzureichendes Guthaben
+$seed_phrase_scam_warning: |
+  **Achtung!** Sie haben kürzlich eine Wallet importiert, auf der nicht genügend Guthaben zur Zahlung der Token-Abhebungsgebühren vorhanden ist.
+
+  Dies ähnelt einer häufigen Betrugsmasche, bei der Sie aufgefordert werden, Ihre eigenen Mittel für Gebühren einzuzahlen.
+
+  **Zahlen Sie keine eigenen Mittel ein, da Sie diese verlieren könnten!** Erfahren Sie mehr über diese und andere Betrugsarten in unserer %help_center_link%.
+$help_center_prepositional: Wissensdatenbank
 Optional: Optional
 $send_token_symbol: Senden von %1$s
 Is it all ok?: Ist alles in Ordnung?

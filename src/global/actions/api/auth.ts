@@ -589,7 +589,7 @@ addActionHandler('confirmDisclaimer', (global, actions) => {
 addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   const { firstNetworkAccount } = global.auth;
 
-  global = createAccountsFromGlobal(global);
+  global = createAccountsFromGlobal(global, true);
   global = updateCurrentAccountId(global, firstNetworkAccount!.accountId);
   global = updateAuth(global, { state: AuthState.ready });
   setGlobal(global);

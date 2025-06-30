@@ -330,3 +330,5 @@ export type ApiCountryCode = 'AF' | 'AX' | 'AL' | 'DZ' | 'AS' | 'AD' | 'AO' | 'A
 
 /** Each string value can be either an address or a domain name */
 export type ApiImportAddressByChain = Partial<Record<ApiChain, string>>;
+
+export type ApiNftMarketplace = 'fragment' | 'getgems';

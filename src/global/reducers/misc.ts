@@ -63,6 +63,7 @@ export function createAccount({
   partial,
   titlePostfix,
   network,
+  isMnemonicImported,
 }: {
   global: GlobalState;
   accountId: string;
@@ -71,11 +72,13 @@ export function createAccount({
   partial?: Partial<Account>;
   titlePostfix?: string;
   network?: ApiNetwork;
+  isMnemonicImported?: boolean;
 }) {
   const account: Account = {
     ...partial,
     type,
     addressByChain,
+    ...(isMnemonicImported && { importedAt: Date.now() }),
   };
   let shouldForceAccountEdit = true;
 
@@ -155,12 +158,12 @@ export function renameAccount(global: GlobalState, accountId: string, title: str
   return updateAccount(global, accountId, { title });
 }
 
-export function createAccountsFromGlobal(global: GlobalState): GlobalState {
+export function createAccountsFromGlobal(global: GlobalState, isMnemonicImported = false): GlobalState {
   const { firstNetworkAccount, secondNetworkAccount } = global.auth;
 
-  global = createAccount({ global, type: 'mnemonic', ...firstNetworkAccount! });
+  global = createAccount({ global, type: 'mnemonic', ...firstNetworkAccount!, isMnemonicImported });
   if (secondNetworkAccount) {
-    global = createAccount({ global, type: 'mnemonic', ...secondNetworkAccount });
+    global = createAccount({ global, type: 'mnemonic', ...secondNetworkAccount, isMnemonicImported });
   }
 
   return global;

@@ -1,14 +1,18 @@
+import React from '../../../lib/teact/teact';
+
 import type { ApiCheckTransactionDraftResult, ApiSubmitMultiTransferResult } from '../../../api/chains/ton/types';
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../../api/methods/types';
 import { ApiTransactionDraftError, type ApiTransactionError, type ApiTransferToSign } from '../../../api/types';
 import { TransferState } from '../../types';
 
-import { NFT_BATCH_SIZE } from '../../../config';
+import { HELP_CENTER_SEED_SCAM_URL, NFT_BATCH_SIZE } from '../../../config';
 import { bigintDivideToNumber } from '../../../util/bigint';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { explainApiTransferFee, getDieselTokenAmount } from '../../../util/fee/transferFee';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
+import { getTranslation } from '../../../util/langProvider';
 import { callActionInNative } from '../../../util/multitab';
+import { shouldShowSeedPhraseScamWarning } from '../../../util/scamDetection';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
@@ -18,12 +22,20 @@ import {
   clearIsPinAccepted,
   preserveMaxTransferAmount,
   setIsPinAccepted,
+  updateAccount,
   updateAccountState,
   updateCurrentTransfer,
   updateCurrentTransferByCheckResult,
   updateCurrentTransferLoading,
 } from '../../reducers';
-import { selectAccountState, selectCurrentNetwork, selectToken, selectTokenAddress } from '../../selectors';
+import {
+  selectAccountState,
+  selectCurrentAccount,
+  selectCurrentAccountTokens,
+  selectCurrentNetwork,
+  selectToken,
+  selectTokenAddress,
+} from '../../selectors';
 
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   if (IS_DELEGATING_BOTTOM_SHEET) {
@@ -145,6 +157,36 @@ addActionHandler('fetchTransferFee', async (global, actions, payload) => {
 
   if (result?.error && result.error !== ApiTransactionDraftError.InsufficientBalance) {
     actions.showError({ error: result.error });
+  }
+
+  if (result?.error === ApiTransactionDraftError.InsufficientBalance) {
+    const currentAccount = selectCurrentAccount(global)!;
+    const accountTokens = selectCurrentAccountTokens(global)!;
+    const { chain } = selectToken(global, tokenSlug);
+
+    if (shouldShowSeedPhraseScamWarning(currentAccount, accountTokens, chain)) {
+      const helpCenterLink = (
+        HELP_CENTER_SEED_SCAM_URL[global.settings.langCode as keyof typeof HELP_CENTER_SEED_SCAM_URL]
+        || HELP_CENTER_SEED_SCAM_URL.en
+      );
+
+      actions.showDialog({
+        title: 'Warning!',
+        message: getTranslation('$seed_phrase_scam_warning', {
+          help_center_link: (
+            <a href={helpCenterLink} target="_blank" rel="noreferrer">
+              <b>{getTranslation('$help_center_prepositional')}</b>
+            </a>
+          ),
+        }),
+        noBackdropClose: true,
+      });
+
+      // Clear `importedAt` so the warning only shows once
+      global = getGlobal();
+      global = updateAccount(global, global.currentAccountId!, { importedAt: undefined });
+      setGlobal(global);
+    }
   }
 });
 

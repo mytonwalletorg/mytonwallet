@@ -178,6 +178,13 @@ Incorrect address.: Incorrect address.
 Paste: Paste
 Insufficient balance: Insufficient balance
 Insufficient Balance: Insufficient Balance
+$seed_phrase_scam_warning: |
+  **Warning!** You have recently imported a wallet that does not have enough funds to cover the fees for token withdrawal.
+
+  This resembles a common scam where you're encouraged to deposit your own funds to cover fees.
+
+  **Do not deposit your own funds, as you may lose them!** Learn more about this and other scams in our %help_center_link%.
+$help_center_prepositional: Help Center
 Optional: Optional
 $send_token_symbol: Send %1$s
 Is it all ok?: Is it all ok?

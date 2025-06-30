@@ -31,7 +31,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const title = lang(dialog?.title ?? 'Something went wrong');
 
   useEffect(() => {
-    if (IS_CAPACITOR) {
+    if (IS_CAPACITOR && typeof dialog.message == 'string') {
       if (dialog) {
         void Dialog.alert({
           title,
@@ -61,7 +61,11 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
       onCloseAnimationEnd={dismissDialog}
     >
       <div>
-        {renderText(lang(dialog.message))}
+        {
+          typeof dialog.message == 'string'
+            ? renderText(lang(dialog.message, dialog.entities))
+            : dialog.message
+        }
       </div>
       <div className={modalStyles.footerButtons}>
         <Button onClick={closeModal}>{lang('OK')}</Button>

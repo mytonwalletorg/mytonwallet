@@ -148,7 +148,7 @@ function NftAttributesModal({ nft, dnsExpiration }: StateProps) {
           />
         ) : (
           <img
-            src={renderedNft.thumbnail}
+            src={renderedNft.image || renderedNft.thumbnail}
             alt={renderedNft.name}
             role="button"
             tabIndex={0}

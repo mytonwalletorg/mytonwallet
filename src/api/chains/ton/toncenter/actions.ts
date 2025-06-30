@@ -439,7 +439,7 @@ function parseJettonBurn(action: JettonBurnAction, options: ParseOptions): ApiTr
   };
 }
 
-function parseNftTransfer(action: NftTransferAction, options: ParseOptions): ApiTransactionActivity | undefined {
+function parseNftTransfer(action: NftTransferAction, options: ParseOptions): ApiTransactionActivity {
   const {
     metadata,
     walletAddress,
@@ -457,6 +457,7 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Api
     is_purchase: isPurchase,
     price,
     response_destination: responseDestination,
+    marketplace,
   } = action.details;
 
   const nft = parseToncenterNft(
@@ -481,25 +482,27 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Api
     }
   }
 
-  const common = parseCommonFields(action, options, oldOwner ?? rawNftAddress, newOwner);
-  const comment = (forwardPayload && safeReadComment(forwardPayload)) || undefined;
-  let type: ApiTransactionType | undefined = common.toAddress === BURN_ADDRESS ? 'burn' : undefined;
-
-  if (isPurchase && price) {
-    type = 'nftTrade';
-    const isBuying = addressBook[newOwner]?.user_friendly === walletAddress;
-    common.isIncoming = !isBuying;
-    common.amount = isBuying ? -BigInt(price) : BigInt(price);
-  }
-
-  return {
-    ...common,
+  const activity: ApiTransactionActivity = {
+    ...parseCommonFields(action, options, oldOwner ?? rawNftAddress, newOwner),
     shouldHide,
     slug: TONCOIN.slug,
     nft,
-    type,
-    comment,
+    comment: (forwardPayload && safeReadComment(forwardPayload)) || undefined,
   };
+
+  if (activity.toAddress === BURN_ADDRESS) {
+    activity.type = 'burn';
+  } else if (isPurchase && price) {
+    const isBuying = addressBook[newOwner]?.user_friendly === walletAddress;
+    activity.type = 'nftTrade';
+    activity.isIncoming = !isBuying;
+    activity.amount = isBuying ? -BigInt(price) : BigInt(price);
+    activity.extra = {
+      marketplace: marketplace ?? undefined,
+    };
+  }
+
+  return activity;
 }
 
 function parseNftMint(action: NftMintAction, options: ParseOptions): ApiTransactionActivity {

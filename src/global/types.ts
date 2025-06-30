@@ -1,4 +1,5 @@
 import type { SignDataPayload } from '@tonconnect/protocol';
+import type { TeactNode } from '../lib/teact/teact';
 
 import type { ApiFetchEstimateDieselResult, ApiTonWalletVersion } from '../api/chains/ton/types';
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
@@ -64,7 +65,8 @@ export type NotificationType = {
 };
 export type DialogType = {
   title?: string;
-  message: string;
+  message: string | TeactNode;
+  entities?: Record<string, any>;
   noBackdropClose?: boolean;
 };
 
@@ -347,6 +349,7 @@ export interface Account {
   type: AccountType;
   addressByChain: Partial<Record<ApiChain, string>>;
   domainByChain?: Partial<Record<ApiChain, string>>;
+  importedAt?: number;
   ledger?: {
     index: number;
     driver: ApiLedgerDriver;
