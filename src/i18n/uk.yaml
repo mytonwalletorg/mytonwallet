@@ -478,6 +478,7 @@ An error on the server side. Please try again.: Помилка на сторон
 Address was saved!: Адреса збережена!
 US Dollar: Долар США
 Euro: Євро
+Hryvnia: Гривна
 Ruble: Рубль
 Yuan: Юань
 $max_balance: "Максимум: %balance%"
