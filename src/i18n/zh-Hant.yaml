@@ -175,6 +175,13 @@ Incorrect address.: 錯誤的地址。
 Paste: 貼上
 Insufficient balance: 餘額不足
 Insufficient Balance: 餘額不足
+$seed_phrase_scam_warning: |
+  **警告！** 您最近匯入了一個錢包，但錢包內餘額不足以支付提取代幣的手續費。
+
+  這與一種常見的詐騙手法類似，即誘使您存入自己的資金來支付手續費。
+
+  **請勿存入自己的資金，否則可能遭受損失！** 請在我們的%help_center_link%瞭解更多此類及其他詐騙手法。
+$help_center_prepositional: 知識庫
 Optional: 選項
 $send_token_symbol: 發送 %1$s
 Is it all ok?: 全部確認都 OK?

@@ -94,6 +94,7 @@ export type MetadataMap = Record<string, {
 
 export type StakingProvider = 'tonstakers' | 'nominators' | (string & {});
 export type DexSlug = 'stonfi' | 'stonfi_v2' | 'dedust';
+export type MarketplaceSlug = 'fragment' | 'getgems';
 export type AnyTokenMetadata = NftCollectionMetadata | NftItemMetadata | JettonMasterMetadata;
 
 export type TonTransferAction = BaseAction & {
@@ -141,6 +142,7 @@ export type NftTransferAction = BaseAction & {
     forward_payload: string;
     forward_amount: string | null;
     price: string | null;
+    marketplace: MarketplaceSlug | null;
   };
 };
 

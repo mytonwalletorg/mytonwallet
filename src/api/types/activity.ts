@@ -1,5 +1,5 @@
 import type { ApiSwapDexLabel, ApiSwapHistoryItem } from './backend';
-import type { ApiTransaction } from './misc';
+import type { ApiNftMarketplace, ApiTransaction } from './misc';
 
 type BaseActivity = {
   id: string;
@@ -10,6 +10,7 @@ type BaseActivity = {
   extra?: {
     withW5Gasless?: boolean; // Only for TON
     dex?: ApiSwapDexLabel; // Only for TON liquidity deposit and withdrawal
+    marketplace?: ApiNftMarketplace;
     // TODO Move other extra fields here (externalMsgHash, ...)
   };
 };

@@ -9,7 +9,7 @@ import { StakingState } from '../../global/types';
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX, ETHENA_ELIGIBILITY_CHECK_URL,
-  ETHENA_HELP_CENTER_URL,
+  HELP_CENTER_ETHENA_URL,
   JVAULT_URL,
   SHORT_FRACTION_DIGITS,
   TONCOIN,
@@ -202,7 +202,7 @@ function StakingInitial({
   }, [tokenBySlug, states, shouldUseNominators]);
 
   const handleHelpCenterClick = useLastCallback(() => {
-    const url = ETHENA_HELP_CENTER_URL[lang.code as never] ?? ETHENA_HELP_CENTER_URL.en;
+    const url = HELP_CENTER_ETHENA_URL[lang.code as never] ?? HELP_CENTER_ETHENA_URL.en;
     void openUrl(url, { title: lang('Help Center'), subtitle: getHostnameFromUrl(url) });
   });
 

@@ -7,11 +7,11 @@ import { createExtensionInterface } from '../../../util/createPostMessageInterfa
 import * as extensionMethods from '../../extensionMethods';
 import initExtensionMethods from '../../extensionMethods/init';
 import * as methods from '../../methods';
-import initMethods, { destroy as destroyMethods } from '../../methods/init';
+import initApi, { destroy as destroyMethods } from '../../methods/init';
 
 void createExtensionInterface(POPUP_PORT, (name: string, origin?: string, ...args: any[]) => {
   if (name === 'init') {
-    void initMethods(args[0] as OnApiUpdate, args[1] as ApiInitArgs);
+    void initApi(args[0] as OnApiUpdate, args[1] as ApiInitArgs);
     return initExtensionMethods(args[0] as OnApiUpdate);
   } else {
     if (name in extensionMethods) {

@@ -136,15 +136,20 @@ export function getTransactionAmountDisplayMode({ type, amount, nft }: ApiTransa
     : 'normal';
 }
 
-export function shouldShowTransactionAddress(transaction: ApiTransaction) {
-  const { type, isIncoming, nft, toAddress, fromAddress } = transaction;
+/** Returns the UI sections where the address should be shown */
+export function shouldShowTransactionAddress(transaction: ApiTransactionActivity): ('list' | 'modal')[] {
+  const { type, isIncoming, nft, toAddress, fromAddress, extra } = transaction;
+
+  if (type === 'nftTrade') {
+    return extra?.marketplace ? ['list'] : [];
+  }
+
   const shouldHide = isOurStakingTransaction(transaction)
     || type === 'burn'
-    || type === 'nftTrade'
     || (!isIncoming && nft && toAddress === nft.address)
     || (isIncoming && type === 'excess' && fromAddress === BURN_ADDRESS);
 
-  return !shouldHide;
+  return shouldHide ? [] : ['list', 'modal'];
 }
 
 /** "Our" is staking that can be controlled with MyTonWallet app */

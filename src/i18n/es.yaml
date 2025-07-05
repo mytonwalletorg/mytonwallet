@@ -177,6 +177,13 @@ Incorrect address.: Dirección incorrecta.
 Paste: Pegar
 Insufficient balance: Saldo insuficiente
 Insufficient Balance: Saldo insuficiente
+$seed_phrase_scam_warning: |
+  **¡Atención!** Recientemente has importado una billetera que no tiene fondos suficientes para cubrir las comisiones por el retiro de tokens.
+
+  Esto parece un tipo común de estafa donde se te pide depositar fondos propios para cubrir las comisiones.
+
+  **¡No deposites tus propios fondos, podrías perderlos!** Aprende más sobre este y otros tipos de estafas en nuestra %help_center_link%.
+$help_center_prepositional: Base de conocimientos
 Optional: Opcional
 $send_token_symbol: Enviar %1$s
 Is it all ok?: ¿Está todo bien?

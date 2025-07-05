@@ -180,6 +180,13 @@ Incorrect address.: Nieprawidłowy adres.
 Paste: Pasta
 Insufficient balance: Niewystarczająca równowaga
 Insufficient Balance: Niewystarczająca równowaga
+$seed_phrase_scam_warning: |
+  **Uwaga!** Niedawno zaimportowałeś portfel, na którym nie ma wystarczających środków do pokrycia opłat za wypłatę tokenów.
+
+  Jest to podobne do popularnego rodzaju oszustwa, gdzie namawia się Cię do wpłaty własnych środków na pokrycie opłat.
+
+  **Nie wpłacaj swoich środków, możesz je stracić!** Dowiedz się więcej o tym i innych rodzajach oszustw w naszej %help_center_link%.
+$help_center_prepositional: Bazie Wiedzy
 Optional: Opcjonalnie
 $send_token_symbol: Wyślij %1$s
 Is it all ok?: Czy wszystko jest w porządku?
