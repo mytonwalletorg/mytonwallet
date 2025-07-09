@@ -49,9 +49,7 @@ function DappLedgerWarning({
         </div>
 
         <DappInfo
-          iconUrl={dapp?.iconUrl}
-          name={dapp?.name}
-          url={dapp?.url}
+          dapp={dapp}
           className={styles.transactionDapp}
         />
       </div>

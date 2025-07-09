@@ -849,6 +849,9 @@ App will not ask for signature for %1$d minutes after last entry.: Aplikacja nie
 Remember for %1$d minutes: Zapamiętaj na %1$d minut
 Preview: Podgląd
 $preview_not_guaranteed: Wynik podglądu **nie jest gwarantowany **i **może zostać sfałszowany **przez usługę.
+Unverified Source: Niezweryfikowane źródło
+$reopen_in_iab: Dla Twojego bezpieczeństwa otwórz tę aplikację ponownie w %browserButton%.
+MyTonWallet Browser: przeglądarce MyTonWallet
 Exit all wallets: Wyjdź ze wszystkich portfeli
 Can't confirm?: Nie możesz się zalogować?
 $safe_staking_ethena_description1: Staking jest w pełni zdecentralizowany i obsługiwany przez **oficjalne**, audytowane **inteligentne kontrakty** Etheny do stakingu płynnego.
@@ -934,3 +937,4 @@ Attributes: Atrybuty
 Show All: Pokaż wszystkie
 Description: Opis
 No additional data.: Brak dodatkowych danych.
+Domain was copied!: Domena została skopiowana!

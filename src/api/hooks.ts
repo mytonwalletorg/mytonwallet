@@ -4,7 +4,7 @@ interface Hooks {
   onFirstLogin: AnyFunction;
   onFullLogout: AnyFunction;
   onWindowNeeded: AnyFunction;
-  onDappDisconnected: (accountId: string, origin: string) => any;
+  onDappDisconnected: (accountId: string, url: string) => any;
   onDappsChanged: AnyFunction;
   onSwapCreated: (accountId: string, fromTimestamp: number) => any;
 }

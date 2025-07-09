@@ -227,7 +227,7 @@ function UnstakeModal({
         tokenIn={token}
         withChainIcon={isMultichainAccount}
         color="green"
-        text={formatCurrency(toDecimal(unstakeAmount, token.decimals), token.symbol, token.decimals)}
+        text={formatCurrency(toDecimal(unstakeAmount, token.decimals), token.symbol)}
         className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />
     );

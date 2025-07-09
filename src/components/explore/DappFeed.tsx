@@ -6,6 +6,7 @@ import { SettingsState } from '../../global/types';
 
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { getDappConnectionUniqueId } from '../../util/getDappConnectionUniqueId';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
@@ -19,27 +20,35 @@ import exploreStyles from './Explore.module.scss';
 
 interface StateProps {
   dapps: ApiDapp[];
-  dappLastOpenedDatesByOrigin?: Record<string, number>;
+  dappLastOpenedDatesByUrl?: Record<string, number>;
 }
 
 type DappWithLastOpenedDate = ApiDapp & { lastOpenedAt?: number };
 
 const MAX_DAPPS_FOR_PILL_MODE = 3;
-const HIDDEN_FROM_FEED_DAPP_ORIGINS = new Set(['https://checkin.mytonwallet.org']);
+const HIDDEN_FROM_FEED_DAPP_URLS = new Set(['https://checkin.mytonwallet.org']);
 
-function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin }: StateProps) {
+function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByUrl }: StateProps) {
   const { openSettingsWithState, closeExplore } = getActions();
 
   const lang = useLang();
 
   const containerRef = useRef<HTMLDivElement>();
   const dapps: DappWithLastOpenedDate[] = useMemo(() => {
-    return dappsFromState
+    const sortedDapps = dappsFromState
       .slice()
-      .filter((dapp) => !HIDDEN_FROM_FEED_DAPP_ORIGINS.has(dapp.origin))
-      .map((dapp) => ({ ...dapp, lastOpenedAt: dappLastOpenedDatesByOrigin?.[dapp.origin] }))
+      .filter((dapp) => !HIDDEN_FROM_FEED_DAPP_URLS.has(dapp.url))
+      .map((dapp) => ({ ...dapp, lastOpenedAt: dappLastOpenedDatesByUrl?.[dapp.url] }))
       .sort(compareDapps);
-  }, [dappLastOpenedDatesByOrigin, dappsFromState]);
+
+    // Remove duplicates, since we now support multiple connections per dapp. Keep the most recent connection.
+    const seen = new Set<string>();
+    return sortedDapps.filter(({ url }) => {
+      if (seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
+  }, [dappLastOpenedDatesByUrl, dappsFromState]);
 
   const mode = dapps.length > MAX_DAPPS_FOR_PILL_MODE ? 'tile' : 'pill';
   const isPillMode = mode === 'pill';
@@ -96,9 +105,9 @@ function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin }: StateP
 
 export default memo(withGlobal((global): StateProps => {
   const { dapps = MEMO_EMPTY_ARRAY } = selectCurrentAccountState(global) || {};
-  const { dappLastOpenedDatesByOrigin } = selectCurrentAccountState(global) || {};
+  const { dappLastOpenedDatesByUrl } = selectCurrentAccountState(global) || {};
 
-  return { dapps, dappLastOpenedDatesByOrigin };
+  return { dapps, dappLastOpenedDatesByUrl };
 })(DappFeed));
 
 function compareDapps(a: DappWithLastOpenedDate, b: DappWithLastOpenedDate) {
@@ -114,17 +123,19 @@ function compareDapps(a: DappWithLastOpenedDate, b: DappWithLastOpenedDate) {
 
 function renderDapp(dapp: DappWithLastOpenedDate, mode: 'pill' | 'tile') {
   const {
-    iconUrl, name, url, origin,
+    iconUrl, name, url,
   } = dapp;
+
+  const key = `dapp-${url}-${getDappConnectionUniqueId(dapp)}`;
 
   return (
     <DappFeedItem
-      key={origin}
+      key={key}
       iconUrl={iconUrl}
       name={name}
       url={url}
       mode={mode}
-      origin={origin}
+      isExternal={!!dapp.sse}
     />
   );
 }

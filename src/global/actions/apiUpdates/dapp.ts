@@ -86,9 +86,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'dappDisconnect': {
-      const { origin } = update;
+      const { url } = update;
 
-      if (global.currentDappTransfer.dapp?.origin === origin) {
+      if (global.currentDappTransfer.dapp?.url === url) {
         global = clearCurrentDappTransfer(global);
         setGlobal(global);
       }

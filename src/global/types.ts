@@ -400,7 +400,7 @@ export interface AccountState {
     name: ApiNft['name'];
   };
   currentNftForAttributes?: ApiNft;
-  dappLastOpenedDatesByOrigin?: Record<string, number>;
+  dappLastOpenedDatesByUrl?: Record<string, number>;
   isBackupRequired?: boolean;
   currentTokenSlug?: string;
   currentActivityId?: string;
@@ -1108,9 +1108,9 @@ export interface ActionPayloads {
 
   getDapps: undefined;
   deleteAllDapps: undefined;
-  deleteDapp: { origin: string };
+  deleteDapp: { url: string; uniqueId: string };
   loadExploreSites: { isLandscape: boolean };
-  updateDappLastOpenedAt: { origin: string };
+  updateDappLastOpenedAt: { url: string };
 
   addSiteToBrowserHistory: { url: string };
   removeSiteFromBrowserHistory: { url: string };

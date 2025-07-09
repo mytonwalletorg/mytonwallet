@@ -136,7 +136,7 @@ export type ApiUpdateDappConnectComplete = {
 export type ApiUpdateDappDisconnect = {
   type: 'dappDisconnect';
   accountId: string;
-  origin: string;
+  url: string;
 };
 
 export type ApiUpdateDappLoading = {

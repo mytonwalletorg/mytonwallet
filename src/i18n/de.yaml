@@ -844,6 +844,9 @@ App will not ask for signature for %1$d minutes after last entry.: Die App wird 
 Remember for %1$d minutes: Für %1$d Minuten merken
 Preview: Vorschau
 $preview_not_guaranteed: Das Vorschauergebnis ist **nicht garantiert **und kann **vom Dienst manipuliert **werden.
+Unverified Source: Unbestätigte Quelle
+$reopen_in_iab: Öffnen Sie diese DApp zur Ihrer Sicherheit erneut im %browserButton%.
+MyTonWallet Browser: MyTonWallet Browser
 Exit all wallets: Alle Wallets schließen
 Can't confirm?: Anmeldung nicht möglich?
 $safe_staking_ethena_description1: Staking ist vollständig dezentralisiert und wird durch **offizielle, auditiere** Liquid-Staking-**Smart Contracts** von Ethena betrieben.
@@ -924,3 +927,4 @@ Attributes: Attribute
 Show All: Alle anzeigen
 Description: Beschreibung
 No additional data.: Keine zusätzlichen Daten.
+Domain was copied!: Domain wurde kopiert!

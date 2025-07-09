@@ -32,9 +32,7 @@ import type {
   ApiTonWallet,
   OnApiUpdate,
 } from '../types';
-import type {
-  ApiTonConnectProof, ConnectEvent, TransactionPayload, TransactionPayloadMessage,
-} from './types';
+import type { ApiTonConnectProof, ConnectEvent, TransactionPayload, TransactionPayloadMessage } from './types';
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CHAIN, CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from './types';
 
@@ -43,6 +41,7 @@ import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { bigintDivideToNumber } from '../../util/bigint';
 import { fetchJsonWithProxy } from '../../util/fetch';
+import { getDappConnectionUniqueId } from '../../util/getDappConnectionUniqueId';
 import { pick } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import safeExec from '../../util/safeExec';
@@ -50,14 +49,8 @@ import { getTonConnectMaxMessages, tonConnectGetDeviceInfo } from '../../util/to
 import chains from '../chains';
 import { getContractInfo, parsePayloadBase64 } from '../chains/ton';
 import { fetchKeyPair } from '../chains/ton/auth';
-import {
-  getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress,
-} from '../chains/ton/util/tonCore';
-import {
-  fetchStoredTonAccount,
-  getCurrentAccountId,
-  getCurrentAccountIdOrFail,
-} from '../common/accounts';
+import { getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress } from '../chains/ton/util/tonCore';
+import { fetchStoredTonAccount, getCurrentAccountId, getCurrentAccountIdOrFail } from '../common/accounts';
 import { getKnownAddressInfo } from '../common/addresses';
 import { createDappPromise } from '../common/dappPromises';
 import { isUpdaterAlive } from '../common/helpers';
@@ -70,19 +63,13 @@ import {
   deleteDapp,
   findLastConnectedAccount,
   getDapp,
-  getDappsByOrigin,
   updateDapp,
 } from '../methods/dapps';
 import { createLocalTransaction } from '../methods/transactions';
 import * as errors from './errors';
 import { UnknownAppError } from './errors';
 import { signDataWithPrivateKey, signTonProofWithPrivateKey } from './signing';
-import {
-  getTransferActualToAddress,
-  isTransferPayloadDangerous,
-  isValidString,
-  isValidUrl,
-} from './utils';
+import { getTransferActualToAddress, isTransferPayloadDangerous, isValidString, isValidUrl } from './utils';
 
 const BLANK_GIF_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
@@ -111,18 +98,12 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     });
 
     const dappMetadata = await fetchDappMetadata(message.manifestUrl);
-
-    if (!IS_EXTENSION) {
-      request.origin = dappMetadata.origin;
-    }
-
-    const { origin } = await validateRequest(request, true);
-
+    const url = request.url || dappMetadata.url;
     const addressItem = message.items.find(({ name }) => name === 'ton_addr');
     const proofItem = message.items.find(({ name }) => name === 'ton_proof') as TonProofItem | undefined;
     const proof = proofItem ? {
       timestamp: Math.round(Date.now() / 1000),
-      domain: new URL(origin).host,
+      domain: new URL(url).host,
       payload: proofItem.payload,
     } : undefined;
 
@@ -138,14 +119,17 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
 
     const { promiseId, promise } = createDappPromise();
 
-    const dapp = {
+    const dapp: ApiDapp = {
       ...dappMetadata,
-      origin,
+      url,
       connectedAt: Date.now(),
+      ...(request.isUrlEnsured && { isUrlEnsured: true }),
       ...('sseOptions' in request && {
         sse: request.sseOptions,
       }),
     };
+
+    const uniqueId = getDappConnectionUniqueId(request);
 
     onUpdate({
       type: 'dappConnect',
@@ -168,7 +152,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
 
     accountId = promiseResult!.accountId!;
     request.accountId = accountId;
-    await addDapp(accountId, dapp);
+    await addDapp(accountId, dapp, uniqueId);
 
     const account = await fetchStoredTonAccount(accountId);
     const { address } = account.ton;
@@ -218,14 +202,15 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
 
 export async function reconnect(request: ApiDappRequest, id: number): Promise<ConnectEvent> {
   try {
-    const { origin, accountId } = await validateRequest(request);
+    const { url, accountId } = await ensureRequestParams(request);
 
-    const currentDapp = await getDapp(accountId, origin);
+    const uniqueId = getDappConnectionUniqueId(request);
+    const currentDapp = await getDapp(accountId, url, uniqueId);
     if (!currentDapp) {
       throw new UnknownAppError();
     }
 
-    await updateDapp(accountId, origin, { connectedAt: Date.now() });
+    await updateDapp(accountId, url, uniqueId, { connectedAt: Date.now() });
 
     const account = await fetchStoredTonAccount(accountId);
 
@@ -253,9 +238,10 @@ export async function disconnect(
   message: DisconnectRpcRequest,
 ): Promise<DisconnectRpcResponse> {
   try {
-    const { origin, accountId } = await validateRequest(request);
+    const { url, accountId } = await ensureRequestParams(request);
 
-    await deleteDapp(accountId, origin, true);
+    const uniqueId = getDappConnectionUniqueId(request);
+    await deleteDapp(accountId, url, uniqueId, true);
     onUpdate({ type: 'updateDapps' });
   } catch (err) {
     logDebugError('tonConnect:disconnect', err);
@@ -271,7 +257,7 @@ export async function sendTransaction(
   message: SendTransactionRpcRequest,
 ): Promise<SendTransactionRpcResponse> {
   try {
-    const { origin, accountId } = await validateRequest(request);
+    const { url, accountId } = await ensureRequestParams(request);
     const { network } = parseAccountId(accountId);
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
@@ -335,7 +321,8 @@ export async function sendTransaction(
       throw new errors.BadRequestError(checkResult.error, checkResult.error);
     }
 
-    const dapp = (await getDappsByOrigin(accountId))[origin];
+    const uniqueId = getDappConnectionUniqueId(request);
+    const dapp = (await getDapp(accountId, url, uniqueId))!;
     const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult.emulation);
 
     const { promiseId, promise } = createDappPromise();
@@ -479,7 +466,7 @@ export async function signData(
   message: SignDataRpcRequest,
 ): Promise<SignDataRpcResponse> {
   try {
-    const { origin, accountId } = await validateRequest(request);
+    const { url, accountId } = await ensureRequestParams(request);
     const account = await fetchStoredTonAccount(accountId);
 
     if (account.type === 'view') throw new errors.MethodNotSupportedError('Not supported by view-only accounts');
@@ -495,7 +482,8 @@ export async function signData(
     });
 
     const { promiseId, promise } = createDappPromise();
-    const dapp = (await getDappsByOrigin(accountId))[origin];
+    const uniqueId = getDappConnectionUniqueId(request);
+    const dapp = (await getDapp(accountId, url, uniqueId))!;
     const payloadToSign = JSON.parse(message.params[0]) as SignDataPayload;
 
     onUpdate({
@@ -669,7 +657,7 @@ async function performSignData(
 ): Promise<SignDataRpcResponseSuccess['result']> {
   const { address } = account.ton;
   const timestamp = Math.floor(Date.now() / 1000);
-  const domain = new URL(dapp.origin).host;
+  const domain = new URL(dapp.url).host;
   const keyPair = (await fetchKeyPair(accountId, password, account))!;
   const signature = await signDataWithPrivateKey(
     address,
@@ -688,18 +676,15 @@ async function performSignData(
   };
 }
 
-export async function fetchDappMetadata(manifestUrl: string, origin?: string): Promise<ApiDappMetadata> {
+export async function fetchDappMetadata(manifestUrl: string): Promise<ApiDappMetadata> {
   try {
-    const data = await fetchJsonWithProxy(manifestUrl);
-
-    const { url, name, iconUrl } = await data;
+    const { url, name, iconUrl } = await fetchJsonWithProxy(manifestUrl);
     const safeIconUrl = (iconUrl.startsWith('data:') || iconUrl === '') ? BLANK_GIF_DATA_URL : iconUrl;
     if (!isValidUrl(url) || !isValidString(name) || !isValidUrl(safeIconUrl)) {
       throw new Error('Invalid data');
     }
 
     return {
-      origin: origin ?? new URL(url).origin,
       url,
       name,
       iconUrl: safeIconUrl,
@@ -711,25 +696,27 @@ export async function fetchDappMetadata(manifestUrl: string, origin?: string): P
   }
 }
 
-async function validateRequest(request: ApiDappRequest, skipConnection = false) {
-  const { origin } = request;
-  if (!origin) {
-    throw new errors.BadRequestError('Invalid origin');
+async function ensureRequestParams(
+  request: ApiDappRequest,
+): Promise<ApiDappRequest & { url: string; accountId: string }> {
+  if (!request.url) {
+    throw new errors.BadRequestError('Missing `url` in request');
   }
 
-  let accountId = '';
   if (request.accountId) {
-    accountId = request.accountId;
-  } else if (!skipConnection) {
-    const { network } = parseAccountId(await getCurrentAccountIdOrFail());
-    const lastAccountId = await findLastConnectedAccount(network, origin);
-    if (!lastAccountId) {
-      throw new errors.BadRequestError('The connection is outdated, try relogin');
-    }
-    accountId = lastAccountId;
+    return request as ApiDappRequest & { url: string; accountId: string };
   }
 
-  return { origin, accountId };
+  const { network } = parseAccountId(await getCurrentAccountIdOrFail());
+  const lastAccountId = await findLastConnectedAccount(network, request.url);
+  if (!lastAccountId) {
+    throw new errors.BadRequestError('The connection is outdated, try relogin');
+  }
+
+  return {
+    ...request,
+    accountId: lastAccountId,
+  } as ApiDappRequest & { url: string; accountId: string };
 }
 
 async function openExtensionPopup(force?: boolean) {

@@ -834,6 +834,9 @@ App will not ask for signature for %1$d minutes after last entry.: 應用程式�
 Remember for %1$d minutes: 記住 %1$d 分鐘
 Preview: 預覽
 $preview_not_guaranteed: 預覽結果**不受保證**，且**可能被服務偽造**。
+Unverified Source: 未經驗證的來源
+$reopen_in_iab: 為了您的安全，請在%browserButton%中重新打開此DApp。
+MyTonWallet Browser: MyTonWallet 瀏覽器
 Exit all wallets: 退出所有錢包
 Can't confirm?: 無法登入？
 $safe_staking_ethena_description1: 質押完全去中心化，由**Ethena官方**審計的流動性質押**智能合約**運營。
@@ -913,3 +916,4 @@ Attributes: 屬性
 Show All: 顯示全部
 Description: 描述
 No additional data.: 無附加數據。
+Domain was copied!: 網域已複製！

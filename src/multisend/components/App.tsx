@@ -1,4 +1,4 @@
-import type { Wallet, WalletInfoRemote } from '@tonconnect/sdk';
+import type { Wallet, WalletInfo } from '@tonconnect/sdk';
 import React, { memo, useEffect, useLayoutEffect, useState } from '../../lib/teact/teact';
 
 import type { TransferRow } from '../types';
@@ -15,7 +15,7 @@ import {
   IS_SAFARI,
   IS_WINDOWS,
 } from '../../util/windowEnvironment';
-import { handleTonConnectButtonClick, subscribeToWalletConnection, tonConnect } from '../utils/tonConnect';
+import { handleTonConnectButtonClick, initTonConnect, tonConnect } from '../utils/tonConnect';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
@@ -31,7 +31,7 @@ import TransferListPage from './TransferListPage';
 import styles from './App.module.scss';
 
 type OwnProps = {
-  mtwWalletInfo?: WalletInfoRemote;
+  mtwWalletInfo?: WalletInfo;
 };
 
 enum PageKey {
@@ -53,19 +53,7 @@ function App({ mtwWalletInfo }: OwnProps) {
   useLayoutEffect(applyDocumentClasses, []);
 
   useEffectOnce(() => {
-    const unsubscribe = subscribeToWalletConnection(setWallet);
-
-    tonConnect.restoreConnection()
-      .then(() => {
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        // eslint-disable-next-line no-console
-        console.error('Failed to restore connection:', err);
-        setIsLoading(false);
-      });
-
-    return unsubscribe;
+    return initTonConnect(setIsLoading, setWallet);
   });
 
   useEffect(() => {
@@ -76,13 +64,11 @@ function App({ mtwWalletInfo }: OwnProps) {
     }
   }, [isLoading, wallet]);
 
-  const handleConnectClick = useLastCallback(
-    () => {
-      if (mtwWalletInfo) {
-        void handleTonConnectButtonClick(mtwWalletInfo);
-      }
-    },
-  );
+  const handleConnectClick = useLastCallback(() => {
+    if (mtwWalletInfo) {
+      void handleTonConnectButtonClick(mtwWalletInfo);
+    }
+  });
 
   const handleDisconnectClick = useLastCallback(
     async () => {

@@ -1,4 +1,6 @@
 .appLocked {
+  --header-gap-size: 2rem;
+
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -8,8 +10,6 @@
   height: 100vh;
 
   color: var(--color-black);
-
-  --header-gap-size: 2rem;
 }
 
 .innerContent {

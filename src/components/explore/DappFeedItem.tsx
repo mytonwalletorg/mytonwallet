@@ -18,12 +18,12 @@ interface OwnProps {
   name: string;
   url: string;
   mode: 'pill' | 'tile';
-  origin: string;
+  isExternal: boolean;
 }
 
 const RERENDER_DAPPS_FEED_DELAY_MS = SECOND;
 
-const POPULAR_DAPP_ORIGIN_REPLACEMENTS = [{
+const POPULAR_DAPP_URL_REPLACEMENTS = [{
   name: 'Fanzee Battles',
   manifestUrl: 'https://battles-tg-app.fanz.ee/tc-manifest.json',
   originalUrl: 'https://t.me/fanzeebattlesbot',
@@ -45,7 +45,7 @@ const POPULAR_DAPP_ORIGIN_REPLACEMENTS = [{
   replacementUrl: 'https://t.me/earn?startapp',
 }];
 
-const ORIGIN_REPLACEMENTS_BY_ORIGIN = POPULAR_DAPP_ORIGIN_REPLACEMENTS.reduce(
+const REPLACEMENTS_BY_URL = POPULAR_DAPP_URL_REPLACEMENTS.reduce(
   (acc: Record<string, string>, { originalUrl, replacementUrl }) => {
     acc[originalUrl] = replacementUrl;
 
@@ -58,7 +58,7 @@ function DappFeedItem({
   name,
   url,
   mode,
-  origin,
+  isExternal,
 }: OwnProps) {
   const { updateDappLastOpenedAt } = getActions();
 
@@ -88,9 +88,9 @@ function DappFeedItem({
   }
 
   const openDapp = useLastCallback(async () => {
-    await openUrl(ORIGIN_REPLACEMENTS_BY_ORIGIN[url] || url);
+    await openUrl(REPLACEMENTS_BY_URL[url] || url, { isExternal });
 
-    setTimeout(() => void updateDappLastOpenedAt({ origin }), RERENDER_DAPPS_FEED_DELAY_MS);
+    setTimeout(() => void updateDappLastOpenedAt({ url }), RERENDER_DAPPS_FEED_DELAY_MS);
   });
 
   return (

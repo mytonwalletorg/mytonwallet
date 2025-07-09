@@ -85,7 +85,6 @@ function DappConnectModal({
   }, [currentAccountId]);
 
   const shouldRenderAccounts = accounts && isKeyCountGreater(accounts, 1);
-  const { iconUrl, name, url } = dapp || {};
 
   const handleSubmit = useLastCallback(async () => {
     closeConfirm();
@@ -183,9 +182,7 @@ function DappConnectModal({
     return (
       <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
         <DappInfo
-          iconUrl={iconUrl}
-          name={name}
-          url={url}
+          dapp={dapp}
           className={buildClassName(styles.dapp_first, styles.dapp_push)}
         />
         {shouldRenderAccounts && renderAccounts()}
@@ -293,7 +290,7 @@ function DappConnectModal({
       >
         <div className={styles.description}>
           {lang('$dapp_can_view_balance', {
-            dappname: <strong>{name}</strong>,
+            dappname: <strong>{dapp?.name}</strong>,
           })}
         </div>
         <div className={styles.buttons}>

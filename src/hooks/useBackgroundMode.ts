@@ -20,6 +20,7 @@ if (IS_TELEGRAM_APP) {
   void getTelegramAppAsync().then((telegramApp) => {
     telegramApp!.onEvent('activated', handleFocus);
     telegramApp!.onEvent('deactivated', handleBlur);
+    setIsInBackground(!telegramApp?.isActive);
   });
 } else {
   window.addEventListener('blur', handleBlur);

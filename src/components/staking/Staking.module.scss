@@ -299,7 +299,11 @@
 
 @include mixins.respond-below(xs) {
   .stakingInfoNoHistory {
-    border-radius: 0;
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+    :global(.is-telegram-app) & {
+      border-radius: 0;
+    }
 
     @supports (padding-bottom: max(1rem, var(--safe-area-bottom))) {
       padding-bottom: max(1rem, var(--safe-area-bottom))
@@ -358,9 +362,10 @@
 }
 
 .stakingInfoLoadingAnimation {
+  --spinner-size: 1.5rem;
+
   position: relative;
   right: 2.5rem;
-  --spinner-size: 1.5rem;
 }
 
 .stakingInfoClose {

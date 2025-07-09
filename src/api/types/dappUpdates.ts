@@ -20,7 +20,7 @@ export type ApiSiteUpdateDeeplinkHook = {
 
 export type ApiSiteDisconnect = {
   type: 'disconnectSite';
-  origin: string;
+  url: string;
 };
 
 export type ApiSiteUpdate = ApiLegacyDappUpdate

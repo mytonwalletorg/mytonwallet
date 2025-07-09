@@ -238,13 +238,11 @@ export interface ApiDappPermissions {
 }
 
 export type ApiDappRequest = {
-  origin?: string;
+  url: string | undefined; // `undefined` is a special case for SSE connect request
+  isUrlEnsured?: boolean;
   accountId?: string;
   identifier?: string;
   sseOptions?: ApiSseOptions;
-} | {
-  origin: string;
-  accountId: string;
 };
 
 export interface ApiTransferToSign {

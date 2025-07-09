@@ -1,8 +1,9 @@
 import { Address } from '@ton/core';
-import type { Wallet, WalletInfoRemote } from '@tonconnect/sdk';
-import TonConnect, { isWalletInfoCurrentlyEmbedded, isWalletInfoCurrentlyInjected } from '@tonconnect/sdk';
+import type { Wallet, WalletInfo } from '@tonconnect/sdk';
+import TonConnect from '@tonconnect/sdk';
 
 import { DEBUG } from '../config';
+import { initIframeBridgeConnector } from '../../util/embeddedDappBridge/connector/iframeConnector';
 import { shortenAddress } from '../../util/shortenAddress';
 
 const MANIFEST_URL = 'https://multisend.mytonwallet.io/mytonwallet-multisend-tonconnect-manifest.json';
@@ -20,67 +21,61 @@ interface SendTxOptions {
   messages: TxMessage[];
 }
 
-export const tonConnect = new TonConnect({
-  manifestUrl: MANIFEST_URL,
-});
-
 declare global {
   interface Window {
     disconnect?: () => void;
   }
 }
 
+if (window.parent !== window) {
+  initIframeBridgeConnector();
+}
+
+export const tonConnect = new TonConnect({
+  manifestUrl: MANIFEST_URL,
+});
+
 if (DEBUG) {
   window.disconnect = () => tonConnect.disconnect();
 }
 
-export function subscribeToWalletConnection(setWallet: (wallet?: Wallet) => void) {
+export function initTonConnect(
+  setIsLoading: (isLoading: boolean) => void,
+  setWallet: (wallet?: Wallet) => void,
+) {
+  tonConnect.restoreConnection()
+    .then(() => {
+      setWallet(tonConnect.wallet ?? undefined);
+    })
+    .catch((err) => {
+      if (DEBUG) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to restore connection:', err);
+      }
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
+
   if (tonConnect.connected) {
     setWallet(tonConnect.wallet ?? undefined);
   }
 
-  return tonConnect.onStatusChange((walletChanged) => {
-    if (walletChanged) {
-      setWallet(walletChanged);
-    } else {
-      setWallet(undefined);
-    }
+  return tonConnect.onStatusChange((wallet) => {
+    setWallet(wallet || undefined);
   });
 }
 
-export function prettifyAddress(address: string) {
-  const unbounceableAddress = Address.parse(address).toString({ bounceable: false });
-  return shortenAddress(unbounceableAddress, PRETTIFY_SYMBOL_COUNT);
-}
-
-export function connectEmbeddedWalletOrGetUrl(connector: TonConnect, walletInfo: WalletInfoRemote) {
-  const connectorOptions = {};
-
-  if (isWalletInfoCurrentlyEmbedded(walletInfo) || isWalletInfoCurrentlyInjected(walletInfo)) {
-    return connector.connect({
-      jsBridgeKey: walletInfo.jsBridgeKey,
-    }, connectorOptions);
-  } else {
-    const { bridgeUrl, universalLink } = walletInfo;
-    return connector.connect({
-      bridgeUrl, universalLink,
-    }, connectorOptions);
+export async function handleTonConnectButtonClick(walletInfo: WalletInfo) {
+  if (tonConnect.connected) {
+    await tonConnect.disconnect();
   }
-}
 
-export function openWalletConnectPage(connector: TonConnect, walletInfo: WalletInfoRemote) {
-  const connection = connectEmbeddedWalletOrGetUrl(connector, walletInfo);
+  const connection = tonConnect.connect(walletInfo);
+
   if (typeof connection === 'string') {
     window.open(connection, '_blank', 'noreferrer');
   }
-}
-
-export async function handleTonConnectButtonClick(mtwWalletInfo: WalletInfoRemote) {
-  if (tonConnect.connected) await tonConnect.disconnect();
-
-  openWalletConnectPage(
-    tonConnect, mtwWalletInfo,
-  );
 }
 
 export async function sendTransaction(options: SendTxOptions) {
@@ -106,4 +101,9 @@ export async function sendTransaction(options: SendTxOptions) {
     console.error('Failed to send transaction:', error);
     throw error;
   }
+}
+
+export function prettifyAddress(address: string) {
+  const unbounceableAddress = Address.parse(address).toString({ bounceable: false });
+  return shortenAddress(unbounceableAddress, PRETTIFY_SYMBOL_COUNT);
 }
