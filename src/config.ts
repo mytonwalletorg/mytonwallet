@@ -504,6 +504,7 @@ export const SHORT_CURRENCY_SYMBOL_MAP = {
   EUR: '€',
   RUB: '₽',
   CNY: '¥',
+  THB: '฿',
 };
 export const CURRENCY_LIST: DropdownItem<ApiBaseCurrency>[] = [
   {
@@ -518,6 +519,9 @@ export const CURRENCY_LIST: DropdownItem<ApiBaseCurrency>[] = [
   }, {
     value: 'CNY',
     name: 'Yuan',
+  }, {
+    value: 'THB',
+    name: 'Baht',
   }, {
     value: 'BTC',
     name: 'Bitcoin',
