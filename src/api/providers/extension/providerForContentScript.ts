@@ -5,6 +5,7 @@ import type {
   SiteMethods,
 } from '../../extensionMethods/types';
 import type { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
+import type { ApiDappRequest } from '../../types';
 import type { OnApiSiteUpdate } from '../../types/dappUpdates';
 
 import { CONTENT_SCRIPT_PORT, PAGE_CONNECTOR_CHANNEL } from './config';
@@ -44,14 +45,17 @@ createExtensionInterface(CONTENT_SCRIPT_PORT, (
   if (name.startsWith('ton_')) {
     name = name.replace('ton_', '');
     const method = legacyDappApi[name as keyof LegacyDappMethods];
+
     // @ts-ignore
     return method(...args as keyof LegacyDappMethodArgs<keyof LegacyDappMethods>);
   }
 
   if (name.startsWith('tonConnect_')) {
-    const request = { origin };
     name = name.replace('tonConnect_', '');
+
     const method = tonConnectApi[name as keyof TonConnectMethods];
+    const request: ApiDappRequest = { url: origin, isUrlEnsured: true };
+
     // @ts-ignore
     return method(...[request].concat(args) as TonConnectMethodArgs<keyof TonConnectMethods>);
   }

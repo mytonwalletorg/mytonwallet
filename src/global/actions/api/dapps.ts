@@ -5,6 +5,7 @@ import { DappConnectState, SignDataState, TransferState } from '../../types';
 import { ANIMATION_END_DELAY, IS_CAPACITOR } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { getDoesUsePinPad } from '../../../util/biometrics';
+import { getDappConnectionUniqueId } from '../../../util/getDappConnectionUniqueId';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { callActionInMain } from '../../../util/multitab';
 import { pause, waitFor } from '../../../util/schedulers';
@@ -324,11 +325,11 @@ addActionHandler('getDapps', async (global, actions) => {
     return;
   }
 
-  // Check for broken dapps without origin
-  const brokenDapp = result.find(({ origin }) => !origin);
+  // Check for broken dapps without URL
+  const brokenDapp = result.find(({ url }) => !url);
   if (brokenDapp) {
-    actions.deleteDapp({ origin: brokenDapp.origin });
-    result = result.filter(({ origin }) => origin);
+    actions.deleteDapp({ url: brokenDapp.url, uniqueId: getDappConnectionUniqueId(brokenDapp) });
+    result = result.filter(({ url }) => url);
   }
 
   global = getGlobal();
@@ -346,17 +347,17 @@ addActionHandler('deleteAllDapps', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('deleteDapp', (global, actions, { origin }) => {
+addActionHandler('deleteDapp', (global, actions, { url, uniqueId }) => {
   const { currentAccountId } = global;
 
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('deleteDapp', { origin });
+    callActionInMain('deleteDapp', { url, uniqueId });
   } else {
-    void callApi('deleteDapp', currentAccountId!, origin);
+    void callApi('deleteDapp', currentAccountId!, url, uniqueId);
   }
 
   global = getGlobal();
-  global = removeConnectedDapp(global, origin);
+  global = removeConnectedDapp(global, url);
   setGlobal(global);
 });
 

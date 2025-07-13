@@ -501,6 +501,17 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 42;
   }
 
+  if (cached.stateVersion === 41) {
+    for (const accountId of Object.keys(cached.byAccountId)) {
+      const accountState = cached.byAccountId[accountId];
+      if ((accountState as any).dappLastOpenedDatesByOrigin) {
+        accountState.dappLastOpenedDatesByUrl = (accountState as any).dappLastOpenedDatesByOrigin;
+        delete (accountState as any).dappLastOpenedDatesByOrigin;
+      }
+    }
+    cached.stateVersion = 42;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -608,7 +619,7 @@ function reduceByAccountId(global: GlobalState) {
       'browserHistory',
       'blacklistedNftAddresses',
       'whitelistedNftAddresses',
-      'dappLastOpenedDatesByOrigin',
+      'dappLastOpenedDatesByUrl',
       'dapps',
     ]);
 

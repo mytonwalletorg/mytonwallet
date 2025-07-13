@@ -843,6 +843,9 @@ App will not ask for signature for %1$d minutes after last entry.: The app will 
 Remember for %1$d minutes: Remember for %1$d minutes
 Preview: Preview
 $preview_not_guaranteed: Preview result **is not guaranteed **and **can be forged **by the service.
+Unverified Source: Unverified Source
+$reopen_in_iab: For your safety, please re-open this dapp in %browserButton%.
+MyTonWallet Browser: MyTonWallet Browser
 Exit all wallets: Exit all wallets
 Can't confirm?: Can't confirm?
 $safe_staking_ethena_description1: Staking is fully decentralized and operated by **Ethena’s official** audited liquid staking **smart contracts**.
@@ -918,3 +921,4 @@ Attributes: Attributes
 Show All: Show All
 Description: Description
 No additional data.: No additional data.
+Domain was copied!: Domain was copied!

@@ -1,8 +1,8 @@
 .modalDialog {
-  height: 36.5rem;
+  height: 38.5rem;
 
   @supports (height: var(--safe-area-bottom)) {
-    height: calc(36.5rem + var(--safe-area-bottom));
+    height: calc(38.5rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) &,
@@ -35,7 +35,7 @@
   justify-items: center;
 
   margin-top: auto;
-  padding-top: 3rem;
+  padding-top: 2rem;
 }
 
 .copyButtonWrapper,

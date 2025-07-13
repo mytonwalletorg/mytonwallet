@@ -89,14 +89,15 @@
 }
 
 .close {
+  --color-close-button-background-hover: var(--color-card-button-hover);
+  --color-close-button-background: var(--color-card-button);
+  --color-close-button-text-hover: var(--color-card-text-hover);
+  --color-close-button-text: var(--color-card-text);
+
   position: absolute;
   z-index: 3;
   top: 1rem;
   right: 1rem;
-  --color-close-button-text: var(--color-card-text);
-  --color-close-button-text-hover: var(--color-card-text-hover);
-  --color-close-button-background: var(--color-card-button);
-  --color-close-button-background-hover: var(--color-card-button-hover);
 }
 
 .navigation {

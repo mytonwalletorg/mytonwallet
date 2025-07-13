@@ -49,8 +49,8 @@ function SettingsDapps({
     isScrolled,
   } = useScrolledState();
 
-  const handleDisconnectDapp = useLastCallback((origin: string) => {
-    const dapp = dapps.find((d) => d.origin === origin);
+  const handleDisconnectDapp = useLastCallback((url: string) => {
+    const dapp = dapps.find((d) => d.url === url);
     setDappToDelete(dapp);
     openDisconnectModal();
   });
@@ -60,27 +60,7 @@ function SettingsDapps({
     openDisconnectModal();
   });
 
-  function renderDapp(dapp: ApiDapp) {
-    const {
-      iconUrl, name, url, origin,
-    } = dapp;
-
-    return (
-      <DappInfo
-        key={origin}
-        iconUrl={iconUrl}
-        name={name}
-        url={url}
-        origin={origin}
-        className={styles.dapp}
-        onDisconnect={handleDisconnectDapp}
-      />
-    );
-  }
-
   function renderDapps() {
-    const dappList = dapps.map(renderDapp);
-
     return (
       <div className={styles.dapps}>
         <div className={styles.disconnectAllBlock}>
@@ -97,7 +77,14 @@ function SettingsDapps({
         <p className={styles.blockTitle}>{lang('Logged in with %app_name%', { app_name: APP_NAME })}</p>
 
         <div className={styles.block}>
-          {dappList}
+          {dapps.map((dapp) => (
+            <DappInfo
+              key={dapp.url}
+              dapp={dapp}
+              className={styles.dapp}
+              onDisconnect={handleDisconnectDapp}
+            />
+          ))}
         </div>
       </div>
     );

@@ -8,6 +8,7 @@ import nacl, { randomBytes } from 'tweetnacl';
 
 import type { ApiDappRequest, ApiSseOptions, OnApiUpdate } from '../types';
 
+import { SSE_BRIDGE_URL } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { handleFetchErrors } from '../../util/fetch';
 import { extractKey } from '../../util/iteratees';
@@ -20,12 +21,11 @@ import * as tonConnect from './index';
 
 type SseDapp = {
   accountId: string;
-  origin: string;
+  url: string;
 } & ApiSseOptions;
 
 type ReturnStrategy = 'back' | 'none' | (string & {});
 
-const BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge';
 const TTL_SEC = 300;
 const NONCE_SIZE = 24;
 const MAX_CONFIRM_DURATION = 60 * 1000;
@@ -51,7 +51,7 @@ export async function startSseConnection({
   isFromInAppBrowser?: boolean;
   identifier?: string;
 }): Promise<ReturnStrategy | undefined> {
-  const { searchParams: params, origin } = new URL(url);
+  const { searchParams: params, origin: connectionOrigin } = new URL(url);
 
   const ret: ReturnStrategy = params.get('ret') || 'back';
   const version = Number(params.get('v') as string);
@@ -74,7 +74,7 @@ export async function startSseConnection({
   const connectRequest: ConnectRequest | null = safeExec(() => JSON.parse(r)) || JSON.parse(decodeURIComponent(r));
 
   logDebug('SSE Start connection:', {
-    version, appClientId, connectRequest, ret, origin, identifier,
+    version, appClientId, connectRequest, ret, connectionOrigin, identifier,
   });
 
   const { secretKey: secretKeyArray, publicKey: publicKeyArray } = nacl.box.keyPair();
@@ -83,6 +83,7 @@ export async function startSseConnection({
 
   const lastOutputId = 0;
   const request: ApiDappRequest = {
+    url: undefined,
     identifier,
     sseOptions: {
       clientId,
@@ -129,18 +130,23 @@ export async function resetupSseConnection() {
     return;
   }
 
-  sseDapps = Object.entries(dappsState).reduce((result, [accountId, dapps]) => {
-    if (parseAccountId(accountId).network === network) {
-      for (const dapp of Object.values(dapps)) {
+  sseDapps = Object.entries(dappsState).reduce((result, [accountId, dappsByUrl]) => {
+    if (parseAccountId(accountId).network !== network) {
+      return result;
+    }
+
+    for (const byUniqueId of Object.values(dappsByUrl)) {
+      for (const dapp of Object.values(byUniqueId)) {
         if (dapp.sse?.clientId) {
           result.push({
             ...dapp.sse,
             accountId,
-            origin: dapp.origin,
+            url: dapp.url,
           });
         }
       }
     }
+
     return result;
   }, [] as SseDapp[]);
 
@@ -170,7 +176,7 @@ export async function resetupSseConnection() {
     }
 
     const {
-      accountId, clientId, appClientId, secretKey, origin, lastOutputId,
+      accountId, clientId, appClientId, secretKey, url, lastOutputId,
     } = sseDapp;
     const message = decryptMessage(encryptedMessage, appClientId, secretKey) as AppRequest<keyof RpcRequests>;
 
@@ -185,7 +191,7 @@ export async function resetupSseConnection() {
     };
 
     // @ts-ignore
-    const result = await tonConnect[message.method]({ origin, accountId, sseOptions }, message);
+    const result = await tonConnect[message.method]({ url, accountId, sseOptions }, message);
 
     await sendMessage(result, secretKey, clientId, appClientId);
 
@@ -199,8 +205,8 @@ export async function resetupSseConnection() {
   };
 }
 
-export async function sendSseDisconnect(accountId: string, origin: string) {
-  const sseDapp = sseDapps.find((dapp) => dapp.origin === origin && dapp.accountId === accountId);
+export async function sendSseDisconnect(accountId: string, url: string) {
+  const sseDapp = sseDapps.find((d) => d.url === url && d.accountId === accountId);
   if (!sseDapp) return;
 
   const { secretKey, clientId, appClientId } = sseDapp;
@@ -224,7 +230,7 @@ function sendMessage(
 }
 
 async function sendRawMessage(body: string, clientId: string, toId: string, topic?: 'signTransaction' | 'signData') {
-  const url = new URL(`${BRIDGE_URL}/message`);
+  const url = new URL(`${SSE_BRIDGE_URL}message`);
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('to', toId);
   url.searchParams.set('ttl', TTL_SEC.toString());
@@ -246,7 +252,7 @@ function closeEventSource() {
 }
 
 function openEventSource(clientIds: string[], lastEventId?: string) {
-  const url = new URL(`${BRIDGE_URL}/events`);
+  const url = new URL(`${SSE_BRIDGE_URL}events`);
   url.searchParams.set('client_id', clientIds.join(','));
   if (lastEventId) {
     url.searchParams.set('last_event_id', lastEventId);

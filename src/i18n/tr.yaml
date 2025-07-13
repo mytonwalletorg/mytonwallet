@@ -840,6 +840,9 @@ App will not ask for signature for %1$d minutes after last entry.: Uygulama, son
 Remember for %1$d minutes: "%1$d dakika boyunca hatırla"
 Preview: Önizleme
 $preview_not_guaranteed: Önizleme sonucu **garanti edilmez **ve hizmet tarafından **sahte olabilir**.
+Unverified Source: Doğrulanmamış Kaynak
+$reopen_in_iab: Güvenliğiniz için lütfen bu DApp'i %browserButton% içinde yeniden açın.
+MyTonWallet Browser: MyTonWallet Tarayıcısı
 Exit all wallets: Tüm cüzdanlardan çık
 Can't confirm?: Giriş yapılamıyor mu?
 $safe_staking_ethena_description1: Stake işlemi tamamen merkeziyetsizdir ve **Ethena'nın resmi** denetlenmiş likit stake **akıllı sözleşmeleri** tarafından yürütülür.
@@ -920,3 +923,4 @@ Attributes: Nitelikler
 Show All: Tümünü göster
 Description: Açıklama
 No additional data.: Ek veri yok.
+Domain was copied!: Alan adı kopyalandı!

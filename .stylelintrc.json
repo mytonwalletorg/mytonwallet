@@ -58,7 +58,11 @@
         "type": "at-rule",
         "name": "import",
         "hasBlock": false
-      }
+      },
+      "dollar-variables",
+      "at-variables",
+      "custom-properties",
+      "declarations"
     ],
     "at-rule-empty-line-before": ["always", {
       "ignore": [

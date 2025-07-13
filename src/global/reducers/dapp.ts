@@ -74,14 +74,14 @@ export function updateConnectedDapps(global: GlobalState, update: AccountState['
 }
 
 export function clearConnectedDapps(global: GlobalState) {
-  return updateCurrentAccountState(global, { dapps: undefined, dappLastOpenedDatesByOrigin: undefined });
+  return updateCurrentAccountState(global, { dapps: undefined, dappLastOpenedDatesByUrl: undefined });
 }
 
-export function removeConnectedDapp(global: GlobalState, origin: string) {
-  const { dapps: connectedDapps, dappLastOpenedDatesByOrigin } = selectCurrentAccountState(global) || {};
-  if (dappLastOpenedDatesByOrigin) delete dappLastOpenedDatesByOrigin[origin];
+export function removeConnectedDapp(global: GlobalState, url: string) {
+  const { dapps: connectedDapps, dappLastOpenedDatesByUrl } = selectCurrentAccountState(global) || {};
+  if (dappLastOpenedDatesByUrl) delete dappLastOpenedDatesByUrl[url];
   return updateCurrentAccountState(global, {
-    dapps: connectedDapps!.filter((d) => d.origin !== origin),
-    dappLastOpenedDatesByOrigin,
+    dapps: connectedDapps!.filter((d) => d.url !== url),
+    dappLastOpenedDatesByUrl,
   });
 }

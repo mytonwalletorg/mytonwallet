@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import type { DropdownItem } from './Dropdown';
 
 import { copyTextToClipboard } from '../../util/clipboard';
+import { useIFrameBridgeProvider } from '../../util/embeddedDappBridge/provider/useIFrameBridgeProvider';
 import { openUrl } from '../../util/openUrl';
 import { shareUrl } from '../../util/share';
 
@@ -56,6 +57,8 @@ function IFrameBrowser({
 
   const iframeRef = useRef<HTMLIFrameElement>();
 
+  const { setupDappBridge } = useIFrameBridgeProvider(url);
+
   const host = useMemo(() => url && (new URL(url)).host, [url]);
   const renderingTitle = useCurrentOrPrev(title || (host && (TITLES[host as keyof typeof TITLES] || host)));
 
@@ -99,6 +102,7 @@ function IFrameBrowser({
         src={url}
         className={styles.iframe}
         allow="web-share; clipboard-write"
+        onLoad={setupDappBridge}
       />
     </Modal>
   );

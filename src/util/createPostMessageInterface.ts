@@ -1,18 +1,21 @@
+import type InAppBrowserPostMessageAdapter from './embeddedDappBridge/provider/InAppBrowserPostMessageAdapter';
 import type {
   ApiUpdate,
-  CancellableCallback, OriginMessageData, OriginMessageEvent, WorkerMessageData,
+  CancellableCallback,
+  OriginMessageData,
+  OriginMessageEvent,
+  WorkerMessageData,
 } from './PostMessageConnector';
 
+import { decodeExtensionMessage, encodeExtensionMessage } from './extensionMessageSerializer';
 import { logDebugError } from './logs';
-
-import { decodeExtensionMessage, encodeExtensionMessage } from './PostMessageConnector';
 
 declare const self: WorkerGlobalScope;
 
 const callbackState = new Map<string, CancellableCallback>();
 
 type ApiConfig =
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   ((name: string, ...args: any[]) => any | [any, ArrayBuffer[]])
   | Record<string, AnyFunction>;
 type SendToOrigin = (data: WorkerMessageData, transferables?: Transferable[]) => void;
@@ -24,7 +27,7 @@ type SendToOrigin = (data: WorkerMessageData, transferables?: Transferable[]) =>
 export function createPostMessageInterface(
   api: ApiConfig,
   channel?: string,
-  target: DedicatedWorkerGlobalScope | Worker = self as DedicatedWorkerGlobalScope,
+  target: DedicatedWorkerGlobalScope | Worker | InAppBrowserPostMessageAdapter = self as DedicatedWorkerGlobalScope,
   shouldIgnoreErrors?: boolean,
 ) {
   function sendToOrigin(data: WorkerMessageData, transferables?: Transferable[]) {
@@ -41,11 +44,52 @@ export function createPostMessageInterface(
     handleErrors(sendToOrigin);
   }
 
-  (target as DedicatedWorkerGlobalScope).addEventListener('message', (message: OriginMessageEvent) => {
-    if (message.data?.channel === channel) {
-      void onMessage(api, message.data, sendToOrigin);
+  function handleMessage(e: OriginMessageEvent) {
+    if (e.data?.channel === channel) {
+      void onMessage(api, e.data, sendToOrigin);
     }
-  });
+  }
+
+  // Correct for any target, but TypeScript weirdly complains
+  (target as DedicatedWorkerGlobalScope).addEventListener('message', handleMessage);
+
+  return () => {
+    (target as DedicatedWorkerGlobalScope).removeEventListener('message', handleMessage);
+  };
+}
+
+/**
+ * Provides functions, defined in the main window, to an IFrame.
+ */
+export function createReverseIFrameInterface(
+  api: ApiConfig,
+  targetOrigin: string,
+  target: Window,
+  channel?: string,
+) {
+  function sendToOrigin(data: WorkerMessageData, transferables?: Transferable[]) {
+    data.channel = channel;
+
+    if (transferables) {
+      throw new Error('Cannot send `Transferable` to `Window`');
+    } else {
+      target.postMessage(data, targetOrigin);
+    }
+  }
+
+  function handleMessage(e: OriginMessageEvent) {
+    if (targetOrigin && e.origin !== targetOrigin) return;
+
+    if (e.data?.channel === channel) {
+      void onMessage(api, e.data, sendToOrigin);
+    }
+  }
+
+  window.addEventListener('message', handleMessage);
+
+  return () => {
+    window.removeEventListener('message', handleMessage);
+  };
 }
 
 /**

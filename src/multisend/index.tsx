@@ -2,7 +2,6 @@ import '../global/actions/ui/shared';
 import '../util/handleError';
 import '../util/bigintPatch';
 
-import type { WalletInfoRemote } from '@tonconnect/sdk';
 import React from '../lib/teact/teact';
 import TeactDOM from '../lib/teact/teact-dom';
 import { getActions, getGlobal } from '../global';
@@ -48,7 +47,7 @@ void (async () => {
   });
 
   const walletInfoList = await tonConnect.getWallets();
-  const mtwWalletInfo = walletInfoList.find((walletInfo) => walletInfo.appName === 'mytonwallet') as WalletInfoRemote;
+  const mtwWalletInfo = walletInfoList.find((walletInfo) => walletInfo.appName === 'mytonwallet');
 
   if (DEBUG) {
     // eslint-disable-next-line no-console

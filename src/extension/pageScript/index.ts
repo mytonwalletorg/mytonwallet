@@ -31,8 +31,8 @@ function onUpdate(update: ApiSiteUpdate) {
   }
 
   if (type === 'disconnectSite') {
-    const { origin } = update;
-    if (origin === siteOrigin) {
+    const { url } = update;
+    if (url === siteOrigin) {
       tonConnect.onDisconnect();
     }
   }

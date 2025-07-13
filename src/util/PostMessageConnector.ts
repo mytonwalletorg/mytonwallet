@@ -1,4 +1,4 @@
-import { bigintReviver } from './bigint';
+import { decodeExtensionMessage, encodeExtensionMessage } from './extensionMessageSerializer';
 import generateUniqueId from './generateUniqueId';
 import { logDebugError } from './logs';
 
@@ -303,17 +303,6 @@ export function createReverseExtensionConnector(portName: string) {
   });
 
   return connector;
-}
-
-export function encodeExtensionMessage(data: OriginMessageData | WorkerMessageData) {
-  return JSON.stringify(data);
-}
-
-export function decodeExtensionMessage<T extends OriginMessageData | WorkerMessageData>(data: string | T): T {
-  if (typeof data === 'string') {
-    return JSON.parse(data, bigintReviver);
-  }
-  return data;
 }
 
 export type Connector<T extends InputRequestTypes = InputRequestTypes> = ReturnType<typeof createConnector<T>>;

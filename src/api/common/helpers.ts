@@ -34,7 +34,7 @@ import {
 } from './addresses';
 import { hexToBytes } from './utils';
 
-const actualStateVersion = 17;
+const actualStateVersion = 18;
 let migrationEnsurePromise: Promise<void>;
 
 export function buildLocalTransaction(
@@ -220,7 +220,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
     const dapps = await storage.getItem('dapps') as ApiDappsState;
     if (dapps) {
       for (const accountDapps of Object.values(dapps)) {
-        for (const dapp of Object.values(accountDapps)) {
+        for (const dapp of Object.values(accountDapps as Record<string, any>)) {
           dapp.connectedAt = 1;
         }
       }
@@ -296,7 +296,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
         const items: ApiDbSseConnection[] = [];
 
         for (const accountDapps of Object.values(dapps)) {
-          for (const dapp of Object.values(accountDapps)) {
+          for (const dapp of Object.values(accountDapps as Record<string, any>)) {
             if (dapp.sse?.appClientId) {
               items.push({ clientId: dapp.sse?.appClientId });
             }
@@ -400,6 +400,13 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
     await migrations.migration16.start();
 
     version = 17;
+    await storage.setItem('stateVersion', version);
+  }
+
+  if (version === 17) {
+    await migrations.migration17.start();
+
+    version = 18;
     await storage.setItem('stateVersion', version);
   }
 }

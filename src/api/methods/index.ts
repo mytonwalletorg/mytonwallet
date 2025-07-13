@@ -16,7 +16,7 @@ export * from './tokens';
 export {
   initDapps,
   getDapps,
-  getDappsByOrigin,
+  getDappsByUrl,
   deleteDapp,
   deleteAllDapps,
   loadExploreSites,

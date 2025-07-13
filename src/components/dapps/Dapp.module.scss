@@ -75,17 +75,40 @@ $labelSidePadding: 0.5rem;
 }
 
 .dappName,
-.dappUrl {
+.dappHost {
   overflow: hidden;
   display: block;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dappUrl {
+.dappHost {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-gray-2);
+}
+
+.dappHostWarningIcon {
+  margin-inline-end: 0.25rem;
+}
+
+.dappHostWarningText {
+  margin: 0;
+  color: var(--color-gray-1);
+}
+
+.dappHostWarningButton {
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+
+  font-weight: bold;
+  color: white;
+
+  background-color: var(--color-accent);
+
+  :global(html.theme-dark.is-white-accent) & {
+    background-color: var(--color-background-drop-down);
+  }
 }
 
 .dappName {
@@ -308,6 +331,9 @@ $labelSidePadding: 0.5rem;
 }
 
 .transactionDirection {
+  --color-skeleton-shimmer: var(--color-card-button-shimmer);
+  --skeleton-background-color: var(--color-card-button);
+
   position: relative;
 
   display: grid;
@@ -322,9 +348,6 @@ $labelSidePadding: 0.5rem;
 
   background: #3679C0 url(../../assets/transfer_dapp_bg.jpg) no-repeat 50% 0;
   background-size: cover;
-
-  --skeleton-background-color: var(--color-card-button);
-  --color-skeleton-shimmer: var(--color-card-button-shimmer);
 
   &::after {
     content: '';
@@ -401,6 +424,8 @@ $labelSidePadding: 0.5rem;
 }
 
 .dappInfoSkeleton {
+  --skeleton-background-color: var(--color-separator-input-stroke);
+
   display: flex;
   gap: 0.625rem;
   align-items: center;
@@ -410,8 +435,6 @@ $labelSidePadding: 0.5rem;
   border-radius: var(--border-radius-default);
 
   background-color: var(--color-background-first);
-
-  --skeleton-background-color: var(--color-separator-input-stroke);
 }
 
 .accountWrapperSkeleton {

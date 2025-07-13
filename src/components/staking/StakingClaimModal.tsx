@@ -5,7 +5,7 @@ import type { ApiEthenaStakingState, ApiJettonStakingState } from '../../api/typ
 import type { UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
-import { TONCOIN } from '../../config';
+import { SHORT_FRACTION_DIGITS, TONCOIN } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
   selectAccount,
@@ -121,7 +121,7 @@ function StakingClaimModal({
     );
     const content = isSensitiveDataHidden
       ? `*** ${token!.symbol}`
-      : formatCurrency(toDecimal(rewardAmount, token!.decimals), token!.symbol, token!.decimals);
+      : formatCurrency(toDecimal(rewardAmount, token!.decimals), token!.symbol, SHORT_FRACTION_DIGITS);
 
     return (
       <>
