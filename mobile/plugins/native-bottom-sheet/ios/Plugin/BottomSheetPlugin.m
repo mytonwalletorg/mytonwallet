@@ -4,6 +4,7 @@
 // Define the plugin using the CAP_PLUGIN Macro, and
 // each method the plugin supports using the CAP_PLUGIN_METHOD macro.
 CAP_PLUGIN(BottomSheetPlugin, "BottomSheet",
+           CAP_PLUGIN_METHOD(switchToAir, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(prepare, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(delegate, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(release, CAPPluginReturnPromise);

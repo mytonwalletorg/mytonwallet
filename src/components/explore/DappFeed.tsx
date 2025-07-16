@@ -6,7 +6,6 @@ import { SettingsState } from '../../global/types';
 
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getDappConnectionUniqueId } from '../../util/getDappConnectionUniqueId';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
@@ -35,19 +34,11 @@ function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByUrl }: StateProp
 
   const containerRef = useRef<HTMLDivElement>();
   const dapps: DappWithLastOpenedDate[] = useMemo(() => {
-    const sortedDapps = dappsFromState
+    return dappsFromState
       .slice()
       .filter((dapp) => !HIDDEN_FROM_FEED_DAPP_URLS.has(dapp.url))
       .map((dapp) => ({ ...dapp, lastOpenedAt: dappLastOpenedDatesByUrl?.[dapp.url] }))
       .sort(compareDapps);
-
-    // Remove duplicates, since we now support multiple connections per dapp. Keep the most recent connection.
-    const seen = new Set<string>();
-    return sortedDapps.filter(({ url }) => {
-      if (seen.has(url)) return false;
-      seen.add(url);
-      return true;
-    });
   }, [dappLastOpenedDatesByUrl, dappsFromState]);
 
   const mode = dapps.length > MAX_DAPPS_FOR_PILL_MODE ? 'tile' : 'pill';
@@ -126,16 +117,13 @@ function renderDapp(dapp: DappWithLastOpenedDate, mode: 'pill' | 'tile') {
     iconUrl, name, url,
   } = dapp;
 
-  const key = `dapp-${url}-${getDappConnectionUniqueId(dapp)}`;
-
   return (
     <DappFeedItem
-      key={key}
+      key={url}
       iconUrl={iconUrl}
       name={name}
       url={url}
       mode={mode}
-      isExternal={!!dapp.sse}
     />
   );
 }

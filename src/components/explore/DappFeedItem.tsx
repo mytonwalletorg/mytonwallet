@@ -18,7 +18,6 @@ interface OwnProps {
   name: string;
   url: string;
   mode: 'pill' | 'tile';
-  isExternal: boolean;
 }
 
 const RERENDER_DAPPS_FEED_DELAY_MS = SECOND;
@@ -58,7 +57,6 @@ function DappFeedItem({
   name,
   url,
   mode,
-  isExternal,
 }: OwnProps) {
   const { updateDappLastOpenedAt } = getActions();
 
@@ -88,7 +86,7 @@ function DappFeedItem({
   }
 
   const openDapp = useLastCallback(async () => {
-    await openUrl(REPLACEMENTS_BY_URL[url] || url, { isExternal });
+    await openUrl(REPLACEMENTS_BY_URL[url] || url);
 
     setTimeout(() => void updateDappLastOpenedAt({ url }), RERENDER_DAPPS_FEED_DELAY_MS);
   });

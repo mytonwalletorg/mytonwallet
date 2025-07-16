@@ -287,6 +287,18 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       });
       break;
 
+    case ApiTransactionError.HardwareBlindSigningNotEnabled:
+      actions.showDialog({
+        message: '$hardware_blind_sign_not_enabled_internal',
+      });
+      break;
+
+    case ApiTransactionError.RejectedByUser:
+      actions.showDialog({
+        message: 'Canceled by the user',
+      });
+      break;
+
     case ApiCommonError.ServerError:
       actions.showDialog({
         message: window.navigator.onLine

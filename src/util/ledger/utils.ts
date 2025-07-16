@@ -1,16 +1,19 @@
-import { isAscii } from '../stringFormat';
+import type { ApiNetwork, ApiTonWallet } from '../../api/types';
 
-const MAX_COMMENT_SIZE = 120;
+import { WORKCHAIN, Workchain } from '../../api/chains/ton/constants';
+
 const BROKEN_CONNECTION_ERRORS = new Set(['DisconnectedDeviceDuringOperation', 'TransportRaceCondition']);
-
-export function isValidLedgerComment(comment: string) {
-  return isAscii(comment) && isLedgerCommentLengthValid(comment);
-}
-
-export function isLedgerCommentLengthValid(comment: string) {
-  return comment.length <= MAX_COMMENT_SIZE;
-}
 
 export function isLedgerConnectionBroken(error: string) {
   return BROKEN_CONNECTION_ERRORS.has(error);
+}
+
+export function getLedgerAccountPathByWallet(network: ApiNetwork, wallet: ApiTonWallet, workchain?: Workchain) {
+  return getLedgerAccountPathByIndex(wallet.index, network !== 'mainnet', workchain);
+}
+
+export function getLedgerAccountPathByIndex(index: number, isTestnet: boolean, workchain = WORKCHAIN) {
+  const network = isTestnet ? 1 : 0;
+  const chain = workchain === Workchain.MasterChain ? 255 : 0;
+  return [44, 607, network, chain, index, 0];
 }

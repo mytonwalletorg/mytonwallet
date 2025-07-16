@@ -67,7 +67,7 @@ const cspFrameSrcExtra = IS_CORE_WALLET ? '' : [
 const cspConnectSrcHosts = [
   BRILLIANT_API_BASE_URL,
   BRILLIANT_API_BASE_URL.replace(/^http(s?):/, 'ws$1:'),
-  ensureTrailingSlash(PROXY_API_BASE_URL),
+  PROXY_API_BASE_URL,
   MTW_STATIC_BASE_URL,
   TONCENTER_MAINNET_URL,
   TONCENTER_TESTNET_URL,
@@ -75,8 +75,8 @@ const cspConnectSrcHosts = [
   TONAPIIO_TESTNET_URL,
   TRON_MAINNET_API_URL,
   TRON_TESTNET_API_URL,
-  ensureTrailingSlash(IPFS_GATEWAY_BASE_URL),
-  ensureTrailingSlash(SSE_BRIDGE_URL),
+  IPFS_GATEWAY_BASE_URL,
+  SSE_BRIDGE_URL,
 ].join(' ');
 
 const cspImageSrcHosts = [
@@ -97,7 +97,7 @@ const CSP = `
   connect-src 'self' blob: ${cspConnectSrcHosts} ${cspConnectSrcExtra};
   script-src 'self' 'wasm-unsafe-eval' ${cspScriptSrcExtra};
   style-src 'self' https://fonts.googleapis.com/;
-  img-src 'self' data: blob: https: ${cspImageSrcHosts};
+  img-src 'self' data: blob: ${cspImageSrcHosts};
   media-src 'self' data: https://static.mytonwallet.org/;
   object-src 'none';
   base-uri 'none';
@@ -473,16 +473,4 @@ class WebpackContextExtension {
       payload: { context: this.context },
     };
   }
-}
-
-/**
- * Adds a trailing slash to the given url.
- * This is needed for the CSP to work correctly:
- *  - paths that end in `/` match any path they are a prefix of. For example:
- *    `example.com/api/` will permit resources from `example.com/api/users/new`.
- *
- * https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#host-source
- */
-function ensureTrailingSlash(url: string) {
-  return url.endsWith('/') ? url : url + '/';
 }

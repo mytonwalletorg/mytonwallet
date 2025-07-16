@@ -32,7 +32,7 @@ function DappSignDataModal({
 }: StateProps) {
   const {
     setDappSignDataScreen,
-    submitDappSignDataPassword,
+    submitDappSignData,
     clearDappSignDataError,
     closeDappSignData,
     cancelDappSignData,
@@ -51,7 +51,7 @@ function DappSignDataModal({
   });
 
   const handlePasswordSubmit = useLastCallback((password: string) => {
-    submitDappSignDataPassword({ password });
+    submitDappSignData({ password });
   });
 
   const handleResetSignData = useLastCallback(() => {

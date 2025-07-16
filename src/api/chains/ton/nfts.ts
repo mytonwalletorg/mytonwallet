@@ -204,7 +204,7 @@ function buildNotcoinVoucherExchange(fromAddress: string, nftAddress: string, nf
   return buildNftTransferPayload(fromAddress, toAddress, payload, NOTCOIN_FORWARD_TON_AMOUNT);
 }
 
-function buildNftTransferPayload(
+export function buildNftTransferPayload(
   fromAddress: string,
   toAddress: string,
   payload?: string | Cell,

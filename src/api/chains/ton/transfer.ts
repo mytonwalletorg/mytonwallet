@@ -1,11 +1,10 @@
-import { Cell, internal, loadStateInit, SendMode } from '@ton/core';
-import { WalletContractV5R1 } from '@ton/ton/dist/wallets/WalletContractV5R1';
+import { Cell, internal, SendMode } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
 import type Deferred from '../../../util/Deferred';
 import type { CheckTransactionDraftOptions } from '../../methods/types';
 import type {
-  ApiAccountWithMnemonic,
+  ApiAccountWithTon,
   ApiAnyDisplayError,
   ApiNetwork,
   ApiSignedTransfer,
@@ -21,7 +20,7 @@ import type {
   ApiSubmitTransferOptions,
   ApiSubmitTransferTonResult,
   ApiSubmitTransferWithDieselResult,
-  ApiTonWalletVersion,
+  PreparedTransactionToSign,
   TonTransferParams,
 } from './types';
 import type { TonWallet } from './util/tonCore';
@@ -32,24 +31,28 @@ import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { getDieselTokenAmount, isDieselAvailable } from '../../../util/fee/transferFee';
-import { omit, pick } from '../../../util/iteratees';
+import { omit, pick, split } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
+import { getMaxMessagesInTransaction } from '../../../util/ton/transfer';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { sendExternal } from './util/sendExternal';
+import { getSigner } from './util/signer';
 import {
   commentToBytes,
   getOurFeePayload,
   getTonClient,
   getWalletPublicKey,
   packBytesAsSnake,
+  packBytesAsSnakeCell,
   packBytesAsSnakeForEncryptedData,
   parseAddress,
   parseBase64,
+  parseStateInitCell,
 } from './util/tonCore';
-import { fetchStoredAccount, fetchStoredTonWallet } from '../../common/accounts';
+import { fetchStoredTonAccount, fetchStoredTonWallet } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
-import { getPendingTransfer, waitAndCreatePendingTransfer } from '../../common/pendingTransfers';
+import { waitAndCreatePendingTransfer } from '../../common/pendingTransfers';
 import { getTokenByAddress } from '../../common/tokens';
 import { base64ToBytes } from '../../common/utils';
 import { MINUTE, SEC } from '../../constants';
@@ -57,7 +60,13 @@ import { ApiServerError, handleServerError } from '../../errors';
 import { checkHasTransaction, fetchNewestActionId } from './activities';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
-import { ATTEMPTS, FEE_FACTOR, TRANSFER_TIMEOUT_SEC } from './constants';
+import {
+  ATTEMPTS,
+  FEE_FACTOR,
+  LEDGER_VESTING_SUBWALLET_ID,
+  TOKEN_TRANSFER_FORWARD_AMOUNT,
+  TRANSFER_TIMEOUT_SEC,
+} from './constants';
 import { emulateTransaction } from './emulation';
 import {
   buildTokenTransfer,
@@ -65,7 +74,7 @@ import {
   getTokenBalanceWithMintless,
   getToncoinAmountForTransfer,
 } from './tokens';
-import { buildWallet, getContractInfo, getTonWallet, getWalletBalance, getWalletInfo } from './wallet';
+import { buildWallet, getContractInfo, getTonWallet, getWalletBalance, getWalletInfo, getWalletSeqno } from './wallet';
 
 const WAIT_TRANSFER_TIMEOUT = MINUTE;
 const WAIT_PAUSE = SEC;
@@ -146,7 +155,8 @@ export async function checkTransactionDraft(
       };
     }
 
-    const wallet = await getTonWallet(accountId);
+    const account = await fetchStoredTonAccount(accountId);
+    const wallet = getTonWallet(account.ton);
 
     if (typeof data === 'string' && isBase64Data) {
       data = base64ToBytes(data);
@@ -162,7 +172,7 @@ export async function checkTransactionDraft(
       }
     }
 
-    const { address, isInitialized: isWalletInitialized } = await fetchStoredTonWallet(accountId);
+    const { address, isInitialized: isWalletInitialized } = account.ton;
 
     if (data && typeof data === 'string' && !isBase64Data) {
       data = commentToBytes(data);
@@ -208,19 +218,32 @@ export async function checkTransactionDraft(
     }
 
     const isFullTonTransfer = !tokenAddress && toncoinBalance === amount;
-    const { transaction } = await signTransaction({
-      network,
-      wallet,
-      toAddress,
-      amount: toncoinAmount,
-      payload: data,
-      stateInit,
-      isFullBalance: isFullTonTransfer,
-      shouldEncrypt,
+
+    const signingResult = await signTransaction({
+      isMockSigning: true,
+      accountId,
+      account,
+      messages: [{
+        toAddress,
+        amount: toncoinAmount,
+        payload: data,
+        stateInit,
+        hints: {
+          tokenAddress,
+        },
+      }],
+      doPayFeeFromAmount: isFullTonTransfer,
     });
+    if ('error' in signingResult) {
+      return {
+        ...result,
+        error: signingResult.error,
+      };
+    }
+
     // todo: Use `received` from the emulation to calculate the real fee. Check what happens when the receiver is the same wallet.
     const { networkFee } = applyFeeFactorToEmulationResult(
-      await emulateTransactionWithFallback(network, wallet, transaction, isWalletInitialized),
+      await emulateTransactionWithFallback(network, wallet, signingResult.transaction, isWalletInitialized),
     );
     fee += networkFee;
     realFee += networkFee;
@@ -325,7 +348,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     tokenAddress,
     shouldEncrypt,
     isBase64Data,
-    forwardAmount,
+    forwardAmount = TOKEN_TRANSFER_FORWARD_AMOUNT,
   } = options;
   let { stateInit } = options;
 
@@ -334,10 +357,13 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
   const { network } = parseAccountId(accountId);
 
   try {
-    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const account = await fetchStoredTonAccount(accountId);
+    if (account.type === 'view') throw new Error('Not available for view-only accounts');
     const { address: fromAddress, isInitialized } = account.ton;
-    const wallet = await getTonWallet(accountId, account.ton);
-    const { publicKey, secretKey } = (await fetchKeyPair(accountId, password, account))!;
+    const wallet = getTonWallet(account.ton);
+    const { publicKey, secretKey } = account.type === 'ledger'
+      ? {}
+      : (await fetchKeyPair(accountId, password, account))!;
 
     let encryptedComment: string | undefined;
 
@@ -377,17 +403,23 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     const toncoinBalance = await getWalletBalance(network, wallet);
     const isFullTonTransfer = !tokenAddress && toncoinBalance === amount;
 
-    const { seqno, transaction } = await signTransaction({
-      network,
-      wallet,
-      toAddress,
-      amount: toncoinAmount,
-      payload: data,
-      stateInit,
+    const signingResult = await signTransaction({
+      accountId,
+      account,
+      messages: [{
+        toAddress,
+        amount: toncoinAmount,
+        payload: data,
+        stateInit,
+        hints: {
+          tokenAddress,
+        },
+      }],
       privateKey: secretKey,
-      isFullBalance: isFullTonTransfer,
-      shouldEncrypt,
+      doPayFeeFromAmount: isFullTonTransfer,
     });
+    if ('error' in signingResult) return signingResult;
+    const { seqno, transaction } = signingResult;
 
     const { networkFee } = await emulateTransactionWithFallback(network, wallet, transaction, isInitialized);
 
@@ -513,8 +545,8 @@ async function stringToPayload({
   data: string;
   shouldEncrypt?: boolean;
   toAddress: string;
-  publicKey: Uint8Array;
-  secretKey: Uint8Array;
+  publicKey?: Uint8Array;
+  secretKey?: Uint8Array;
   fromAddress: string;
   isBase64Data?: boolean;
 }): Promise<{
@@ -529,6 +561,9 @@ async function stringToPayload({
   } else if (isBase64Data) {
     payload = parseBase64(data);
   } else if (shouldEncrypt) {
+    if (!publicKey || !secretKey) {
+      throw new Error();
+    }
     const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
     payload = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
     encryptedComment = Buffer.from(payload.slice(4)).toString('base64');
@@ -552,75 +587,6 @@ export function resolveTransactionError(error: any): ApiAnyDisplayError | string
   return ApiTransactionError.UnsuccesfulTransfer;
 }
 
-async function signTransaction({
-  network,
-  wallet,
-  toAddress,
-  amount,
-  payload,
-  stateInit,
-  privateKey,
-  isFullBalance,
-  expireAt,
-  shouldEncrypt,
-}: {
-  network: ApiNetwork;
-  wallet: TonWallet;
-  toAddress: string;
-  amount: bigint;
-  payload?: AnyPayload;
-  stateInit?: Cell;
-  privateKey?: Uint8Array;
-  isFullBalance?: boolean;
-  expireAt?: number;
-  shouldEncrypt?: boolean;
-}) {
-  const { seqno } = await getWalletInfo(network, wallet);
-
-  if (!privateKey) {
-    privateKey = new Uint8Array(64);
-  } else {
-    logDebug('Signing transactions', { seqno, toAddress, amount });
-  }
-
-  if (!expireAt) {
-    expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
-  }
-
-  if (payload instanceof Uint8Array) {
-    payload = shouldEncrypt
-      ? packBytesAsSnakeForEncryptedData(payload) as Cell
-      : packBytesAsSnake(payload, 0) as Cell;
-  }
-
-  const init = stateInit ? loadStateInit(
-    stateInit.asSlice(),
-  ) : undefined;
-
-  const sendMode = (isFullBalance
-    ? SendMode.CARRY_ALL_REMAINING_BALANCE
-    : SendMode.PAY_GAS_SEPARATELY) + SendMode.IGNORE_ERRORS;
-
-  const transferParams = {
-    seqno,
-    secretKey: Buffer.from(privateKey),
-    messages: [internal({
-      value: amount,
-      to: toAddress,
-      body: payload,
-      init,
-      bounce: parseAddress(toAddress).isBounceable,
-    })],
-    sendMode,
-    timeout: expireAt,
-  };
-  const transaction = wallet instanceof WalletContractV5R1 // Otherwise, TypeScript emits an error
-    ? wallet.createTransfer(transferParams)
-    : wallet.createTransfer(transferParams);
-
-  return { seqno, transaction };
-}
-
 export async function getAccountNewestActionId(accountId: string) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
@@ -636,8 +602,7 @@ export async function checkMultiTransactionDraft(
   let totalAmount: bigint = 0n;
 
   const { network } = parseAccountId(accountId);
-  const tonWallet = await fetchStoredTonWallet(accountId);
-  const { isInitialized, version } = tonWallet;
+  const account = await fetchStoredTonAccount(accountId);
 
   try {
     for (const { toAddress, amount } of messages) {
@@ -654,12 +619,14 @@ export async function checkMultiTransactionDraft(
       totalAmount += amount;
     }
 
-    const wallet = await getTonWallet(accountId, tonWallet);
+    const wallet = getTonWallet(account.ton);
     const { balance } = await getWalletInfo(network, wallet);
 
-    const { transaction } = await signMultiTransaction({ network, wallet, messages, version });
+    const signingResult = await signTransaction({ isMockSigning: true, accountId, account, messages });
+    if ('error' in signingResult) return signingResult;
+
     const emulation = applyFeeFactorToEmulationResult(
-      await emulateTransactionWithFallback(network, wallet, transaction, isInitialized),
+      await emulateTransactionWithFallback(network, wallet, signingResult.transaction, account.ton.isInitialized),
     );
     const result = { emulation };
 
@@ -689,13 +656,14 @@ export async function submitMultiTransfer({
 }: SubmitMultiTransferOptions): Promise<ApiSubmitMultiTransferResult> {
   const { network } = parseAccountId(accountId);
 
-  const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+  const account = await fetchStoredTonAccount(accountId);
   const { address: fromAddress, isInitialized, version } = account.ton;
   const { pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress);
 
   try {
-    const wallet = await getTonWallet(accountId, account.ton);
-    const privateKey = await fetchPrivateKey(accountId, password, account);
+    const wallet = getTonWallet(account.ton);
+    if (account.type === 'view') throw new Error('Not available for view-only accounts');
+    const privateKey = account.type === 'ledger' ? undefined : await fetchPrivateKey(accountId, password, account);
 
     let totalAmount = 0n;
     messages.forEach((message) => {
@@ -707,9 +675,18 @@ export async function submitMultiTransfer({
     const gaslessType = isGasless ? version === 'W5' ? 'w5' : 'diesel' : undefined;
     const withW5Gasless = gaslessType === 'w5';
 
-    const { seqno, transaction } = await signMultiTransaction({
-      network, wallet, messages, version, privateKey, expireAt, withW5Gasless,
+    const signingResult = await signTransaction({
+      accountId,
+      account,
+      messages,
+      expireAt: withW5Gasless
+        ? Math.round(Date.now() / 1000) + PENDING_DIESEL_TIMEOUT_SEC
+        : expireAt,
+      privateKey,
+      shouldBeInternal: withW5Gasless,
     });
+    if ('error' in signingResult) return signingResult;
+    const { seqno, transaction } = signingResult;
 
     if (!isGasless) {
       const { networkFee } = await emulateTransactionWithFallback(network, wallet, transaction, isInitialized);
@@ -755,87 +732,95 @@ export async function submitMultiTransfer({
   }
 }
 
-async function signMultiTransaction({
-  network,
-  wallet,
-  messages,
-  version,
-  privateKey,
-  expireAt,
-  withW5Gasless,
-}: {
-  network: ApiNetwork;
-  wallet: TonWallet;
+interface SignTransactionOptions {
+  accountId: string;
+  /** Cache (pass it to avoid fetching it) */
+  account?: ApiAccountWithTon;
   messages: TonTransferParams[];
-  version: ApiTonWalletVersion;
+  doPayFeeFromAmount?: boolean;
+  /** Set `true` if you only need to emulate the transaction */
+  isMockSigning?: boolean;
   privateKey?: Uint8Array;
   /** Unix seconds */
   expireAt?: number;
-  withW5Gasless?: boolean;
-}) {
-  const { seqno } = await getWalletInfo(network, wallet);
+  /** If true, will sign the transaction as an internal message instead of external. Not supported by Ledger. */
+  shouldBeInternal?: boolean;
+  /** Used for specific transactions on vesting.ton.org */
+  ledgerVestingAddress?: string;
+}
 
-  if (!privateKey) {
-    privateKey = new Uint8Array(64);
-  } else {
-    logDebug('Signing transaction', {
-      seqno,
-      messages: messages.map((msg) => pick(msg, ['toAddress', 'amount'])),
-    });
+async function signTransaction(options: Omit<SignTransactionOptions, 'allowManyTransactions'>) {
+  const result = await signTransactions({ ...options, allowOnlyOneTransaction: true });
+  if ('error' in result) return result;
+  return result[0];
+}
+
+/**
+ * A universal function for signing any number of transactions in any account type.
+ *
+ * If the account doesn't support signing all the given messages in a single transaction, will produce multiple signed
+ * transactions. If you need exactly 1 signed transaction, use `allowOnlyOneTransaction` or `signTransaction` (the
+ * function will throw an error in case of multiple transactions).
+ */
+export async function signTransactions({
+  accountId,
+  account,
+  messages,
+  doPayFeeFromAmount,
+  isMockSigning,
+  privateKey,
+  expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC,
+  shouldBeInternal,
+  allowOnlyOneTransaction,
+  ledgerVestingAddress,
+}: SignTransactionOptions & { allowOnlyOneTransaction?: boolean }) {
+  const { network } = parseAccountId(accountId);
+  account ??= await fetchStoredTonAccount(accountId);
+  const seqno = await getWalletSeqno(network, ledgerVestingAddress ?? account.ton.address);
+  const messagesByTransaction = split(messages, getMaxMessagesInTransaction(account));
+
+  // Each transaction signing with Ledger requires a manual user action, so, to improve the UX, all checks should be done
+  // before the signing. For the same reason the transactions are signed by Ledger all at once instead of one by one.
+  if (allowOnlyOneTransaction && messagesByTransaction.length !== 1) {
+    throw new Error(
+      messagesByTransaction.length === 0
+        ? 'No messages to sign'
+        : `Too many messages for 1 transaction (${messages.length} messages given)`,
+    );
   }
 
-  if (!expireAt) {
-    expireAt = Math.round(Date.now() / 1000) + (withW5Gasless ? PENDING_DIESEL_TIMEOUT_SEC : TRANSFER_TIMEOUT_SEC);
-  }
-
-  let hasPayload = false;
-
-  const preparedMessages = messages.map((message) => {
-    const {
-      amount, toAddress, stateInit, isBase64Payload,
-    } = message;
-    let { payload } = message;
-
-    if (isBase64Payload && typeof payload === 'string') {
-      payload = Cell.fromBase64(payload);
+  const transactionsToSign = messagesByTransaction.map((transactionMessages, index) => {
+    if (!isMockSigning) {
+      logDebug('Signing transaction', {
+        seqno,
+        messages: transactionMessages.map((msg) => pick(msg, ['toAddress', 'amount'])),
+      });
     }
 
-    const init = stateInit ? loadStateInit(
-      stateInit.asSlice(),
-    ) : undefined;
-
-    if (!hasPayload && payload) {
-      hasPayload = true;
-    }
-
-    return internal({
-      value: amount,
-      to: toAddress,
-      body: payload as Cell | string | undefined, // TODO Fix Uint8Array type
-      bounce: parseAddress(toAddress).isBounceable,
-      init,
+    return makePreparedTransactionToSign({
+      messages: transactionMessages,
+      seqno: seqno + index,
+      doPayFeeFromAmount,
+      expireAt,
+      shouldBeInternal,
     });
   });
 
-  if (version === 'W5') {
-    // TODO Remove it. There is bug in @ton/ton library that causes transactions to be executed in reverse order.
-    preparedMessages.reverse();
-  }
+  const signer = getSigner(
+    network,
+    account,
+    privateKey,
+    isMockSigning,
+    ledgerVestingAddress ? LEDGER_VESTING_SUBWALLET_ID : undefined,
+  );
 
-  const transferParams = {
-    authType: withW5Gasless ? 'internal' as const : undefined,
-    seqno,
-    secretKey: Buffer.from(privateKey),
-    messages: preparedMessages,
-    sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-    timeout: expireAt,
-  };
+  const signedTransactions = await signer.signTransactions(transactionsToSign);
+  if ('error' in signedTransactions) return signedTransactions;
 
-  const transaction = wallet instanceof WalletContractV5R1 // Otherwise, TypeScript emits an error
-    ? wallet.createTransfer(transferParams)
-    : wallet.createTransfer(transferParams);
-
-  return { seqno, transaction };
+  return signedTransactions.map((transaction, index) => ({
+    seqno: transactionsToSign[index].seqno,
+    transaction,
+  }));
 }
 
 async function retrySendBoc(
@@ -884,7 +869,7 @@ async function emulateTransactionWithFallback(
   }
 
   // Falling back to the legacy fee estimation method just in case.
-  // It doesn't support estimating more than 20 transactions (inside `transaction`) at once.
+  // It doesn't support estimating more than 20 messages (inside the transaction) at once.
   // eslint-disable-next-line no-null/no-null
   const { code = null, data = null } = !isInitialized ? wallet.init : {};
   const { source_fees: fees } = await getTonClient(network).estimateExternalMessageFee(wallet.address, {
@@ -895,26 +880,6 @@ async function emulateTransactionWithFallback(
   });
   const networkFee = BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
   return { isFallback: true, networkFee };
-}
-
-export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer, pendingTransferId?: string) {
-  const { network } = parseAccountId(accountId);
-  const { address: fromAddress, publicKey, version } = await fetchStoredTonWallet(accountId);
-  const client = getTonClient(network);
-  const wallet = buildWallet(publicKey!, version);
-  const { base64, seqno } = message;
-  const pendingTransfer = pendingTransferId ? getPendingTransfer(pendingTransferId) : undefined;
-
-  try {
-    const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
-
-    void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
-
-    return { boc, msgHash, msgHashNormalized };
-  } catch (err) {
-    pendingTransfer?.resolve();
-    throw err;
-  }
 }
 
 export async function sendSignedMessages(accountId: string, messages: ApiSignedTransfer[]) {
@@ -1009,7 +974,7 @@ async function getDiesel({
   if (network !== 'mainnet') return DIESEL_NOT_AVAILABLE;
 
   const storedTonWallet = await fetchStoredTonWallet(accountId);
-  const wallet = await getTonWallet(accountId, storedTonWallet);
+  const wallet = getTonWallet(storedTonWallet);
 
   const token = getTokenByAddress(tokenAddress);
   if (!token.isGaslessEnabled && !token.isStarsEnabled) return DIESEL_NOT_AVAILABLE;
@@ -1094,4 +1059,61 @@ function applyFeeFactorToEmulationResult(estimation: ApiEmulationWithFallbackRes
   }
 
   return estimation;
+}
+
+function makePreparedTransactionToSign({
+  messages,
+  seqno,
+  doPayFeeFromAmount,
+  expireAt,
+  shouldBeInternal,
+}: Pick<SignTransactionOptions, 'messages' | 'doPayFeeFromAmount' | 'expireAt' | 'shouldBeInternal'>
+  & { seqno: number }): PreparedTransactionToSign {
+  return {
+    authType: shouldBeInternal ? 'internal' : undefined,
+    seqno,
+    messages: messages.map((message) => {
+      const { amount, toAddress, stateInit } = message;
+      return internal({
+        value: amount,
+        to: toAddress,
+        body: getPayloadFromTransfer(message),
+        bounce: parseAddress(toAddress).isBounceable,
+        init: parseStateInitCell(stateInit),
+      });
+    }),
+    sendMode: (doPayFeeFromAmount ? SendMode.CARRY_ALL_REMAINING_BALANCE : SendMode.PAY_GAS_SEPARATELY)
+      // It's important to add IGNORE_ERRORS to every transaction. Otherwise, failed transactions may repeat and drain
+      // the wallet balance: https://docs.ton.org/v3/documentation/smart-contracts/message-management/sending-messages#behavior-without-2-flag
+      + SendMode.IGNORE_ERRORS,
+    timeout: expireAt,
+    hints: messages[0].hints, // Currently hints are used only by Ledger, which has only 1 message per transaction
+  };
+}
+
+function getPayloadFromTransfer(
+  { payload, isBase64Payload }: Pick<TonTransferParams, 'payload' | 'isBase64Payload'>,
+): Cell | undefined {
+  if (payload === undefined) {
+    return undefined;
+  }
+
+  if (payload instanceof Cell) {
+    return payload;
+  }
+
+  if (typeof payload === 'string') {
+    if (isBase64Payload) {
+      return Cell.fromBase64(payload);
+    }
+
+    // This is what @ton/core does under the hood when a string payload is passed to `internal()`
+    return packBytesAsSnakeCell(commentToBytes(payload));
+  }
+
+  if (payload instanceof Uint8Array) {
+    return payload.length ? packBytesAsSnakeCell(payload) : undefined;
+  }
+
+  throw new TypeError(`Unexpected payload type ${typeof payload}`);
 }

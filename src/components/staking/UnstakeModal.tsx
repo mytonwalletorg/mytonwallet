@@ -108,8 +108,7 @@ function UnstakeModal({
     cancelStaking,
     clearStakingError,
     submitStakingInitial,
-    submitStakingPassword,
-    submitStakingHardware,
+    submitStaking,
     fetchStakingHistory,
   } = getActions();
 
@@ -211,12 +210,12 @@ function UnstakeModal({
   const handleTransferSubmit = useLastCallback((password: string) => {
     setSuccessUnstakeAmount(amount);
 
-    submitStakingPassword({ password, isUnstaking: true });
+    submitStaking({ password, isUnstaking: true });
   });
 
   const handleLedgerConnect = useLastCallback(() => {
     setSuccessUnstakeAmount(amount);
-    submitStakingHardware({ isUnstaking: true });
+    submitStaking({ isUnstaking: true });
   });
 
   function renderTransactionBanner() {

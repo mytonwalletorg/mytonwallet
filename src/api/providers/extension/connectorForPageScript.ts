@@ -23,6 +23,9 @@ type MethodResponse<T extends keyof Methods> = (
   );
 
 export function initApi(onUpdate: OnApiSiteUpdate) {
+  // The connection is established with `window` instead of the Chrome port, because `chrome` is unavailable in scripts
+  // injected using a <script> tag (the page script is of that kind). The `pageContentProxy.ts` file listens to the
+  // `window` messages proxies the them to the Chrome port. todo: Check it.
   connector = createConnector(window, onUpdate, PAGE_CONNECTOR_CHANNEL, window.location.href);
   return connector;
 }

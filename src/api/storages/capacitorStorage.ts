@@ -1,3 +1,4 @@
+import type * as windowMethods from '../../util/windowProvider/methods';
 import type { Storage, StorageKey } from './types';
 
 import { bigintReviver } from '../../util/bigint';
@@ -5,6 +6,9 @@ import { callWindow } from '../../util/windowProvider/connector';
 import { getEnvironment } from '../environment';
 
 let cache: AnyLiteral = {};
+
+export type WindowMethods = typeof windowMethods;
+export type WindowMethodResponse<N extends keyof WindowMethods> = ReturnType<WindowMethods[N]>;
 
 const storage: Storage & {
   getKeys: () => Promise<string[] | undefined>;

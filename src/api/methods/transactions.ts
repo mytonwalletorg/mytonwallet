@@ -1,12 +1,14 @@
 import { Cell } from '@ton/core';
 
-import type { ApiSubmitTransferWithDieselResult } from '../chains/ton/types';
+import type { ApiSubmitTransferWithDieselResult, TonTransferParams } from '../chains/ton/types';
 import type {
   ApiActivity,
+  ApiAnyDisplayError,
   ApiChain,
   ApiLocalTransactionParams,
   ApiSignedTransfer,
   ApiTransactionActivity,
+  ApiTransferToSign,
   OnApiUpdate,
 } from '../types';
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult, CheckTransactionDraftOptions } from './types';
@@ -16,12 +18,11 @@ import { mergeActivitiesToMaxTime } from '../../util/activities';
 import { getChainConfig } from '../../util/chain';
 import { logDebugError } from '../../util/logs';
 import chains from '../chains';
-import { fetchStoredAccount, fetchStoredAddress, fetchStoredTonWallet } from '../common/accounts';
+import { fetchStoredAccount, fetchStoredAddress } from '../common/accounts';
 import { buildLocalTransaction } from '../common/helpers';
-import { getPendingTransfer, waitAndCreatePendingTransfer } from '../common/pendingTransfers';
 import { swapReplaceCexActivities } from '../common/swap';
 import { handleServerError } from '../errors';
-import { buildTokenSlug } from './tokens';
+import { buildTokenSlug, getTokenBySlug } from './tokens';
 
 let onUpdate: OnApiUpdate;
 
@@ -35,19 +36,20 @@ export async function fetchActivitySlice(
   accountId: string,
   chain: ApiChain,
   slug: string,
-  fromTimestamp?: number,
+  toTimestamp?: number,
   limit?: number,
+  fromTimestamp?: number,
 ): Promise<ApiActivity[] | { error: string }> {
   let activities: ApiActivity[];
 
   try {
     if (chain === 'ton') {
       activities = await chains[chain].fetchActivitySlice(
-        accountId, slug, fromTimestamp, undefined, limit,
+        accountId, slug, toTimestamp, fromTimestamp, limit,
       );
     } else {
       activities = await chains[chain].getTokenTransactionSlice(
-        accountId, slug, fromTimestamp, undefined, limit,
+        accountId, slug, toTimestamp, fromTimestamp, limit,
       );
     }
 
@@ -192,33 +194,6 @@ export async function submitTransfer(
   };
 }
 
-export async function waitAndCreateTonPendingTransfer(accountId: string) {
-  const { network } = parseAccountId(accountId);
-  const { address } = await fetchStoredTonWallet(accountId);
-
-  return (await waitAndCreatePendingTransfer(network, address)).id;
-}
-
-export async function sendSignedTransferMessage(
-  accountId: string,
-  message: ApiSignedTransfer,
-  pendingTransferId: string,
-) {
-  const { msgHash, msgHashNormalized } = await ton.sendSignedMessage(accountId, message, pendingTransferId);
-
-  const localActivity = createLocalTransaction(accountId, 'ton', {
-    ...message.localActivity,
-    txId: msgHashNormalized,
-    externalMsgHash: msgHash,
-  });
-
-  return localActivity.txId;
-}
-
-export function cancelPendingTransfer(id: string) {
-  getPendingTransfer(id)?.resolve();
-}
-
 export function decryptComment(accountId: string, encryptedComment: string, fromAddress: string, password: string) {
   const chain = chains.ton;
 
@@ -263,4 +238,43 @@ export function fetchEstimateDiesel(accountId: string, tokenAddress: string) {
 export async function fetchTonActivityDetails(accountId: string, activity: ApiActivity) {
   const result = await chains.ton.fetchActivityDetails(accountId, activity);
   return result.activity;
+}
+
+export async function signTransactions(accountId: string, messages: ApiTransferToSign[], options: {
+  vestingAddress?: string;
+  /** Unix seconds */
+  validUntil?: number;
+} = {}): Promise<ApiSignedTransfer[] | { error: ApiAnyDisplayError }> {
+  const chain = chains.ton;
+
+  const preparedMessages = messages.map(({
+    toAddress,
+    amount,
+    stateInit: stateInitBase64,
+    rawPayload,
+    payload,
+  }): TonTransferParams => ({
+    toAddress,
+    amount,
+    payload: rawPayload ? Cell.fromBase64(rawPayload) : undefined,
+    stateInit: stateInitBase64 ? Cell.fromBase64(stateInitBase64) : undefined,
+    hints: {
+      tokenAddress: payload?.type === 'tokens:transfer'
+        ? getTokenBySlug(payload.slug).tokenAddress
+        : undefined,
+    },
+  }));
+
+  const signedTransactions = await chain.signTransactions({
+    accountId,
+    expireAt: options.validUntil,
+    messages: preparedMessages,
+    ledgerVestingAddress: options.vestingAddress,
+  });
+  if ('error' in signedTransactions) return signedTransactions;
+
+  return signedTransactions.map(({ seqno, transaction }) => ({
+    seqno,
+    base64: transaction.toBoc().toString('base64'),
+  }));
 }

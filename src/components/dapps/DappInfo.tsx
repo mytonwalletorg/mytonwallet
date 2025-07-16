@@ -6,7 +6,6 @@ import type { ApiDapp } from '../../api/types';
 import { IS_CAPACITOR } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import { getDappConnectionUniqueId } from '../../util/getDappConnectionUniqueId';
 import { openUrl } from '../../util/openUrl';
 
 import useLang from '../../hooks/useLang';
@@ -42,7 +41,7 @@ function DappInfo({
   });
 
   function handleHostWarningIabButtonClick() {
-    deleteDapp({ url: url!, uniqueId: getDappConnectionUniqueId(dapp!) });
+    deleteDapp({ url: url! });
     void openUrl(url!);
   }
 

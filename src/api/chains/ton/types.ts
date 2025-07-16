@@ -1,4 +1,5 @@
 import type { Cell } from '@ton/core';
+import type { WalletContractV5R1 } from '@ton/ton/dist/wallets/WalletContractV5R1';
 
 import type { DieselStatus } from '../../../global/types';
 import type { ApiAnyDisplayError, ApiEmulationResult, ApiLocalTransactionParams, ApiTransaction } from '../../types';
@@ -27,13 +28,35 @@ export interface TokenTransferBodyParams {
   customPayload?: Cell;
 }
 
+/**
+ * Information about the transfer that is not necessary and doesn't participate in the transaction directly, but can
+ * speed up the application by avoiding fetching data that is already available.
+ */
+export type TonTransferHints = {
+  /** The transferred token (if it's a jetton transfer) */
+  tokenAddress?: string;
+};
+
+/** Ton transaction data in the simplest for constructing form */
 export interface TonTransferParams {
   toAddress: string;
   amount: bigint;
   payload?: AnyPayload;
   stateInit?: Cell;
   isBase64Payload?: boolean;
+  /** Optional, to optimize the signing process */
+  hints?: TonTransferHints;
 }
+
+/** Ton transaction data in the most ready for signing form */
+export type PreparedTransactionToSign = Pick<
+  Parameters<WalletContractV5R1['createTransfer']>[0],
+  'messages' | 'sendMode' | 'seqno' | 'timeout'
+> & {
+  authType?: 'internal' | 'external';
+  /** Optional, to optimize the signing process */
+  hints?: TonTransferHints;
+};
 
 export interface JettonMetadata {
   name: string;
@@ -175,6 +198,7 @@ export type ApiSubmitTransferWithDieselResult = ApiSubmitMultiTransferResult & {
 
 export type ApiSubmitTransferOptions = {
   accountId: string;
+  /** If this is a hardware account, pass any value */
   password: string;
   toAddress: string;
   amount: bigint;

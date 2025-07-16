@@ -71,14 +71,4 @@ export interface ApiSseOptions {
   lastOutputId: number;
 }
 
-/*
-  Each account id maps to a collection of dApps, grouped by URL, and for every URL
-  there could be several simultaneous connections (e.g., when the same site
-  is opened in different browsers or tabs). The second level key (uniqueId)
-  differentiates these connections:
-    – "jsbridge"    – JS-Bridge connection (there could be only one per site)
-    – appClientId    – SSE connection unique identifier
-*/
-export type ApiDappsState = Record<string, ApiDappsByUrl>;
-export type ApiDappsByUrl = Record<string, ApiDappsById>;
-export type ApiDappsById = Record<string, ApiDapp>;
+export type ApiDappsState = Record<string, Record<string, ApiDapp>>;
