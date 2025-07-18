@@ -130,13 +130,9 @@ export async function resetupSseConnection() {
     return;
   }
 
-  sseDapps = Object.entries(dappsState).reduce((result, [accountId, dappsByUrl]) => {
-    if (parseAccountId(accountId).network !== network) {
-      return result;
-    }
-
-    for (const byUniqueId of Object.values(dappsByUrl)) {
-      for (const dapp of Object.values(byUniqueId)) {
+  sseDapps = Object.entries(dappsState).reduce((result, [accountId, dapps]) => {
+    if (parseAccountId(accountId).network === network) {
+      for (const dapp of Object.values(dapps)) {
         if (dapp.sse?.clientId) {
           result.push({
             ...dapp.sse,
@@ -146,7 +142,6 @@ export async function resetupSseConnection() {
         }
       }
     }
-
     return result;
   }, [] as SseDapp[]);
 

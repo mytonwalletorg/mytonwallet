@@ -1,7 +1,7 @@
 import type { SignDataPayload } from '@tonconnect/protocol';
 
 import type { GlobalState } from '../../global/types';
-import type { ApiTonWalletVersion } from '../chains/ton/types';
+import type { ApiCheckTransactionDraftResult, ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiTonConnectProof } from '../tonConnect/types';
 import type { ApiActivity } from './activity';
 import type {
@@ -23,7 +23,6 @@ import type {
   ApiTokenWithPrice,
   ApiWalletWithVersionInfo,
 } from './misc';
-import type { ApiParsedPayload } from './payload';
 import type { ApiDapp } from './storage';
 
 export type ApiUpdateBalances = {
@@ -71,12 +70,10 @@ export type ApiUpdateCreateTransaction = {
   promiseId: string;
   toAddress: string;
   amount: bigint;
-  fee?: bigint;
-  realFee?: bigint;
   comment?: string;
   rawPayload?: string;
-  parsedPayload?: ApiParsedPayload;
   stateInit?: string;
+  checkResult: ApiCheckTransactionDraftResult;
 };
 
 export type ApiUpdateCreateSignature = {
@@ -113,6 +110,8 @@ export type ApiUpdateDappSendTransactions = {
   dapp: ApiDapp;
   transactions: ApiDappTransfer[];
   emulation?: Pick<ApiEmulationResult, 'activities' | 'realFee'>;
+  /** Unix seconds */
+  validUntil?: number;
   vestingAddress?: string;
 };
 

@@ -29,11 +29,11 @@ export {
   submitTransfer,
   checkMultiTransactionDraft,
   submitMultiTransfer,
-  sendSignedMessage,
   sendSignedMessages,
   decryptComment,
   submitTransferWithDiesel,
   fetchEstimateDiesel,
+  signTransactions,
 } from './transfer';
 export {
   getAccountBalance,

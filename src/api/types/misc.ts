@@ -266,8 +266,6 @@ export interface ApiDappTransfer extends ApiTransferToSign {
 export interface ApiSignedTransfer {
   base64: string;
   seqno: number;
-  /** Will be used to create a local activity in the global state after the transfer is sent */
-  localActivity: Omit<ApiLocalTransactionParams, 'externalMsgHash' | 'txId'>;
 }
 
 /**

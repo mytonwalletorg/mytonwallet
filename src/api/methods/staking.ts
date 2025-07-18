@@ -50,7 +50,7 @@ export async function submitStake(
   );
 
   if ('error' in result) {
-    return false;
+    return result;
   }
 
   let localActivity: ApiTransactionActivity;
@@ -96,7 +96,7 @@ export async function submitUnstake(
 
   const result = await ton.submitUnstake(accountId, password, amount, state);
   if ('error' in result) {
-    return false;
+    return result;
   }
 
   const localActivity = createLocalTransaction(accountId, 'ton', {

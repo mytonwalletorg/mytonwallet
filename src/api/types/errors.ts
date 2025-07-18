@@ -28,8 +28,10 @@ export enum ApiTransactionError {
   IncorrectDeviceTime = 'IncorrectDeviceTime',
   InsufficientBalance = 'InsufficientBalance',
   UnsuccesfulTransfer = 'UnsuccesfulTransfer',
+  /** Used when the Ledger TON app needs to be updated to support this transaction */
   NotSupportedHardwareOperation = 'NotSupportedHardwareOperation',
   HardwareBlindSigningNotEnabled = 'HardwareBlindSigningNotEnabled',
+  RejectedByUser = 'RejectedByUser',
   WrongAddress = 'WrongAddress',
   WrongNetwork = 'WrongNetwork',
 }

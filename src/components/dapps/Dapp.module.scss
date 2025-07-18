@@ -105,10 +105,6 @@ $labelSidePadding: 0.5rem;
   color: white;
 
   background-color: var(--color-accent);
-
-  :global(html.theme-dark.is-white-accent) & {
-    background-color: var(--color-background-drop-down);
-  }
 }
 
 .dappName {
@@ -331,8 +327,9 @@ $labelSidePadding: 0.5rem;
 }
 
 .transactionDirection {
-  --color-skeleton-shimmer: var(--color-card-button-shimmer);
+
   --skeleton-background-color: var(--color-card-button);
+  --color-skeleton-shimmer: var(--color-card-button-shimmer);
 
   position: relative;
 
@@ -424,6 +421,7 @@ $labelSidePadding: 0.5rem;
 }
 
 .dappInfoSkeleton {
+
   --skeleton-background-color: var(--color-separator-input-stroke);
 
   display: flex;

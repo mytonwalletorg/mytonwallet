@@ -26,6 +26,20 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
     public var wasFullScreenBeforeHiding = false
     public var halfSizeAddedTemporarily = false
 
+    private func clean(webView: WKWebView?) {
+        webView?.navigationDelegate = nil
+        webView?.uiDelegate = nil
+        webView?.removeFromSuperview()
+    }
+    
+    @objc public func switchToAir(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.clean(webView: self.capVc?.webView)
+            self.clean(webView: self.bridge?.webView)
+            (UIApplication.shared.delegate as? MTWAirToggleDelegate)?.switchToAir()
+        }
+    }
+
     @objc func prepare(_ call: CAPPluginCall) {
         ensureLocalOrigin()
 

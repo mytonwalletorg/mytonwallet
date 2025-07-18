@@ -21,7 +21,3 @@ export async function waitAndCreatePendingTransfer(network: ApiNetwork, address:
 
   return { id, pendingTransfer };
 }
-
-export function getPendingTransfer(id: string): Deferred | undefined {
-  return byId[id];
-}

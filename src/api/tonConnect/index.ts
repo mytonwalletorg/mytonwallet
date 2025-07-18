@@ -20,7 +20,7 @@ import type {
 
 import type { ApiEmulationWithFallbackResult, TonTransferParams } from '../chains/ton/types';
 import type {
-  ApiAccountWithMnemonic,
+  ApiAccountWithTon,
   ApiAnyDisplayError,
   ApiDapp,
   ApiDappConnectionType,
@@ -32,7 +32,13 @@ import type {
   ApiTonWallet,
   OnApiUpdate,
 } from '../types';
-import type { ApiTonConnectProof, ConnectEvent, TransactionPayload, TransactionPayloadMessage } from './types';
+import type {
+  ApiDappRequestConfirmation,
+  ApiTonConnectProof,
+  ConnectEvent,
+  TransactionPayload,
+  TransactionPayloadMessage,
+} from './types';
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CHAIN, CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from './types';
 
@@ -41,14 +47,13 @@ import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { bigintDivideToNumber } from '../../util/bigint';
 import { fetchJsonWithProxy } from '../../util/fetch';
-import { getDappConnectionUniqueId } from '../../util/getDappConnectionUniqueId';
 import { pick } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import safeExec from '../../util/safeExec';
 import { getTonConnectMaxMessages, tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 import chains from '../chains';
-import { getContractInfo, parsePayloadBase64 } from '../chains/ton';
-import { fetchKeyPair } from '../chains/ton/auth';
+import { fetchPrivateKey, getContractInfo, parsePayloadBase64 } from '../chains/ton';
+import { getSigner } from '../chains/ton/util/signer';
 import { getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress } from '../chains/ton/util/tonCore';
 import { fetchStoredTonAccount, getCurrentAccountId, getCurrentAccountIdOrFail } from '../common/accounts';
 import { getKnownAddressInfo } from '../common/addresses';
@@ -58,17 +63,11 @@ import { bytesToBase64, hexToBytes } from '../common/utils';
 import * as apiErrors from '../errors';
 import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
-import {
-  addDapp,
-  deleteDapp,
-  findLastConnectedAccount,
-  getDapp,
-  updateDapp,
-} from '../methods/dapps';
+import { signTonProof } from '../methods';
+import { addDapp, deleteDapp, findLastConnectedAccount, getDapp, getDappsByUrl, updateDapp } from '../methods/dapps';
 import { createLocalTransaction } from '../methods/transactions';
 import * as errors from './errors';
 import { UnknownAppError } from './errors';
-import { signDataWithPrivateKey, signTonProofWithPrivateKey } from './signing';
 import { getTransferActualToAddress, isTransferPayloadDangerous, isValidString, isValidUrl } from './utils';
 
 const BLANK_GIF_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -129,8 +128,6 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
       }),
     };
 
-    const uniqueId = getDappConnectionUniqueId(request);
-
     onUpdate({
       type: 'dappConnect',
       identifier: 'identifier' in request ? request.identifier : undefined,
@@ -144,35 +141,24 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
       proof,
     });
 
-    const promiseResult: {
-      accountId?: string;
-      password?: string;
-      signature?: string;
-    } | undefined = await promise;
+    const promiseResult: ApiDappRequestConfirmation | string = await promise;
 
-    accountId = promiseResult!.accountId!;
+    accountId = typeof promiseResult == 'string' ? (await getCurrentAccountId())! : promiseResult.accountId;
     request.accountId = accountId;
-    await addDapp(accountId, dapp, uniqueId);
+    await addDapp(accountId, dapp);
 
     const account = await fetchStoredTonAccount(accountId);
-    const { address } = account.ton;
 
     const deviceInfo = tonConnectGetDeviceInfo(account);
     const items: ConnectItemReply[] = [
-      await buildTonAddressReplyItem(accountId, account.ton),
+      buildTonAddressReplyItem(accountId, account.ton),
     ];
 
     if (proof) {
-      const { password, signature } = promiseResult!;
-
-      let proofReplyItem: TonProofItemReplySuccess;
-      if (password) {
-        proofReplyItem = await signTonProof(accountId, account as ApiAccountWithMnemonic, password, address, proof);
-      } else {
-        proofReplyItem = buildTonProofReplyItem(proof, signature!);
-      }
-
-      items.push(proofReplyItem);
+      const proofSignature = typeof promiseResult == 'string'
+        ? await signTonProof(accountId, proof, promiseResult)
+        : promiseResult.proofSignature!;
+      items.push(buildTonProofReplyItem(proof, proofSignature));
     }
 
     onUpdate({ type: 'updateDapps' });
@@ -204,19 +190,18 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
   try {
     const { url, accountId } = await ensureRequestParams(request);
 
-    const uniqueId = getDappConnectionUniqueId(request);
-    const currentDapp = await getDapp(accountId, url, uniqueId);
+    const currentDapp = await getDapp(accountId, url);
     if (!currentDapp) {
       throw new UnknownAppError();
     }
 
-    await updateDapp(accountId, url, uniqueId, { connectedAt: Date.now() });
+    await updateDapp(accountId, url, { connectedAt: Date.now() });
 
     const account = await fetchStoredTonAccount(accountId);
 
     const deviceInfo = tonConnectGetDeviceInfo(account);
     const items: ConnectItemReply[] = [
-      await buildTonAddressReplyItem(accountId, account.ton),
+      buildTonAddressReplyItem(accountId, account.ton),
     ];
 
     return {
@@ -240,8 +225,7 @@ export async function disconnect(
   try {
     const { url, accountId } = await ensureRequestParams(request);
 
-    const uniqueId = getDappConnectionUniqueId(request);
-    await deleteDapp(accountId, url, uniqueId, true);
+    await deleteDapp(accountId, url, true);
     onUpdate({ type: 'updateDapps' });
   } catch (err) {
     logDebugError('tonConnect:disconnect', err);
@@ -321,8 +305,7 @@ export async function sendTransaction(
       throw new errors.BadRequestError(checkResult.error, checkResult.error);
     }
 
-    const uniqueId = getDappConnectionUniqueId(request);
-    const dapp = (await getDapp(accountId, url, uniqueId))!;
+    const dapp = (await getDappsByUrl(accountId))[url];
     const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult.emulation);
 
     const { promiseId, promise } = createDappPromise();
@@ -334,6 +317,7 @@ export async function sendTransaction(
       dapp,
       transactions: transactionsForRequest,
       emulation: checkResult.emulation.isFallback ? undefined : pick(checkResult.emulation, ['activities', 'realFee']),
+      validUntil,
       vestingAddress,
     });
 
@@ -469,9 +453,6 @@ export async function signData(
     const { url, accountId } = await ensureRequestParams(request);
     const account = await fetchStoredTonAccount(accountId);
 
-    if (account.type === 'view') throw new errors.MethodNotSupportedError('Not supported by view-only accounts');
-    if (account.type === 'ledger') throw new errors.MethodNotSupportedError('Not supported by Ledger');
-
     await openExtensionPopup(true);
 
     onUpdate({
@@ -482,8 +463,7 @@ export async function signData(
     });
 
     const { promiseId, promise } = createDappPromise();
-    const uniqueId = getDappConnectionUniqueId(request);
-    const dapp = (await getDapp(accountId, url, uniqueId))!;
+    const dapp = (await getDappsByUrl(accountId))[url];
     const payloadToSign = JSON.parse(message.params[0]) as SignDataPayload;
 
     onUpdate({
@@ -601,11 +581,11 @@ function formatConnectError(id: number, error: Error): ConnectEventError {
   };
 }
 
-async function buildTonAddressReplyItem(accountId: string, wallet: ApiTonWallet): Promise<ConnectItemReply> {
+function buildTonAddressReplyItem(accountId: string, wallet: ApiTonWallet): ConnectItemReply {
   const { network } = parseAccountId(accountId);
   const { publicKey, address } = wallet;
 
-  const stateInit = await ton.getWalletStateInit(accountId, wallet);
+  const stateInit = ton.getWalletStateInit(wallet);
 
   return {
     name: 'ton_addr',
@@ -616,18 +596,6 @@ async function buildTonAddressReplyItem(accountId: string, wallet: ApiTonWallet)
       .toBoc({ idx: true, crc32: true })
       .toString('base64'),
   };
-}
-
-async function signTonProof(
-  accountId: string,
-  account: ApiAccountWithMnemonic,
-  password: string,
-  walletAddress: string,
-  proof: ApiTonConnectProof,
-): Promise<TonProofItemReplySuccess> {
-  const keyPair = await fetchKeyPair(accountId, password, account);
-  const signature = await signTonProofWithPrivateKey(walletAddress, keyPair!.secretKey, proof);
-  return buildTonProofReplyItem(proof, bytesToBase64(signature));
 }
 
 function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): TonProofItemReplySuccess {
@@ -650,26 +618,28 @@ function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): T
 
 async function performSignData(
   accountId: string,
-  account: ApiAccountWithMnemonic,
+  account: ApiAccountWithTon,
   dapp: ApiDapp,
   payloadToSign: SignDataPayload,
   password: string,
 ): Promise<SignDataRpcResponseSuccess['result']> {
-  const { address } = account.ton;
+  const privateKey = 'mnemonicEncrypted' in account
+    ? await fetchPrivateKey(accountId, password, account)
+    : undefined;
+  const signer = getSigner(parseAccountId(accountId).network, account, privateKey);
+
   const timestamp = Math.floor(Date.now() / 1000);
   const domain = new URL(dapp.url).host;
-  const keyPair = (await fetchKeyPair(accountId, password, account))!;
-  const signature = await signDataWithPrivateKey(
-    address,
-    timestamp,
-    domain,
-    payloadToSign,
-    keyPair.secretKey,
-  );
+  const signature = await signer.signData(timestamp, domain, payloadToSign);
+
+  if ('error' in signature) {
+    // Currently the only expected errors here are due to the Ledger rejection on not supporting SignData
+    throw new errors.UserRejectsError(signature.error, signature.error);
+  }
 
   return {
     signature: bytesToBase64(signature),
-    address,
+    address: account.ton.address,
     timestamp,
     domain,
     payload: payloadToSign,

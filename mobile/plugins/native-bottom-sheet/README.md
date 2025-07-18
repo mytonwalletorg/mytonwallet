@@ -26,6 +26,7 @@ npx cap sync
 * [`closeSelf(...)`](#closeself)
 * [`toggleSelfFullSize(...)`](#toggleselffullsize)
 * [`openInMain(...)`](#openinmain)
+* [`switchToAir()`](#switchtoair)
 * [`isShown()`](#isshown)
 * [`addListener('delegate', ...)`](#addlistenerdelegate-)
 * [`addListener('move', ...)`](#addlistenermove-)
@@ -178,6 +179,12 @@ openInMain(options: { key: BottomSheetKeys; }) => Promise<void>
 
 --------------------
 
+
+### switchToAir()
+
+```typescript
+switchToAir() => Promise<void>
+```
 
 ### isShown()
 

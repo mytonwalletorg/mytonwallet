@@ -8,6 +8,7 @@ export class ApiBaseError extends Error {
   }
 }
 
+// todo: Remove
 export class ApiUserRejectsError extends ApiBaseError {
   constructor(message: string = 'Canceled by the user') {
     super(message);
@@ -20,12 +21,14 @@ export class ApiServerError extends ApiBaseError {
   }
 }
 
+// todo: Remove
 export class ApiUnsupportedVersionError extends ApiBaseError {
   constructor(message: string) {
     super(message, ApiCommonError.UnsupportedVersion);
   }
 }
 
+// todo: Remove
 export class ApiHardwareBlindSigningNotEnabled extends ApiBaseError {
   constructor(message: string = 'Blind signing not enabled') {
     super(message, ApiTransactionError.HardwareBlindSigningNotEnabled);

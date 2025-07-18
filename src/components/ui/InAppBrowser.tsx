@@ -153,7 +153,7 @@ function InAppBrowser({
 
     void openBrowser();
 
-    return () => inAppBrowser?.close();
+    return () => inAppBrowser.close();
   }, [url]);
 
   return undefined;

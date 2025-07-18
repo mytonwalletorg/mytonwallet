@@ -1,12 +1,10 @@
 import { Cell } from '@ton/core';
 
 import type { AnyPayload } from '../chains/ton/types';
-import type { ApiSignedTransfer, OnApiUpdate } from '../types';
+import type { OnApiUpdate } from '../types';
 import type { OnApiSiteUpdate } from '../types/dappUpdates';
 
 import { TONCOIN } from '../../config';
-import { parseAccountId } from '../../util/account';
-import { logDebugError } from '../../util/logs';
 import chains from '../chains';
 import {
   fetchStoredAccount,
@@ -132,24 +130,18 @@ export async function sendTransaction(params: {
 
   const { promiseId, promise } = createDappPromise();
 
-  const { type } = await fetchStoredAccount(accountId);
-
-  if (type === 'ledger') {
-    return sendLedgerTransaction(accountId, promiseId, promise, checkResult.fee, checkResult.realFee, params);
-  }
-
   onPopupUpdate({
     type: 'createTransaction',
     promiseId,
     toAddress,
     amount,
-    fee: checkResult.fee!,
     ...(dataType === 'text' && {
       comment: data,
     }),
+    checkResult,
   });
 
-  const password = await promise;
+  const password: string = await promise;
 
   const result = await ton.submitTransfer({
     accountId,
@@ -173,93 +165,6 @@ export async function sendTransaction(params: {
     fee: checkResult.realFee ?? checkResult.fee!,
     slug: TONCOIN.slug,
     externalMsgHash: result.msgHash,
-    ...(dataType === 'text' && {
-      comment: data,
-    }),
-  });
-
-  return true;
-}
-
-async function sendLedgerTransaction(
-  accountId: string,
-  promiseId: string,
-  promise: Promise<any>,
-  fee: bigint | undefined,
-  realFee: bigint | undefined,
-  params: {
-    to: string;
-    value: string;
-    data?: string;
-    dataType?: 'text' | 'hex' | 'base64' | 'boc';
-    stateInit?: string;
-  },
-) {
-  const { network } = parseAccountId(accountId);
-  const { address: fromAddress } = await fetchStoredTonWallet(accountId);
-  const {
-    to: toAddress, value, data, dataType, stateInit,
-  } = params;
-  const amount = BigInt(value);
-
-  let payloadBoc: string | undefined;
-
-  if (data) {
-    switch (dataType) {
-      case 'hex':
-        payloadBoc = ton.packPayloadToBoc(hexToBytes(data));
-        break;
-      case 'base64':
-        payloadBoc = ton.packPayloadToBoc(base64ToBytes(data));
-        break;
-      case 'boc':
-        payloadBoc = data;
-        break;
-      case 'text':
-        payloadBoc = ton.packPayloadToBoc(data);
-        break;
-      default:
-        payloadBoc = undefined;
-    }
-  }
-
-  const parsedPayload = payloadBoc ? await ton.parsePayloadBase64(network, toAddress, payloadBoc) : undefined;
-
-  onPopupUpdate({
-    type: 'createTransaction',
-    promiseId,
-    toAddress,
-    amount: BigInt(amount),
-    fee,
-    realFee,
-    ...(dataType === 'text' && {
-      comment: data,
-    }),
-    stateInit,
-    rawPayload: payloadBoc,
-    parsedPayload,
-  });
-
-  let msgHash: string;
-  let msgHashNormalized: string;
-
-  try {
-    const [signedMessage] = await promise as ApiSignedTransfer[];
-
-    ({ msgHash, msgHashNormalized } = await ton.sendSignedMessage(accountId, signedMessage));
-  } catch (err) {
-    logDebugError('sendLedgerTransaction', err);
-    return false;
-  }
-
-  createLocalTransaction(accountId, 'ton', {
-    txId: msgHashNormalized,
-    amount,
-    fromAddress,
-    toAddress,
-    fee: realFee ?? fee ?? 0n,
-    slug: TONCOIN.slug,
-    externalMsgHash: msgHash,
     ...(dataType === 'text' && {
       comment: data,
     }),

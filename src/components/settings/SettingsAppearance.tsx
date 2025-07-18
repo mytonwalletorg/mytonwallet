@@ -1,3 +1,4 @@
+import { BottomSheet } from '@mytonwallet/native-bottom-sheet';
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
@@ -9,9 +10,9 @@ import type { AnimationLevel, Theme } from '../../global/types';
 import {
   ANIMATION_LEVEL_MAX,
   ANIMATION_LEVEL_MIN,
+  IS_CAPACITOR,
   IS_CORE_WALLET,
-  MTW_CARDS_WEBSITE,
-} from '../../config';
+  MTW_CARDS_WEBSITE } from '../../config';
 import {
   selectCurrentAccountSettings,
   selectCurrentAccountState,
@@ -25,6 +26,7 @@ import { openUrl } from '../../util/openUrl';
 import switchAnimationLevel from '../../util/switchAnimationLevel';
 import switchTheme from '../../util/switchTheme';
 import { IS_ELECTRON, IS_WINDOWS } from '../../util/windowEnvironment';
+import { disconnectUpdater } from '../../api/common/helpers';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -63,6 +65,7 @@ interface StateProps {
 }
 
 const SWITCH_THEME_DURATION_MS = 300;
+const NUMBER_OF_CLICKS_FOR_MTW_AIR = 5;
 const THEME_OPTIONS = [{
   value: 'light',
   name: 'Light',
@@ -101,6 +104,7 @@ function SettingsAppearance({
     showNotification,
   } = getActions();
 
+  const [clicksAmount, setClicksAmount] = useState<number>(0);
   const lang = useLang();
   const [isAvailableAccentLoading, setIsAvailableAccentLoading] = useState(false);
   const [availableAccentColorIds, setAvailableAccentColorIds] = useState<number[]>(MEMO_EMPTY_ARRAY);
@@ -157,6 +161,16 @@ function SettingsAppearance({
     setAnimationLevel({ level });
     switchAnimationLevel(level);
   });
+
+  const handleMultipleClicks = () => {
+    if (!IS_CAPACITOR) return;
+    if (clicksAmount + 1 >= NUMBER_OF_CLICKS_FOR_MTW_AIR) {
+      disconnectUpdater();
+      void BottomSheet.switchToAir();
+    } else {
+      setClicksAmount(clicksAmount + 1);
+    }
+  };
 
   function handleAccentColorClick(colorIndex?: number) {
     const isLocked = colorIndex !== undefined ? !availableAccentColorIds.includes(colorIndex) : false;
@@ -245,7 +259,7 @@ function SettingsAppearance({
       >
         <p className={styles.blockTitle}>{lang('Theme')}</p>
         <div className={styles.settingsBlock}>
-          <div className={styles.themeWrapper}>
+          <div className={styles.themeWrapper} onClick={handleMultipleClicks}>
             {renderThemes()}
           </div>
         </div>

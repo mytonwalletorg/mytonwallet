@@ -40,8 +40,8 @@ export class UnknownAppError extends TonConnectError {
 }
 
 export class UserRejectsError extends TonConnectError {
-  constructor(message = 'The user rejected the action') {
-    super(message, SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR);
+  constructor(message = 'The user rejected the action', displayError?: ApiAnyDisplayError) {
+    super(message, SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR, displayError);
   }
 }
 

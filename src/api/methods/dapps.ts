@@ -1,14 +1,10 @@
 import type {
-  ApiDapp, ApiDappsByUrl, ApiDappsState, ApiNetwork, ApiSite, ApiSiteCategory, OnApiUpdate,
+  ApiDapp, ApiDappsState, ApiNetwork, ApiSite, ApiSiteCategory, OnApiUpdate,
 } from '../types';
 
 import { parseAccountId } from '../../util/account';
-import isEmptyObject from '../../util/isEmptyObject';
 import {
-  getAccountValue,
-  removeAccountValue,
-  removeNetworkAccountsValue,
-  setAccountValue,
+  getAccountValue, removeAccountValue, removeNetworkAccountsValue, setAccountValue,
 } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { isUpdaterAlive } from '../common/helpers';
@@ -21,57 +17,28 @@ export function initDapps(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export async function updateDapp(
-  accountId: string,
-  url: string,
-  uniqueId: string,
-  update: Partial<ApiDapp>,
-) {
-  const dapp = await getDapp(accountId, url, uniqueId);
-  if (!dapp) return;
-  await addDapp(accountId, { ...dapp, ...update }, uniqueId);
+export async function updateDapp(accountId: string, url: string, update: Partial<ApiDapp>) {
+  const dapp = await getDapp(accountId, url);
+  await addDapp(accountId, { ...dapp!, ...update });
 }
 
-export async function getDapp(
-  accountId: string,
-  url: string,
-  uniqueId: string,
-): Promise<ApiDapp | undefined> {
-  const byUrl = (
-    await getAccountValue(accountId, 'dapps') as ApiDappsByUrl | undefined
-  )?.[url];
-  if (!byUrl) return undefined;
-
-  return byUrl[uniqueId];
+export async function getDapp(accountId: string, url: string): Promise<ApiDapp | undefined> {
+  return (await getAccountValue(accountId, 'dapps'))?.[url];
 }
 
-export async function addDapp(accountId: string, dapp: ApiDapp, uniqueId: string) {
+export async function addDapp(accountId: string, dapp: ApiDapp) {
   const dapps = await getDappsByUrl(accountId);
-
-  if (!dapps[dapp.url]) {
-    dapps[dapp.url] = {};
-  }
-
-  dapps[dapp.url][uniqueId] = dapp;
+  dapps[dapp.url] = dapp;
   await setAccountValue(accountId, 'dapps', dapps);
 }
 
-export async function deleteDapp(
-  accountId: string,
-  url: string,
-  uniqueId: string,
-  dontNotifyDapp?: boolean,
-) {
+export async function deleteDapp(accountId: string, url: string, dontNotifyDapp?: boolean) {
   const dapps = await getDappsByUrl(accountId);
   if (!(url in dapps)) {
     return false;
   }
 
-  delete dapps[url][uniqueId];
-  if (isEmptyObject(dapps[url])) {
-    delete dapps[url];
-  }
-
+  delete dapps[url];
   await setAccountValue(accountId, 'dapps', dapps);
 
   if (onUpdate && isUpdaterAlive(onUpdate)) {
@@ -108,12 +75,11 @@ export async function deleteAllDapps(accountId: string) {
 }
 
 export async function getDapps(accountId: string): Promise<ApiDapp[]> {
-  const byUrl = await getDappsByUrl(accountId);
-  return Object.values(byUrl).flatMap((byId) => Object.values(byId));
+  return Object.values(await getDappsByUrl(accountId));
 }
 
-export async function getDappsByUrl(accountId: string): Promise<ApiDappsByUrl> {
-  return (await getAccountValue(accountId, 'dapps')) || {};
+export async function getDappsByUrl(accountId: string): Promise<Record<string, ApiDapp>> {
+  return await getAccountValue(accountId, 'dapps') || {};
 }
 
 export async function findLastConnectedAccount(network: ApiNetwork, url: string) {
@@ -123,16 +89,13 @@ export async function findLastConnectedAccount(network: ApiNetwork, url: string)
   let lastConnectedAccountId: string | undefined;
 
   Object.entries(dapps).forEach(([accountId, byUrl]) => {
-    const connections = byUrl[url];
-    if (!connections) return;
+    if (!(url in byUrl)) return;
     if (parseAccountId(accountId).network !== network) return;
 
-    Object.values(connections).forEach((conn) => {
-      if (conn.connectedAt > connectedAt) {
-        connectedAt = conn.connectedAt;
-        lastConnectedAccountId = accountId;
-      }
-    });
+    if ((byUrl[url].connectedAt) > connectedAt) {
+      connectedAt = byUrl[url].connectedAt;
+      lastConnectedAccountId = accountId;
+    }
   });
 
   return lastConnectedAccountId;

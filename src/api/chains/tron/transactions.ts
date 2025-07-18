@@ -43,15 +43,15 @@ export async function getTokenTransactionSlice(
 
 export async function getAllTransactionSlice(
   accountId: string,
-  toTimestamp: number,
-  limit: number,
-  tokenSlugs: string[],
+  toTimestamp?: number,
+  limit?: number,
+  tokenSlugs?: string[],
 ) {
   const chunks = (await Promise.all([
     getTokenTransactionSlice(accountId, TRX.slug, toTimestamp, undefined, limit),
-    ...tokenSlugs.map((slug) => getTokenTransactionSlice(
+    ...tokenSlugs?.map((slug) => getTokenTransactionSlice(
       accountId, slug, toTimestamp, undefined, limit,
-    )),
+    )) ?? [],
   ])).filter((chunk) => chunk.length);
 
   if (!chunks.length) {

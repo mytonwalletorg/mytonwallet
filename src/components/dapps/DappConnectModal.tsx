@@ -61,7 +61,6 @@ function DappConnectModal({
 }: StateProps) {
   const {
     submitDappConnectRequestConfirm,
-    submitDappConnectRequestConfirmHardware,
     cancelDappConnectRequestConfirm,
     setDappConnectRequestState,
     resetHardwareWalletConnect,
@@ -121,7 +120,7 @@ function DappConnectModal({
   });
 
   const submitDappConnectRequestHardware = useLastCallback(() => {
-    submitDappConnectRequestConfirmHardware({
+    submitDappConnectRequestConfirm({
       accountId: selectedAccount,
     });
   });

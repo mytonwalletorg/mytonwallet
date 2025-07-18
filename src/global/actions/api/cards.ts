@@ -17,51 +17,37 @@ import {
   updateAccountState,
   updateMintCards,
 } from '../../reducers';
-import { selectAccountState } from '../../selectors';
+import { selectAccountState, selectIsHardwareAccount } from '../../selectors';
 
-addActionHandler('submitMintCard', async (global, actions, { password }) => {
+addActionHandler('submitMintCard', async (global, actions, { password = '' } = {}) => {
   const accountId = global.currentAccountId!;
-  if (!(await callApi('verifyPassword', password))) {
+  const isHardware = selectIsHardwareAccount(global);
+  if (!isHardware && !(await callApi('verifyPassword', password))) {
     setGlobal(updateMintCards(getGlobal(), { error: 'Wrong password, please try again.' }));
 
     return;
   }
   global = getGlobal();
 
-  if (getDoesUsePinPad()) {
+  if (!isHardware && getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
 
   global = updateMintCards(global, {
     isLoading: true,
     error: undefined,
+    ...(isHardware && { state: MintCardState.ConfirmHardware }),
   });
   setGlobal(global);
-  await vibrateOnSuccess(true);
+  if (!isHardware) {
+    await vibrateOnSuccess(true);
+  }
 
   const options = createTransferOptions(getGlobal(), password);
   const result = await callApi('submitTransfer', 'ton', options);
   const transferError = !result || 'error' in result
     ? result?.error ?? ApiCommonError.Unexpected
     : undefined;
-
-  handleTransferResult(getGlobal(), accountId, transferError);
-});
-
-addActionHandler('submitMintCardHardware', async (global) => {
-  const accountId = global.currentAccountId!;
-
-  global = updateMintCards(global, {
-    isLoading: true,
-    error: undefined,
-    state: MintCardState.ConfirmHardware,
-  });
-  setGlobal(global);
-
-  const ledgerApi = await import('../../../util/ledger');
-  const options = createTransferOptions(getGlobal(), '');
-  const result = await ledgerApi.submitLedgerTransfer(options, TONCOIN.slug);
-  const transferError = !result ? ApiCommonError.Unexpected : undefined;
 
   handleTransferResult(getGlobal(), accountId, transferError);
 });

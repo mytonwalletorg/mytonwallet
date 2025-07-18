@@ -2,7 +2,7 @@ import React from '../../../lib/teact/teact';
 
 import type { ApiCheckTransactionDraftResult, ApiSubmitMultiTransferResult } from '../../../api/chains/ton/types';
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../../api/methods/types';
-import { ApiTransactionDraftError, type ApiTransactionError, type ApiTransferToSign } from '../../../api/types';
+import { ApiTransactionDraftError } from '../../../api/types';
 import { TransferState } from '../../types';
 
 import { HELP_CENTER_SEED_SCAM_URL, NFT_BATCH_SIZE } from '../../../config';
@@ -15,7 +15,6 @@ import { callActionInNative } from '../../../util/multitab';
 import { shouldShowSeedPhraseScamWarning } from '../../../util/scamDetection';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentTransfer,
@@ -33,6 +32,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountTokens,
   selectCurrentNetwork,
+  selectIsHardwareAccount,
   selectToken,
   selectTokenAddress,
 } from '../../selectors';
@@ -225,7 +225,7 @@ addActionHandler('fetchNftFee', async (global, actions, payload) => {
   }
 });
 
-addActionHandler('submitTransferPassword', async (global, actions, { password }) => {
+addActionHandler('submitTransfer', async (global, actions, { password = '' } = {}) => {
   const {
     resolvedAddress,
     comment,
@@ -240,32 +240,31 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     stateInit,
     isGaslessWithStars,
   } = global.currentTransfer;
+  const isHardware = selectIsHardwareAccount(global);
 
-  if (!(await callApi('verifyPassword', password))) {
+  if (!isHardware && !(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentTransfer(getGlobal(), { error: 'Wrong password, please try again.' }));
 
     return;
   }
 
-  global = getGlobal();
   global = updateCurrentTransfer(getGlobal(), {
     isLoading: true,
     error: undefined,
+    ...(isHardware && { state: TransferState.ConfirmHardware }),
   });
-  if (getDoesUsePinPad()) {
-    global = setIsPinAccepted(global);
-  }
   setGlobal(global);
-  await vibrateOnSuccess(true);
 
-  if (promiseId) {
+  if (!isHardware) {
     if (getDoesUsePinPad()) {
-      global = getGlobal();
       global = setIsPinAccepted(global);
       setGlobal(global);
     }
+    await vibrateOnSuccess(true);
+  }
 
-    void callApi('confirmDappRequest', promiseId, password);
+  if (promiseId) {
+    await callApi('confirmDappRequest', promiseId, password);
     return;
   }
 
@@ -330,125 +329,26 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
   setGlobal(global);
 
   if (!result || 'error' in result) {
-    if (getDoesUsePinPad()) {
-      global = getGlobal();
-      global = clearIsPinAccepted(global);
-      setGlobal(global);
+    const errorMessage = result?.error ?? 'Declined';
+    if (isHardware) {
+      setGlobal(updateCurrentTransfer(getGlobal(), {
+        isLoading: false,
+        error: errorMessage,
+      }));
+    } else {
+      if (getDoesUsePinPad()) {
+        global = getGlobal();
+        global = clearIsPinAccepted(global);
+        setGlobal(global);
+      }
+      void vibrateOnError();
+      actions.showError({
+        error: errorMessage,
+      });
     }
-    void vibrateOnError();
-    actions.showError({ error: result?.error });
-  } else {
+  } else if (!isHardware) {
     void vibrateOnSuccess();
   }
-});
-
-addActionHandler('submitTransferHardware', async (global, actions) => {
-  const {
-    toAddress,
-    resolvedAddress,
-    comment,
-    amount,
-    promiseId,
-    tokenSlug,
-    rawPayload,
-    parsedPayload,
-    stateInit,
-    nfts,
-  } = global.currentTransfer;
-
-  const accountId = global.currentAccountId!;
-
-  setGlobal(updateCurrentTransfer(getGlobal(), {
-    isLoading: true,
-    error: undefined,
-    state: TransferState.ConfirmHardware,
-  }));
-
-  const ledgerApi = await import('../../../util/ledger');
-
-  if (promiseId) {
-    const message: ApiTransferToSign = {
-      toAddress: toAddress!,
-      amount: amount!,
-      rawPayload,
-      payload: parsedPayload,
-      stateInit,
-    };
-
-    try {
-      const signedMessage = await ledgerApi.signLedgerTransactions(accountId, [message]);
-      void callApi('confirmDappRequest', promiseId, signedMessage);
-    } catch (err) {
-      if (err instanceof ApiUserRejectsError) {
-        setGlobal(updateCurrentTransfer(getGlobal(), {
-          isLoading: false,
-          error: 'Canceled by the user',
-        }));
-      } else {
-        void callApi('cancelDappRequest', promiseId, 'Unknown error.');
-      }
-    }
-    return;
-  }
-
-  const explainedFee = explainApiTransferFee(global.currentTransfer);
-  const realNativeFee = explainedFee.realFee?.nativeSum;
-
-  let result: string | { error: ApiTransactionError } | undefined;
-  let error: string | undefined;
-
-  if (nfts?.length) {
-    for (const nft of nfts) {
-      const currentResult = await ledgerApi.submitLedgerNftTransfer({
-        accountId: global.currentAccountId!,
-        nftAddress: nft.address,
-        password: '',
-        toAddress: resolvedAddress!,
-        comment,
-        nft,
-        realFee: realNativeFee && realNativeFee / BigInt(nfts.length),
-      });
-
-      global = getGlobal();
-      global = updateCurrentTransfer(global, {
-        sentNftsCount: (global.currentTransfer.sentNftsCount || 0) + 1,
-      });
-      setGlobal(global);
-      result = currentResult;
-    }
-  } else {
-    const tokenAddress = selectTokenAddress(global, tokenSlug);
-    const options = {
-      accountId: global.currentAccountId!,
-      password: '',
-      toAddress: resolvedAddress!,
-      amount: amount!,
-      comment,
-      tokenAddress,
-      realFee: realNativeFee,
-    };
-
-    try {
-      result = await ledgerApi.submitLedgerTransfer(options, tokenSlug);
-    } catch (err: any) {
-      if (err instanceof ApiHardwareBlindSigningNotEnabled) {
-        error = '$hardware_blind_sign_not_enabled';
-      }
-    }
-  }
-
-  if (!error && result === undefined) {
-    error = 'Declined';
-  } else if (typeof result === 'object' && 'error' in result) {
-    actions.showError({
-      error: result.error,
-    });
-  }
-
-  setGlobal(updateCurrentTransfer(getGlobal(), {
-    isLoading: false,
-    error,
-  }));
 });
 
 addActionHandler('cancelTransfer', (global, actions, { shouldReset } = {}) => {

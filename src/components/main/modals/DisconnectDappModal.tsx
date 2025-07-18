@@ -3,8 +3,6 @@ import { getActions } from '../../../global';
 
 import type { ApiDapp } from '../../../api/types';
 
-import { getDappConnectionUniqueId } from '../../../util/getDappConnectionUniqueId';
-
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -33,7 +31,7 @@ function DisconnectDappModal({ isOpen, dapp, onClose }: OwnProps) {
   });
 
   const handleDeleteDapp = useLastCallback(() => {
-    void deleteDapp({ url: dapp!.url, uniqueId: getDappConnectionUniqueId(dapp!) });
+    void deleteDapp({ url: dapp!.url });
     onClose();
   });
 
