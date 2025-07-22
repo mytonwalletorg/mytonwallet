@@ -14,13 +14,15 @@ public class EarnRootVC: WViewController, WSegmentedController.Delegate {
     
     private var tonVC: EarnVC!
     private var mycoinVC: EarnVC!
+    private var ethenaVC: EarnVC!
     
     private var segmentedController: WSegmentedController!
     private var progress: CGFloat = 0
     
-    private var segmentedControlItems: [SegmentedControlItem] = [
+    private let segmentedControlItems: [SegmentedControlItem] = [
         SegmentedControlItem(index: 0, id: "TON", content: AnyView(Text("TON"))),
-        SegmentedControlItem(index: 0, id: "MY", content: AnyView(Text("MY"))),
+        SegmentedControlItem(index: 1, id: "MY", content: AnyView(Text("MY"))),
+        SegmentedControlItem(index: 2, id: "USDe", content: AnyView(Text("USDe"))),
     ]
     
     public init(token: ApiToken? = nil, title: String? = nil) {
@@ -43,9 +45,11 @@ public class EarnRootVC: WViewController, WSegmentedController.Delegate {
       
         tonVC = EarnVC(earnVM: .sharedTon)
         mycoinVC = EarnVC(earnVM: .sharedMycoin)
+        ethenaVC = EarnVC(earnVM: .sharedEthena)
 
         addChild(tonVC)
         addChild(mycoinVC)
+        addChild(ethenaVC)
         
         let capsuleColor = UIColor { WTheme.secondaryLabel.withAlphaComponent($0.userInterfaceStyle == .dark ? 0.2 : 0.12 ) }
         segmentedController = WSegmentedController(viewControllers: [tonVC, mycoinVC],
@@ -94,11 +98,17 @@ public class EarnRootVC: WViewController, WSegmentedController.Delegate {
         let title: String? = twoTabs ? nil : (customTitle ?? WStrings.Receive_Title.localized)
         navigationBar?.set(title: title)
         
-        if StakingStore.currentAccount?.mycoinState == nil {
-            segmentedController.replace(viewControllers: [tonVC], items: [segmentedControlItems[0]])
-        } else {
-            segmentedController.replace(viewControllers: [tonVC, mycoinVC], items: segmentedControlItems)
+        var vcs: [any WSegmentedControllerContent] = [tonVC]
+        var items: [SegmentedControlItem] = [segmentedControlItems[0]]
+        if StakingStore.currentAccount?.mycoinState != nil {
+            vcs.append(mycoinVC)
+            items.append(segmentedControlItems[1])
         }
+        if StakingStore.currentAccount?.ethenaState != nil {
+            vcs.append(ethenaVC)
+            items.append(segmentedControlItems[2])
+        }
+        segmentedController.replace(viewControllers: vcs, items: items)
     }
     
     public override func updateTheme() {

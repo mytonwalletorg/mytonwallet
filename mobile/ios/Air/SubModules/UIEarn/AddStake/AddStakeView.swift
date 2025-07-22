@@ -5,9 +5,9 @@ import UIComponents
 import WalletCore
 import WalletContext
 
-struct StakeUnstakeView: View {
+struct AddStakeView: View {
     
-    @ObservedObject var model: StakeUnstakeModel
+    @ObservedObject var model: AddStakeModel
     var navigationBarInset: CGFloat
     var onScrollPositionChange: (CGFloat) -> ()
     
@@ -24,14 +24,8 @@ struct StakeUnstakeView: View {
                     }
                 }
 
-            switch model.mode {
-            case .stake:
-                StakeInfoSection(model: model)
+            StakeInfoSection(model: model)
                     .padding(.top, -8)
-            case .unstake:
-                UnstakeInfoSection(model: model)
-                    .padding(.top, -8)
-            }
         }
         .padding(.top, -8)
         .coordinateSpace(name: ns)
@@ -59,13 +53,13 @@ struct StakeUnstakeView: View {
 
 fileprivate struct AmountSection: View {
     
-    @ObservedObject var model: StakeUnstakeModel
+    @ObservedObject var model: AddStakeModel
     
     var body: some View {
         TokenAmountEntrySection(
             amount: $model.amount,
             token: displayToken,
-            balance: model.accountBalance,
+            balance: model.maxAmount,
             insufficientFunds: model.insufficientFunds,
             amountInBaseCurrency: $model.amountInBaseCurrency,
             switchedToBaseCurrencyInput: $model.switchedToBaseCurrencyInput,
@@ -79,20 +73,14 @@ fileprivate struct AmountSection: View {
     
     /// even when withdrawing "staked", show normal token
     var displayToken: ApiToken {
-        if model.token.slug == STAKED_TON_SLUG {
-            TokenStore.tokens["toncoin"]!
-        } else if model.token.slug == STAKED_MYCOIN_SLUG {
-            TokenStore.tokens[MYCOIN_SLUG]!
-        } else {
-            model.token
-        }
+        model.baseToken
     }
 }
 
 
 fileprivate struct StakeInfoSection: View {
     
-    @ObservedObject var model: StakeUnstakeModel
+    @ObservedObject var model: AddStakeModel
     
     var body: some View {
         InsetSection {
@@ -160,82 +148,7 @@ fileprivate struct StakeInfoSection: View {
         } else {
             let amnt = (model.amount ?? 0)
             let income = amnt * BigInt(model.apy * 1000) / 1000 / 100
-            return Text(amount: TokenAmount(income, model.token), format: .init(showPlus: true))
+            return Text(amount: TokenAmount(income, model.baseToken), format: .init(showPlus: true))
         }
     }
 }
-
-
-fileprivate struct UnstakeInfoSection: View {
-    
-    @ObservedObject var model: StakeUnstakeModel
-    
-    var body: some View {
-        InsetSection {
-            InsetCell {
-                HStack {
-                    Text(WStrings.StakeUnstake_ReceivingLabel.localized)
-                        .font17h22()
-                        .foregroundStyle(Color(WTheme.secondaryLabel))
-                    Spacer()
-                    receivingBadge
-                }
-            }
-            if model.stakingState.type == .liquid {
-                InsetCell {
-                    HStack {
-                        Text(WStrings.StakeUnstake_InstantWithdrawalLabel.localized)
-                            .font17h22()
-                            .foregroundStyle(Color(WTheme.secondaryLabel))
-                        Spacer()
-                        Text(WStrings.StakeUnstake_InstantWithdrawalInfo.localized)
-                    }
-                    .padding(.top, -1)
-                }
-            }
-        } header: {
-            Text(WStrings.StakeUnstake_UnstakingDetails.localized)
-        } footer: {}
-    }
-    
-    
-    @ViewBuilder
-    var receivingBadge: some View {
-        switch model.withdrawalType {
-        case .loading:
-            ProgressView().progressViewStyle(.circular)
-        case .instant:
-            HStack(spacing: 4) {
-                Image(systemName: "bolt.fill")
-                    .foregroundStyle(gradient)
-                    .imageScale(.small)
-                Text(WStrings.StakeUnstake_ReceivingInfo_Instantly.localized)
-            }
-        case .timed(let remaining):
-            HStack(spacing: 4) {
-                Image(systemName: "clock.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(WTheme.secondaryLabel))
-                    .imageScale(.small)
-                Text(formatTimeToWait(remaining))
-            }
-
-        }
-    }
-    
-    var gradient: LinearGradient {
-        LinearGradient(colors: [
-            Color("EarnGradientColorLeft", bundle: AirBundle),
-            Color("EarnGradientColorRight", bundle: AirBundle),
-        ], startPoint: .top, endPoint: .bottom)
-    }
-
-    func formatTimeToWait(_ remaining: TimeInterval) -> String {
-        return Duration.seconds(remaining).formatted(.units(
-            allowed: [.hours, .minutes],
-            width: .wide,
-            maximumUnitCount: 2,
-            fractionalPart: .hide
-        ))
-    }
- }

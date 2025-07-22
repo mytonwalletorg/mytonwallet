@@ -345,8 +345,7 @@ extension UnlockVC: PasscodeScreenViewDelegate {
             do {
                 success = try await AuthSupport.verifyPassword(password: passcode)
             } catch let error as AuthCooldownError {
-                let time = formatTimeInterval(error.waitFor)
-                self?.showAlert(title: "Cooldown", text: "Please wait for \(time) before trying again.", button: "OK")
+                self?.showCooldownAlert(error: error)
                 success = false
             } catch {
                 success = false
@@ -365,6 +364,21 @@ extension UnlockVC: PasscodeScreenViewDelegate {
                 tapticFeedback.notificationOccurred(.error)
             }
         }
+    }
+    
+    func showCooldownAlert(error: AuthCooldownError) {
+        let time = formatTimeInterval(error.waitFor)
+        let alert = alert(
+            title: "Cooldown",
+            text: "Please wait for \(time) before trying again.",
+            button: "OK",
+            buttonStyle: .default,
+            buttonPressed: nil,
+            secondaryButton: nil,
+            secondaryButtonPressed: nil,
+            preferPrimary: true
+        )
+        super.present(alert, animated: true, completion: nil)
     }
     
     @MainActor func animateSuccess() {

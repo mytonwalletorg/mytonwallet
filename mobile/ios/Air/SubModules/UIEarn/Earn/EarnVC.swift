@@ -11,7 +11,8 @@ import UIComponents
 import WalletCore
 import WalletContext
 import OrderedCollections
-
+import UIPasscode
+import Ledger
 
 @MainActor
 public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDataProtocol {
@@ -54,6 +55,8 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
     private var indicatorView: WActivityIndicator!
     private var belowSafeAreaView: UIView!
     private var belowSafeAreaHeightConstraint: NSLayoutConstraint!
+    private let claimRewardsViewModel = ClaimRewardsModel()
+    private var claimRewardsView: HostingView!
     
     enum Section: Hashable {
         case header
@@ -178,6 +181,31 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
         
         bringNavigationBarToFront()
         
+        claimRewardsViewModel.viewController = self
+        claimRewardsViewModel.onClaim = { [weak self] in
+            Task {
+                do {
+                    try await self?.claimRewardsViewModel.confirmAction(account: AccountStore.account.orThrow())
+                    withAnimation(.default.delay(0.3)) {
+                        self?.claimRewardsViewModel.isConfirming = false
+                    }
+                } catch {
+                    topViewController()?.showAlert(error: error)
+                }
+            }
+        }
+        claimRewardsView = HostingView(ignoreSafeArea: false) { [claimRewardsViewModel] in
+            ClaimRewardsView(viewModel: claimRewardsViewModel)
+        }
+        claimRewardsView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(claimRewardsView)
+        NSLayoutConstraint.activate([
+            claimRewardsView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            claimRewardsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            claimRewardsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+        updateClaimRewardsButton()
+        
         updateLoadingState()
         
         updateTheme()
@@ -188,16 +216,30 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
         tableViewBackgroundView.backgroundColor = WTheme.groupedItem
     }
     
+    func updateClaimRewardsButton() {
+        claimRewardsViewModel.token = token
+        claimRewardsViewModel.stakingState = stakingState
+        if case let .jetton(jetton) = stakingState {
+            claimRewardsView.alpha = jetton.unclaimedRewards > 0 ? 1 : 0
+        } else {
+            claimRewardsView.alpha = 0
+        }
+    }
     
     func stakeUnstakePressed(mode: StakeUnstakeVC.Mode) {
         if let stakingState = earnVM.stakingState {
-            let stakeVC = StakeUnstakeVC(
-                stakingStateProvider: { self.earnVM.stakingState ?? stakingState },
-                baseToken: TokenStore.tokens[earnVM.tokenSlug]!,
-                stakedToken: TokenStore.tokens[earnVM.stakedTokenSlug]!,
-                mode: mode
-            )
-            navigationController?.pushViewController(stakeVC, animated: true)
+            let vc = switch mode {
+            case .stake:
+                AddStakeVC(config: config, stakingState: stakingState)
+            case .unstake:
+                StakeUnstakeVC(
+                    stakingStateProvider: { self.earnVM.stakingState ?? stakingState },
+                    baseToken: TokenStore.tokens[earnVM.tokenSlug]!,
+                    stakedToken: TokenStore.tokens[earnVM.stakedTokenSlug]!,
+                    mode: mode
+                )
+            }
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
     
@@ -371,6 +413,7 @@ extension EarnVC: EarnMVDelegate {
     public func stakingStateUpdated() {
         updateLoadingState()
         applySnapshot(animated: true, reloadHeader: true)
+        updateClaimRewardsButton()
     }
     
     public func newPageLoaded(animateChanges: Bool) {

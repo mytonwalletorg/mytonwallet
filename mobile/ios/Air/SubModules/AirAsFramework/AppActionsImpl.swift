@@ -30,9 +30,11 @@ private class AppActionsImpl: AppActionsProtocol {
     }
     
     static func lockApp(animated: Bool) {
-        let tabVC = topViewController() as? HomeTabBarController
-        tabVC?._showLock(animated: animated)
-//        WalletContextManager.delegate?.walletIsReady(isReady: false)
+        let windows = UIApplication.shared.sceneWindows
+        let tabVC = windows.compactMap { $0.rootViewController as? HomeTabBarController }.first
+        if let tabVC {
+            tabVC._showLock(animated: animated)
+        }
     }
     
     static func openInBrowser(_ url: URL, title: String?, injectTonConnect: Bool) {

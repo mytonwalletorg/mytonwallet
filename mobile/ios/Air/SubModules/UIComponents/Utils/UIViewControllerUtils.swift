@@ -11,7 +11,7 @@ import WalletContext
 
 public extension UIViewController {
     
-    fileprivate func alert(title: String?, text: String,
+    func alert(title: String?, text: String,
                            button: String, buttonStyle: UIAlertAction.Style, buttonPressed: (() -> ())? = nil,
                            secondaryButton: String? = nil, secondaryButtonPressed: (() -> ())? = nil,
                            preferPrimary: Bool = true) -> UIAlertController {

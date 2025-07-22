@@ -180,7 +180,7 @@ fileprivate struct AmountSection: View {
             TokenAmountEntrySection(
                 amount: $model.amount,
                 token: model.token,
-                balance: $model.maxToSend,
+                balance: model.maxToSend,
                 insufficientFunds: model.insufficientFunds,
                 amountInBaseCurrency: $model.amountInBaseCurrency,
                 switchedToBaseCurrencyInput: $model.switchedToBaseCurrencyInput,

@@ -30,8 +30,8 @@ extension Api {
         try await bridge.callApi("getStakingHistory", accountId, limit, offset, decoding: [ApiStakingHistory].self)
     }
     
-    public static func submitStakingClaim(accountId: String, password: String, state: ApiStakingStateJetton, realFee: BigInt?) async throws -> String {
-        try await bridge.callApi("submitStakingClaim", accountId, password, state, realFee, decoding: LocalTransactionResult.self).txId
+    public static func submitStakingClaimOrUnlock(accountId: String, password: String, state: ApiStakingState, realFee: BigInt?) async throws -> String {
+        try await bridge.callApi("submitStakingClaimOrUnlock", accountId, password, state, realFee, decoding: LocalTransactionResult.self).txId
     }
 }
 

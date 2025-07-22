@@ -134,6 +134,14 @@ public final class LedgerSignModel: LedgerBaseModel, @unchecked Sendable {
             } catch {
                 throw error
             }
+        
+        case let .submitStakingClaimOrUnlock(accountId, state, realFee):
+            do {
+                _ = try await Api.submitStakingClaimOrUnlock(accountId: accountId, password: "", state: state, realFee: realFee)
+            } catch {
+                log.error("\(error, .public)")
+                throw error
+            }
         }
     }
 }

@@ -1,9 +1,3 @@
-//
-//  StakingVC.swift
-//  UIEarn
-//
-//  Created by Sina on 5/13/24.
-//
 
 import Foundation
 import SwiftUI
@@ -14,9 +8,14 @@ import WalletContext
 
 struct StakingConfirmHeaderView: View {
     
-    var amount: BigInt
-    var token: ApiToken
-    var isUnstaking: Bool
+    enum Mode {
+        case stake
+        case unstake
+        case claim
+    }
+    
+    var mode: Mode
+    var tokenAmount: TokenAmount
     
     var body: some View {
         VStack(spacing: 0) {
@@ -32,7 +31,7 @@ struct StakingConfirmHeaderView: View {
     @ViewBuilder
     var iconView: some View {
         WUIIconViewToken(
-            token: token,
+            token: tokenAmount.token,
             isWalletView: false,
             showldShowChain: true,
             size: 60,
@@ -47,10 +46,10 @@ struct StakingConfirmHeaderView: View {
     
     @ViewBuilder
     var amountView: some View {
-        let amount = DecimalAmount(amount, token)
+        let showPlus = mode == .claim || mode == .unstake
         AmountText(
-            amount: amount,
-            format: .init(maxDecimals: 4, showPlus: isUnstaking),
+            amount: tokenAmount,
+            format: .init(maxDecimals: 4, showPlus: showPlus, showMinus: false),
             integerFont: .rounded(ofSize: 34, weight: .bold),
             fractionFont: .rounded(ofSize: 28, weight: .bold),
             symbolFont: .rounded(ofSize: 28, weight: .bold),
@@ -62,6 +61,14 @@ struct StakingConfirmHeaderView: View {
     
     @ViewBuilder
     var toView: some View {
-        Text(isUnstaking ? WStrings.Staking_ConfirmUnstake_Hint.localized : WStrings.Staking_ConfirmStake_Hint.localized)
+        let hint = switch mode {
+        case .stake:
+            WStrings.Staking_ConfirmStake_Hint.localized
+        case .unstake:
+            WStrings.Staking_ConfirmUnstake_Hint.localized
+        case .claim:
+            "Claiming staking rewards"
+        }
+        Text(hint)
     }
 }

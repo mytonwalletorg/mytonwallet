@@ -4,6 +4,8 @@ import WalletContext
 import UIKit
 import Kingfisher
 
+public let DEFAULT_AUTOLOCK_OPTION = MAutolockOption.tenMinutes
+
 private let log = Log("AutolockStore")
 private let isAppLockEnabledKey = "settings.isAppLockEnabled"
 private let autolockValueKey = "settings.autolockValue"
@@ -25,7 +27,7 @@ public final class AutolockStore: NSObject {
             if let s = GlobalStorage[autolockValueKey] as? String, let option = MAutolockOption(rawValue: s) {
                 return option
             }
-            return .never
+            return DEFAULT_AUTOLOCK_OPTION
         }
         set {
             GlobalStorage.update {

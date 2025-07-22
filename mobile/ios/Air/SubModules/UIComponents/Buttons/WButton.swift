@@ -233,7 +233,7 @@ public struct WUIButtonStyle: ButtonStyle {
     var textColor: UIColor {
         switch style {
         case .primary:
-            WTheme.background
+            UIColor.white // FIXME: Doesn't work for white theme color
         case .secondary:
             WTheme.tint
         case .clearBackground:

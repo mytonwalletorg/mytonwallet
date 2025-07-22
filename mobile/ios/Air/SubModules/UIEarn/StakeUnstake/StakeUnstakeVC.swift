@@ -14,9 +14,9 @@ import WalletCore
 import WalletContext
 import UIPasscode
 
-let MINIMUM_REQUIRED_AMOUNT_TON = BigInt(3 * ONE_TON + (ONE_TON / 10))
-let calculatedFee = BigInt(15_000_000)
-let MAX_INSTANT = 200 * ONE_TON
+fileprivate let MINIMUM_REQUIRED_AMOUNT_TON = BigInt(3 * ONE_TON + (ONE_TON / 10))
+fileprivate let calculatedFee = BigInt(15_000_000)
+fileprivate let MAX_INSTANT = 200 * ONE_TON
 
 
 public class StakeUnstakeVC: WViewController, WalletCoreData.EventsObserver {
@@ -150,27 +150,28 @@ public class StakeUnstakeVC: WViewController, WalletCoreData.EventsObserver {
             return
         }
         
-        let minAmount = BalanceStore.currentAccountStakingData?.tonState?.type == .nominators ? 10001 * ONE_TON : ONE_TON
+        let minAmount = getStakingMinAmount(type: stakingState.type)
         var usingAmount = amount
         if model.mode == .stake && amount == availableBalance {
             usingAmount = amount - calculatedFee
         }
         let powedAmount = usingAmount
+//        let fee = getFee(mode == .stake ? .)
         
         if model.mode == .stake && powedAmount < minAmount { // Insufficient min amount for staking
             model.insufficientFunds = true
             let symbol = model.baseToken.symbol
             continueButton.setTitle("Minimum 1 \(symbol)", for: .normal)
             continueButton.isEnabled = false
-        } else if powedAmount + (model.mode == .stake ? calculatedFee : 0) > availableBalance {
+        } else if powedAmount /*+ (model.mode == .stake ? calculatedFee : 0)*/ > availableBalance {
             model.insufficientFunds = true
             let symbol = model.baseToken.symbol
             continueButton.setTitle("Insufficient \(symbol) Balance", for: .normal)
             continueButton.isEnabled = false
-        } else if model.mode == .stake && powedAmount >= minAmount && powedAmount < 2 * ONE_TON && !model.shouldRenderBalanceWithSmallFee {
-            model.insufficientFunds = true
-            continueButton.setTitle(WStrings.Staking_InsufficientFeeAmount_Text(amount: minAmount.doubleAbsRepresentation(decimals: 9)), for: .normal)
-            continueButton.isEnabled = false
+//        } else if model.mode == .stake && powedAmount >= minAmount && powedAmount < 2 * ONE_TON && !model.shouldRenderBalanceWithSmallFee {
+//            model.insufficientFunds = true
+//            continueButton.setTitle(WStrings.Staking_InsufficientFeeAmount_Text(amount: minAmount.doubleAbsRepresentation(decimals: 9)), for: .normal)
+//            continueButton.isEnabled = false
         } else {
             model.insufficientFunds = false
             let title: String = switch (model.mode, model.baseToken.slug) {
@@ -221,11 +222,9 @@ public class StakeUnstakeVC: WViewController, WalletCoreData.EventsObserver {
     }
     
     func confirmAction(account: MAccount) async throws {
-        
         let headerView = StakingConfirmHeaderView(
-            amount: model.amount ?? 0,
-            token: TokenStore.tokens[model.baseToken.slug]!,
-            isUnstaking: model.mode == .unstake
+            mode: self.mode == .stake ? .stake : .unstake,
+            tokenAmount: TokenAmount(model.amount ?? 0, TokenStore.tokens[model.baseToken.slug]!),
         )
         let headerVC = UIHostingController(rootView: headerView)
         headerVC.view.backgroundColor = .clear

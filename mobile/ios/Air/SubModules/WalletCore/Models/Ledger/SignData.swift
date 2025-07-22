@@ -32,4 +32,10 @@ public enum SignData: @unchecked Sendable {
         amount: BigInt,
         stakingState: ApiStakingState
     )
+    
+    case submitStakingClaimOrUnlock(
+        accountId: String,
+        state: ApiStakingState,
+        realFee: BigInt?
+    )
 }

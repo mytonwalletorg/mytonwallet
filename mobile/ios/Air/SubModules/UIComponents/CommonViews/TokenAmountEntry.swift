@@ -13,7 +13,7 @@ public struct TokenAmountEntrySection: View {
     
     @Binding public var amount: BigInt?
     public var token: ApiToken?
-    @Binding public var balance: BigInt?
+    public var balance: BigInt?
     public var insufficientFunds: Bool
     @Binding public var amountInBaseCurrency: BigInt?
     @Binding public var switchedToBaseCurrencyInput: Bool
@@ -25,7 +25,7 @@ public struct TokenAmountEntrySection: View {
     
     public init(amount: Binding<BigInt?>,
                 token: ApiToken?,
-                balance: Binding<BigInt?>,
+                balance: BigInt?,
                 insufficientFunds: Bool,
                 amountInBaseCurrency: Binding<BigInt?>,
                 switchedToBaseCurrencyInput: Binding<Bool>,
@@ -35,7 +35,7 @@ public struct TokenAmountEntrySection: View {
                 onTokenSelect: (() -> Void)?, onUseAll: @escaping () -> Void) {
         self._amount = amount
         self.token = token
-        self._balance = balance
+        self.balance = balance
         self.insufficientFunds = insufficientFunds
         self._amountInBaseCurrency = amountInBaseCurrency
         self._switchedToBaseCurrencyInput = switchedToBaseCurrencyInput

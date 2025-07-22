@@ -28,4 +28,13 @@ public extension View {
             self.padding(.horizontal, length)
         }
     }
+    
+    @ViewBuilder
+    func backportGeometryGroup() -> some View {
+        if #available(iOS 17, *) {
+            self.geometryGroup()
+        } else {
+            self
+        }
+    }
 }

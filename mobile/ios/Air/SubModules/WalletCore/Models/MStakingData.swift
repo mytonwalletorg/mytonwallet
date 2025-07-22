@@ -52,6 +52,9 @@ extension MStakingData {
         }
         return nil
     }
+    public var ethenaState: ApiStakingState? {
+        stateById["ethena"]
+    }
     
     public func bySlug(_ tokenSlug: String) -> ApiStakingState? {
         if tokenSlug == TONCOIN_SLUG {

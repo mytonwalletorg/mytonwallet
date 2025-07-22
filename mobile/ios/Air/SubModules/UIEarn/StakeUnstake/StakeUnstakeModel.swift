@@ -140,7 +140,7 @@ final class StakeUnstakeModel: ObservableObject {
 
         switch mode {
         case .stake:
-            shouldRenderBalanceWithSmallFee = availableBalance >= MINIMUM_REQUIRED_AMOUNT_TON
+            shouldRenderBalanceWithSmallFee = availableBalance >= ONE_TON
             availableBalance = shouldRenderBalanceWithSmallFee
             ? availableBalance - 2 * ONE_TON
             : (availableBalance > ONE_TON

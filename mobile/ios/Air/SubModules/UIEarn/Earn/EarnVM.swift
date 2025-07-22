@@ -25,6 +25,7 @@ public final class EarnVM: ObservableObject, WalletCoreData.EventsObserver {
     
     public static let sharedTon = EarnVM(config: .ton)
     public static let sharedMycoin = EarnVM(config: .mycoin)
+    public static let sharedEthena = EarnVM(config: .ethena)
     
     weak var delegate: EarnMVDelegate? = nil {
         didSet {
@@ -60,6 +61,7 @@ public final class EarnVM: ObservableObject, WalletCoreData.EventsObserver {
 
     private init(config: StakingConfig) {
         self.config = config
+        self.accountId = AccountStore.accountId
         WalletCoreData.add(eventObserver: self)
     }
     

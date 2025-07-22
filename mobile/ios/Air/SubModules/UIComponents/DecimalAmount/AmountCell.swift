@@ -8,10 +8,12 @@ public struct AmountCell: View {
     
     var amount: BigInt
     var token: ApiToken
+    var format: DecimalAmountFormatStyle<ApiToken>
     
-    public init(amount: BigInt, token: ApiToken) {
+    public init(amount: BigInt, token: ApiToken, format: DecimalAmountFormatStyle<ApiToken> = .init(maxDecimals: 4, showMinus: true)) {
         self.amount = amount
         self.token = token
+        self.format = format
     }
     
     public var body: some View {
@@ -47,7 +49,7 @@ public struct AmountCell: View {
         let amount = DecimalAmount(amount, token)
         AmountText(
             amount: amount,
-            format: .init(maxDecimals: 4, showMinus: true),
+            format: format,
             integerFont: .systemFont(ofSize: 24, weight: .semibold),
             fractionFont: .systemFont(ofSize: 20, weight: .semibold),
             symbolFont: .systemFont(ofSize: 20, weight: .semibold),
