@@ -2,15 +2,27 @@ import type { ApiNetwork, ApiTokenWithPrice, OnApiUpdate } from '../../types';
 
 import { buildCollectionByKey } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
-import { updateTokens } from '../../common/tokens';
+import { getTokensCache, tokensPreload, updateTokens } from '../../common/tokens';
 import { getAccountStates } from './toncenter';
 
-export async function updateTokenHashes(network: ApiNetwork, tokens: ApiTokenWithPrice[], onUpdate?: OnApiUpdate) {
-  const tokensToFetch = tokens.filter((token) => (
-    token.chain === 'ton'
-    && !token.codeHash
-    && ['LP', 'STAKED', 'POOL'].some((option) => token.symbol.toUpperCase().includes(option))
-  ));
+export async function updateTokenHashes(network: ApiNetwork, tokenSlugs: string[], onUpdate?: OnApiUpdate) {
+  await tokensPreload.promise;
+  const cachedTokens = getTokensCache().bySlug;
+
+  const tokensToFetch = tokenSlugs.reduce<ApiTokenWithPrice[]>((tokensToFetch, tokenSlug) => {
+    const token = cachedTokens[tokenSlug];
+
+    if (
+      token
+      && token.chain === 'ton'
+      && !token.codeHash
+      && ['LP', 'STAKED', 'POOL'].some((option) => token.symbol.toUpperCase().includes(option))
+    ) {
+      tokensToFetch.push(token);
+    }
+
+    return tokensToFetch;
+  }, []);
 
   if (!tokensToFetch.length) {
     return;

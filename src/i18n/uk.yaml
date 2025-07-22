@@ -132,6 +132,7 @@ Hide Tiny Transfers: Приховувати дрібні перекази
 Toggle Hide Tiny Transfers: Переключити відображення дрібних переказів
 Network: Мережа
 Developer Options: Інструменти розробника
+All Wallet Versions: Всі версії гаманців
 Confirmation: Підтвердження
 Signing Data: Дані для підпису
 Contract Initialization Data: Дані для ініціалізації контракту
@@ -941,3 +942,8 @@ Show All: Показати все
 Description: Опис
 No additional data.: Немає додаткових даних.
 Domain was copied!: Домен скопійовано!
+$storage_cleared_title: Сховище застосунку очищено
+$storage_cleared_message: |
+  Дані вашого гаманця були очищені через проблеми з браузером або дисковим простором. Будь ласка, вийдіть з усіх гаманців і потім вручну імпортуйте їх знову, використовуючи ваші секретні слова.
+
+  Якщо вам потрібна допомога, будь ласка, зв'яжіться з %support_link%.

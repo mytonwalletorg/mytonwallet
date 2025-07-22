@@ -17,7 +17,6 @@ import {
   IS_STAKING_DISABLED,
   LEDGER_WALLET_VERSIONS,
   POPULAR_WALLET_VERSIONS,
-  SWAP_CROSSCHAIN_SLUGS,
   TONCOIN,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -361,8 +360,11 @@ function setupStakingPolling(accountId: string, getBalances: () => Promise<ApiBa
     pauseWhenNotFocused: STAKING_INTERVAL_WHEN_NOT_FOCUSED,
     async poll() {
       try {
-        const common = getStakingCommonCache();
-        const [balances, backendState] = await Promise.all([getBalances(), getBackendStakingState(accountId)]);
+        const [common, balances, backendState] = await Promise.all([
+          getStakingCommonCache(),
+          getBalances(),
+          getBackendStakingState(accountId),
+        ]);
         const states = await getStakingStates(accountId, common, backendState, balances);
 
         const { shouldUseNominators, totalProfit } = backendState;
@@ -418,27 +420,30 @@ async function loadInitialActivities(accountId: string, tokenSlugs: string[], on
   let newestActivityTimestamp: number | undefined;
 
   const loadTokenActivity = concurrencyLimiter.wrap(async (slug: string) => {
-    const tokenSlug = slug !== TONCOIN.slug ? slug : undefined;
-    let activities = await fetchActivitySlice(accountId, tokenSlug, undefined, FIRST_TRANSACTIONS_LIMIT);
+    try {
+      const tokenSlug = slug !== TONCOIN.slug ? slug : undefined;
+      let activities = await fetchActivitySlice(accountId, tokenSlug, undefined, FIRST_TRANSACTIONS_LIMIT);
 
-    if (SWAP_CROSSCHAIN_SLUGS.has(slug)) {
       activities = await swapReplaceCexActivities(accountId, activities, slug, true);
+
+      if (slug === TONCOIN.slug && activities.length) {
+        // Activities for each Jetton wallet are loaded only the first time.
+        // New token activities will be loaded along with TON.
+        newestActivityTimestamp = activities[0].timestamp;
+
+        // There is no way to load TON activities without loading activities of other tokens
+        mainActivities = activities;
+        activities = activities.filter((activity) => getActivityTokenSlugs(activity).includes(TONCOIN.slug));
+      }
+
+      bySlug[slug] = activities;
+    } catch (err) {
+      // If a token history fails to load, the UI will re-request its history when the user opens its activity feed
+      logDebugError('loadTokenActivity', slug, err);
     }
-
-    if (slug === TONCOIN.slug && activities.length) {
-      // Activities for each Jetton wallet are loaded only the first time.
-      // New token activities will be loaded along with TON.
-      newestActivityTimestamp = activities[0].timestamp;
-
-      // There is no way to load TON activities without loading activities of other tokens
-      mainActivities = activities;
-      activities = activities.filter((activity) => getActivityTokenSlugs(activity).includes(TONCOIN.slug));
-    }
-
-    bySlug[slug] = activities;
   });
 
-  await Promise.all(tokenSlugs.map(loadTokenActivity));
+  await Promise.allSettled(tokenSlugs.map(loadTokenActivity));
 
   onUpdate({
     type: 'initialActivities',
@@ -492,7 +497,7 @@ function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
           .filter((value) => value !== version);
         const versionInfos = (await getWalletVersionInfos(
           network, publicKeyBytes, versions,
-        )).filter((versionInfo) => !!versionInfo.lastTxId || versionInfo.version === 'W5');
+        ));
 
         const filteredVersions = versionInfos.map(({ wallet, ...rest }) => rest);
 

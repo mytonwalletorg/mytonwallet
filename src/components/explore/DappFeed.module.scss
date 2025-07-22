@@ -143,6 +143,16 @@
   }
 }
 
+.fallbackIcon {
+  .iconTile & {
+    font-size: 2rem;
+  }
+
+  .iconPill & {
+    font-size: 1.5rem;
+  }
+}
+
 .settingsButton {
   display: flex;
   flex-direction: column;

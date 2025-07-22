@@ -130,6 +130,7 @@ Hide Tiny Transfers: Ukryj małe transfery
 Toggle Hide Tiny Transfers: Przełącz Ukryj drobne transfery
 Network: Sieć
 Developer Options: Opcje dla deweloperów
+All Wallet Versions: Wszystkie wersje portfela
 Confirmation: Potwierdzenie
 Signing Data: Dane do Podpisu
 Contract Initialization Data: Dane Inicjalizacji Kontraktu
@@ -938,3 +939,8 @@ Show All: Pokaż wszystkie
 Description: Opis
 No additional data.: Brak dodatkowych danych.
 Domain was copied!: Domena została skopiowana!
+$storage_cleared_title: Pamięć aplikacji została wyczyszczona
+$storage_cleared_message: |
+  Dane portfela zostały wyczyszczone z powodu problemów z przeglądarką lub miejscem na dysku. Proszę wylogować się ze wszystkich portfeli, a następnie ręcznie zaimportować je ponownie, używając swoich sekretnych słów.
+
+  Jeśli potrzebujesz pomocy, skontaktuj się z %support_link%.

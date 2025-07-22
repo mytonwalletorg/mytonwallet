@@ -357,6 +357,6 @@ export async function loadTokenBalances(
     percentChange24h: 0,
   }));
   await updateTokens(tokens, onUpdate);
-  await updateTokenHashes(network, tokens, onUpdate);
+  await updateTokenHashes(network, tokens.map((token) => token.slug), onUpdate);
   return Object.fromEntries(tokenBalances.map(({ slug, balance }) => [slug, balance]));
 }

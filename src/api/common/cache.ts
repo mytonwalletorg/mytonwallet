@@ -4,7 +4,8 @@ import Deferred from '../../util/Deferred';
 
 export type AccountCache = { stakedAt?: number };
 
-let stakingCommonCache: ApiStakingCommonData;
+let stakingCommonCache: ApiStakingCommonData | undefined;
+const stakingCommonCacheDeferred = new Deferred();
 
 const accountCache: Record<string, AccountCache> = {};
 
@@ -22,10 +23,12 @@ export function updateAccountCache(accountId: string, address: string, partial: 
 
 export function setStakingCommonCache(data: ApiStakingCommonData) {
   stakingCommonCache = data;
+  stakingCommonCacheDeferred.resolve();
 }
 
-export function getStakingCommonCache() {
-  return stakingCommonCache;
+export async function getStakingCommonCache() {
+  await stakingCommonCacheDeferred.promise;
+  return stakingCommonCache!;
 }
 
 export function setBackendConfigCache(config: ApiBackendConfig) {

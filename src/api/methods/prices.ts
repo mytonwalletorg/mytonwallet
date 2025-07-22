@@ -2,7 +2,7 @@ import type { ApiBaseCurrency, ApiHistoryList, ApiPriceHistoryPeriod } from '../
 
 import { DEFAULT_PRICE_CURRENCY, TONCOIN } from '../../config';
 import { callBackendGet } from '../common/backend';
-import { waitDataPreload } from './preload';
+import { tokensPreload } from '../common/tokens';
 import { getTokenBySlug } from './tokens';
 
 export { setBaseCurrency, getBaseCurrency } from '../common/prices';
@@ -12,7 +12,7 @@ export async function fetchPriceHistory(
   period: ApiPriceHistoryPeriod,
   baseCurrency: ApiBaseCurrency = DEFAULT_PRICE_CURRENCY,
 ): Promise<ApiHistoryList | undefined> {
-  await waitDataPreload();
+  await tokensPreload.promise;
   const token = getTokenBySlug(slug);
 
   if (!token) {

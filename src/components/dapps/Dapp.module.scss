@@ -107,7 +107,7 @@ $labelSidePadding: 0.5rem;
   background-color: var(--color-accent);
 
   :global(html.theme-dark.is-white-accent) & {
-    background-color: var(--color-background-drop-down);
+    color: var(--color-background-drop-down);
   }
 }
 

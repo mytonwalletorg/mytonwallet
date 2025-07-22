@@ -128,6 +128,7 @@ Hide Tiny Transfers: Kleine Überweisungen ausblenden
 Toggle Hide Tiny Transfers: Kleine Überweisungen ausblenden umschalten
 Network: Netzwerk
 Developer Options: Entwickleroptionen
+All Wallet Versions: Alle Wallet-Versionen
 Confirmation: Bestätigung
 Signing Data: Signierdaten
 Contract Initialization Data: Vertrag Initialisierung Daten
@@ -928,3 +929,8 @@ Show All: Alle anzeigen
 Description: Beschreibung
 No additional data.: Keine zusätzlichen Daten.
 Domain was copied!: Domain wurde kopiert!
+$storage_cleared_title: Anwendungsspeicher gelöscht
+$storage_cleared_message: |
+  Ihre Wallet-Daten wurden aufgrund von Browser- oder Speicherplatz-Problemen gelöscht. Bitte loggen Sie sich aus allen Wallets aus und importieren Sie sie dann manuell mit Ihren geheimen Wörtern erneut.
+
+  Wenn Sie Unterstützung benötigen, kontaktieren Sie bitte %support_link%.

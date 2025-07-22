@@ -222,7 +222,11 @@ export interface ApiBackendStakingState {
   shouldUseNominators?: boolean;
   stakedAt?: number;
   ethena: {
-    /** Boolean - whether the wallet is verified; undefined - the wallet eligibility was never checked */
+    /**
+     * - undefined — never passed the verification;
+     * - true — passed the verification and eligible for the boosted APY;
+     * - false — passed the verification and not eligible for the boosted APY;
+     */
     isVerified?: boolean;
   };
 }

@@ -125,6 +125,7 @@ Hide Tiny Transfers: 隐藏小额转账
 Toggle Hide Tiny Transfers: 切换隐藏小额转账
 Network: 网络
 Developer Options: 开发者选项
+All Wallet Versions: 所有钱包版本
 Confirmation: 确认
 Signing Data: 签名数据
 Contract Initialization Data: 合约初始化数据
@@ -917,3 +918,8 @@ Show All: 显示全部
 Description: 描述
 No additional data.: 无附加数据。
 Domain was copied!: 域名已复制！
+$storage_cleared_title: 应用程序存储已清除
+$storage_cleared_message: |
+  您的钱包数据因浏览器或磁盘空间问题而被清除。请从所有钱包中退出登录，然后使用您的助记词手动重新导入。
+
+  如需帮助，请联系%support_link%。

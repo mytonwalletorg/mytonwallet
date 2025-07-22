@@ -68,6 +68,8 @@ export type DialogType = {
   message: string | TeactNode;
   entities?: Record<string, any>;
   noBackdropClose?: boolean;
+  isInAppLock?: boolean;
+  footerButtons?: TeactNode[];
 };
 
 export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de' | 'th' | 'uk' | 'pl';
@@ -1009,7 +1011,7 @@ export interface ActionPayloads {
   submitStakingHardware: { isUnstaking?: boolean } | undefined;
   clearStakingError: undefined;
   cancelStaking: undefined;
-  fetchStakingHistory: { limit?: number; offset?: number } | undefined;
+  fetchStakingHistory: undefined;
   fetchStakingFee: { amount: bigint };
   openStakingInfo: undefined;
   openAnyAccountStakingInfo: { accountId: string; network: ApiNetwork; stakingId: string };

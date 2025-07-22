@@ -379,9 +379,8 @@ addActionHandler('setStakingScreen', (global, actions, payload) => {
   setGlobal(updateCurrentStaking(global, { state }));
 });
 
-addActionHandler('fetchStakingHistory', async (global, actions, payload) => {
-  const { limit, offset } = payload ?? {};
-  const stakingHistory = await callApi('getStakingHistory', global.currentAccountId!, limit, offset);
+addActionHandler('fetchStakingHistory', async (global) => {
+  const stakingHistory = await callApi('getStakingHistory', global.currentAccountId!);
 
   if (!stakingHistory) {
     return;

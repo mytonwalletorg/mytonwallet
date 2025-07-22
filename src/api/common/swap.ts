@@ -1,8 +1,8 @@
 import type { ApiActivity, ApiSwapActivity, ApiSwapHistoryItem } from '../types';
 
-import { SWAP_API_VERSION, TONCOIN } from '../../config';
+import { SWAP_API_VERSION, SWAP_CROSSCHAIN_SLUGS, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { buildBackendSwapId, parseTxId } from '../../util/activities';
+import { buildBackendSwapId, getActivityTokenSlugs, parseTxId } from '../../util/activities';
 import { compareActivities } from '../../util/compareActivities';
 import { logDebugError } from '../../util/logs';
 import { fetchStoredAccount } from './accounts';
@@ -76,7 +76,7 @@ export async function swapReplaceCexActivities(
   slug?: string,
   isToNow?: boolean,
 ): Promise<ApiActivity[]> {
-  if (!activities.length || parseAccountId(accountId).network === 'testnet') {
+  if (!activities.length || parseAccountId(accountId).network === 'testnet' || !canHaveCexSwap(slug, activities)) {
     return activities;
   }
 
@@ -134,4 +134,16 @@ export async function swapReplaceCexActivities(
     logDebugError('swapReplaceCexActivities', err);
     return activities;
   }
+}
+
+function canHaveCexSwap(slug: string | undefined, activities: ApiActivity[]): boolean {
+  if (slug) {
+    return SWAP_CROSSCHAIN_SLUGS.has(slug);
+  }
+
+  return activities.some((activity) => {
+    return getActivityTokenSlugs(activity).some((slug) => {
+      return SWAP_CROSSCHAIN_SLUGS.has(slug);
+    });
+  });
 }

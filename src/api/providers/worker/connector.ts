@@ -50,7 +50,7 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
 
 export async function callApi<T extends keyof AllMethods>(fnName: T, ...args: AllMethodArgs<T>) {
   if (!connector) {
-    logDebugError('API is not initialized');
+    logDebugError('API is not initialized when calling', fnName);
     return undefined;
   }
 

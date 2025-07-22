@@ -122,7 +122,7 @@ export async function checkStakeDraft(accountId: string, amount: bigint, state: 
 export async function checkUnstakeDraft(accountId: string, amount: bigint, state: ApiStakingState) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
-  const commonData = getStakingCommonCache();
+  const commonData = await getStakingCommonCache();
 
   let result: ApiCheckTransactionDraftResult;
   let tokenAmount: bigint | undefined;
@@ -615,11 +615,8 @@ async function buildEthenaState(options: StakingStateOptions): Promise<ApiEthena
     tsUsdeWalletAddress,
   };
 
-  // When we don't know whether the wallet is verified and the staking is not active,
-  // we want to optimistically show the high APY.
-  // At the moment `isVerified` is never undefined, so we show the high APY for all wallets with no active staking.
-  // This shell be reverted when `isVerified` works as expected.
-  if (/* isVerified === undefined && */ !getIsActiveStakingState(state)) {
+  // If the user never passed verification and has no active USDe staking, we should optimistically show the high APY.
+  if (isVerified === undefined && !getIsActiveStakingState(state)) {
     state.annualYield = apyVerified;
   }
 

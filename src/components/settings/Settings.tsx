@@ -1,6 +1,4 @@
-import React, {
-  memo, useEffect, useMemo, useRef, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useEffect, useMemo, useRef, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
@@ -190,6 +188,8 @@ function Settings({
   const prevRenderingKeyRef = useStateRef(usePrevious2(renderingKey));
 
   const [isDeveloperModalOpen, openDeveloperModal, closeDeveloperModal] = useFlag();
+  const [withAllWalletVersions, markWithAllWalletVersions] = useFlag();
+
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   const isInitialScreen = renderingKey === SettingsState.Initial;
@@ -201,23 +201,25 @@ function Settings({
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
 
   const wallets = useMemo(() => {
-    return versions?.map((v) => {
-      const tonBalance = formatCurrency(toDecimal(v.balance), tonToken?.symbol ?? '');
-      const balanceInCurrency = formatCurrency(
-        toBig(v.balance).mul(tonToken?.price ?? 0).round(tonToken?.decimals),
-        shortBaseSymbol,
-      );
+    return versions
+      ?.filter((v) => v.lastTxId || v.version === 'W5' || withAllWalletVersions)
+      ?.map((v) => {
+        const tonBalance = formatCurrency(toDecimal(v.balance), tonToken?.symbol ?? '');
+        const balanceInCurrency = formatCurrency(
+          toBig(v.balance).mul(tonToken?.price ?? 0).round(tonToken?.decimals),
+          shortBaseSymbol,
+        );
 
-      const accountTokens = [tonBalance];
+        const accountTokens = [tonBalance];
 
-      return {
-        address: v.address,
-        version: v.version,
-        totalBalance: balanceInCurrency,
-        tokens: accountTokens,
-      } satisfies Wallet;
-    }) ?? [];
-  }, [shortBaseSymbol, tonToken, versions]);
+        return {
+          address: v.address,
+          version: v.version,
+          totalBalance: balanceInCurrency,
+          tokens: accountTokens,
+        } satisfies Wallet;
+      }) ?? [];
+  }, [shortBaseSymbol, tonToken, versions, withAllWalletVersions]);
 
   const {
     shouldRender: isTelegramLinkRendered,
@@ -395,6 +397,12 @@ function Settings({
       setClicksAmount(clicksAmount + 1);
     }
   };
+
+  const handleShowAllWalletVersions = useLastCallback(() => {
+    markWithAllWalletVersions();
+    handlCloseDeveloperModal();
+    handleOpenWalletVersion();
+  });
 
   useEffect(
     () => captureEscKeyListener(isInsideModal ? handleBackOrCloseAction : handleBackClick),
@@ -734,12 +742,6 @@ function Settings({
             {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
           </div>
         </div>
-        <SettingsDeveloperOptions
-          isOpen={isDeveloperModalOpen}
-          isTestnet={isTestnet}
-          isCopyStorageEnabled={isCopyStorageEnabled}
-          onClose={handlCloseDeveloperModal}
-        />
       </div>
     );
   }
@@ -897,6 +899,13 @@ function Settings({
       >
         {renderContent}
       </Transition>
+      <SettingsDeveloperOptions
+        isOpen={isDeveloperModalOpen}
+        isTestnet={isTestnet}
+        isCopyStorageEnabled={isCopyStorageEnabled}
+        onShowAllWalletVersions={handleShowAllWalletVersions}
+        onClose={handlCloseDeveloperModal}
+      />
       <LogOutModal isOpen={isLogOutModalOpened} onClose={handleCloseLogOutModal} />
       {IS_BIOMETRIC_AUTH_SUPPORTED && <Biometrics isInsideModal={isInsideModal} />}
     </div>

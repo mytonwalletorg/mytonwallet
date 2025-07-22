@@ -29,7 +29,7 @@ export function initApi(onUpdate: OnApiSiteUpdate) {
 
 export function callApi<T extends keyof Methods>(methodName: T, ...args: any[]) {
   if (!connector) {
-    logDebugError('API is not initialized');
+    logDebugError('API is not initialized when calling', methodName);
     return undefined;
   }
 

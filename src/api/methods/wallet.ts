@@ -8,6 +8,7 @@ import { fetchPrivateKey as fetchTonPrivateKey } from '../chains/ton';
 import { checkToAddress } from '../chains/ton/transfer';
 import {
   fetchStoredAccount,
+  fetchStoredAccounts,
   fetchStoredAddress,
   fetchStoredTonWallet,
   getAccountWithMnemonic,
@@ -34,13 +35,32 @@ export function getMnemonicWordList() {
   return tonWebMnemonic.wordlists.default;
 }
 
-export async function verifyPassword(password: string) {
-  const [accountId, account] = (await getAccountWithMnemonic()) ?? [];
-  if (!accountId || !account) {
-    throw new Error('The user is not authorized in the wallet');
+export async function checkWorkerStorageIntegrity(): Promise<boolean> {
+  /*
+    This method is intended to check if the worker storage is corrupted due to known
+    behavior of browsers (at least Chromium-based ones).
+    Several users reported that their storage was corrupted on Android too.
+  */
+  try {
+    const accounts = await fetchStoredAccounts();
+    return !!accounts && typeof accounts === 'object' && Object.keys(accounts).length > 0;
+  } catch {
+    return false;
   }
+}
 
-  return Boolean(await getMnemonic(accountId, password, account));
+export async function verifyPassword(password: string): Promise<boolean> {
+  try {
+    const [accountId, account] = (await getAccountWithMnemonic()) ?? [];
+    if (!accountId || !account) {
+      return false;
+    }
+
+    const mnemonic = await getMnemonic(accountId, password, account);
+    return Boolean(mnemonic);
+  } catch {
+    return false;
+  }
 }
 
 export function confirmDappRequest(promiseId: string, data: any) {

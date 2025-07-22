@@ -5,14 +5,7 @@ import type { ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 
-import {
-  APP_COMMIT_HASH,
-  APP_ENV,
-  APP_VERSION,
-  IS_CORE_WALLET,
-  IS_EXTENSION,
-  IS_TELEGRAM_APP,
-} from '../../config';
+import { APP_COMMIT_HASH, APP_ENV, APP_VERSION, IS_CORE_WALLET, IS_EXTENSION, IS_TELEGRAM_APP } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
@@ -34,9 +27,10 @@ import styles from './Settings.module.scss';
 
 interface OwnProps {
   isOpen: boolean;
-  onClose: () => void;
   isTestnet?: boolean;
   isCopyStorageEnabled?: boolean;
+  onShowAllWalletVersions: () => void;
+  onClose: () => void;
 }
 
 interface StateProps {
@@ -59,11 +53,12 @@ const CAN_DOWNLOAD_LOGS = IS_IOS || !(IS_EXTENSION || IS_TELEGRAM_APP);
 
 function SettingsDeveloperOptions({
   isOpen,
-  onClose,
   isTestnet,
   isCopyStorageEnabled,
   currentAccountId,
   accountsById,
+  onShowAllWalletVersions,
+  onClose,
 }: OwnProps & StateProps) {
   const {
     startChangingNetwork,
@@ -109,6 +104,12 @@ function SettingsDeveloperOptions({
           className={buildClassName(styles.item, styles.item_small)}
           onChange={handleNetworkChange}
         />
+
+        <div className={buildClassName(styles.item, styles.item_small)} onClick={onShowAllWalletVersions}>
+          {lang('All Wallet Versions')}
+
+          <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+        </div>
       </div>
 
       {isCopyStorageEnabled && (

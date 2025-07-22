@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
@@ -67,23 +67,20 @@ function DappFeedItem({
   function renderIcon() {
     const iconClassName = mode === 'pill' ? styles.iconPill : styles.iconTile;
 
-    if (!iconUrl) {
-      return (
-        <div className={buildClassName(dappStyles.dappLogo, dappStyles.dappLogo_icon, iconClassName)}>
-          <i className={buildClassName(dappStyles.dappIcon, 'icon-laptop')} aria-hidden />
-        </div>
-      );
-    }
+    const fallbackIcon = useMemo(() => (
+      <div className={buildClassName(dappStyles.dappLogo, dappStyles.dappLogoIcon, iconClassName)}>
+        <i className={buildClassName(styles.fallbackIcon, 'icon-laptop')} aria-hidden />
+      </div>
+    ), [iconClassName]);
 
     return (
-      <div className={iconClassName}>
-        <Image
-          url={iconUrl}
-          className={iconClassName}
-          imageClassName={styles.icon}
-          alt={lang('Icon')}
-        />
-      </div>
+      <Image
+        url={iconUrl}
+        className={iconClassName}
+        imageClassName={styles.icon}
+        alt={lang('Icon')}
+        fallback={fallbackIcon}
+      />
     );
   }
 

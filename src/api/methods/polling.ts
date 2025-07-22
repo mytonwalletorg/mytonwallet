@@ -110,6 +110,7 @@ export async function tryUpdateTokens() {
       token.isFromBackend = true;
     }
 
+    await tokensPreload.promise;
     const tokensCache = getTokensCache();
 
     const nonBackendTokenAddresses = Object.values(tokensCache.bySlug).reduce((result, token) => {

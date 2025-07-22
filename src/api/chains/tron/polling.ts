@@ -7,11 +7,10 @@ import type {
   OnApiUpdate,
 } from '../../types';
 
-import { SWAP_CROSSCHAIN_SLUGS, TRX } from '../../../config';
+import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { getChainConfig } from '../../../util/chain';
-import { compareActivities } from '../../../util/compareActivities';
 import isEmptyObject from '../../../util/isEmptyObject';
 import { logDebugError } from '../../../util/logs';
 import { createTaskQueue } from '../../../util/schedulers';
@@ -203,9 +202,7 @@ async function loadInitialActivities(
       accountId, slug, undefined, undefined, FIRST_TRANSACTIONS_LIMIT,
     );
 
-    if (SWAP_CROSSCHAIN_SLUGS.has(slug)) {
-      activities = await swapReplaceCexActivities(accountId, activities, slug, true);
-    }
+    activities = await swapReplaceCexActivities(accountId, activities, slug, true);
 
     result[slug] = activities[0]?.timestamp;
     bySlug[slug] = activities;
@@ -214,9 +211,7 @@ async function loadInitialActivities(
   }));
 
   const [trxChunk, ...tokenChunks] = chunks;
-  const mainActivities = mergeActivities(trxChunk, tokenChunks.flat())
-    .flat()
-    .sort(compareActivities);
+  const mainActivities = mergeActivities(trxChunk, ...tokenChunks);
 
   mainActivities.slice().reverse().forEach((transaction) => {
     txCallbacks.runCallbacks(transaction);
@@ -243,13 +238,9 @@ async function loadNewActivities(
 
   const chunks = await Promise.all(tokenSlugs.map(async (slug) => {
     let newestActivityTimestamp = newestActivityTimestamps[slug];
-    let activities: ApiActivity[] = await getTokenTransactionSlice(
+    const activities: ApiActivity[] = await getTokenTransactionSlice(
       accountId, slug, undefined, newestActivityTimestamp, FIRST_TRANSACTIONS_LIMIT,
     );
-
-    if (SWAP_CROSSCHAIN_SLUGS.has(slug)) {
-      activities = await swapReplaceCexActivities(accountId, activities, slug, true);
-    }
 
     newestActivityTimestamp = activities[0]?.timestamp ?? newestActivityTimestamp;
     result[slug] = newestActivityTimestamp;
@@ -257,9 +248,9 @@ async function loadNewActivities(
   }));
 
   const [trxChunk, ...tokenChunks] = chunks;
-  const activities = mergeActivities(trxChunk, tokenChunks.flat())
-    .flat()
-    .sort(compareActivities);
+  let activities = mergeActivities(trxChunk, ...tokenChunks);
+
+  activities = await swapReplaceCexActivities(accountId, activities, undefined, true);
 
   activities.slice().reverse().forEach((activity) => {
     txCallbacks.runCallbacks(activity);

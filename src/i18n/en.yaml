@@ -104,7 +104,7 @@ Are you sure you want to remove this address from your saved ones?: Are you sure
 You will be able to save it again via Transaction Info with this address.: You will be able to save it again via Transaction Info with this address.
 Address removed from saved: Address removed from saved
 Warning!: Warning!
-Log Out: Remove Wallet
+Log Out: Log Out
 $logout_without_backup_warning: You have not backed up this wallet. If you remove it now, you will lose access to your tokens and NFTs.
 $logout_accounts_without_backup_warning: You have not backed up %links%. If you proceed, you will lose access to your tokens and NFTs.
 $logout_warning: This will remove the current wallet from the app. Make sure you have your **secret words** backed up.
@@ -128,6 +128,7 @@ Hide Tiny Transfers: Hide Tiny Transfers
 Toggle Hide Tiny Transfers: Toggle Hide Tiny Transfers
 Network: Network
 Developer Options: Developer Options
+All Wallet Versions: All Wallet Versions
 Confirmation: Confirmation
 Signing Data: Signing Data
 Contract Initialization Data: Contract Initialization Data
@@ -922,3 +923,8 @@ Show All: Show All
 Description: Description
 No additional data.: No additional data.
 Domain was copied!: Domain was copied!
+$storage_cleared_title: Application Storage Cleared
+$storage_cleared_message: |
+  Your wallet data has been cleared due to browser-related or disk space issues. Please log out from all wallets and then re-import them manually using your secret words.
+
+  If you need assistance, please contact %support_link%.

@@ -31,7 +31,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const title = lang(dialog?.title ?? 'Something went wrong');
 
   useEffect(() => {
-    if (IS_CAPACITOR && typeof dialog?.message == 'string') {
+    if (IS_CAPACITOR && typeof dialog?.message == 'string' && !dialog?.footerButtons) {
       if (dialog) {
         void Dialog.alert({
           title,
@@ -47,7 +47,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
     }
   }, [dialogs, lang, dialog, openModal, title]);
 
-  if (!dialog || IS_CAPACITOR) {
+  if (!dialog) {
     return undefined;
   }
 
@@ -57,6 +57,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
       isCompact
       title={title}
       noBackdropClose={dialog.noBackdropClose}
+      isInAppLock={dialog.isInAppLock}
       onClose={closeModal}
       onCloseAnimationEnd={dismissDialog}
     >
@@ -68,6 +69,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
         }
       </div>
       <div className={modalStyles.footerButtons}>
+        {dialog.footerButtons}
         <Button onClick={closeModal}>{lang('OK')}</Button>
       </div>
     </Modal>

@@ -128,6 +128,7 @@ Hide Tiny Transfers: Küçük Transferleri Gizle
 Toggle Hide Tiny Transfers: Küçük Transferleri Gizlemeyi Aç/Kapat
 Network: Ağ
 Developer Options: Geliştirici Seçenekleri
+All Wallet Versions: Tüm cüzdan sürümleri
 Confirmation: Onay
 Signing Data: İmza Verisi
 Contract Initialization Data: Sözleşme Başlatma Verileri
@@ -924,3 +925,8 @@ Show All: Tümünü göster
 Description: Açıklama
 No additional data.: Ek veri yok.
 Domain was copied!: Alan adı kopyalandı!
+$storage_cleared_title: Uygulama Depolaması Temizlendi
+$storage_cleared_message: |
+  Cüzdan verileriniz tarayıcı veya disk alanı sorunları nedeniyle temizlenmiştir. Lütfen tüm cüzdanlardan çıkış yapın ve ardından gizli kelimelerinizi kullanarak onları manuel olarak yeniden içe aktarın.
+
+  Yardıma ihtiyacınız varsa, lütfen %support_link% ile iletişime geçin.

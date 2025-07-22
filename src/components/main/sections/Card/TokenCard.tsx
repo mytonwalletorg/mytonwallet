@@ -248,7 +248,7 @@ function TokenCard({
                 className={buildClassName(styles.apy, onYieldClick && styles.interactive)}
                 onClick={onYieldClick ? () => onYieldClick(stakingId) : undefined}
               >
-                {yieldType} {annualYield}%
+                {yieldType} {round(annualYield ?? 0, 2)}%
               </span>
             )}
           </span>

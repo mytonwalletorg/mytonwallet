@@ -117,14 +117,10 @@ export async function submitUnstake(
   };
 }
 
-export async function getStakingHistory(
-  accountId: string,
-  limit?: number,
-  offset?: number,
-): Promise<ApiStakingHistory> {
+export async function getStakingHistory(accountId: string): Promise<ApiStakingHistory> {
   const { ton: tonWallet } = await fetchStoredAccount(accountId);
   if (!tonWallet) return [];
-  return callBackendGet(`/staking/profits/${tonWallet.address}`, { limit, offset });
+  return callBackendGet(`/staking/profits/${tonWallet.address}`);
 }
 
 export async function tryUpdateStakingCommonData() {

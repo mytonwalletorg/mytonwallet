@@ -132,6 +132,7 @@ Hide Tiny Transfers: Скрывать мелкие переводы
 Toggle Hide Tiny Transfers: Переключить отображение мелких переводов
 Network: Сеть
 Developer Options: Инструменты разработчика
+All Wallet Versions: Все версии кошелька
 Confirmation: Подтверждение
 Signing Data: Данные для подписи
 Contract Initialization Data: Данные для инициализации контракта
@@ -936,3 +937,8 @@ Show All: Показать все
 Description: Описание
 No additional data.: Нет дополнительных данных.
 Domain was copied!: Домен скопирован!
+$storage_cleared_title: Хранилище очищено
+$storage_cleared_message: |
+  Данные вашего кошелька были очищены из-за проблем с браузером или дисковым пространством. Пожалуйста, выйдите из всех кошельков и затем вручную импортируйте их снова, используя ваши секретные слова.
+
+  Если вам нужна помощь, пожалуйста, свяжитесь с %support_link%.

@@ -93,7 +93,15 @@ function Swap({
   });
 
   function renderIcon() {
-    const statusClass = isError ? styles.colorNegative : isHold ? undefined : styles.colorSwap;
+    let statusClass: string | undefined = styles.colorSwap;
+    let waitingIconName: keyof typeof ANIMATED_STICKERS_PATHS.light.preview = 'iconClockGreen';
+    if (isError) {
+      statusClass = styles.colorNegative;
+      waitingIconName = 'iconClockRed';
+    } else if (isHold) {
+      statusClass = undefined;
+      waitingIconName = 'iconClockGray';
+    }
 
     return (
       <i className={buildClassName('icon-swap', styles.icon, statusClass)} aria-hidden>
@@ -105,8 +113,8 @@ function Swap({
             nonInteractive
             noLoop={false}
             forceOnHeavyAnimation
-            tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGray}
-            previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGray}
+            tgsUrl={ANIMATED_STICKERS_PATHS[appTheme][waitingIconName]}
+            previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview[waitingIconName]}
           />
         )}
         {isError && <i className={buildClassName(styles.iconError, 'icon-close-filled')} aria-hidden />}

@@ -128,6 +128,7 @@ Hide Tiny Transfers: Ocultar transacciones pequeñas
 Toggle Hide Tiny Transfers: Alternar ocultar transacciones pequeñas
 Network: Red
 Developer Options: Opciones de desarrollador
+All Wallet Versions: Todas las versiones de wallet
 Confirmation: Confirmar
 Signing Data: Datos de Firma
 Contract Initialization Data: Datos de Inicialización del Contrato
@@ -925,3 +926,8 @@ Show All: Mostrar todo
 Description: Descripción
 No additional data.: No hay datos adicionales.
 Domain was copied!: ¡Dominio copiado!
+$storage_cleared_title: Almacenamiento de la aplicación borrado
+$storage_cleared_message: |
+  Los datos de su billetera han sido borrados debido a problemas del navegador o de espacio en disco. Por favor, cierre sesión de todas las billeteras y luego impórtelas manualmente usando sus palabras secretas.
+
+  Si necesita asistencia, por favor contacte a %support_link%.

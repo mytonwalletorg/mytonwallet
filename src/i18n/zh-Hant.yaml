@@ -125,6 +125,7 @@ Hide Tiny Transfers: 隱藏小額轉帳
 Toggle Hide Tiny Transfers: 切換隱藏小額轉帳
 Network: 網路
 Developer Options: 開發者選項
+All Wallet Versions: 所有錢包版本
 Confirmation: 確認
 Signing Data: 簽名數據
 Contract Initialization Data: 合約初始化數據
@@ -917,3 +918,8 @@ Show All: 顯示全部
 Description: 描述
 No additional data.: 無附加數據。
 Domain was copied!: 網域已複製！
+$storage_cleared_title: 應用程式儲存已清除
+$storage_cleared_message: |
+  您的錢包資料因瀏覽器或磁碟空間問題而被清除。請從所有錢包中登出，然後使用您的助記詞手動重新匯入。
+
+  如需協助，請聯繫%support_link%。
