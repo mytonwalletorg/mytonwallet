@@ -8,7 +8,6 @@ import type {
   ApiSwapDexLabel,
   ApiTokenWithPrice,
 } from './api/types';
-import type { DropdownItem } from './components/ui/Dropdown';
 import type { AutolockValueType, LangCode, LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -158,14 +157,14 @@ export const CHANGELLY_SECURITY_EMAIL = 'security@changelly.com';
 export const CHANGELLY_TERMS_OF_USE = 'https://changelly.com/terms-of-use';
 export const CHANGELLY_PRIVACY_POLICY = 'https://changelly.com/privacy-policy';
 export const CHANGELLY_AML_KYC = 'https://changelly.com/aml-kyc';
-export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hour
+export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hours
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-217';
+export const LANG_CACHE_NAME = 'mtw-lang-221';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -499,33 +498,14 @@ export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 4;
 export const LANDSCAPE_MIN_ASSETS_TAB_VIEW = 6;
 
 export const DEFAULT_PRICE_CURRENCY = 'USD';
-export const SHORT_CURRENCY_SYMBOL_MAP = {
-  USD: '$',
-  EUR: '€',
-  RUB: '₽',
-  CNY: '¥',
+export const CURRENCIES: Record<ApiBaseCurrency, { name: string; decimals: number; shortSymbol?: string }> = {
+  USD: { name: 'US Dollar', decimals: 2, shortSymbol: '$' },
+  EUR: { name: 'Euro', decimals: 2, shortSymbol: '€' },
+  RUB: { name: 'Ruble', decimals: 2, shortSymbol: '₽' },
+  CNY: { name: 'Yuan', decimals: 2, shortSymbol: '¥' },
+  BTC: { name: 'Bitcoin', decimals: 9 },
+  [TONCOIN.symbol]: { name: 'Toncoin', decimals: 9 },
 };
-export const CURRENCY_LIST: DropdownItem<ApiBaseCurrency>[] = [
-  {
-    value: 'USD',
-    name: 'US Dollar',
-  }, {
-    value: 'EUR',
-    name: 'Euro',
-  }, {
-    value: 'RUB',
-    name: 'Ruble',
-  }, {
-    value: 'CNY',
-    name: 'Yuan',
-  }, {
-    value: 'BTC',
-    name: 'Bitcoin',
-  }, {
-    value: TONCOIN.symbol,
-    name: 'Toncoin',
-  },
-];
 
 export const BURN_ADDRESS = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
 

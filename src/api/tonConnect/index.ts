@@ -18,7 +18,11 @@ import type {
   WalletResponseTemplateError,
 } from '@tonconnect/protocol';
 
-import type { ApiEmulationWithFallbackResult, TonTransferParams } from '../chains/ton/types';
+import type {
+  ApiCheckMultiTransactionDraftResult,
+  ApiEmulationWithFallbackResult,
+  TonTransferParams,
+} from '../chains/ton/types';
 import type {
   ApiAccountWithMnemonic,
   ApiAnyDisplayError,
@@ -28,12 +32,13 @@ import type {
   ApiDappRequest,
   ApiDappTransfer,
   ApiNetwork,
+  ApiParsedPayload,
   ApiSignedTransfer,
   ApiTonWallet,
   OnApiUpdate,
 } from '../types';
 import type { ApiTonConnectProof, ConnectEvent, TransactionPayload, TransactionPayloadMessage } from './types';
-import { ApiCommonError, ApiTransactionError } from '../types';
+import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../types';
 import { CHAIN, CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from './types';
 
 import { IS_EXTENSION, TONCOIN } from '../../config';
@@ -65,7 +70,7 @@ import {
   getDapp,
   updateDapp,
 } from '../methods/dapps';
-import { createLocalTransaction } from '../methods/transactions';
+import { createLocalActivitiesFromEmulation, createLocalTransactions } from '../methods/transactions';
 import * as errors from './errors';
 import { UnknownAppError } from './errors';
 import { signDataWithPrivateKey, signTonProofWithPrivateKey } from './signing';
@@ -323,7 +328,12 @@ export async function sendTransaction(
 
     const uniqueId = getDappConnectionUniqueId(request);
     const dapp = (await getDapp(accountId, url, uniqueId))!;
-    const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult.emulation);
+    const transactionsForRequest = await prepareTransactionForRequest(
+      network,
+      messages,
+      checkResult.emulation,
+      checkResult.parsedPayloads,
+    );
 
     const { promiseId, promise } = createDappPromise();
 
@@ -345,14 +355,12 @@ export async function sendTransaction(
 
     let boc: string | undefined;
     let error: string | undefined;
-    let msgHash: string | undefined;
     let msgHashNormalized: string | undefined;
 
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
       const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
       boc = submitResult.firstBoc;
-      msgHash = submitResult.msgHashes[0];
       msgHashNormalized = submitResult.msgHashesNormalized[0];
 
       if (submitResult.successNumber > 0) {
@@ -373,7 +381,7 @@ export async function sendTransaction(
       if ('error' in submitResult) {
         error = submitResult.error;
       } else {
-        ({ boc, msgHash, msgHashNormalized } = submitResult);
+        ({ boc, msgHashNormalized } = submitResult);
       }
     }
 
@@ -381,19 +389,31 @@ export async function sendTransaction(
       throw new errors.UnknownError(error);
     }
 
-    transactionsForRequest.forEach(({ amount, normalizedAddress, payload, networkFee }, index) => {
-      const comment = payload?.type === 'comment' ? payload.comment : undefined;
-      createLocalTransaction(accountId, 'ton', {
-        txId: msgHashNormalized!,
-        amount,
-        fromAddress: address,
-        toAddress: normalizedAddress,
-        comment,
-        fee: networkFee,
-        slug: TONCOIN.slug,
-        externalMsgHash: msgHash,
-      }, index);
-    });
+    if (!checkResult.emulation.isFallback && checkResult.emulation.activities?.length > 0) {
+      // Use rich emulation activities for optimistic UI
+      createLocalActivitiesFromEmulation(
+        accountId,
+        'ton',
+        msgHashNormalized!,
+        checkResult.emulation.activities,
+      );
+    } else {
+      // Fallback to basic local transactions when emulation is not available
+      createLocalTransactions(accountId, 'ton', transactionsForRequest.map((transaction) => {
+        const { amount, normalizedAddress, payload, networkFee } = transaction;
+        const comment = payload?.type === 'comment' ? payload.comment : undefined;
+        return {
+          txId: msgHashNormalized!,
+          amount,
+          fromAddress: address,
+          toAddress: normalizedAddress,
+          comment,
+          fee: networkFee,
+          slug: TONCOIN.slug,
+          externalMsgHashNorm: msgHashNormalized,
+        };
+      }));
+    }
 
     return {
       result: boc!,
@@ -537,6 +557,23 @@ async function checkTransactionMessages(
 
   const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages);
 
+  // Handle insufficient balance error specifically for TON Connect by converting to fallback emulation
+  if ('error' in checkResult
+    && checkResult.error === ApiTransactionDraftError.InsufficientBalance
+    && checkResult.emulation) {
+    const fallbackCheckResult: ApiCheckMultiTransactionDraftResult = {
+      emulation: {
+        isFallback: true,
+        networkFee: checkResult.emulation.networkFee,
+      },
+      parsedPayloads: checkResult.parsedPayloads,
+    };
+    return {
+      preparedMessages,
+      checkResult: fallbackCheckResult,
+    };
+  }
+
   return {
     preparedMessages,
     checkResult,
@@ -547,6 +584,7 @@ function prepareTransactionForRequest(
   network: ApiNetwork,
   messages: TransactionPayloadMessage[],
   emulation: ApiEmulationWithFallbackResult,
+  parsedPayloads?: (ApiParsedPayload | undefined)[],
 ) {
   return Promise.all(messages.map(
     async ({
@@ -559,7 +597,8 @@ function prepareTransactionForRequest(
       const toAddress = getIsRawAddress(address) ? toBase64Address(address, true, network) : address;
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address, undefined, network);
-      const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
+      const payload = parsedPayloads?.[index]
+        ?? (rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined);
       const { isScam } = getKnownAddressInfo(normalizedAddress) || {};
       const transferEmulation = emulation.isFallback ? undefined : emulation.byTransactionIndex[index];
 

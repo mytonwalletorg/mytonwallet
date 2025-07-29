@@ -2,12 +2,13 @@ import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
 import type { DropdownItem } from './Dropdown';
 
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import animateHorizontalScroll from '../../util/animateHorizontalScroll';
 import buildClassName from '../../util/buildClassName';
 import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
-import usePrevious from '../../hooks/usePrevious';
+import useLang from '../../hooks/useLang';
 
 import Tab from './Tab';
 
@@ -15,36 +16,34 @@ import styles from './TabList.module.scss';
 
 export type TabWithProperties = {
   id: number;
+  icon?: string;
   title: string;
   className?: string;
   menuItems?: DropdownItem[];
   onMenuItemClick?: (value: string) => void;
-  icon?: string;
 };
 
 type OwnProps = {
   tabs: readonly TabWithProperties[];
   activeTab: number;
-  big?: boolean;
   className?: string;
-  withBorder?: boolean;
+  overlayClassName?: string;
   onSwitchTab: (index: number) => void;
 };
 
 const TAB_SCROLL_THRESHOLD_PX = 16;
 // Should match duration from `--slide-transition` CSS variable
 const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
+const CLIP_PATH_CONTAINER_CLASS_NAME = 'clip-path-container';
 
 function TabList({
-  tabs, activeTab, big, className, withBorder, onSwitchTab,
+  tabs, activeTab, className, overlayClassName, onSwitchTab,
 }: OwnProps) {
+  const lang = useLang();
   const containerRef = useRef<HTMLDivElement>();
-  const previousActiveTab = usePrevious(activeTab);
 
   const fullClassName = buildClassName(
     styles.container,
-    big && styles.big,
-    withBorder && styles.withBorder,
     'no-scrollbar',
     className,
   );
@@ -54,9 +53,81 @@ function TabList({
     shouldPreventDefault: true,
   });
 
-  // Scroll container to place active tab in the center
+  useActiveTabCentering(activeTab, containerRef.current);
+
   useEffect(() => {
-    const container = containerRef.current!;
+    const container = containerRef.current?.querySelector(`.${CLIP_PATH_CONTAINER_CLASS_NAME}`) as HTMLElement | null;
+    const activeTabElement = container?.childNodes[activeTab] as HTMLElement | null;
+
+    if (container && activeTabElement) {
+      const clipPath = calculateClipPath(activeTabElement, container);
+      requestMutation(() => {
+        container.style.clipPath = clipPath;
+      });
+    }
+    // When the following dependencies change, `clipPath` must be updated
+  }, [activeTab, tabs, lang.code, containerRef]);
+
+  return (
+    <div ref={containerRef} className={fullClassName}>
+      {tabs.map((tab, i) => (
+        <Tab
+          key={tab.title}
+          title={tab.title}
+          isActive={i === activeTab}
+          className={tab?.className}
+          menuItems={tab?.menuItems}
+          onMenuItemClick={tab?.onMenuItemClick}
+          onClick={onSwitchTab}
+          clickArg={tab.id}
+          icon={tab.icon}
+        />
+      ))}
+
+      <div
+        className={buildClassName(styles.clipPathContainer, overlayClassName, CLIP_PATH_CONTAINER_CLASS_NAME)}
+        aria-hidden
+      >
+        {tabs.map((tab, i) => (
+          <Tab
+            key={tab.title}
+            title={tab.title}
+            isActive={i === activeTab}
+            className={buildClassName(tab?.className, i === activeTab && 'current-tab')}
+            menuItems={tab?.menuItems}
+            onMenuItemClick={tab?.onMenuItemClick}
+            onClick={onSwitchTab}
+            clickArg={tab.id}
+            icon={tab.icon}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default memo(TabList);
+
+function calculateClipPath(activeElement: HTMLElement, container: HTMLElement) {
+  const { paddingTop, paddingBottom } = getComputedStyle(activeElement);
+  const {
+    offsetLeft,
+    offsetWidth,
+  } = activeElement;
+
+  const clipLeft = offsetLeft;
+  const clipRight = offsetLeft + offsetWidth;
+  const rightPosition = Number(100 - (clipRight / container.offsetWidth) * 100).toFixed(3);
+  const leftPosition = Number((clipLeft / container.offsetWidth) * 100).toFixed(3);
+
+  return `inset(${parseInt(paddingTop)}px ${rightPosition}% ${parseInt(paddingBottom)}px ${leftPosition}% round 1rem)`;
+}
+
+// Scroll container to place active tab in the center
+function useActiveTabCentering(activeTab: number, container?: HTMLDivElement) {
+  useEffect(() => {
+    if (!container) return;
+
     const { scrollWidth, offsetWidth, scrollLeft } = container;
     if (scrollWidth <= offsetWidth) {
       return;
@@ -76,26 +147,5 @@ function TabList({
     }
 
     void animateHorizontalScroll(container, newLeft, SCROLL_DURATION);
-  }, [activeTab]);
-
-  return (
-    <div ref={containerRef} className={fullClassName}>
-      {tabs.map((tab, i) => (
-        <Tab
-          key={tab.title}
-          title={tab.title}
-          isActive={i === activeTab}
-          previousActiveTab={previousActiveTab}
-          className={tab?.className}
-          menuItems={tab?.menuItems}
-          onMenuItemClick={tab?.onMenuItemClick}
-          onClick={onSwitchTab}
-          clickArg={tab.id}
-          icon={tab.icon}
-        />
-      ))}
-    </div>
-  );
+  }, [activeTab, container]);
 }
-
-export default memo(TabList);

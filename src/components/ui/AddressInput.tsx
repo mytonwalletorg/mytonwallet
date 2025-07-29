@@ -1,4 +1,5 @@
 import React, {
+  type ElementRef,
   memo,
   useMemo,
   useRef,
@@ -40,6 +41,7 @@ import styles from './AddressInput.module.scss';
 export const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
 interface OwnProps {
+  ref?: ElementRef<HTMLInputElement | HTMLTextAreaElement>;
   label: string;
   value: string;
   chain?: ApiChain;
@@ -52,6 +54,7 @@ interface OwnProps {
   currentAccountId: string;
   savedAddresses?: SavedAddress[];
   validateAddress?: ({ address }: { address?: string }) => void;
+  error?: string;
   onInput: (value: string, isValueReplaced?: boolean) => void;
   onClose: NoneToVoidFunction;
 }
@@ -62,6 +65,7 @@ const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_SINGLE_ADDRESS_SHIFT * 2;
 const SAVED_ADDRESS_OPEN_DELAY = 300;
 
 function AddressInput({
+  ref,
   label,
   value,
   chain,
@@ -74,6 +78,7 @@ function AddressInput({
   currentAccountId,
   savedAddresses,
   validateAddress,
+  error,
   onInput,
   onClose,
 }: OwnProps) {
@@ -92,11 +97,11 @@ function AddressInput({
   const [isFocused, markFocused, unmarkFocused] = useFlag();
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
   const isQrScannerSupported = useQrScannerSupport();
-  const inputId = useUniqueId();
+  const inputId = useUniqueId('address-');
 
   const isAddressValid = chain ? isValidAddressOrDomain(value, chain) : undefined;
   const hasAddressError = value.length > 0 && !isAddressValid;
-  const error = hasAddressError ? lang('Incorrect address') : undefined;
+  const localError = hasAddressError ? lang('Incorrect address') : undefined;
 
   const addressBookAccountIds = useMemo(() => {
     return accounts ? Object.keys(accounts).filter((accountId) => accountId !== currentAccountId) : [];
@@ -294,16 +299,17 @@ function AddressInput({
   return (
     <>
       <Input
-        id={`address-${inputId}`}
+        id={inputId}
+        ref={ref}
         className={buildClassName(isStatic && styles.inputStatic, withButton && styles.inputWithIcon)}
         isRequired
         isStatic={isStatic}
         label={label}
         placeholder={lang('Wallet address or domain')}
         value={value}
-        error={error}
+        error={localError || error}
         autoCorrect={false}
-        valueOverlay={!error ? addressOverlay : undefined}
+        valueOverlay={!localError ? addressOverlay : undefined}
         onInput={onInput}
         onFocus={handleAddressFocus}
         onBlur={handleAddressBlur}

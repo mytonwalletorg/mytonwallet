@@ -133,6 +133,7 @@ Toggle Hide Tiny Transfers: Переключити відображення др
 Network: Мережа
 Developer Options: Інструменти розробника
 All Wallet Versions: Всі версії гаманців
+Create TON-Only Wallet: Створити TON-гаманець
 Confirmation: Підтвердження
 Signing Data: Дані для підпису
 Contract Initialization Data: Дані для ініціалізації контракту
@@ -157,7 +158,7 @@ Copy wallet address: Скопіювати адресу
 View address on %ton_explorer_name%: Подивитися адресу в %ton_explorer_name%
 You have just created a new wallet: Вітаємо! Ви щойно створили новий гаманець
 You can now transfer your tokens from another wallet or exchange.: Тепер ви можете поповнити його з іншого гаманця або біржі.
-Assets: Активи
+Coins: Монети
 Activity: Стрічка
 NFT: NFT
 No NFTs yet: Поки у вас немає NFT
@@ -303,7 +304,7 @@ $dapps-description: Ви можете підключитися до децент
 Logged in with %app_name%: Підключені за допомогою %app_name%
 No active connections: Немає активних підключень
 Other: Інші
-Assets & Activity: Активи та Стрічка
+Coins & Activity: Монети та Стрічка
 Token Settings: Налаштування токенів
 My Tokens: Мої Токени
 Add Token: Додати токен
@@ -942,8 +943,12 @@ Show All: Показати все
 Description: Опис
 No additional data.: Немає додаткових даних.
 Domain was copied!: Домен скопійовано!
+$in_currency: в %currency%
+Rename Wallet: Перейменувати гаманець
+You can rename this wallet for easier identification.: Ви можете перейменувати цей гаманець для зручної ідентифікації.
 $storage_cleared_title: Сховище застосунку очищено
 $storage_cleared_message: |
   Дані вашого гаманця були очищені через проблеми з браузером або дисковим простором. Будь ласка, вийдіть з усіх гаманців і потім вручну імпортуйте їх знову, використовуючи ваші секретні слова.
 
   Якщо вам потрібна допомога, будь ласка, зв'яжіться з %support_link%.
+Collectibles: Колекції

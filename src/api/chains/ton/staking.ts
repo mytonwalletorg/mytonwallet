@@ -54,7 +54,6 @@ import { getAccountCache, getStakingCommonCache, updateAccountCache } from '../.
 import { getClientId } from '../../common/other';
 import { buildTokenSlug, getTokenByAddress, getTokenBySlug } from '../../common/tokens';
 import { isKnownStakingPool } from '../../common/utils';
-import { nftRepository } from '../../db';
 import { STAKE_COMMENT, TON_GAS, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transfer';
 
@@ -392,7 +391,7 @@ export async function getStakingStates(
     balances,
   };
 
-  const promises: Promise<ApiStakingState>[] = [buildLiquidState(options)];
+  const promises: Promise<ApiStakingState>[] = [];
 
   for (const poolConfig of commonData.jettonPools) {
     const slug = buildTokenSlug('ton', poolConfig.token);
@@ -409,35 +408,21 @@ export async function getStakingStates(
     promises.push(buildEthenaState(options));
   }
 
-  return Promise.all(promises);
+  return [buildLiquidState(options), ...await Promise.all(promises)];
 }
 
-async function buildLiquidState({
+function buildLiquidState({
   accountId,
   address,
   backendState,
   commonData,
   loyaltyType,
   balances,
-}: StakingStateOptions): Promise<ApiStakingState> {
-  const { currentRate, collection } = commonData.liquid;
+}: StakingStateOptions): ApiStakingState {
+  const { currentRate } = commonData.liquid;
   const tokenSlug = buildTokenSlug('ton', LIQUID_JETTON);
   const tokenBalance = balances[tokenSlug] ?? 0n;
-  let unstakeAmount = 0n;
-
-  if (collection) {
-    const nfts = await nftRepository.find({
-      accountId,
-      collectionAddress: collection,
-    });
-
-    for (const nft of nfts ?? []) {
-      const billAmount = nft.name?.match(/Bill for (?<amount>[\d.]+) Pool Jetton/)?.groups?.amount;
-      if (billAmount) {
-        unstakeAmount += fromDecimal(billAmount);
-      }
-    }
-  }
+  const unstakeRequestAmount = fromDecimal(backendState.liquid?.unstakeRequestAmount ?? 0);
 
   const accountCache = getAccountCache(accountId, address);
   const stakedAt = Math.max(accountCache.stakedAt ?? 0, backendState.stakedAt ?? 0);
@@ -451,7 +436,7 @@ async function buildLiquidState({
     liquidApy = commonData.liquid.loyaltyApy[loyaltyType];
   }
 
-  const fullTokenAmount = tokenBalance + unstakeAmount;
+  const fullTokenAmount = tokenBalance + unstakeRequestAmount;
   const balance = bigintMultiplyToNumber(fullTokenAmount, currentRate);
 
   return {
@@ -463,7 +448,7 @@ async function buildLiquidState({
     annualYield: liquidApy,
     yieldType: 'APY',
     tokenBalance,
-    unstakeRequestAmount: unstakeAmount,
+    unstakeRequestAmount,
     instantAvailable: liquidAvailable,
     start,
     end,

@@ -92,11 +92,14 @@ export interface ApiTransaction {
   slug: string;
   isIncoming: boolean;
   normalizedAddress: string; // Only for TON now
-  externalMsgHash?: string; // Only for TON
+  /** Trace external message hash normalized. Only for TON. */
+  externalMsgHashNorm?: string;
   shouldHide?: boolean;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
   nft?: ApiNft;
+  /** True if awaiting confirmation by the blockchain */
+  isPending?: true;
 }
 
 export type ApiTransactionMetadata = ApiAddressInfo;
@@ -229,6 +232,9 @@ export interface ApiBackendStakingState {
      */
     isVerified?: boolean;
   };
+  liquid?: {
+    unstakeRequestAmount?: string;
+  };
 }
 
 export type ApiStakingHistory = {
@@ -271,7 +277,7 @@ export interface ApiSignedTransfer {
   base64: string;
   seqno: number;
   /** Will be used to create a local activity in the global state after the transfer is sent */
-  localActivity: Omit<ApiLocalTransactionParams, 'externalMsgHash' | 'txId'>;
+  localActivity: Omit<ApiLocalTransactionParams, 'externalMsgHashNorm' | 'txId'>;
 }
 
 /**

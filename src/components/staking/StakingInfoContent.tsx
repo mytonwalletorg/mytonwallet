@@ -28,7 +28,6 @@ import { formatCurrency } from '../../util/formatNumber';
 import { openUrl } from '../../util/openUrl';
 import { getStakingStateStatus, getUnstakeTime } from '../../util/staking';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import { buildStakingDropdownItems } from './helpers/buildStakingDropdownItems';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useForceUpdate from '../../hooks/useForceUpdate';
@@ -38,13 +37,14 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 import { useTransitionActiveKey } from '../../hooks/useTransitionActiveKey';
 import useWindowSize from '../../hooks/useWindowSize';
+import { useTokenDropdown } from './hooks/useTokenDropdown';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
 import ModalHeader from '../ui/ModalHeader';
 import RichNumberField from '../ui/RichNumberField';
 import Spinner from '../ui/Spinner';
+import TokenDropdown from '../ui/TokenDropdown';
 import Transition from '../ui/Transition';
 import StakingProfitItem from './StakingProfitItem';
 
@@ -175,17 +175,13 @@ function StakingInfoContent({
     void openUrl(ETHENA_ELIGIBILITY_CHECK_URL);
   });
 
-  const dropDownItems = useMemo(() => {
-    if (!tokenBySlug || !states) {
-      return [];
-    }
-
-    const items = buildStakingDropdownItems({ tokenBySlug, states, shouldUseNominators });
-
-    if (!isViewMode) return items;
-
-    return items.filter(({ value }) => value === stakingId);
-  }, [tokenBySlug, states, shouldUseNominators, isViewMode, stakingId]);
+  const [selectedToken, selectableTokens] = useTokenDropdown({
+    tokenBySlug,
+    states,
+    shouldUseNominators,
+    selectedStakingId: stakingId,
+    isViewMode,
+  });
 
   function renderUnstakeDescription() {
     let text: string | TeactNode[] | undefined;
@@ -334,12 +330,10 @@ function StakingInfoContent({
               )}
             </div>
 
-            <Dropdown
-              items={dropDownItems}
-              selectedValue={stakingId}
-              className={styles.tokenDropdown}
-              itemClassName={styles.tokenDropdownItem}
-              menuClassName={styles.tokenDropdownMenu}
+            <TokenDropdown
+              selectedToken={selectedToken}
+              allTokens={selectableTokens}
+              theme="purple"
               onChange={handleChangeStaking}
             />
 

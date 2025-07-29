@@ -38,14 +38,14 @@ export function debounce<F extends AnyToVoidFunction>(
  */
 export function throttle<F extends AnyFunction>(
   fn: F,
-  ms: number,
+  ms: number | (() => Promise<void>),
   shouldRunFirst = true,
 ) {
   let args: Parameters<F> | undefined;
   let isRunning = false;
 
   async function scheduleFn() {
-    await pause(ms);
+    await (typeof ms === 'function' ? ms() : pause(ms));
     void runFn();
   }
 
@@ -303,4 +303,14 @@ export function createTaskQueue(maxConcurrency = 1) {
   };
 
   return { run, wrap };
+}
+
+/**
+ * Returns a function that prevents `actions` from running in parallel with itself. If the `action` is already running,
+ * queues, the next call will be queued. Unlike `throttle`, never skips the calls.
+ */
+export function forbidConcurrency<Args extends unknown[], Return>(
+  action: (...args: Args) => MaybePromise<Return>,
+): (...args: Args) => Promise<Return> {
+  return createTaskQueue(1).wrap(action);
 }

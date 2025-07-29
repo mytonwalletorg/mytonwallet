@@ -191,6 +191,7 @@ function DappConnectModal({
           <Button
             isPrimary
             isDisabled={isViewMode}
+            className={modalStyles.buttonFullWidth}
             onClick={openConfirm}
           >
             {lang('Connect')}

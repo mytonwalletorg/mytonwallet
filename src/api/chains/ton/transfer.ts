@@ -8,6 +8,7 @@ import type {
   ApiAccountWithMnemonic,
   ApiAnyDisplayError,
   ApiNetwork,
+  ApiParsedPayload,
   ApiSignedTransfer,
   ApiToken,
 } from '../../types';
@@ -36,6 +37,7 @@ import { omit, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
+import { parsePayloadBase64 } from './util/metadata';
 import { sendExternal } from './util/sendExternal';
 import {
   commentToBytes,
@@ -43,6 +45,7 @@ import {
   getTonClient,
   getWalletPublicKey,
   packBytesAsSnake,
+  packBytesAsSnakeCell,
   packBytesAsSnakeForEncryptedData,
   parseAddress,
   parseBase64,
@@ -651,8 +654,16 @@ export async function checkMultiTransactionDraft(
       if (!isValid || (isMainnet && isTestOnly)) {
         return { error: ApiTransactionDraftError.InvalidToAddress };
       }
+
       totalAmount += amount;
     }
+
+    // Check individual token balances
+    const { hasInsufficientTokenBalance, parsedPayloads } = await isTokenBalanceInsufficient(
+      network,
+      tonWallet.address,
+      messages,
+    );
 
     const wallet = await getTonWallet(accountId, tonWallet);
     const { balance } = await getWalletInfo(network, wallet);
@@ -661,10 +672,13 @@ export async function checkMultiTransactionDraft(
     const emulation = applyFeeFactorToEmulationResult(
       await emulateTransactionWithFallback(network, wallet, transaction, isInitialized),
     );
-    const result = { emulation };
+    const result = { emulation, parsedPayloads };
 
     // TODO Should `totalAmount` be `0` for `withDiesel`?
-    if (!withDiesel && balance < totalAmount + result.emulation.networkFee) {
+    // Check for insufficient balance (both tokens and TON) and return error
+    const hasInsufficientTonBalance = !withDiesel && balance < totalAmount + result.emulation.networkFee;
+
+    if (hasInsufficientTokenBalance || hasInsufficientTonBalance) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
 
@@ -672,6 +686,81 @@ export async function checkMultiTransactionDraft(
   } catch (err: any) {
     return handleServerError(err);
   }
+}
+
+async function isTokenBalanceInsufficient(
+  network: ApiNetwork,
+  walletAddress: string,
+  messages: TonTransferParams[],
+): Promise<{
+    hasInsufficientTokenBalance: boolean;
+    parsedPayloads: (ApiParsedPayload | undefined)[];
+  }> {
+  const payloadParsingResults = await Promise.all(
+    messages.map(async ({ payload, toAddress }) => {
+      if (!payload) return { tokenResult: undefined, parsedPayload: undefined };
+
+      try {
+        const payloadAsString = getPayloadFromTransfer({ payload, isBase64Payload: true })!.toBoc().toString('base64');
+        const parsedPayload = await parsePayloadBase64(network, toAddress, payloadAsString);
+
+        if (parsedPayload?.type === 'tokens:transfer') {
+          return {
+            tokenResult: {
+              tokenAddress: parsedPayload.tokenAddress,
+              amount: parsedPayload.amount,
+            },
+            parsedPayload,
+          };
+        }
+
+        return { tokenResult: undefined, parsedPayload };
+      } catch (e) {
+        // If payload parsing fails, treat as regular TON transfer
+        logDebugError('isTokenBalanceInsufficient', 'Error parsing payload', e);
+      }
+
+      return { tokenResult: undefined, parsedPayload: undefined };
+    }),
+  );
+
+  // Accumulate token amounts by address
+  const tokenAmountsByAddress: Record<string, bigint> = {};
+  const parsedPayloads = payloadParsingResults.map((result) => result?.parsedPayload);
+
+  for (const result of payloadParsingResults) {
+    if (result?.tokenResult) {
+      const { tokenAddress, amount } = result.tokenResult;
+      if (!tokenAmountsByAddress[tokenAddress]) {
+        tokenAmountsByAddress[tokenAddress] = 0n;
+      }
+      tokenAmountsByAddress[tokenAddress] += amount;
+    }
+  }
+
+  const tokenAddresses = Object.keys(tokenAmountsByAddress);
+  if (tokenAddresses.length === 0) {
+    return { hasInsufficientTokenBalance: false, parsedPayloads }; // No token transfers
+  }
+
+  const tokenBalances = await Promise.all(
+    tokenAddresses.map((tokenAddress) =>
+      getTokenBalanceWithMintless(network, walletAddress, tokenAddress),
+    ),
+  );
+
+  // Check if any token has insufficient balance
+  for (let i = 0; i < tokenAddresses.length; i++) {
+    const tokenAddress = tokenAddresses[i];
+    const requiredAmount = tokenAmountsByAddress[tokenAddress];
+    const availableBalance = tokenBalances[i];
+
+    if (availableBalance < requiredAmount) {
+      return { hasInsufficientTokenBalance: true, parsedPayloads };
+    }
+  }
+
+  return { hasInsufficientTokenBalance: false, parsedPayloads };
 }
 
 export type GaslessType = 'diesel' | 'w5';
@@ -796,9 +885,7 @@ async function signMultiTransaction({
     } = message;
     let { payload } = message;
 
-    if (isBase64Payload && typeof payload === 'string') {
-      payload = Cell.fromBase64(payload);
-    }
+    payload = getPayloadFromTransfer({ payload, isBase64Payload });
 
     const init = stateInit ? loadStateInit(
       stateInit.asSlice(),
@@ -811,7 +898,7 @@ async function signMultiTransaction({
     return internal({
       value: amount,
       to: toAddress,
-      body: payload as Cell | string | undefined, // TODO Fix Uint8Array type
+      body: payload,
       bounce: parseAddress(toAddress).isBounceable,
       init,
     });
@@ -906,11 +993,11 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
   const pendingTransfer = pendingTransferId ? getPendingTransfer(pendingTransferId) : undefined;
 
   try {
-    const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
+    const { boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
 
     void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
-    return { boc, msgHash, msgHashNormalized };
+    return { boc, msgHashNormalized };
   } catch (err) {
     pendingTransfer?.resolve();
     throw err;
@@ -929,7 +1016,6 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
 
   let firstBoc: string | undefined;
 
-  const msgHashes: string[] = [];
   const msgHashesNormalized: string[] = [];
   let pendingTransfer: Deferred | undefined;
 
@@ -938,8 +1024,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     try {
       ({ pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress));
 
-      const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
-      msgHashes.push(msgHash);
+      const { boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
       msgHashesNormalized.push(msgHashNormalized);
 
       if (index === 0) {
@@ -956,7 +1041,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     attempt++;
   }
 
-  return { successNumber: index, firstBoc, msgHashes, msgHashesNormalized };
+  return { successNumber: index, firstBoc, msgHashesNormalized };
 }
 
 export async function decryptComment(
@@ -1094,4 +1179,31 @@ function applyFeeFactorToEmulationResult(estimation: ApiEmulationWithFallbackRes
   }
 
   return estimation;
+}
+
+function getPayloadFromTransfer(
+  { payload, isBase64Payload }: Pick<TonTransferParams, 'payload' | 'isBase64Payload'>,
+): Cell | undefined {
+  if (payload === undefined) {
+    return undefined;
+  }
+
+  if (payload instanceof Cell) {
+    return payload;
+  }
+
+  if (typeof payload === 'string') {
+    if (isBase64Payload) {
+      return Cell.fromBase64(payload);
+    }
+
+    // This is what @ton/core does under the hood when a string payload is passed to `internal()`
+    return packBytesAsSnakeCell(commentToBytes(payload));
+  }
+
+  if (payload instanceof Uint8Array) {
+    return payload.length ? packBytesAsSnakeCell(payload) : undefined;
+  }
+
+  throw new TypeError(`Unexpected payload type ${typeof payload}`);
 }

@@ -7,14 +7,19 @@ import { groupBy } from '../../../util/iteratees';
 import { fetchTrace } from './toncenter/traces';
 import { parseRawTransaction } from './toncenter';
 
+/**
+ * Returns `undefined` when there is no trace for the given hash. It may be unavailable YET, for example if the trace is
+ * requested immediately after receiving an action from the socket.
+ */
 export async function fetchAndParseTrace(
   network: ApiNetwork,
   walletAddress: string,
-  traceId: string,
-): Promise<ParsedTrace> {
-  const { trace, addressBook } = await fetchTrace({ network, traceId });
+  msgHashNormalized: string,
+  isActionPending?: boolean,
+): Promise<ParsedTrace | undefined> {
+  const { trace, addressBook } = await fetchTrace({ network, msgHashNormalized, isActionPending });
 
-  return parseTrace({
+  return trace && parseTrace({
     network,
     walletAddress,
     actions: trace.actions,

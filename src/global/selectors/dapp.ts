@@ -4,6 +4,7 @@ import type { GlobalState } from '../types';
 import { TONCOIN } from '../../config';
 import memoize from '../../util/memoize';
 import { isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
+import { selectCurrentAccountState } from './accounts';
 
 const selectCurrentDappTransferTotalsMemoized = memoize((
   transactions: ApiDappTransfer[] | undefined,
@@ -38,7 +39,40 @@ const selectCurrentDappTransferTotalsMemoized = memoize((
   };
 });
 
+const selectDappTransferInsufficientTokensMemoized = memoize((
+  amountsBySlug: Record<string, bigint>,
+  balances: Record<string, bigint> | undefined,
+  tokensBySlug: Record<string, any> | undefined,
+): string | undefined => {
+  if (!balances || !tokensBySlug) {
+    return undefined;
+  }
+
+  const insufficientTokens: string[] = [];
+
+  for (const [slug, requiredAmount] of Object.entries(amountsBySlug)) {
+    const availableBalance = balances[slug] ?? 0n;
+
+    if (availableBalance < requiredAmount) {
+      const token = tokensBySlug[slug];
+      const symbol = token?.symbol || slug;
+      insufficientTokens.push(symbol);
+    }
+  }
+
+  return insufficientTokens.length > 0 ? insufficientTokens.join(', ') : undefined;
+});
+
 export function selectCurrentDappTransferTotals(global: GlobalState) {
   const { transactions } = global.currentDappTransfer;
   return selectCurrentDappTransferTotalsMemoized(transactions);
+}
+
+export function selectDappTransferInsufficientTokens(global: GlobalState): string | undefined {
+  const accountState = selectCurrentAccountState(global);
+  const balances = accountState?.balances?.bySlug;
+  const tokensBySlug = global.tokenInfo.bySlug;
+  const { amountsBySlug } = selectCurrentDappTransferTotals(global);
+
+  return selectDappTransferInsufficientTokensMemoized(amountsBySlug, balances, tokensBySlug);
 }

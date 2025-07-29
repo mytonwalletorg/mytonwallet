@@ -1,6 +1,6 @@
 import React, {
   type ElementRef,
-  memo, useEffect, useMemo, useState,
+  memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
@@ -23,8 +23,8 @@ import { calculateFullBalance } from './helpers/calculateFullBalance';
 import getSensitiveDataMaskSkinFromCardNft from './helpers/getSensitiveDataMaskSkinFromCardNft';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
-import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useFlag from '../../../../hooks/useFlag';
+import useFontScale from '../../../../hooks/useFontScale';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
@@ -36,9 +36,8 @@ import LoadingDots from '../../../ui/LoadingDots';
 import SensitiveData from '../../../ui/SensitiveData';
 import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
-import AccountSelector from './AccountSelector';
 import CardAddress from './CardAddress';
-import CurrencySwitcher from './CurrencySwitcher';
+import CurrencySwitcherMenu from './CurrencySwitcherMenu';
 import CustomCardManager from './CustomCardManager';
 import TokenCard from './TokenCard';
 
@@ -46,7 +45,6 @@ import styles from './Card.module.scss';
 
 interface OwnProps {
   ref?: ElementRef<HTMLDivElement>;
-  forceCloseAccountSelector?: boolean;
   onTokenCardClose: NoneToVoidFunction;
   onYieldClick: (stakingId?: string) => void;
 }
@@ -66,7 +64,6 @@ function Card({
   ref,
   tokens,
   currentTokenSlug,
-  forceCloseAccountSelector,
   onTokenCardClose,
   onYieldClick,
   baseCurrency,
@@ -76,12 +73,13 @@ function Card({
   cardNft,
   isViewMode,
 }: OwnProps & StateProps) {
+  const amountRef = useRef<HTMLDivElement>();
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const [customCardClassName, setCustomCardClassName] = useState<string | undefined>(undefined);
   const [withTextGradient, setWithTextGradient] = useState<boolean>(false);
-  const { isPortrait } = useDeviceScreen();
 
   const isUpdating = useUpdateIndicator('balanceUpdateStartedAt');
+  const { updateFontScale } = useFontScale(amountRef);
 
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
   const currentToken = useMemo(() => {
@@ -118,8 +116,14 @@ function Card({
   );
 
   const {
-    primaryValue, primaryWholePart, primaryFractionPart, changeClassName, changePrefix, changePercent, changeValue,
+    primaryValue, primaryWholePart, primaryFractionPart, changePrefix, changePercent, changeValue,
   } = values || {};
+
+  useLayoutEffect(() => {
+    if (primaryValue !== undefined) {
+      updateFontScale();
+    }
+  }, [primaryFractionPart, primaryValue, primaryWholePart, shortBaseSymbol, updateFontScale]);
 
   function renderLoader() {
     return (
@@ -139,17 +143,20 @@ function Card({
     return (
       <>
         <Transition
+          ref={amountRef}
           activeKey={isUpdating && !isSensitiveDataHidden ? 1 : 0}
           name="fade"
           shouldCleanup
           className={styles.balanceTransition}
+          slideClassName={styles.balanceSlide}
         >
           <SensitiveData
             isActive={isSensitiveDataHidden}
             maskSkin={sensitiveDataMaskSkin}
-            rows={3}
+            rows={4}
             cols={14}
-            cellSize={13.33}
+            cellSize={13}
+            align="center"
             maskClassName={styles.blurred}
           >
             <div className={buildClassName(styles.primaryValue, 'rounded-font')}>
@@ -161,9 +168,9 @@ function Card({
                 )}
                 role="button"
                 tabIndex={0}
-                onClick={openCurrencyMenu}
+                onClick={!isSensitiveDataHidden ? openCurrencyMenu : undefined}
               >
-                {shortBaseSymbol.length === 1 && shortBaseSymbol}
+                {shortBaseSymbol.length === 1 && <span className={styles.currencySymbol}>{shortBaseSymbol}</span>}
                 <AnimatedCounter isDisabled={noAnimationCounter} text={primaryWholePart ?? ''} />
                 {primaryFractionPart && (
                   <span className={styles.primaryFractionPart}>
@@ -171,31 +178,32 @@ function Card({
                   </span>
                 )}
                 {shortBaseSymbol.length > 1 && (
-                  <span className={styles.primaryFractionPart}>
-                &nbsp;{shortBaseSymbol}
-                  </span>
+                  <span className={styles.primaryFractionPart}>&nbsp;{shortBaseSymbol}</span>
                 )}
                 <i className={iconCaretClassNames} aria-hidden />
               </span>
             </div>
           </SensitiveData>
         </Transition>
-        <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
+        <CurrencySwitcherMenu isOpen={isCurrencyMenuOpen} menuPositionX="right" onClose={closeCurrencyMenu} />
         {primaryValue !== '0' && (
           <SensitiveData
             isActive={isSensitiveDataHidden}
             maskSkin={sensitiveDataMaskSkin}
             rows={2}
             cols={11}
-            cellSize={12}
+            align="center"
+            cellSize={14}
             className={styles.changeSpoiler}
             maskClassName={styles.blurred}
           >
-            <div className={buildClassName(styles.change, changeClassName, 'rounded-font')}>
-              {changePrefix}
-            &thinsp;
-              <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
-              {' · '}
+            <div className={buildClassName(styles.change, 'rounded-font')}>
+              {!!changePrefix && (
+                <>
+                  <AnimatedCounter text={`${changePrefix}\u2009${Math.abs(changePercent!)}%`} />
+                  {' · '}
+                </>
+              )}
               <AnimatedCounter text={formatCurrency(Math.abs(changeValue!), shortBaseSymbol)} />
             </div>
           </SensitiveData>
@@ -214,13 +222,6 @@ function Card({
         <CustomCardManager nft={cardNft} onCardChange={handleCardChange} />
 
         <div className={buildClassName(styles.containerInner, customCardClassName)}>
-          <AccountSelector
-            withAccountSelector={!IS_CORE_WALLET}
-            noSettingsButton={isPortrait}
-            accountClassName={buildClassName(withTextGradient && 'gradientText')}
-            forceClose={forceCloseAccountSelector}
-            canEdit={!IS_CORE_WALLET}
-          />
           {values ? renderBalance() : renderLoader()}
           <CardAddress withTextGradient={withTextGradient} />
           {!IS_CORE_WALLET && !isNftBuyingDisabled && !isViewMode && <MintCardButton />}

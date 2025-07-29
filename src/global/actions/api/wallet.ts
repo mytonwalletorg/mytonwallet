@@ -5,7 +5,7 @@ import type {
   ApiTokenWithPrice,
 } from '../../../api/types';
 
-import { getIsIdSuitableForFetchingTimestamp } from '../../../util/activities';
+import { getIsActivitySuitableForFetchingTimestamp } from '../../../util/activities';
 import { compareActivities } from '../../../util/compareActivities';
 import {
   buildCollectionByKey, extractKey, findLast, unique,
@@ -48,7 +48,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
   let shouldFetchMore = true;
   let fetchedActivities: ApiActivity[] = [];
   let tokenIds = idsBySlug[slug] || [];
-  const toTxId = findLast(tokenIds, (id) => getIsIdSuitableForFetchingTimestamp(id) && Boolean(byId[id]));
+  const toTxId = findLast(tokenIds, (id) => getIsActivitySuitableForFetchingTimestamp(byId[id]));
   let toTimestamp = toTxId ? byId[toTxId].timestamp : undefined;
   const { chain } = selectToken(global, slug);
 

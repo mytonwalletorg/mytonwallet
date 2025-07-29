@@ -2,7 +2,12 @@
 
 @use "../../../../styles/mixins";
 
+@use "../../../../styles/scssVariables" as v;
+
 $color-transition: color 300ms;
+$portraitBaseBalanceSize: 3.25rem;
+$landscapeBaseBalanceSize: 3rem;
+$signSizeDiff: 0.375rem;
 
 .containerWrapper {
   position: relative;
@@ -12,8 +17,8 @@ $color-transition: color 300ms;
   width: 100%;
   min-width: 16rem;
   height: 0;
-  margin: 0.75rem auto;
-  padding-top: 58%;
+  margin: 0 auto;
+  padding-top: v.$cardAspectRatio;
 
   :global(html.is-electron) &,
   :global(html.is-mobile-telegram-app.with-safe-area-top) & {
@@ -54,96 +59,97 @@ $color-transition: color 300ms;
   height: 100%;
   border-radius: var(--border-radius-card);
 
-  background-image: url("../../../../assets/cards/card.jpg"), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  background-image: url("../../../../assets/cards/card.jpg"), linear-gradient(125deg, #{v.$defaultCardGradient});
   background-clip: border-box, padding-box, padding-box;
   background-origin: border-box;
   background-size: cover, cover;
 
-  transition: transform var(--slide-transition), filter var(--slide-transition) !important;
+  @include mixins.transition('transform var(--slide-transition), filter var(--slide-transition) !important');
 
   &:global(.tegro) {
-    background-image: url("../../../../assets/cards/card_tegro.jpg"), linear-gradient(125deg, #479CFF 0, #0042A7 100%);
+    background-image: url("../../../../assets/cards/card_tegro.jpg"), linear-gradient(125deg, #5E95DD 0, #4469D4 100%);
   }
 
   &:global(.red) {
-    background-image: url("../../../../assets/cards/card_red.jpg"), linear-gradient(125deg, #BE647F 0, #8A2935 100%);
+    background-image: url("../../../../assets/cards/card_red.jpg"), linear-gradient(125deg, #C46D63 0, #A54C4E 100%);
   }
 
   &:global(.orange) {
-    background-image: url("../../../../assets/cards/card_orange.jpg"), linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
+    background-image: url("../../../../assets/cards/card_orange.jpg"), linear-gradient(125deg, #C49D5B 0, #B67C47 100%);
   }
 
   &:global(.green) {
-    background-image: url("../../../../assets/cards/card_green.jpg"), linear-gradient(125deg, #7CAD64 0, #497228 100%);
+    background-image: url("../../../../assets/cards/card_green.jpg"), linear-gradient(125deg, #72AB78 0, #609554 100%);
   }
 
   &:global(.sea) {
-    background-image: url("../../../../assets/cards/card_sea.jpg"), linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
+    background-image: url("../../../../assets/cards/card_sea.jpg"), linear-gradient(125deg, #6097C1 0, #4583A3 100%);
   }
 
   &:global(.purple) {
-    background-image: url("../../../../assets/cards/card_purple.jpg"), linear-gradient(125deg, #8F6FD4 0, #502081 100%);
+    background-image: url("../../../../assets/cards/card_purple.jpg"), linear-gradient(125deg, #7A6DD8 0, #634CBB 100%);
   }
 
   &:global(.pink) {
-    background-image: url("../../../../assets/cards/card_pink.jpg"), linear-gradient(125deg, #BC67B4 0, #852B76 100%);
+    background-image: url("../../../../assets/cards/card_pink.jpg"), linear-gradient(125deg, #AD6691 0, #A14F8F 100%);
   }
 
   &.backstage {
-    transform: translateY(-1.0625rem) scale(0.9);
+    transform: translateY(-0.5625rem) scale(0.9);
     filter: brightness(65%);
   }
 
   &.tokenCard {
     z-index: 2;
     transform: translateY(0.625rem) scale(1.05);
+
+    height: calc(100% - 0.375rem);
+    margin-top: 0.375rem;
     padding: 1rem;
+
+    @include mixins.transition(transform var(--slide-transition));
 
     &:global(.open) {
       transform: translateY(0) scale(1);
     }
   }
 
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
-
   @media (min-resolution: 1.5dppx) {
-    background-image: url("../../../../assets/cards/card@2x.jpg"), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+    background-image: url("../../../../assets/cards/card@2x.jpg"), linear-gradient(125deg, #{v.$defaultCardGradient});
 
     &:global(.tegro) {
       background-image: url("../../../../assets/cards/card_tegro@2x.jpg"),
-        linear-gradient(125deg, #479CFF 0, #0042A7 100%);
+        linear-gradient(125deg, #5E95DD 0, #4469D4 100%);
     }
 
     &:global(.red) {
       background-image: url("../../../../assets/cards/card_red@2x.jpg"),
-        linear-gradient(125deg, #BE647F 0, #8A2935 100%);
+        linear-gradient(125deg, #C46D63 0, #A54C4E 100%);
     }
 
     &:global(.orange) {
       background-image: url("../../../../assets/cards/card_orange@2x.jpg"),
-        linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
+        linear-gradient(125deg, #C49D5B 0, #B67C47 100%);
     }
 
     &:global(.green) {
       background-image: url("../../../../assets/cards/card_green@2x.jpg"),
-        linear-gradient(125deg, #7CAD64 0, #497228 100%);
+        linear-gradient(125deg, #72AB78 0, #609554 100%);
     }
 
     &:global(.sea) {
       background-image: url("../../../../assets/cards/card_sea@2x.jpg"),
-        linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
+        linear-gradient(125deg, #6097C1 0, #4583A3 100%);
     }
 
     &:global(.purple) {
       background-image: url("../../../../assets/cards/card_purple@2x.jpg"),
-        linear-gradient(125deg, #8F6FD4 0, #502081 100%);
+        linear-gradient(125deg, #7A6DD8 0, #634CBB 100%);
     }
 
     &:global(.pink) {
       background-image: url("../../../../assets/cards/card_pink@2x.jpg"),
-        linear-gradient(125deg, #BC67B4 0, #852B76 100%);
+        linear-gradient(125deg, #AD6691 0, #A14F8F 100%);
     }
   }
 }
@@ -160,29 +166,54 @@ $color-transition: color 300ms;
 
   width: 100%;
   height: 100%;
-  padding: 4.125rem 1rem 0.5rem;
+  padding: max(3.75rem, 17.4927%) 1rem 0.25rem;
+
+}
+
+.balanceSlide {
+  text-align: center;
 }
 
 .balanceTransition {
-  max-height: 2.5rem;
-  margin-bottom: 0.25rem;
+  max-height: 3.5rem;
+
+  @include mixins.respond-below(xs) {
+    margin-bottom: 0.375rem;
+  }
+}
+
+.currencySymbol {
+  margin-bottom: 0.5rem;
+  font-size: calc(($portraitBaseBalanceSize - $signSizeDiff) * var(--font-size-scale, 1));
+  color: var(--second-text);
+
+  :global(.glare-text) & {
+    color: transparent;
+  }
+
+  @include mixins.transition($color-transition);
+
+  @include mixins.respond-above(xs) {
+    font-size: calc(($landscapeBaseBalanceSize - $signSizeDiff) * var(--font-size-scale, 1));
+  }
 }
 
 .primaryValue {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: calc($portraitBaseBalanceSize * var(--font-size-scale, 1));
+  font-weight: 850;
   line-height: 1;
   color: var(--main-text);
+  letter-spacing: -0.04375rem;
 
-  transition: $color-transition;
+  @include mixins.transition($color-transition);
 
-  :global(html.animation-level-0) & {
-    transition: none !important;
+  @include mixins.respond-above(xs) {
+    font-size: calc($landscapeBaseBalanceSize * var(--font-size-scale, 1));
   }
 }
 
 .primaryFractionPart {
-  font-size: 1.1875rem;
+  font-size: calc(2.375rem * var(--font-size-scale, 1));
   font-weight: 800;
   color: var(--second-text);
 
@@ -190,18 +221,14 @@ $color-transition: color 300ms;
     color: transparent;
   }
 
-  transition: $color-transition;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
+  @include mixins.transition($color-transition);
 }
 
 .iconCaret {
   position: relative;
   top: -0.1875rem;
   left: -0.0625rem;
-  font-size: 1.125rem;
+  font-size: 1.75rem;
 }
 
 .iconCaretSmall {
@@ -215,31 +242,34 @@ $color-transition: color 300ms;
   top: 0.0625rem;
   left: 0.0625rem;
 
-  font-size: 0.875rem;
+  font-size: 1.5rem;
   color: var(--second-text);
 
-  transition: $color-transition;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
+  @include mixins.transition($color-transition);
 }
 
 .currencySwitcher {
   cursor: var(--custom-cursor, pointer);
   position: relative;
-  padding-right: 0.875rem;
 
   & > .iconCaretSmall {
-    position: absolute;
+    position: relative;
     top: 0.0625rem;
-    right: 0;
   }
 }
 
+.currencySwitcherMenu {
+  --offset-x-value: 25%;
+}
+
 .addressContainer {
-  margin-top: auto;
-  margin-bottom: 0.375rem;
+  margin: auto auto 0.75rem;
+
+  @include mixins.respond-below(xs) {
+    .icon {
+      font-size: 1.125rem;
+    }
+  }
 }
 
 .addressLabel {
@@ -281,9 +311,8 @@ $color-transition: color 300ms;
 
   outline: none;
 
-  transition: $color-transition;
+  @include mixins.transition($color-transition);
 
-  :global(html.animation-level-0) &,
   // Optimization
   &:active {
     transition: none !important;
@@ -307,6 +336,14 @@ $color-transition: color 300ms;
       opacity: 0.65;
     }
   }
+
+  @include mixins.respond-below(xs) {
+    font-size: 1rem;
+  }
+
+  .icon {
+    margin-left: 0.125rem;
+  }
 }
 
 .icon {
@@ -316,11 +353,8 @@ $color-transition: color 300ms;
   &:global(.icon-ledger) {
     margin-inline-end: 0.25rem;
     color: var(--second-text);
-    transition: $color-transition;
 
-    :global(html.animation-level-0) & {
-      transition: none !important;
-    }
+    @include mixins.transition($color-transition);
   }
 }
 
@@ -367,11 +401,7 @@ $color-transition: color 300ms;
   font-size: 1rem !important;
   color: var(--copy-icon-color);
 
-  transition: $color-transition;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
+  @include mixins.transition($color-transition);
 }
 
 .menuExplorerIcon {
@@ -386,7 +416,12 @@ $color-transition: color 300ms;
 }
 
 .addressMenuBubble {
-  --offset-x: -0.875rem;
+  --offset-x-value: calc(var(--menu-width) / -2);
+
+  @include mixins.respond-below(xs) {
+    right: auto !important;
+    left: auto !important;
+  }
 }
 
 .domainText {
@@ -416,7 +451,7 @@ $color-transition: color 300ms;
   color: var(--action-color, var(--second-text));
   text-decoration: none !important;
 
-  transition: $color-transition;
+  @include mixins.transition($color-transition);
 
   &:active {
     // Optimization
@@ -426,10 +461,6 @@ $color-transition: color 300ms;
   &:hover,
   &:focus-visible {
     color: var(--action-color-hover, var(--main-text));
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 
   :global(.MtwCard__black) &,
@@ -448,6 +479,8 @@ $color-transition: color 300ms;
 
 .changeSpoiler {
   --border-radius-value: var(--border-radius-tiny);
+
+  margin: 0 auto;
 }
 
 .blurred {
@@ -455,36 +488,40 @@ $color-transition: color 300ms;
 }
 
 .change {
-  align-self: flex-start;
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-items: center;
 
-  height: 1.5rem;
-  padding: 0.3125rem 0.375rem 0;
-  border-radius: var(--border-radius-tiny);
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  border-radius: var(--border-radius-big);
 
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   line-height: 1;
-  color: var(--color-card-default-text, var(--color-card-text));
+  color: var(--color-card-change-text);
   white-space: nowrap;
 
   background: var(--color-card-button);
   backdrop-filter: blur(12px);
 
-  transition: $color-transition, background-color 300ms;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
+  @include mixins.transition('#{$color-transition}, background-color 300ms');
 }
 
-.changeCourseUp {
-  color: var(--color-card-green-text);
-  background: var(--color-card-green-background);
+.chainIcon,
+.multichainIcon {
+  height: 1.125rem;
+  margin-inline-end: 0.25rem;
+  vertical-align: -0.25rem;
 }
 
-.changeCourseDown {
-  color: var(--color-card-red-text);
-  background: var(--color-card-red-background);
+.chainIcon {
+  width: 1.125rem;
+}
+
+.multichainIcon {
+  width: 1.875rem;
 }
 
 .tokenInfo {
@@ -644,7 +681,7 @@ $color-transition: color 300ms;
   color: var(--color-card-second-text) !important;
   text-decoration: none !important;
 
-  transition: $color-transition;
+  @include mixins.transition($color-transition);
 
   &:active {
     // Optimization
@@ -654,10 +691,6 @@ $color-transition: color 300ms;
   &:hover,
   &:focus-visible {
     color: var(--color-card-text) !important;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 }
 
@@ -753,7 +786,7 @@ $color-transition: color 300ms;
   line-height: 0.8125rem;
   color: var(--color-card-text);
 
-  transition: background-color 200ms;
+  @include mixins.transition(background-color 200ms);
 
   &:hover {
     background-color: var(--color-card-button);
@@ -761,10 +794,6 @@ $color-transition: color 300ms;
 
   &_active {
     background-color: var(--color-card-toggle) !important;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 }
 

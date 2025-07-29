@@ -39,7 +39,7 @@
   display: inline-flex;
 
   margin: 0;
-  padding: 0.75rem !important;
+  padding: 0.75rem;
   border-radius: var(--border-radius-small);
 
   background-color: transparent;
@@ -67,15 +67,27 @@
     }
   }
 
-  .light & {
-    margin: -1rem;
-    color: var(--color-gray-3);
+  &.light,
+  &.inherit {
     background: none;
 
     &:hover,
     &:focus-visible {
       background: none;
     }
+  }
+
+  &.light {
+    margin: -1rem;
+  }
+
+  &.inherit {
+    $clickExpansion: 0.25rem;
+
+    margin: -$clickExpansion;
+    padding: $clickExpansion;
+    font: inherit;
+    color: inherit;
   }
 }
 
@@ -96,8 +108,9 @@
   margin-right: -0.0625rem;
   font-size: 0.75rem;
 
-  .light & {
-    margin-right: -0.3125rem;
+  .light > &,
+  .inherit > & {
+    margin: -0.125rem -0.3125rem -0.125rem 0;
     font-size: 1rem;
     color: var(--color-gray-3);
   }
@@ -156,10 +169,10 @@
 }
 
 .itemIcon {
+  position: relative;
   width: 1.375rem;
   height: 1.375rem;
   margin-inline-end: 0.625rem;
-  border-radius: 50%;
 
   @media (pointer: coarse) {
     width: 1.5rem;
@@ -167,21 +180,23 @@
   }
 }
 
+.itemMainIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
 .itemOverlayIcon {
   position: absolute;
-  top: 1.625rem;
-  left: 1.625rem;
+  top: 0.9375rem;
+  left: 0.875rem;
 
   width: 0.75rem !important;
   height: 0.75rem !important;
   border-radius: 50%;
-  /* stylelint-disable-next-line plugin/whole-pixel */
-  box-shadow: 0 0 0 0.1rem var(--color-background-first);
 
-  &.insideButton {
-    top: 1.6875rem;
-    left: 1.625rem;
-  }
+  box-shadow: 0 0 0 0.1rem var(--color-background-first);
 }
 
 .fontIcon {
@@ -196,14 +211,20 @@
 
 .itemName {
   unicode-bidi: plaintext;
-
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.25rem;
   white-space: nowrap;
 
-  @media (pointer: coarse) {
-    font-size: 1rem;
+  :not(.inherit) > & {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+
+    @media (pointer: coarse) {
+      font-size: 1rem;
+    }
+  }
+
+  .light > & {
+    color: var(--color-gray-3);
   }
 }
 

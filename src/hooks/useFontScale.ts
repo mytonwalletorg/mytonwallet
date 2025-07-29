@@ -2,6 +2,7 @@ import { type ElementRef, useRef } from '../lib/teact/teact';
 
 import { suppressStrict } from '../lib/fasterdom/stricterdom';
 import buildClassName from '../util/buildClassName';
+import useLastCallback from './useLastCallback';
 
 const MIN_SIZE_SCALE = 0.25; // 12px
 
@@ -9,7 +10,7 @@ function useFontScale(inputRef: ElementRef<HTMLElement>, shouldGetParentWidth?: 
   const isFontChangedRef = useRef(false);
   const measureEl = useRef(document.createElement('div'));
 
-  const updateFontScale = (contentHtml: string) => {
+  const updateFontScale = useLastCallback(() => {
     const input = inputRef.current;
 
     suppressStrict(() => {
@@ -23,24 +24,25 @@ function useFontScale(inputRef: ElementRef<HTMLElement>, shouldGetParentWidth?: 
       }
       measureEl.current.className = buildClassName(input.className, 'measure-hidden');
       measureEl.current.style.width = `${width}px`;
-      measureEl.current.innerHTML = contentHtml;
+      measureEl.current.innerHTML = ''; // `measureEl.current.innerHTML = input.innerHTML` is not used, because it violates the CSP
+      measureEl.current.append(...input.cloneNode(true).childNodes);
       document.body.appendChild(measureEl.current);
 
-      let delta = 1;
+      let scale = 1;
 
-      while (delta > MIN_SIZE_SCALE) {
-        measureEl.current.style.setProperty('--base-font-size', delta.toString());
+      while (scale > MIN_SIZE_SCALE) {
+        measureEl.current.style.setProperty('--font-size-scale', scale.toString());
 
         if (measureEl.current.scrollWidth <= width) break;
-        delta -= 0.05;
+        scale -= 0.05;
       }
 
-      isFontChangedRef.current = delta < 1;
+      isFontChangedRef.current = scale < 1;
       document.body.removeChild(measureEl.current);
       measureEl.current.className = '';
-      input.style.setProperty('--base-font-size', delta.toString());
+      input.style.setProperty('--font-size-scale', scale.toString());
     });
-  };
+  });
 
   return { updateFontScale, isFontChangedRef };
 }

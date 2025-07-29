@@ -3,6 +3,7 @@ import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getGlobal } from '../../global';
 
 import { ANIMATION_LEVEL_MAX } from '../../config';
+import buildClassName from '../../util/buildClassName';
 import { throttleWithTickEnd } from '../../util/schedulers';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
@@ -56,7 +57,7 @@ const AnimatedCounter: FC<OwnProps> = ({
   }, [shouldAnimate, text]);
 
   return (
-    <span className={!isDisabled && styles.root} dir={isRtl ? 'rtl' : undefined}>
+    <span className={buildClassName(!isDisabled && styles.root)} dir={isRtl ? 'rtl' : undefined}>
       {characters}
     </span>
   );

@@ -127,20 +127,20 @@ export async function swapSubmit(
 
     const swap: ApiSwapActivity = {
       ...historyItem,
-      id: buildLocalTxId(result.msgHash),
+      id: buildLocalTxId(result.msgHashNormalized),
       from,
       to,
       kind: 'swap',
-      externalMsgHash: result.msgHash,
+      externalMsgHashNorm: result.msgHashNormalized,
       extra: omitUndefined({
         withW5Gasless: result.withW5Gasless,
       }),
     };
 
     onUpdate({
-      type: 'newLocalActivity',
+      type: 'newLocalActivities',
       accountId,
-      activity: swap,
+      activities: [swap],
     });
 
     await patchSwapItem({
@@ -149,7 +149,7 @@ export async function swapSubmit(
 
     void callHook('onSwapCreated', accountId, swap.timestamp - 1);
 
-    return result;
+    return { activityId: swap.id };
   } catch (err: any) {
     await patchSwapItem({
       address, swapId, authToken, error: errorToString(err),

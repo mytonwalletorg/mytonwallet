@@ -19,13 +19,14 @@ import { areDeepEqual } from '../../util/areDeepEqual';
 import { getChainConfig } from '../../util/chain';
 import { omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
-import { createTaskQueue } from '../../util/schedulers';
+import { OrGate } from '../../util/orGate';
+import { forbidConcurrency } from '../../util/schedulers';
 import chains from '../chains';
 import { fetchMaybeStoredAccount, fetchStoredAccount, fetchStoredAccounts } from '../common/accounts';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet, callBackendPost } from '../common/backend';
 import { setBackendConfigCache } from '../common/cache';
-import { pollingLoop } from '../common/polling';
+import { pollingLoop } from '../common/polling/utils';
 import { getBaseCurrency } from '../common/prices';
 import { getTokensCache, loadTokensCache, tokensPreload, updateTokens } from '../common/tokens';
 import { MINUTE, SEC } from '../constants';
@@ -37,8 +38,7 @@ const BACKEND_INTERVAL = 30 * SEC;
 const LONG_BACKEND_INTERVAL = MINUTE;
 const INCORRECT_TIME_DIFF = 30 * SEC;
 
-const ACCOUNT_CONFIG_INTERVAL = MINUTE;
-const ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED = 10 * MINUTE;
+const ACCOUNT_CONFIG_INTERVAL = { focused: MINUTE, notFocused: 10 * MINUTE };
 
 const MAX_POST_TOKENS = 1000;
 
@@ -76,12 +76,12 @@ export async function destroyPolling() {
 function setupCommonBackendPolling() {
   const stopFns = [
     pollingLoop({
-      pause: BACKEND_INTERVAL,
+      period: BACKEND_INTERVAL,
       skipInitialPoll: true,
       poll: tryUpdateTokens,
-    }),
+    }).stop,
     pollingLoop({
-      pause: LONG_BACKEND_INTERVAL,
+      period: LONG_BACKEND_INTERVAL,
       skipInitialPoll: true,
       async poll() {
         await Promise.all([
@@ -91,7 +91,7 @@ function setupCommonBackendPolling() {
           tryUpdateSwapTokens(),
         ]);
       },
-    }),
+    }).stop,
   ];
 
   return () => {
@@ -209,7 +209,7 @@ export async function setActivePollingAccount(
     const account = await fetchStoredAccount(accountId);
 
     const stopPollingFns = [
-      !IS_CORE_WALLET && setupAccountConfigPolling(accountId, account),
+      !IS_CORE_WALLET && setupAccountConfigPolling(accountId, account).stop,
 
       ...(Object.keys(chains) as (keyof typeof chains)[]).map((chain) => (
         chains[chain].setupActivePolling(
@@ -258,8 +258,7 @@ function setupAccountConfigPolling(accountId: string, account: ApiAccountAny) {
   const partialAccount = omit(account as ApiAccountWithMnemonic, ['mnemonicEncrypted']);
 
   return pollingLoop({
-    pause: ACCOUNT_CONFIG_INTERVAL,
-    pauseWhenNotFocused: ACCOUNT_CONFIG_INTERVAL_WHEN_NOT_FOCUSED,
+    period: ACCOUNT_CONFIG_INTERVAL,
     async poll() {
       try {
         const accountConfig = await callBackendPost<ApiAccountConfig>('/account-config', partialAccount);
@@ -284,29 +283,19 @@ function setupAccountConfigPolling(accountId: string, account: ApiAccountAny) {
  * single set of consistent 'updatingStatus' events for the UI.
  */
 function createUpdatingStatusManager() {
-  const updatingStatuses = new Map<string, Set<ApiChain>>();
+  const updatingStatuses = new Map<string, OrGate<ApiChain>>();
 
   return (accountId: string, chain: ApiChain, kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => {
     const key = `${accountId} ${kind}`;
     let chainsBeingUpdated = updatingStatuses.get(key);
     if (!chainsBeingUpdated) {
-      chainsBeingUpdated = new Set();
+      chainsBeingUpdated = new OrGate<ApiChain>((isUpdating) => {
+        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating });
+      });
       updatingStatuses.set(key, chainsBeingUpdated);
     }
 
-    const wasAnyUpdating = chainsBeingUpdated.size > 0;
-
-    if (isUpdating) {
-      chainsBeingUpdated.add(chain);
-      if (!wasAnyUpdating) {
-        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating: true });
-      }
-    } else {
-      chainsBeingUpdated.delete(chain);
-      if (chainsBeingUpdated.size === 0 && wasAnyUpdating) {
-        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating: false });
-      }
-    }
+    chainsBeingUpdated.toggle(chain, isUpdating);
   };
 }
 
@@ -405,7 +394,7 @@ function createInactiveAccountsPollingManager() {
     }
   }
 
-  const preventRaceCondition = createTaskQueue(1).wrap as
+  const preventRaceCondition = forbidConcurrency as
     <Args extends unknown[]>(task: (...args: Args) => unknown) => (...args: Args) => void;
 
   return {

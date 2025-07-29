@@ -18,6 +18,7 @@ import {
   selectAccountStakingStatesBySlug,
   selectCurrentAccountState,
   selectCurrentDappTransferTotals,
+  selectDappTransferInsufficientTokens,
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -67,6 +68,8 @@ interface StateProps {
   stakingStateBySlug?: Record<string, ApiStakingState>;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
+  insufficientTokens?: string;
+  balancesBySlug?: Record<string, bigint>;
 }
 
 interface SortedDappTransfer extends ApiDappTransfer {
@@ -98,6 +101,8 @@ function DappTransferInitial({
   stakingStateBySlug,
   savedAddresses,
   accounts,
+  insufficientTokens,
+  balancesBySlug,
   onClose,
 }: OwnProps & StateProps) {
   const { closeDappTransfer, showDappTransferTransaction, submitDappTransferConfirm } = getActions();
@@ -110,11 +115,21 @@ function DappTransferInitial({
     [renderingTransactions, tokensBySlug],
   );
   const isDappLoading = dapp === undefined;
+  const hasSufficientBalance = !insufficientTokens;
+
+  const tokenToDisplay = useMemo(() => (
+    calculateTokenToDisplay(totalAmountsBySlug, balancesBySlug, tokensBySlug)
+  ), [totalAmountsBySlug, balancesBySlug, tokensBySlug]);
 
   function renderContent() {
     return (
       <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
-        <DappInfoWithAccount dapp={dapp} />
+        <DappInfoWithAccount
+          dapp={dapp}
+          customTokenBalance={tokenToDisplay.balance}
+          customTokenSymbol={tokenToDisplay.symbol}
+          customTokenDecimals={tokenToDisplay.decimals}
+        />
         {isDangerous && (
           <div className={buildClassName(styles.transferWarning, styles.warningForPayload)}>
             {renderText(lang('$hardware_payload_warning'))}
@@ -123,18 +138,25 @@ function DappTransferInitial({
         {renderTransactions()}
         {renderEmulation()}
 
-        <div className={buildClassName(modalStyles.buttons, styles.transferButtons)}>
-          <Button className={modalStyles.button} onClick={onClose}>{lang('Cancel')}</Button>
-          <Button
-            isPrimary
-            isSubmit
-            isLoading={isLoading}
-            isDisabled={isScam}
-            className={modalStyles.button}
-            onClick={!isScam ? submitDappTransferConfirm : undefined}
-          >
-            {lang('Send')}
-          </Button>
+        <div className={styles.footer}>
+          {!hasSufficientBalance && (
+            <div className={styles.balanceError}>
+              {lang('Not Enough %symbol%', { symbol: insufficientTokens })}
+            </div>
+          )}
+          <div className={buildClassName(modalStyles.buttons, styles.transferButtons)}>
+            <Button className={modalStyles.button} onClick={onClose}>{lang('Cancel')}</Button>
+            <Button
+              isPrimary
+              isSubmit
+              isLoading={isLoading}
+              isDisabled={isScam || !hasSufficientBalance}
+              className={modalStyles.button}
+              onClick={!isScam && hasSufficientBalance ? submitDappTransferConfirm : undefined}
+            >
+              {lang('Send')}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -284,8 +306,115 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     stakingStateBySlug: selectAccountStakingStatesBySlug(global, accountId),
     savedAddresses: accountState?.savedAddresses,
     accounts,
+    insufficientTokens: selectDappTransferInsufficientTokens(global),
+    balancesBySlug: accountState?.balances?.bySlug,
   };
 })(DappTransferInitial));
+
+interface TokenDisplayInfo {
+  balance: bigint;
+  symbol: string;
+  decimals: number;
+}
+
+function calculateTokenToDisplay(
+  totalAmountsBySlug?: Record<string, bigint>,
+  balancesBySlug?: Record<string, bigint>,
+  tokensBySlug?: Record<string, ApiTokenWithPrice>,
+): TokenDisplayInfo {
+  // Default to TON if no data
+  if (!totalAmountsBySlug || !balancesBySlug || !tokensBySlug) {
+    return {
+      balance: balancesBySlug?.[TONCOIN.slug] ?? 0n,
+      symbol: TONCOIN.symbol,
+      decimals: TONCOIN.decimals,
+    };
+  }
+
+  const insufficientTokens: Array<{
+    slug: string;
+    insufficientUsdValue: number;
+    balance: bigint;
+    symbol: string;
+    decimals: number;
+  }> = [];
+
+  const sufficientTokens: Array<{
+    slug: string;
+    transactionUsdValue: number;
+    balance: bigint;
+    symbol: string;
+    decimals: number;
+  }> = [];
+
+  // Analyze each token in the transaction
+  for (const [slug, requiredAmount] of Object.entries(totalAmountsBySlug)) {
+    const availableBalance = balancesBySlug[slug] ?? 0n;
+    const token = tokensBySlug[slug];
+
+    if (!token) continue;
+
+    const { symbol, decimals, priceUsd = 0 } = token;
+
+    if (availableBalance < requiredAmount) {
+      // Token is insufficient
+      const insufficientAmount = requiredAmount - availableBalance;
+      const insufficientUsdValue = toBig(insufficientAmount, decimals).toNumber() * priceUsd;
+
+      insufficientTokens.push({
+        slug,
+        insufficientUsdValue,
+        balance: availableBalance,
+        symbol,
+        decimals,
+      });
+    } else {
+      // Token is sufficient
+      const transactionUsdValue = toBig(requiredAmount, decimals).toNumber() * priceUsd;
+
+      sufficientTokens.push({
+        slug,
+        transactionUsdValue,
+        balance: availableBalance,
+        symbol,
+        decimals,
+      });
+    }
+  }
+
+  // If some tokens are insufficient, show the one with maximum insufficient USD value
+  if (insufficientTokens.length > 0) {
+    const maxInsufficientToken = insufficientTokens.reduce((max, current) =>
+      current.insufficientUsdValue > max.insufficientUsdValue ? current : max,
+    );
+
+    return {
+      balance: maxInsufficientToken.balance,
+      symbol: maxInsufficientToken.symbol,
+      decimals: maxInsufficientToken.decimals,
+    };
+  }
+
+  // If all tokens are sufficient, show the one with maximum transaction USD value
+  if (sufficientTokens.length > 0) {
+    const maxTransactionToken = sufficientTokens.reduce((max, current) =>
+      current.transactionUsdValue > max.transactionUsdValue ? current : max,
+    );
+
+    return {
+      balance: maxTransactionToken.balance,
+      symbol: maxTransactionToken.symbol,
+      decimals: maxTransactionToken.decimals,
+    };
+  }
+
+  // Fallback to TON
+  return {
+    balance: balancesBySlug[TONCOIN.slug] ?? 0n,
+    symbol: TONCOIN.symbol,
+    decimals: TONCOIN.decimals,
+  };
+}
 
 function sortTransactions(
   transactions: readonly ApiDappTransfer[] | undefined,

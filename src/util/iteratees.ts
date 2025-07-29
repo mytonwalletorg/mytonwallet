@@ -7,7 +7,7 @@ type OrderDirection =
 
 type OrderCallback<T> = (member: T) => unknown;
 
-export function buildCollectionByKey<T extends AnyLiteral>(collection: T[], key: keyof T): CollectionByKey<T> {
+export function buildCollectionByKey<T extends AnyLiteral>(collection: readonly T[], key: keyof T): CollectionByKey<T> {
   return collection.reduce((byKey: CollectionByKey<T>, member: T) => {
     byKey[member[key]] = member;
 
@@ -114,7 +114,7 @@ export function compact<T>(array: T[]) {
   return array.filter(Boolean);
 }
 
-export function areSortedArraysEqual<T>(array1: T[], array2: T[]) {
+export function areSortedArraysEqual<T>(array1: readonly T[], array2: readonly T[]) {
   if (array1.length !== array2.length) {
     return false;
   }
@@ -182,14 +182,21 @@ export function fromKeyValueArrays<T>(keys: string[], values: T[] | T) {
   }, {} as Record<string, T>);
 }
 
-export function extractKey<T, K extends keyof T>(array: T[], key: K): T[K][] {
+export function extractKey<T, K extends keyof T>(array: readonly T[], key: K): T[K][] {
   return array.map((value) => value[key]);
 }
 
-export function findDifference<T>(array1: T[], array2: T[]): T[] {
+export function findDifference<T>(array1: Iterable<T>, array2: Iterable<T>): T[] {
   const set2 = new Set(array2);
+  const diff: T[] = [];
 
-  return array1.filter((element) => !set2.has(element));
+  for (const element of array1) {
+    if (!set2.has(element)) {
+      diff.push(element);
+    }
+  }
+
+  return diff;
 }
 
 export function filterValues<M>(
@@ -217,14 +224,6 @@ export function uniqueByKey<T>(array: T[], key: keyof T, shouldKeepFirst?: boole
     result.reverse();
   }
 
-  return result;
-}
-
-export function difference<T>(x: Set<T>, y: Set<T>): Set<T> {
-  const result = new Set(x);
-  for (const elem of y) {
-    result.delete(elem);
-  }
   return result;
 }
 

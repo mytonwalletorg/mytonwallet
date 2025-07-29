@@ -1,4 +1,4 @@
-import React, { memo, useState } from '../../../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
@@ -30,11 +30,11 @@ interface StateProps {
   isOpen?: boolean;
   isLoading?: boolean;
   error?: string;
-
   isPasswordPresent: boolean;
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
-  isOtherVersionsExist?: boolean;
+  withOtherWalletVersions?: boolean;
+  forceAddingTonOnlyAccount?: boolean;
 }
 
 const enum RenderingState {
@@ -54,7 +54,8 @@ function AddAccountModal({
   hardwareWallets,
   isPasswordPresent,
   accounts,
-  isOtherVersionsExist,
+  withOtherWalletVersions,
+  forceAddingTonOnlyAccount,
 }: StateProps) {
   const {
     addAccount,
@@ -101,6 +102,11 @@ function AddAccountModal({
       setIsNewAccountImporting(false);
     }
   });
+  useEffect(() => {
+    if (forceAddingTonOnlyAccount) {
+      handleNewAccountClick();
+    }
+  }, [forceAddingTonOnlyAccount]);
 
   const handleImportAccountClick = useLastCallback(() => {
     if (!isPasswordPresent) {
@@ -196,7 +202,7 @@ function AddAccountModal({
           </div>
         )}
 
-        {isOtherVersionsExist && (
+        {withOtherWalletVersions && (
           <div className={styles.walletVersionBlock}>
             <span>
               {lang('$wallet_switch_version_1', {
@@ -296,18 +302,18 @@ export default memo(withGlobal((global): StateProps => {
   const isPasswordPresent = selectIsPasswordPresent(global);
   const { byId: versionById } = global.walletVersions ?? {};
   const versions = versionById?.[global.currentAccountId!];
-  const isOtherVersionsExist = !!versions?.length;
+  const withOtherWalletVersions = !!versions?.length;
 
-  const { hardwareWallets } = global.hardware;
+  const { auth: { forceAddingTonOnlyAccount }, hardware: { hardwareWallets } } = global;
 
   return {
     isOpen: global.isAddAccountModalOpen,
     isLoading: global.accounts?.isLoading,
     error: global.accounts?.error,
-
     accounts,
     isPasswordPresent,
     hardwareWallets,
-    isOtherVersionsExist,
+    withOtherWalletVersions,
+    forceAddingTonOnlyAccount,
   };
 })(AddAccountModal));

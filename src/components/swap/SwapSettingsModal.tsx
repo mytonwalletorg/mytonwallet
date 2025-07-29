@@ -21,7 +21,6 @@ import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
 import { getChainBySlug } from '../../util/tokens';
 
-import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -87,8 +86,6 @@ function SwapSettingsContent({
   const { setSlippage } = getActions();
   const lang = useLang();
   const canEditSlippage = swapType === SwapType.OnChain;
-
-  const [isSlippageFocused, markSlippageFocused, unmarkSlippageFocused] = useFlag();
 
   // In order to reset this state when the modal is closed, we rely on the fact that Modal unmounts the content when
   // it's closed.
@@ -238,11 +235,9 @@ function SwapSettingsContent({
             value={currentSlippage?.toString()}
             hasError={Boolean(slippageError)}
             decimals={2}
-            suffix={isSlippageFocused ? '' : '%'}
+            suffix="%"
             size="normal"
             onChange={handleInputChange}
-            onFocus={markSlippageFocused}
-            onBlur={unmarkSlippageFocused}
           />
           {renderSlippageError()}
         </div>

@@ -59,3 +59,12 @@ export function getBackendHeaders() {
     'X-App-Env': APP_ENV,
   } as Record<string, string>;
 }
+
+export function addBackendHeadersToSocketUrl(url: URL) {
+  for (const [name, value] of Object.entries(getBackendHeaders())) {
+    const match = /^X-App-(.+)$/i.exec(name);
+    if (match) {
+      url.searchParams.append(match[1].toLowerCase(), value);
+    }
+  }
+}

@@ -12,6 +12,7 @@ import type { EmulationResponse } from './toncenter/emulation';
 import type { TonWallet } from './util/tonCore';
 
 import { BURN_ADDRESS, TONCOIN } from '../../../config';
+import { logDebugError } from '../../../util/logs';
 import { toBase64Address } from './util/tonCore';
 import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import { FAKE_TX_ID } from '../../constants';
@@ -31,6 +32,21 @@ export async function emulateTransaction(
   const walletAddress = toBase64Address(wallet.address, false, network);
   const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
   return parseEmulation(network, walletAddress, emulation, nftSuperCollectionsByCollectionAddress);
+}
+
+function parseFailedEmulation(emulation: EmulationResponse) {
+  const fallbackFee = Object.values(emulation.transactions).reduce((acc, tx) => {
+    const { total_fees: totalFees } = tx;
+    return acc + BigInt(totalFees);
+  }, 0n);
+
+  return {
+    networkFee: fallbackFee,
+    received: 0n,
+    byTransactionIndex: [],
+    activities: [],
+    realFee: fallbackFee,
+  };
 }
 
 function parseEmulation(
@@ -55,7 +71,7 @@ function parseEmulation(
     emulation.address_book,
     emulation.metadata,
     nftSuperCollectionsByCollectionAddress,
-  ).activities;
+  );
 
   const walletActivities: ApiActivity[] = [];
   let totalRealFee = 0n;
@@ -73,8 +89,12 @@ function parseEmulation(
 
     if (activity.shouldLoadDetails) {
       const result = calculateActivityDetails(activity, parsedTrace);
-      activity = result.activity;
-      totalExcess += result.excess;
+      if (result) {
+        activity = result.activity;
+        totalExcess += result.excess;
+      } else {
+        logDebugError('Unparsable trace for emulated activity', activity.id);
+      }
     }
 
     walletActivities.push(activity);
@@ -83,6 +103,11 @@ function parseEmulation(
 
   if (totalExcess) {
     addExcessActivity(walletAddress, walletActivities, totalExcess);
+  }
+
+  if (allActivities.length === 0) {
+    // Expected to happen when the wallet balance is insufficient
+    return parseFailedEmulation(emulation);
   }
 
   return {

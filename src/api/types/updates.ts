@@ -46,13 +46,25 @@ export type ApiUpdateNewActivities = {
   accountId: string;
   chain?: ApiChain;
   activities: ApiActivity[];
+  /**
+   * The UI must replace all the pending activities in the given chain with the given activities. This is except to
+   * local activities, but if a pending activity matchers a local activity, it replaces that local activity.
+   *
+   * Omitted if the update does not change the list of pending actions (the UI should keep the old list).
+   *
+   * Doesn't contain activities with the hashes of the current or past confirmed activities.
+   *
+   * There is no separate update for pending activities, because confirmed activities replace pending activities, so the
+   * UI should handle both changes in one update.
+   */
+  pendingActivities?: readonly ApiActivity[];
   noForward?: boolean; // Forbid cyclic update redirection to/from NBS
 };
 
-export type ApiUpdateNewLocalActivity = {
-  type: 'newLocalActivity';
+export type ApiUpdateNewLocalActivities = {
+  type: 'newLocalActivities';
   accountId: string;
-  activity: ApiActivity;
+  activities: ApiActivity[];
 };
 
 export type ApiUpdateTokens = {
@@ -285,7 +297,7 @@ export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateInitialActivities
   | ApiUpdateNewActivities
-  | ApiUpdateNewLocalActivity
+  | ApiUpdateNewLocalActivities
   | ApiUpdateTokens
   | ApiUpdateSwapTokens
   | ApiUpdateCreateTransaction

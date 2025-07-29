@@ -54,15 +54,14 @@ import {
   TON_USDE,
   TONCOIN,
 } from '../../../../config';
-import { buildTxId } from '../../../../util/activities';
+import { buildTxId, parseTxId } from '../../../../util/activities';
 import { toMilliseconds, toSeconds } from '../../../../util/datetime';
 import { toDecimal } from '../../../../util/decimals';
 import { getDnsDomainZone } from '../../../../util/dns';
 import { fixIpfsUrl, getProxiedLottieUrl } from '../../../../util/fetch';
 import { omitUndefined } from '../../../../util/iteratees';
-import { logDebug } from '../../../../util/logs';
+import { logDebugError } from '../../../../util/logs';
 import safeExec from '../../../../util/safeExec';
-import { pause } from '../../../../util/schedulers';
 import { buildMtwCardsNftMetadata, getIsFragmentGift, readComment } from '../util/metadata';
 import { toBase64Address } from '../util/tonCore';
 import {
@@ -70,6 +69,7 @@ import {
   checkIsTrustedCollection,
   getNftSuperCollectionsByCollectionAddress,
 } from '../../../common/addresses';
+import { updateActivityMetadata } from '../../../common/helpers';
 import { buildTokenSlug, getTokenBySlug } from '../../../common/tokens';
 import {
   EXCESS_OP_CODES,
@@ -92,18 +92,23 @@ type ParseOptions = {
   walletAddress: string;
   metadata: MetadataMap;
   nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>;
+  isPending?: boolean;
 };
 
 const RAW_LIQUID_POOL_ADDRESS = '0:F6FF877DD4CE1355B101572045F09D54C29309737EB52CA542CFA6C195F7CC5B';
 const RAW_NFT_CARD_COLLECTION = '0:901362FD85FC31D55F2C82617D91EADA1F1D6B34AF559A047572D56F20D046CA';
 const TME_RENEW_HASH_SUFFIX = '0000000000000000000000000000000000000000000000';
 
-const WAIT_METADATA_RETRIES = 5;
-const WAIT_METADATA_PAUSE = 1000; // 1 sec
+const RAW_NFT_COLLECTIONS_TO_RELOAD_METADATA = new Set<string | null>([RAW_NFT_CARD_COLLECTION]);
 
 type FetchActionsOptions = {
   network: ApiNetwork;
-  address: string | string[];
+  filter: {
+    /** Mismatches `walletAddress` when actions are requested for a specific token */
+    address: string | string[];
+  } | {
+    actionId: string | string[];
+  };
   limit: number;
   walletAddress: string;
   fromTimestamp?: number;
@@ -116,13 +121,14 @@ type FetchActionsOptions = {
 
 export async function fetchActions(options: FetchActionsOptions): Promise<ApiActivity[]> {
   const {
-    network, address, limit, toTimestamp, fromTimestamp,
+    network, filter, limit, toTimestamp, fromTimestamp,
     shouldIncludeFrom, shouldIncludeTo, walletAddress,
     includeTypes, excludeTypes,
   } = options;
 
   const data: AnyLiteral = {
-    account: address,
+    account: 'address' in filter ? filter.address : undefined,
+    action_id: 'actionId' in filter ? filter.actionId : undefined,
     limit,
     start_utime: fromTimestamp && toSeconds(fromTimestamp) + (!shouldIncludeFrom ? 1 : 0),
     end_utime: toTimestamp && toSeconds(toTimestamp) - (!shouldIncludeTo ? 1 : 0),
@@ -131,35 +137,43 @@ export async function fetchActions(options: FetchActionsOptions): Promise<ApiAct
     ...(excludeTypes?.length && { exclude_action_type: excludeTypes.join(',') }),
   };
 
-  let attempt = 1;
-  let isMetadataMissing = false;
-  let activities: ApiActivity[] | undefined;
+  const {
+    actions: rawActions,
+    address_book: addressBook,
+    metadata = {},
+  } = await callToncenterV3<ActionsResponse>(network, '/actions', data);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
-  do {
-    if (attempt > 1) {
-      logDebug(`Retry fetchActions #${attempt}`);
-      await pause(WAIT_METADATA_PAUSE);
-    }
+  return parseActions(
+    network,
+    walletAddress,
+    rawActions,
+    addressBook,
+    metadata,
+    nftSuperCollectionsByCollectionAddress,
+  );
+}
 
-    const {
-      actions: rawActions,
-      address_book: addressBook,
-      metadata = {},
-    } = await callToncenterV3<ActionsResponse>(network, '/actions', data);
-    const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
+export async function fetchPendingActions(network: ApiNetwork, address: string): Promise<ApiActivity[]> {
+  const {
+    actions,
+    address_book: addressBook,
+    metadata = {},
+  } = await callToncenterV3<ActionsResponse>(network, '/pendingActions', {
+    account: address,
+  });
 
-    ({ activities, isMetadataMissing } = parseActions(
-      network,
-      walletAddress,
-      rawActions,
-      addressBook,
-      metadata,
-      nftSuperCollectionsByCollectionAddress,
-    ));
-    attempt += 1;
-  } while (attempt <= WAIT_METADATA_RETRIES && isMetadataMissing);
+  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
-  return activities;
+  return parseActions(
+    network,
+    address,
+    actions,
+    addressBook,
+    metadata,
+    nftSuperCollectionsByCollectionAddress,
+    true,
+  );
 }
 
 export function parseActions(
@@ -169,27 +183,23 @@ export function parseActions(
   addressBook: AddressBook,
   metadata: MetadataMap,
   nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
-): { activities: ApiActivity[]; isMetadataMissing: boolean } {
+  isPending?: boolean,
+): ApiActivity[] {
+  const options: ParseOptions = {
+    network,
+    addressBook,
+    walletAddress,
+    metadata,
+    nftSuperCollectionsByCollectionAddress,
+    isPending,
+  };
   const activities = [];
-  let isMetadataMissing = false;
 
   for (const action of rawActions) {
-    for (const activity of parseAction(action, {
-      network, addressBook, walletAddress, metadata, nftSuperCollectionsByCollectionAddress,
-    })) {
-      activities.push(activity);
-
-      if (
-        (action.type === 'nft_mint' || action.type === 'nft_transfer')
-        && action.details.nft_collection === RAW_NFT_CARD_COLLECTION
-        && !metadata[action.details.nft_item]?.is_indexed
-      ) {
-        isMetadataMissing = true;
-      }
-    }
+    activities.push(...parseAction(action, options));
   }
 
-  return { activities, isMetadataMissing };
+  return activities;
 }
 
 function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
@@ -264,7 +274,8 @@ function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
     }
   }
 
-  for (const activity of result) {
+  for (let i = 0; i < result.length; i++) {
+    const activity = result[i];
     if (!activity) continue;
 
     if ('nft' in activity && activity.nft?.isHidden) {
@@ -274,6 +285,8 @@ function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
     if (activity.kind === 'transaction' && !activity.isIncoming) {
       activity.shouldLoadDetails ??= true;
     }
+
+    result[i] = updateActivityMetadata(activity);
   }
 
   return result.filter(Boolean);
@@ -460,7 +473,7 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Api
     marketplace,
   } = action.details;
 
-  const nft = parseToncenterNft(
+  const { nft, isMetadataMissing } = parseToncenterNft(
     metadata,
     rawNftAddress,
     nftSuperCollectionsByCollectionAddress,
@@ -488,6 +501,8 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Api
     slug: TONCOIN.slug,
     nft,
     comment: (forwardPayload && safeReadComment(forwardPayload)) || undefined,
+    shouldReload: (isMetadataMissing && RAW_NFT_COLLECTIONS_TO_RELOAD_METADATA.has(action.details.nft_collection))
+      || undefined,
   };
 
   if (activity.toAddress === BURN_ADDRESS) {
@@ -515,7 +530,7 @@ function parseNftMint(action: NftMintAction, options: ParseOptions): ApiTransact
     nft_collection: rawCollectionAddress,
   } = action.details;
 
-  const nft = parseToncenterNft(
+  const { nft, isMetadataMissing } = parseToncenterNft(
     metadata,
     rawNftAddress,
     nftSuperCollectionsByCollectionAddress,
@@ -528,6 +543,8 @@ function parseNftMint(action: NftMintAction, options: ParseOptions): ApiTransact
     slug: TONCOIN.slug,
     nft,
     type: 'mint',
+    shouldReload: (isMetadataMissing && RAW_NFT_COLLECTIONS_TO_RELOAD_METADATA.has(action.details.nft_collection))
+      || undefined,
   };
 }
 
@@ -583,7 +600,7 @@ function parseStakeWithdrawalRequest(
 }
 
 function parseJettonSwap(action: SwapAction, options: ParseOptions): ApiSwapActivity {
-  const { metadata } = options;
+  const { metadata, isPending } = options;
   const {
     end_utime: endUtime,
     success: isSuccess,
@@ -621,9 +638,9 @@ function parseJettonSwap(action: SwapAction, options: ParseOptions): ApiSwapActi
     networkFee: '0',
     swapFee: '0',
     ourFee: '0',
-    status: isSuccess ? 'completed' : 'failed',
+    status: isPending ? 'pending' : isSuccess ? 'completed' : 'failed',
     hashes: [],
-    externalMsgHash: action.trace_external_hash,
+    externalMsgHashNorm: action.trace_external_hash_norm ?? action.trace_external_hash,
     shouldLoadDetails: true,
   };
 }
@@ -635,7 +652,7 @@ function parseDns(
   const { metadata, nftSuperCollectionsByCollectionAddress } = options;
   const { details: { source, asset } } = action;
 
-  const nft = parseToncenterNft(metadata, asset, nftSuperCollectionsByCollectionAddress);
+  const { nft } = parseToncenterNft(metadata, asset, nftSuperCollectionsByCollectionAddress);
 
   let type: ApiTransactionType;
   if (action.type === 'change_dns') {
@@ -678,7 +695,7 @@ function parseAuctionBid(action: AuctionBidAction, options: ParseOptions): ApiTr
     nft_collection: rawCollectionAddress,
   } = details;
 
-  const nft = parseToncenterNft(
+  const { nft } = parseToncenterNft(
     metadata,
     rawNftAddress ?? undefined,
     nftSuperCollectionsByCollectionAddress,
@@ -777,7 +794,7 @@ function parseCommonFields(
   amountString: string | number = 0,
 ) {
   const id = buildActionActivityId(action);
-  const { walletAddress, network, addressBook } = options;
+  const { walletAddress, network, addressBook, isPending } = options;
   const fromAddress = addressBook[rawFromAddress].user_friendly;
   const toAddress = addressBook[rawToAddress].user_friendly;
   const isIncoming = toAddress === walletAddress;
@@ -788,13 +805,14 @@ function parseCommonFields(
     id,
     txId: id,
     timestamp: toMilliseconds(action.end_utime),
-    externalMsgHash: action.trace_external_hash,
+    externalMsgHashNorm: action.trace_external_hash_norm ?? action.trace_external_hash,
     fee: 0n, // Calculated when TransactionModal opens
     fromAddress,
     toAddress,
     isIncoming,
     normalizedAddress,
     amount,
+    isPending: isPending || undefined,
   } satisfies Partial<ApiTransactionActivity>;
 }
 
@@ -804,12 +822,12 @@ function parseToncenterNft(
   nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
   rawCollectionAddress?: string,
   index?: string,
-): ApiNft | undefined {
+): { nft?: ApiNft; isMetadataMissing?: true } {
   try {
     const nftMetadata = extractMetadata<NftItemMetadata>(rawNftAddress, metadataMap, 'nft_items');
 
     if (!nftMetadata) {
-      return undefined;
+      return { isMetadataMissing: true };
     }
 
     const { name, description, extra } = nftMetadata;
@@ -831,7 +849,7 @@ function parseToncenterNft(
         image = `${DNS_IMAGE_GEN_URL}${domainBase}`;
       }
 
-      return omitUndefined<ApiNft>({
+      const nft = omitUndefined<ApiNft>({
         index: Number(index),
         name: domain,
         address: nftAddress,
@@ -846,6 +864,7 @@ function parseToncenterNft(
           ...(lottie && { lottie }),
         },
       });
+      return { nft };
     }
 
     let hasScamLink = false;
@@ -893,9 +912,10 @@ function parseToncenterNft(
       }),
     });
 
-    return nft;
+    return { nft };
   } catch (err) {
-    return undefined;
+    logDebugError('parseToncenterNft', err);
+    return {};
   }
 }
 
@@ -946,12 +966,17 @@ function safeReadComment(payloadBase64: string) {
 function buildActionActivityId(action: AnyAction, type?: 'additional') {
   // `lt` in activity ID is needed for sorting when timestamps are same
   const subId = `${action.start_lt}-${action.action_id}`;
-  return buildTxId(action.trace_id, subId, type);
+  return buildTxId(
+    action.trace_id ?? action.trace_external_hash_norm ?? action.trace_external_hash,
+    subId,
+    type,
+  );
 }
 
-export function parseActionActivitySubId(subId: string) {
-  const [startLt, actionId] = subId.split('-');
-  return { startLt, actionId };
+export function parseActionActivityId(id: string) {
+  const { hash: traceId, subId } = parseTxId(id);
+  const [startLt, actionId] = subId!.split('-');
+  return { traceId, startLt, actionId };
 }
 
 function convertDexId(toncenterDex: DexSlug | undefined): ApiSwapDexLabel | undefined {

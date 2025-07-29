@@ -17,7 +17,7 @@ import {
 } from '../common/accounts';
 import { createDappPromise } from '../common/dappPromises';
 import { base64ToBytes, hexToBytes } from '../common/utils';
-import { createLocalTransaction } from '../methods';
+import { createLocalTransactions } from '../methods';
 import { openPopupWindow } from './window';
 
 const ton = chains.ton;
@@ -165,18 +165,18 @@ export async function sendTransaction(params: {
   }
 
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
-  createLocalTransaction(accountId, 'ton', {
+  createLocalTransactions(accountId, 'ton', [{
     txId: result.msgHashNormalized,
     amount,
     fromAddress,
     toAddress,
     fee: checkResult.realFee ?? checkResult.fee!,
     slug: TONCOIN.slug,
-    externalMsgHash: result.msgHash,
+    externalMsgHashNorm: result.msgHashNormalized,
     ...(dataType === 'text' && {
       comment: data,
     }),
-  });
+  }]);
 
   return true;
 }
@@ -240,30 +240,29 @@ async function sendLedgerTransaction(
     parsedPayload,
   });
 
-  let msgHash: string;
   let msgHashNormalized: string;
 
   try {
     const [signedMessage] = await promise as ApiSignedTransfer[];
 
-    ({ msgHash, msgHashNormalized } = await ton.sendSignedMessage(accountId, signedMessage));
+    ({ msgHashNormalized } = await ton.sendSignedMessage(accountId, signedMessage));
   } catch (err) {
     logDebugError('sendLedgerTransaction', err);
     return false;
   }
 
-  createLocalTransaction(accountId, 'ton', {
+  createLocalTransactions(accountId, 'ton', [{
     txId: msgHashNormalized,
     amount,
     fromAddress,
     toAddress,
     fee: realFee ?? fee ?? 0n,
     slug: TONCOIN.slug,
-    externalMsgHash: msgHash,
+    externalMsgHashNorm: msgHashNormalized,
     ...(dataType === 'text' && {
       comment: data,
     }),
-  });
+  }]);
 
   return true;
 }

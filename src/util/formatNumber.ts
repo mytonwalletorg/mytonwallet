@@ -1,16 +1,16 @@
 import type { ApiBaseCurrency, ApiTokenWithPrice } from '../api/types';
 
-import {
-  DEFAULT_PRICE_CURRENCY,
-  SHORT_CURRENCY_SYMBOL_MAP,
-  WHOLE_PART_DELIMITER,
-} from '../config';
+import { CURRENCIES, DEFAULT_PRICE_CURRENCY, WHOLE_PART_DELIMITER } from '../config';
 import { Big } from '../lib/big.js';
 import { bigintAbs } from './bigint';
 import { toDecimal } from './decimals';
 import withCache from './withCache';
 
-const SHORT_SYMBOLS = new Set(Object.values(SHORT_CURRENCY_SYMBOL_MAP));
+const SHORT_SYMBOLS = new Set(
+  Object.values(CURRENCIES)
+    .map((currency) => currency.shortSymbol)
+    .filter(Boolean),
+);
 
 export const formatNumber = withCache((
   value: number | Big | string,
@@ -74,7 +74,7 @@ function addCurrency(value: number | string, currency: string) {
 
 export function getShortCurrencySymbol(currency?: ApiBaseCurrency) {
   if (!currency) currency = DEFAULT_PRICE_CURRENCY;
-  return SHORT_CURRENCY_SYMBOL_MAP[currency as keyof typeof SHORT_CURRENCY_SYMBOL_MAP] ?? currency;
+  return CURRENCIES[currency].shortSymbol ?? currency;
 }
 
 function applyThousandsGrouping(str: string) {

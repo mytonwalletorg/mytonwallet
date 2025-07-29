@@ -1,3 +1,5 @@
+@use "../../../../styles/scssVariables" as v;
+
 .root {
   pointer-events: none;
 
@@ -9,7 +11,7 @@
   width: 100%;
   min-width: 16rem;
   height: 0;
-  padding-top: 58%;
+  padding-top: v.$cardAspectRatio;
 
   &.sticky {
     --border-radius-card: 0;

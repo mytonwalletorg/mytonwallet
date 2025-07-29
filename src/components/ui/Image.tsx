@@ -9,6 +9,7 @@ interface OwnProps {
   url?: string;
   alt?: string;
   loading?: 'lazy' | 'eager';
+  isSlow?: boolean;
   className?: string;
   imageClassName?: string;
   children?: TeactJsx;
@@ -19,6 +20,7 @@ function ImageComponent({
   url,
   alt,
   loading,
+  isSlow,
   className,
   imageClassName,
   children,
@@ -38,7 +40,7 @@ function ImageComponent({
   const divRef = useMediaTransition(isLoaded || shouldShowFallback);
 
   return (
-    <div ref={divRef} className={className}>
+    <div ref={divRef} className={className} style={isSlow ? 'transition-duration: 0.5s;' : undefined}>
       {!shouldShowFallback ? (
         <img
           ref={ref}

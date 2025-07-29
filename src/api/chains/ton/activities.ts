@@ -4,17 +4,18 @@ import type { ParsedTrace } from './types';
 
 import { TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { getActivityTokenSlugs, parseTxId } from '../../../util/activities';
+import { getActivityTokenSlugs, getIsActivityPending } from '../../../util/activities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { intersection } from '../../../util/iteratees';
-import { logDebug } from '../../../util/logs';
+import { logDebug, logDebugError } from '../../../util/logs';
+import { pause } from '../../../util/schedulers';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { resolveTokenWalletAddress } from './util/tonCore';
 import { fetchStoredTonWallet } from '../../common/accounts';
-import { updateActivityMetadata } from '../../common/helpers';
 import { getTokenBySlug } from '../../common/tokens';
+import { SEC } from '../../constants';
 import { OpCode, OUR_FEE_PAYLOAD_BOC } from './constants';
-import { fetchActions, fetchTransactions, parseActionActivitySubId, parseLiquidityDeposit } from './toncenter';
+import { fetchActions, fetchTransactions, parseActionActivityId, parseLiquidityDeposit } from './toncenter';
 import { fetchAndParseTrace } from './traces';
 
 type ActivityDetailsResult = {
@@ -24,6 +25,9 @@ type ActivityDetailsResult = {
 };
 
 const GET_TRANSACTIONS_LIMIT = 128;
+
+const TRACE_ATTEMPT_COUNT = 5;
+const TRACE_RETRY_DELAY = SEC;
 
 export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
   const transactions = await fetchTransactions({
@@ -45,12 +49,10 @@ export async function fetchActivitySlice(
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
 
-  let activities: ApiActivity[];
-
   if (!tokenSlug) {
-    activities = await fetchActions({
+    return fetchActions({
       network,
-      address,
+      filter: { address },
       walletAddress: address,
       limit: limit ?? GET_TRANSACTIONS_LIMIT,
       fromTimestamp,
@@ -58,11 +60,13 @@ export async function fetchActivitySlice(
       shouldIncludeFrom,
     });
   } else {
-    activities = await fetchActions({
+    const activities = await fetchActions({
       network,
-      address: tokenSlug === TONCOIN.slug
-        ? address
-        : await resolveTokenWalletAddress(network, address, getTokenBySlug(tokenSlug).tokenAddress!),
+      filter: {
+        address: tokenSlug === TONCOIN.slug
+          ? address
+          : await resolveTokenWalletAddress(network, address, getTokenBySlug(tokenSlug).tokenAddress!),
+      },
       walletAddress: address,
       limit: limit ?? GET_TRANSACTIONS_LIMIT,
       fromTimestamp,
@@ -70,10 +74,8 @@ export async function fetchActivitySlice(
       shouldIncludeFrom,
     });
 
-    activities = activities.filter((activity) => getActivityTokenSlugs(activity).includes(tokenSlug));
+    return activities.filter((activity) => getActivityTokenSlugs(activity).includes(tokenSlug));
   }
-
-  return activities.map(updateActivityMetadata);
 }
 
 export async function fetchNewestActionId(network: ApiNetwork, address: string) {
@@ -90,22 +92,53 @@ export async function fetchNewestActionId(network: ApiNetwork, address: string) 
   return transactions[0].txId;
 }
 
-export async function fetchActivityDetails(accountId: string, activity: ApiActivity): Promise<ActivityDetailsResult> {
+export async function fetchActivityDetails(
+  accountId: string,
+  activity: ApiActivity,
+): Promise<ActivityDetailsResult | undefined> {
   const { network } = parseAccountId(accountId);
   const { address: walletAddress } = await fetchStoredTonWallet(accountId);
+  let result: ActivityDetailsResult | undefined;
 
-  const { hash: traceId } = parseTxId(activity.id);
-  const parsedTrace = await fetchAndParseTrace(network, walletAddress, traceId);
+  // The trace can be unavailable immediately after the action is received, so a couple of delayed retries are made
+  for (let attempt = 0; attempt < TRACE_ATTEMPT_COUNT && !result; attempt++) {
+    if (attempt > 0) {
+      await pause(TRACE_RETRY_DELAY);
+    }
 
-  return calculateActivityDetails(activity, parsedTrace);
+    const parsedTrace = await fetchAndParseTrace(
+      network,
+      walletAddress,
+      activity.externalMsgHashNorm!,
+      getIsActivityPending(activity),
+    );
+    if (!parsedTrace) {
+      continue;
+    }
+
+    result = calculateActivityDetails(activity, parsedTrace);
+  }
+
+  if (!result) {
+    logDebugError('Trace unavailable for activity', activity.id);
+  }
+
+  return result;
 }
 
-export function calculateActivityDetails(activity: ApiActivity, parsedTrace: ParsedTrace): ActivityDetailsResult {
-  const { hash: traceId, subId } = parseTxId(activity.id);
-  const { actionId } = parseActionActivitySubId(subId!);
+export function calculateActivityDetails(
+  activity: ApiActivity,
+  parsedTrace: ParsedTrace,
+): ActivityDetailsResult | undefined {
+  const { actionId } = parseActionActivityId(activity.id);
   const { actions, byTransactionIndex } = parsedTrace;
 
-  const action = actions.find(({ action_id }) => action_id === actionId)!;
+  const action = actions.find(({ action_id }) => action_id === actionId);
+  if (!action) {
+    // This can happen when the trace is requested too early, for example right after receiving the action from a socket
+    return undefined;
+  }
+
   const actionHashes = new Set(action.transactions);
 
   const {
@@ -130,7 +163,8 @@ export function calculateActivityDetails(activity: ApiActivity, parsedTrace: Par
 
   logDebug('Calculation of fee for action', {
     actionId: action.action_id,
-    traceId,
+    externalMsgHashNorm: activity.externalMsgHashNorm,
+    isPending: getIsActivityPending(activity),
     networkFee: toDecimal(networkFee),
     realFee: toDecimal(getActivityRealFee(result.activity)),
     sentForFee: toDecimal(result.sentForFee),

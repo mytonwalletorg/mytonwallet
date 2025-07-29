@@ -129,6 +129,7 @@ Toggle Hide Tiny Transfers: Kleine Überweisungen ausblenden umschalten
 Network: Netzwerk
 Developer Options: Entwickleroptionen
 All Wallet Versions: Alle Wallet-Versionen
+Create TON-Only Wallet: TON-Only Wallet erstellen
 Confirmation: Bestätigung
 Signing Data: Signierdaten
 Contract Initialization Data: Vertrag Initialisierung Daten
@@ -153,7 +154,7 @@ Copy wallet address: Wallet adresse kopieren
 View address on %ton_explorer_name%: Adresse im %ton_explorer_name% anzeigen
 You have just created a new wallet: Sie haben gerade eine neue Wallet erstellt.
 You can now transfer your tokens from another wallet or exchange.: Sie können jetzt Ihre Token von einer anderen Wallet oder Börse übertragen.
-Assets: Vermögenswerte
+Coins: Coins
 Activity: Aktivität
 NFT: NFT
 No NFTs yet: Noch keine NFTs vorhanden
@@ -299,7 +300,7 @@ $dapps-description: Sie können sich bei Dapps anmelden, die %app_name% unterst�
 Logged in with %app_name%: Mit %app_name% angemeldet
 No active connections: Keine aktiven Verbindungen
 Other: Sonstige
-Assets & Activity: Vermögenswerte und Aktivitäten
+Coins & Activity: Coins & Aktivität
 Token Settings: Token-Einstellungen
 My Tokens: Meine Token
 Add Token: Token hinzufügen
@@ -929,8 +930,12 @@ Show All: Alle anzeigen
 Description: Beschreibung
 No additional data.: Keine zusätzlichen Daten.
 Domain was copied!: Domain wurde kopiert!
+$in_currency: in %currency%
+Rename Wallet: Wallet umbenennen
+You can rename this wallet for easier identification.: Sie können dieses Wallet zur besseren Erkennung umbenennen.
 $storage_cleared_title: Anwendungsspeicher gelöscht
 $storage_cleared_message: |
   Ihre Wallet-Daten wurden aufgrund von Browser- oder Speicherplatz-Problemen gelöscht. Bitte loggen Sie sich aus allen Wallets aus und importieren Sie sie dann manuell mit Ihren geheimen Wörtern erneut.
 
   Wenn Sie Unterstützung benötigen, kontaktieren Sie bitte %support_link%.
+Collectibles: Sammlerstücke

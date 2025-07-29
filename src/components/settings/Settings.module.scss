@@ -282,8 +282,6 @@
     border-radius: 0.75rem;
 
     opacity: 0;
-
-    /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: 0 0 0 0.05rem var(--color-accent),
           inset 0 0 0 0.0625rem var(--color-accent),
           inset 0 0 0 0.2rem var(--color-background-first);
@@ -388,7 +386,7 @@
     left: 1rem;
 
     height: 0.0625rem;
-    /* stylelint-disable-next-line plugin/whole-pixel */
+
     box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
   }
 }
@@ -461,7 +459,7 @@
     left: 3.125rem;
 
     height: 0.0625rem;
-    /* stylelint-disable-next-line plugin/whole-pixel */
+
     box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
   }
 
@@ -483,7 +481,7 @@
       left: 1rem;
 
       height: 0.0625rem;
-      /* stylelint-disable-next-line plugin/whole-pixel */
+
       box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
     }
   }
@@ -502,7 +500,7 @@
       left: 1rem;
 
       height: 0.0625rem;
-      /* stylelint-disable-next-line plugin/whole-pixel */
+
       box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
     }
   }
@@ -525,7 +523,7 @@
       left: 1rem;
 
       height: 0.0625rem;
-      /* stylelint-disable-next-line plugin/whole-pixel */
+
       box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
     }
   }
@@ -544,7 +542,7 @@
       left: 4rem;
 
       height: 0.0625rem;
-      /* stylelint-disable-next-line plugin/whole-pixel */
+
       box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
     }
   }
@@ -746,7 +744,7 @@ a.item:hover {
   left: 3.875rem;
 
   height: 0.0625rem;
-  /* stylelint-disable-next-line plugin/whole-pixel */
+
   box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
 }
 

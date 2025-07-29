@@ -192,12 +192,12 @@ function Content({
 
   const [mainContentTabsCount, tabs] = useMemo(() => {
     const mainContentTabs = compact([
-      !shouldShowSeparateAssetsPanel && { id: ContentTab.Assets, title: lang('Assets'), className: styles.tab },
+      !shouldShowSeparateAssetsPanel && { id: ContentTab.Assets, title: lang('Coins'), className: styles.tab },
       { id: ContentTab.Activity, title: lang('Activity'), className: styles.tab },
       !isPortrait && !IS_CORE_WALLET && { id: ContentTab.Explore, title: lang('Explore'), className: styles.tab },
       doesSupportNft && {
         id: ContentTab.Nft,
-        title: lang('NFT'),
+        title: lang('Collectibles'),
         className: styles.tab,
         menuItems: shouldRenderHiddenNftsSection
           ? [
@@ -369,6 +369,7 @@ function Content({
         activeTab={activeTabIndex}
         onSwitchTab={handleSwitchTab}
         className={buildClassName(styles.tabs, 'content-tabslist')}
+        overlayClassName={styles.tabsOverlay}
       />
     );
   }
@@ -420,6 +421,7 @@ function Content({
             name="slideFade"
             className={styles.tabsContent}
             activeKey={headerTransitionKey}
+            slideClassName={styles.tabsSlide}
             shouldCleanup
             cleanupExceptionKey={0}
           >

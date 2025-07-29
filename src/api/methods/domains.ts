@@ -1,10 +1,10 @@
 import type { ApiNft } from '../types';
 
 import { TONCOIN } from '../../config';
-import { buildCollectionByKey, extractKey, pick } from '../../util/iteratees';
+import { buildCollectionByKey, extractKey } from '../../util/iteratees';
 import chains from '../chains';
 import { fetchStoredTonWallet } from '../common/accounts';
-import { createLocalTransaction } from './transactions';
+import { createLocalTransactions } from './transactions';
 
 const { ton } = chains;
 
@@ -17,7 +17,7 @@ export async function submitDnsRenewal(accountId: string, password: string, nfts
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
   const nftByAddress = buildCollectionByKey(nfts, 'address');
-  const results: ({ msgHashNormalized: string } | { error: string })[] = [];
+  const results: ({ activityIds: string[] } | { error: string })[] = [];
 
   for await (const { addresses, result } of ton.submitDnsRenewal(accountId, password, Object.keys(nftByAddress))) {
     if ('error' in result) {
@@ -25,11 +25,9 @@ export async function submitDnsRenewal(accountId: string, password: string, nfts
       continue;
     }
 
-    results.push(pick(result, ['msgHashNormalized']));
-
-    for (const [index, address] of addresses.entries()) {
+    const localActivities = createLocalTransactions(accountId, 'ton', addresses.map((address) => {
       const nft = nftByAddress[address];
-      createLocalTransaction(accountId, 'ton', {
+      return {
         txId: result.msgHashNormalized,
         amount: 0n,
         fromAddress,
@@ -37,11 +35,15 @@ export async function submitDnsRenewal(accountId: string, password: string, nfts
         fee: realFee / BigInt(nfts.length),
         normalizedAddress: nft.address,
         slug: TONCOIN.slug,
-        externalMsgHash: result.msgHash,
+        externalMsgHashNorm: result.msgHashNormalized,
         nft,
         type: 'dnsRenew',
-      }, index);
-    }
+      };
+    }));
+
+    results.push({
+      activityIds: extractKey(localActivities, 'id'),
+    });
   }
 
   return results;
@@ -65,7 +67,7 @@ export async function submitDnsChangeWallet(
     return result;
   }
 
-  createLocalTransaction(accountId, 'ton', {
+  const [activity] = createLocalTransactions(accountId, 'ton', [{
     txId: result.msgHashNormalized,
     amount: 0n,
     fromAddress: walletAddress,
@@ -73,10 +75,10 @@ export async function submitDnsChangeWallet(
     fee: realFee,
     normalizedAddress: nft.address,
     slug: TONCOIN.slug,
-    externalMsgHash: result.msgHash,
+    externalMsgHashNorm: result.msgHashNormalized,
     nft,
     type: 'dnsChangeAddress',
-  }, 0);
+  }]);
 
-  return pick(result, ['msgHashNormalized']);
+  return { activityId: activity.id };
 }

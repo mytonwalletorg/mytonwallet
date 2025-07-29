@@ -33,7 +33,6 @@ import {
 } from '../../../global/selectors';
 import {
   getIsActivityWithHash,
-  getIsTxIdLocal,
   getTransactionAmountDisplayMode,
   getTransactionTitle,
   isOurStakingTransaction,
@@ -157,8 +156,8 @@ function TransactionModal({
     timestamp,
     nft,
     shouldLoadDetails,
+    isPending,
   } = renderedTransaction || {};
-  const isLocal = Boolean(id && getIsTxIdLocal(id));
   const isActivityWithHash = Boolean(renderedTransaction && getIsActivityWithHash(renderedTransaction));
   const isOurStaking = renderedTransaction && isOurStakingTransaction(renderedTransaction);
   const isOurUnstaking = isOurStaking && renderedTransaction?.type === 'unstake';
@@ -235,8 +234,8 @@ function TransactionModal({
   }, [endOfStakingCycle]);
 
   useEffect(() => {
-    if (id) fetchActivityDetails({ id });
-  }, [id]);
+    if (id && shouldLoadDetails) fetchActivityDetails({ id });
+  }, [id, shouldLoadDetails]);
 
   const clearPasswordError = useLastCallback(() => {
     setPasswordError(undefined);
@@ -342,8 +341,8 @@ function TransactionModal({
       >
         <div className={buildClassName(modalStyles.title, styles.modalTitle)}>
           <div className={styles.headerTitle}>
-            {transaction && getTransactionTitle(transaction, isLocal ? 'present' : 'past', lang)}
-            {isLocal && (
+            {transaction && getTransactionTitle(transaction, isPending ? 'present' : 'past', lang)}
+            {isPending && (
               <AnimatedIconWithPreview
                 play={isModalOpen}
                 size={ANIMATED_STICKER_TINY_ICON_PX}
@@ -390,7 +389,7 @@ function TransactionModal({
       <TransactionFee
         terms={{ native: fee }}
         token={nativeToken}
-        precision={isLocal ? 'approximate' : 'exact'}
+        precision={isPending ? 'approximate' : 'exact'}
         isLoading={shouldLoadDetails}
         className={styles.feeField}
       />

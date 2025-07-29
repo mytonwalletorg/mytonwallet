@@ -1,10 +1,8 @@
 import { Address } from '@ton/core';
 
-import { isDnsDomain } from '../../util/dns';
 import safeExec from '../../util/safeExec';
 import { trimStringByMaxBytes } from '../../util/text';
-import withCache from '../../util/withCache';
-import { resolveAddress } from '../../api/chains/ton/address';
+import { resolveOrValidate } from '../../util/validateAddress';
 import { findTokenInfo } from './tokens';
 
 interface TransferRow {
@@ -15,8 +13,6 @@ interface TransferRow {
   resolvedTokenInfo?: { tokenAddress: string; symbol: string; name: string; decimals: number };
   resolvedAddress?: string;
 }
-
-const resolveAddressWithCache = withCache(resolveAddress);
 
 export function isTonIdentifier(identifier: string): boolean {
   const lower = identifier.toLowerCase();
@@ -76,44 +72,9 @@ export async function validateAndProcessTransfer(transfer: {
   }> {
   const { receiver, amount, tokenIdentifier, comment } = transfer;
 
-  // Validate and resolve receiver address
-  let resolvedReceiverAddress = receiver;
-  if (isDnsDomain(receiver)) {
-    try {
-      const network = 'mainnet';
-      const resolveResult = await resolveAddressWithCache(network, receiver);
-
-      if (resolveResult === 'dnsNotResolved') {
-        return {
-          isValid: false,
-          error: `Could not resolve TON domain: ${receiver}. Please check if the domain is valid and exists.`,
-        };
-      }
-
-      if (resolveResult === 'invalidAddress') {
-        return {
-          isValid: false,
-          error: `Invalid TON domain format: ${receiver}. Please use a valid .ton domain.`,
-        };
-      }
-
-      resolvedReceiverAddress = resolveResult.address;
-    } catch (domainError) {
-      return {
-        isValid: false,
-        // eslint-disable-next-line @stylistic/max-len
-        error: `Failed to resolve TON domain ${receiver}: ${domainError instanceof Error ? domainError.message : 'Unknown error'}`,
-      };
-    }
-  } else {
-    try {
-      Address.parse(receiver);
-    } catch (addressError) {
-      return {
-        isValid: false,
-        error: `Invalid receiver address format: ${receiver}. Please use a valid TON address or .ton domain.`,
-      };
-    }
+  const { resolvedAddress, error } = await resolveOrValidate(receiver);
+  if (error) {
+    return { isValid: false, error };
   }
 
   // Validate amount
@@ -140,7 +101,7 @@ export async function validateAndProcessTransfer(transfer: {
       tokenIdentifier,
       comment: comment ? trimStringByMaxBytes(comment, 5000) : undefined,
       resolvedTokenInfo: tokenValidationResult.tokenInfo,
-      resolvedAddress: resolvedReceiverAddress !== receiver ? resolvedReceiverAddress : undefined,
+      resolvedAddress: resolvedAddress !== receiver ? resolvedAddress : undefined,
     };
 
     return {

@@ -10,7 +10,7 @@ interface OwnProps {
 }
 
 function ClockIcon({ className, noAnimation }: OwnProps) {
-  const svgMaskId = `transparentMask-${useUniqueId()}`;
+  const svgMaskId = useUniqueId('transparentMask-');
 
   return (
     <svg width="1em" height="1em" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className={className}>

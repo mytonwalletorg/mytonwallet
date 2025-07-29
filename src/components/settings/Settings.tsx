@@ -557,7 +557,7 @@ function Settings({
             {!SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY && (
               <div className={styles.item} onClick={handleAssetsOpen}>
                 <img className={styles.menuIcon} src={assetsActivityImg} alt={lang('Assets & Activity')} />
-                {lang('Assets & Activity')}
+                {lang('Coins & Activity')}
 
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>

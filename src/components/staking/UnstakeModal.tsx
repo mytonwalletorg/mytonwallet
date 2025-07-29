@@ -1,7 +1,5 @@
 import type { TeactNode } from '../../lib/teact/teact';
-import React, {
-  memo, useEffect, useMemo, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useCallback, useEffect, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency, ApiStakingState } from '../../api/types';
@@ -11,11 +9,11 @@ import { StakingState } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
+  DEFAULT_PRICE_CURRENCY,
   IS_CAPACITOR,
   TONCOIN,
   VALIDATION_PERIOD_MS,
 } from '../../config';
-import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
   selectAccountStakingState,
@@ -26,37 +24,34 @@ import {
 import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
-import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
+import { toBig, toDecimal } from '../../util/decimals';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
-import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { formatCurrency } from '../../util/formatNumber';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { getIsLongUnstake, getUnstakeTime } from '../../util/staking';
 import { getIsMobileTelegramApp } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useAppTheme from '../../hooks/useAppTheme';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
-import useShowTransition from '../../hooks/useShowTransition';
 import useSyncEffect from '../../hooks/useSyncEffect';
+import { useAmountInputState } from '../ui/hooks/useAmountInputState';
 
 import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
-import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
+import AmountInput from '../ui/AmountInput';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
-import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -65,7 +60,7 @@ import styles from './Staking.module.scss';
 type StateProps = GlobalState['currentStaking'] & {
   isViewMode: boolean;
   tokens?: UserToken[];
-  baseCurrency?: ApiBaseCurrency;
+  baseCurrency: ApiBaseCurrency;
   isNominators?: boolean;
   theme: Theme;
   isMultichainAccount: boolean;
@@ -132,20 +127,15 @@ function UnstakeModal({
     return tokenSlug ? tokens?.find(({ slug }) => slug === tokenSlug) : undefined;
   }, [tokenSlug, tokens]);
 
-  const logoPath = token
-    && (ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS] || token.image);
+  let hasAmountError = false;
+  let isInsufficientBalance = false;
 
-  const [hasAmountError, setHasAmountError] = useState<boolean>(false);
-
-  const [isInsufficientBalance, setIsInsufficientBalance] = useState(false);
-
-  const [unstakeAmount, setUnstakeAmount] = useState(isNominators ? stakingBalance : undefined);
+  const isOnlyFullAmount = isNominators;
+  const [unstakeAmount, setUnstakeAmount] = useState(isOnlyFullAmount ? stakingBalance : undefined);
   const [successUnstakeAmount, setSuccessUnstakeAmount] = useState<bigint | undefined>(undefined);
 
   const unstakeTime = getUnstakeTime(stakingState);
   const isLongUnstake = stakingState ? getIsLongUnstake(stakingState, unstakeAmount) : undefined;
-
-  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const [unstakeDate, setUnstakeDate] = useState<number>(unstakeTime ?? Date.now() + VALIDATION_PERIOD_MS);
   const forceUpdate = useForceUpdate();
@@ -153,28 +143,14 @@ function UnstakeModal({
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
-  const amountInCurrency = token && token.price && unstakeAmount
-    ? toBig(unstakeAmount, token.decimals)
-      .mul(token.price)
-      .round(token.decimals, Big.roundHalfUp)
-      .toString()
-    : undefined;
-  const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const isUnstakeDisabled = !isNativeEnough || isInsufficientBalance || !unstakeAmount;
-
-  const { shouldRender: shouldRenderCurrency, ref: currencyRef } = useShowTransition({
-    isOpen: Boolean(amountInCurrency),
-    withShouldRender: true,
-  });
 
   useEffect(() => {
     if (isOpen) {
       fetchStakingHistory();
-      setUnstakeAmount(isNominators ? stakingBalance : undefined);
-      setHasAmountError(false);
-      setIsInsufficientBalance(false);
+      setUnstakeAmount(isOnlyFullAmount ? stakingBalance : undefined);
     }
-  }, [isOpen, fetchStakingHistory, isNominators, stakingBalance]);
+  }, [isOpen, fetchStakingHistory, isOnlyFullAmount, stakingBalance]);
 
   useSyncEffect(() => {
     if (unstakeTime) {
@@ -182,11 +158,9 @@ function UnstakeModal({
     }
   }, [unstakeTime]);
 
-  useEffect(() => {
-    if (error === ApiTransactionDraftError.InsufficientBalance) {
-      setIsInsufficientBalance(true);
-    }
-  }, [error]);
+  if (error === ApiTransactionDraftError.InsufficientBalance) {
+    isInsufficientBalance = true;
+  }
 
   const refreshUnstakeDate = useLastCallback(() => {
     if (unstakeDate < Date.now()) {
@@ -204,7 +178,6 @@ function UnstakeModal({
   });
 
   const handleStartUnstakeClick = useLastCallback(() => {
-    setIsInsufficientBalance(false);
     submitStakingInitial({ isUnstaking: true, amount: unstakeAmount });
   });
 
@@ -233,67 +206,29 @@ function UnstakeModal({
     );
   }
 
-  const validateAndSetAmount = useLastCallback(
-    (newAmount: bigint | undefined, noReset = false) => {
-      if (!noReset) {
-        setHasAmountError(false);
-        setIsInsufficientBalance(false);
-      }
-
-      if (newAmount === undefined) {
-        setUnstakeAmount(undefined);
-        return;
-      }
-
-      if (newAmount < 0) {
-        setHasAmountError(true);
-        return;
-      }
-
-      if (!stakingBalance || newAmount > stakingBalance) {
-        setHasAmountError(true);
-        setIsInsufficientBalance(true);
-      }
-
-      setUnstakeAmount(newAmount);
-    },
-  );
-
-  const handleMaxAmountClick = useLastCallback(() => {
-    if (!stakingBalance) {
-      return;
+  if (unstakeAmount !== undefined) {
+    if (unstakeAmount < 0) {
+      hasAmountError = true;
+    } else if (!stakingBalance || unstakeAmount > stakingBalance) {
+      hasAmountError = true;
+      isInsufficientBalance = true;
     }
-
-    validateAndSetAmount(stakingBalance);
-  });
-
-  const handleAmountChange = useLastCallback((stringValue?: string) => {
-    const value = stringValue ? fromDecimal(stringValue, token?.decimals) : undefined;
-    validateAndSetAmount(value);
-  });
-
-  function renderBalance() {
-    return (
-      <AmountFieldMaxButton
-        maxAmount={stakingBalance}
-        token={token}
-        isLoading={stakingBalance === undefined || !token}
-        isSensitiveDataHidden={isSensitiveDataHidden}
-        isAllMode
-        onAmountClick={handleMaxAmountClick}
-      />
-    );
   }
 
-  function renderCurrencyValue() {
-    return (
-      <span ref={currencyRef} className={styles.amountInCurrency}>
-        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol)}
-      </span>
-    );
-  }
+  const amountInputProps = useAmountInputState({
+    amount: unstakeAmount,
+    token,
+    baseCurrency,
+    isAmountReadonly: isOnlyFullAmount,
+    onAmountChange: setUnstakeAmount,
+  });
 
-  function renderBottomRight() {
+  // Wa want to render just the token name, not a token select button. To achieve that, we rely on the fact that
+  // `Dropdown` renders with no button border when there is only 1 item.
+  const selectableTokens = useMemo(() => token && [token], [token]);
+
+  // It is necessary to use useCallback instead of useLastCallback here
+  const renderBottomRight = useCallback((className?: string) => {
     const activeKey = isInsufficientBalance ? 0
       : !isNativeEnough ? 1
         : instantAvailable ? 2
@@ -323,15 +258,15 @@ function UnstakeModal({
 
     return (
       <Transition
-        className={styles.amountBottomRight}
+        className={buildClassName(styles.amountBottomRight, className)}
         slideClassName={styles.amountBottomRight_slide}
-        name="fade"
+        name="semiFade"
         activeKey={activeKey}
       >
         {content}
       </Transition>
     );
-  }
+  }, [instantAvailable, isInsufficientBalance, isNativeEnough, lang, nativeToken?.symbol, networkFee, realFee, token]);
 
   function renderUnstakeTimer() {
     const unstakeDateText = stakingType === 'ethena'
@@ -362,7 +297,11 @@ function UnstakeModal({
     const shouldShowInfo = !isInsufficientBalance && unstakeAmount;
 
     return (
-      <Transition name="fade" activeKey={!shouldShowInfo ? 0 : !isLongUnstake ? 1 : 2}>
+      <Transition
+        name="fade"
+        activeKey={!shouldShowInfo ? 0 : !isLongUnstake ? 1 : 2}
+        className={styles.unstakeInfoTransition}
+      >
         {!shouldShowInfo ? undefined
           : (
             !isLongUnstake
@@ -382,30 +321,18 @@ function UnstakeModal({
       <>
         <ModalHeader title={lang('$unstake_asset', { symbol: token?.symbol })} onClose={cancelStaking} />
         <div className={modalStyles.transitionContent}>
-          {!isNominators && renderBalance()}
-          <RichNumberInput
-            key="unstaking_amount"
-            id="unstaking_amount"
-            hasError={hasAmountError}
-            value={unstakeAmount === undefined ? undefined : toDecimal(unstakeAmount, token?.decimals)}
+          <AmountInput
+            {...amountInputProps}
             labelText={lang('Amount to unstake')}
-            onChange={handleAmountChange}
-            className={styles.amountInput}
-            decimals={token?.decimals}
-            disabled={isNominators}
-          >
-            <div className={styles.ton}>
-              <img src={logoPath} alt="" className={styles.tonIcon} />
-              <span className={styles.tonName}>{token?.symbol}</span>
-            </div>
-          </RichNumberInput>
-
-          <div className={styles.amountBottomWrapper}>
-            <div className={styles.amountBottom}>
-              {shouldRenderCurrency && renderCurrencyValue()}
-              {renderBottomRight()}
-            </div>
-          </div>
+            maxAmount={stakingBalance}
+            token={token}
+            allTokens={selectableTokens}
+            hasError={hasAmountError}
+            isMaxAmountLoading={stakingBalance === undefined || !token}
+            isMaxAmountAllMode
+            isSensitiveDataHidden={isSensitiveDataHidden}
+            renderBottomRight={renderBottomRight}
+          />
 
           {renderUnstakeInfo()}
 
@@ -544,7 +471,7 @@ function UnstakeModal({
 export default memo(withGlobal((global): StateProps => {
   const accountId = global.currentAccountId!;
   const tokens = selectCurrentAccountTokens(global);
-  const baseCurrency = global.settings.baseCurrency;
+  const { baseCurrency = DEFAULT_PRICE_CURRENCY, isSensitiveDataHidden } = global.settings;
   const isMultichainAccount = selectIsMultichainAccount(global, accountId);
   const stakingState = selectAccountStakingState(global, accountId);
   const isNominators = stakingState?.type === 'nominators';
@@ -557,7 +484,7 @@ export default memo(withGlobal((global): StateProps => {
     theme: global.settings.theme,
     isMultichainAccount,
     stakingState,
-    isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+    isSensitiveDataHidden,
     isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(UnstakeModal));

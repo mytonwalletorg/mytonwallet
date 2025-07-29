@@ -1,0 +1,45 @@
+Disconnect: Отключить кошелёк
+Secure crypto transfers on Telegram: Мгновенные переводы в Telegram
+
+# Status messages
+Transfer not found: Перевод не найден
+Loading...: Ожидание...
+Confirming...: Подтверждение...
+Confirm transfer in wallet: Подтвердите перевод в кошельке
+Connect wallet to transfer: Подключите кошелёк для перевода
+Waiting sender confirmation...: Ждём подтверждения от отправителя...
+Still confirming...: Всё ещё подтверждается...
+Returning...: Возврат...
+Confirmed: Подтверждено
+Waiting for the recipient...: Ждём получателя...
+Receiving...: Получение...
+Ready to receive: Готов к получению
+Connect wallet or forward to any address: Подключите кошелёк или перешлите на любой адрес
+Still receiving...: Всё ещё получаем...
+Received by another person: Получено другим человеком
+Received: Получено
+Returned: Возвращено
+Unexpected error: Неожиданная ошибка
+
+# Button labels
+Close: Закрыть
+Connect Wallet: Подключить кошелёк
+Confirm in Wallet: Подтвердить в кошельке
+Confirm Again: Подтвердить снова
+Receive: Получить
+Try Receiving Again: Попробовать ещё раз
+Request Payment: Запросить оплату
+Pay Myself: Оплатить самому
+Cancel Transfer: Отменить перевод
+Forward to Address: Переслать на адрес
+
+# Forward screen
+Forward to...: Переслать...
+Enter TON wallet address or domain to forward: Введите адрес TON-кошелька или домен
+Forward: Переслать
+
+# Forward confirm screen
+Confirm Forward: Подтвердить
+will be forwarded to this address.: будет переслано на этот адрес.
+Confirm: Подтвердить
+Edit: Изменить

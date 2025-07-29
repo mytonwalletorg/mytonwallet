@@ -43,7 +43,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
 import SelectTokenButton from '../common/SelectTokenButton';
-import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
+import AmountInputMaxButton from '../ui/AmountInputMaxButton';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import FeeLine from '../ui/FeeLine';
 import RichNumberInput from '../ui/RichNumberInput';
@@ -313,7 +313,7 @@ function SwapInitial({
 
   function renderBalance() {
     return (
-      <AmountFieldMaxButton
+      <AmountInputMaxButton
         maxAmount={maxAmount}
         token={tokenIn}
         isSensitiveDataHidden={isSensitiveDataHidden}

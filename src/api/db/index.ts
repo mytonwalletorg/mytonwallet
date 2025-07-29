@@ -35,10 +35,15 @@ export class ApiDb extends Dexie {
     this.version(4).upgrade((tx) => {
       return tx.table('tokens').clear();
     });
+    this.version(5).stores({
+      // eslint-disable-next-line no-null/no-null
+      nfts: null,
+      // eslint-disable-next-line no-null/no-null
+      sseConnections: null,
+    });
   }
 }
 
 export const apiDb = new ApiDb();
 
-export const nftRepository = new DbRepository(apiDb.nfts);
 export const tokenRepository = new DbRepository(apiDb.tokens);

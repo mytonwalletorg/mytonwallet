@@ -43,10 +43,11 @@ export function buildLocalTransaction(
   subId?: number,
 ): ApiTransactionActivity {
   const { amount, ...restParams } = params;
-  const txId = buildLocalTxId(params.txId ?? params.externalMsgHash!, subId);
+  const txId = buildLocalTxId(params.txId ?? params.externalMsgHashNorm!, subId);
 
   return updateActivityMetadata({
     id: txId,
+    isPending: true,
     kind: 'transaction',
     timestamp: Date.now(),
     isIncoming: false,

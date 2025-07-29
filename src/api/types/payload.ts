@@ -48,6 +48,7 @@ export type ApiTokensTransferPayload = {
   forwardPayloadOpCode?: number;
   // Specific to UI
   slug: string;
+  tokenAddress: string;
 };
 
 export type ApiTokensTransferNonStandardPayload = {

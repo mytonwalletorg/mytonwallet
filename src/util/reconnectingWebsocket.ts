@@ -35,8 +35,8 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
 
   #disconnectListeners = createCallbackManager<DisconnectCallback>();
 
-  constructor(url: string) {
-    this.#url = url;
+  constructor(url: string | URL) {
+    this.#url = url.toString();
     this.#startSocket();
   }
 
@@ -56,7 +56,7 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
    * Returns `true` is the socket is connected now. You may send messages regardless of the connection status.
    * The objects always initializes in the disconnected state.
    */
-  public isConnected() {
+  public get isConnected() {
     return this.#isConnected;
   }
 

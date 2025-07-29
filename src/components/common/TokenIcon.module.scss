@@ -75,7 +75,7 @@
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
-  /* stylelint-disable-next-line plugin/whole-pixel */
+
   box-shadow: 0 0 0 0.1rem var(--color-background-first);
 
   @include mixins.is-mobile() {

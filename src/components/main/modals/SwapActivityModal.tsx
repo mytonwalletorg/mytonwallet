@@ -197,8 +197,8 @@ function SwapActivityModal({
   });
 
   useEffect(() => {
-    if (id) fetchActivityDetails({ id });
-  }, [id]);
+    if (id && shouldLoadDetails) fetchActivityDetails({ id });
+  }, [id, shouldLoadDetails]);
 
   function renderHeader() {
     return (

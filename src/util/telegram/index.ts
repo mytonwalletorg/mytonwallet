@@ -30,9 +30,9 @@ export function initTelegramApp() {
   }
 
   enableTelegramMiniAppSwipeToClose();
+
   webApp.lockOrientation();
-  webApp.MainButton.hide();
-  webApp.SecondaryButton.hide();
+  webApp.SecondaryButton.setParams({ position: 'bottom' });
   webApp.BackButton.hide();
   webApp.SettingsButton.hide();
   webApp.expand();

@@ -1,6 +1,8 @@
 import type { BiometricRequestAccessParams } from '@twa-dev/types';
 
 import { APP_NAME } from '../../config';
+import { mapValues } from '../iteratees';
+import safeExec from '../safeExec';
 import { getTelegramApp } from '../telegram';
 
 function requestBiometricAccess(options: BiometricRequestAccessParams) {
@@ -58,5 +60,47 @@ export async function verifyIdentity() {
         }
       },
     );
+  });
+}
+
+export function signCustomData(
+  initDataFields: AnyLiteral,
+  payload: string,
+  options?: {
+    shouldSignHash?: boolean;
+    isPayloadBinary?: boolean;
+  },
+): Promise<{ result: string; resultUnsafe: AnyLiteral }> {
+  const app = getTelegramApp()!;
+
+  return new Promise((resolve, reject) => {
+    (app as any).invokeCustomMethod('prepareSignedPayload', {
+      init_data: app.initData,
+      init_data_sign_fields: initDataFields,
+      payload,
+      ...(options?.shouldSignHash && { sign_sha256: true }),
+      ...(options?.isPayloadBinary && { is_payload_binary: true }),
+    }, (err: Error, result: string) => {
+      if (result) {
+        resolve({
+          result,
+          resultUnsafe: parseResultUnsafe(result),
+        });
+      } else {
+        reject(err || 'Unknown Error');
+      }
+    });
+  });
+}
+
+function parseResultUnsafe(appData: string) {
+  const resultUnsafe = (window.Telegram as any).Utils.urlParseQueryString(appData);
+
+  return mapValues(resultUnsafe, (value: string) => {
+    if ((value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'))) {
+      return safeExec(() => JSON.parse(value));
+    }
+
+    return value;
   });
 }

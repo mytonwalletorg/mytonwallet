@@ -21,9 +21,8 @@ import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import { getStakingStateStatus } from '../../util/staking';
-import { setStatusBarStyle } from '../../util/switchTheme';
 import {
-  IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD,
+  IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, REM,
 } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
 
@@ -36,7 +35,6 @@ import useFlag from '../../hooks/useFlag';
 import useInterval from '../../hooks/useInterval';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePreventPinchZoomGesture from '../../hooks/usePreventPinchZoomGesture';
-import useShowTransition from '../../hooks/useShowTransition';
 
 import LinkingDomainModal from '../domain/LinkingDomainModal';
 import RenewDomainModal from '../domain/RenewDomainModal';
@@ -51,8 +49,8 @@ import VestingModal from '../vesting/VestingModal';
 import VestingPasswordModal from '../vesting/VestingPasswordModal';
 import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
-import StickyCard from './sections/Card/StickyCard';
 import Content from './sections/Content';
+import Header, { HEADER_HEIGHT_REM } from './sections/Header/Header';
 import Warnings from './sections/Warnings';
 
 import styles from './Main.module.scss';
@@ -111,8 +109,7 @@ function Main({
   const portraitContainerRef = useRef<HTMLDivElement>();
   const landscapeContainerRef = useRef<HTMLDivElement>();
 
-  const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
-  const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
+  const [shouldRenderBalanceInHeader, setShouldRenderBalanceInHeader] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
   const [isFocused, markIsFocused, unmarkIsFocused] = useFlag(!isBackgroundModeActive());
 
@@ -124,13 +121,6 @@ function Main({
   usePreventPinchZoomGesture(isMediaViewerOpen);
 
   const { isPortrait, isLandscape } = useDeviceScreen();
-  const {
-    shouldRender: shouldRenderStickyCard,
-    ref: stickyCardRef,
-  } = useShowTransition({
-    isOpen: canRenderStickyCard,
-    withShouldRender: true,
-  });
 
   useEffectOnce(() => {
     if (IS_CORE_WALLET) return;
@@ -138,43 +128,28 @@ function Main({
     loadExploreSites({ isLandscape });
   });
 
-  useEffect(() => {
-    setStatusBarStyle({
-      forceDarkBackground: shouldRenderDarkStatusBar,
-    });
-  }, [shouldRenderDarkStatusBar]);
-
   useInterval(updatePendingSwaps, isFocused ? UPDATE_SWAPS_INTERVAL : UPDATE_SWAPS_INTERVAL_NOT_FOCUSED);
 
   useEffect(() => {
     if (!isPortrait || !isActive) {
-      setCanRenderStickyCard(false);
       return undefined;
     }
 
-    const rootMarginTop = STICKY_CARD_INTERSECTION_THRESHOLD - safeAreaTop;
-    const observer = new IntersectionObserver((entries) => {
-      const { isIntersecting, boundingClientRect: { left, width } } = entries[0];
-      setCanRenderStickyCard(entries.length > 0 && !isIntersecting && left < width);
-    }, { rootMargin: `${rootMarginTop}px 0px 0px` });
-
-    const cardTopSideObserver = new IntersectionObserver((entries) => {
+    const cardBottomSideObserver = new IntersectionObserver((entries) => {
       const { isIntersecting } = entries[0];
 
-      setShouldRenderDarkStatusBar(!isIntersecting);
-    }, { rootMargin: `-${safeAreaTop}px 0px 0px`, threshold: [1] });
+      setShouldRenderBalanceInHeader(!isIntersecting);
+    }, { rootMargin: `-${HEADER_HEIGHT_REM * REM}px 0px 0px`, threshold: [0] });
     const cardElement = cardRef.current;
 
     if (cardElement) {
-      observer.observe(cardElement);
-      cardTopSideObserver.observe(cardElement);
+      cardBottomSideObserver.observe(cardElement);
     }
 
     return () => {
       if (cardElement) {
-        observer.unobserve(cardElement);
-        cardTopSideObserver.unobserve(cardElement);
-        setShouldRenderDarkStatusBar(false);
+        cardBottomSideObserver.unobserve(cardElement);
+        setShouldRenderBalanceInHeader(false);
       }
     };
   }, [isActive, isPortrait, safeAreaTop]);
@@ -220,17 +195,15 @@ function Main({
       <div ref={portraitContainerRef} className={styles.portraitContainer}>
         <div className={styles.head}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
+
+          <Header withBalance={shouldRenderBalanceInHeader} />
+
           <Card
             ref={cardRef}
-            forceCloseAccountSelector={shouldRenderStickyCard}
             onTokenCardClose={handleTokenCardClose}
             onYieldClick={handleEarnClick}
           />
-          {shouldRenderStickyCard && (
-            <StickyCard
-              ref={stickyCardRef}
-            />
-          )}
+
           {!isViewMode && (
             <PortraitActions
               containerRef={portraitContainerRef}
@@ -254,6 +227,9 @@ function Main({
       <div ref={landscapeContainerRef} className={styles.landscapeContainer}>
         <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
+
+          <Header />
+
           <Card onTokenCardClose={handleTokenCardClose} onYieldClick={handleEarnClick} />
           {!isViewMode && (
             <LandscapeActions

@@ -1,16 +1,11 @@
 import React, { type ElementRef, memo, useEffect, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiNft } from '../../../../api/types';
 import type { Theme } from '../../../../global/types';
 import type { StakingStateStatus } from '../../../../util/staking';
 import { ActiveTab } from '../../../../global/types';
 
-import {
-  ANIMATED_STICKER_ICON_PX,
-  DEFAULT_LANDSCAPE_ACTION_TAB_ID,
-  TONCOIN,
-} from '../../../../config';
+import { ANIMATED_STICKER_ICON_PX, DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import {
   selectAccountState,
@@ -21,7 +16,6 @@ import {
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import { stopEvent } from '../../../../util/domEvents';
-import { getChainBySlug } from '../../../../util/tokens';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 import { handleSendMenuItemClick, SEND_CONTEXT_MENU_ITEMS } from './helpers/sendMenu';
@@ -31,6 +25,7 @@ import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useSyncEffect from '../../../../hooks/useSyncEffect';
+import useUniqueId from '../../../../hooks/useUniqueId';
 
 import Content from '../../../receive/Content';
 import StakingInfoContent from '../../../staking/StakingInfoContent';
@@ -52,9 +47,6 @@ interface OwnProps {
 
 interface StateProps {
   activeTabIndex?: ActiveTab;
-  nfts?: ApiNft[];
-  tokenSlug: string;
-  isTransferWithComment: boolean;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
   isStakingDisabled: boolean;
@@ -70,7 +62,6 @@ export const STAKING_TAB_TEXT_VARIANTS: Record<StakingStateStatus, string> = {
   unstakeRequested: '$unstaking_short',
   readyToClaim: '$unstaking_short',
 };
-let activeTransferKey = 0;
 
 function LandscapeActions({
   containerRef,
@@ -78,9 +69,6 @@ function LandscapeActions({
   isLedger,
   theme,
   activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
-  nfts,
-  tokenSlug,
-  isTransferWithComment,
   isTestnet,
   isSwapDisabled,
   isOnRampDisabled,
@@ -93,12 +81,13 @@ function LandscapeActions({
 
   const isStaking = activeTabIndex === ActiveTab.Stake && stakingStatus !== 'inactive';
 
+  const transferSlideClassName = `transfer_slide_${useUniqueId()}`;
   const {
     renderedBgHelpers,
     transitionRef,
   } = useTabHeightAnimation(
     styles.slideContent,
-    styles.transferSlideContent,
+    transferSlideClassName,
     isStaking ? styles.contentSlideStaked : undefined,
     isStaking,
   );
@@ -108,7 +97,6 @@ function LandscapeActions({
   const isLastTab = (isStakingDisabled && isSwapDisabled && activeTabIndex === ActiveTab.Transfer)
     || (isStakingDisabled && !isSwapDisabled && activeTabIndex === ActiveTab.Swap)
     || (!isStakingDisabled && activeTabIndex === ActiveTab.Stake);
-  const transferKey = useMemo(() => nfts?.map((nft) => nft.address).join(',') || tokenSlug, [nfts, tokenSlug]);
 
   const [isAddBuyAnimating, playAddBuyAnimation, stopAddBuyAnimation] = useFlag();
   const [isSendAnimating, playSendAnimation, stopSendAnimation] = useFlag();
@@ -122,10 +110,6 @@ function LandscapeActions({
     buttonTransitionKeyRef.current++;
   }, [accentColor]);
 
-  useSyncEffect(() => {
-    activeTransferKey += 1;
-  }, [transferKey]);
-
   useEffect(() => {
     if (
       (isSwapDisabled && activeTabIndex === ActiveTab.Swap)
@@ -135,7 +119,7 @@ function LandscapeActions({
     }
   }, [activeTabIndex, isTestnet, isLedger, isSwapDisabled, isStakingDisabled]);
 
-  function renderCurrentTab(isActive: boolean, isPrev: boolean) {
+  function renderCurrentTab(isActive: boolean) {
     switch (activeTabIndex) {
       case ActiveTab.Receive:
         return (
@@ -147,15 +131,7 @@ function LandscapeActions({
       case ActiveTab.Transfer:
         return (
           <div className={buildClassName(styles.slideContent, styles.slideContentTransfer)}>
-            <Transition
-              activeKey={activeTransferKey}
-              name={isPrev ? 'semiFade' : 'none'}
-              direction={!isTransferWithComment ? 'inverse' : undefined}
-              shouldCleanup
-              slideClassName={styles.transferSlideContent}
-            >
-              <TransferInitial key={activeTransferKey} isStatic />
-            </Transition>
+            <TransferInitial isStatic slideClassName={transferSlideClassName} />
           </div>
         );
 
@@ -432,15 +408,10 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
       const { isOnRampDisabled } = global.restrictions;
-      const { nfts, tokenSlug } = global.currentTransfer;
-      const isTransferWithComment = getChainBySlug(tokenSlug) === TONCOIN.chain;
 
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
         isTestnet: global.settings.isTestnet,
-        nfts,
-        tokenSlug,
-        isTransferWithComment,
         isSwapDisabled: selectIsSwapDisabled(global),
         isStakingDisabled: selectIsStakingDisabled(global),
         isOnRampDisabled,

@@ -129,6 +129,7 @@ Toggle Hide Tiny Transfers: Toggle Hide Tiny Transfers
 Network: Network
 Developer Options: Developer Options
 All Wallet Versions: All Wallet Versions
+Add TON-Only Wallet: Add TON-Only Wallet
 Confirmation: Confirmation
 Signing Data: Signing Data
 Contract Initialization Data: Contract Initialization Data
@@ -153,7 +154,7 @@ Copy wallet address: Copy wallet address
 View address on %ton_explorer_name%: View address on %ton_explorer_name%
 You have just created a new wallet: You have just created a new wallet
 You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
-Assets: Assets
+Coins: Coins
 Activity: Activity
 NFT: NFT
 No NFTs yet: No NFTs yet
@@ -299,7 +300,7 @@ $dapps-description: You can log in on dapps that support %app_name%. They can vi
 Logged in with %app_name%: Logged in with %app_name%
 No active connections: No active connections
 Other: Other
-Assets & Activity: Assets & Activity
+Coins & Activity: Coins & Activity
 Token Settings: Token Settings
 My Tokens: My Tokens
 Add Token: Add Token
@@ -923,8 +924,12 @@ Show All: Show All
 Description: Description
 No additional data.: No additional data.
 Domain was copied!: Domain was copied!
+$in_currency: in %currency%
+Rename Wallet: Rename Wallet
+You can rename this wallet for easier identification.: You can rename this wallet for easier identification.
 $storage_cleared_title: Application Storage Cleared
 $storage_cleared_message: |
   Your wallet data has been cleared due to browser-related or disk space issues. Please log out from all wallets and then re-import them manually using your secret words.
 
   If you need assistance, please contact %support_link%.
+Collectibles: Collectibles

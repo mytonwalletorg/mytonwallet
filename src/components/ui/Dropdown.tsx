@@ -4,9 +4,9 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
-import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
+import DropdownItemContent from './DropdownItemContent';
 import DropdownMenu from './DropdownMenu';
 import Spinner from './Spinner';
 
@@ -33,7 +33,7 @@ interface OwnProps<T extends string> {
   className?: string;
   itemClassName?: string;
   menuClassName?: string;
-  theme?: 'light';
+  theme?: 'light' | 'inherit';
   arrow?: 'caret' | 'chevron';
   menuPositionX?: 'right' | 'left';
   menuPositionY?: 'top' | 'bottom';
@@ -41,6 +41,7 @@ interface OwnProps<T extends string> {
   shouldTranslateOptions?: boolean;
   onChange?: (value: T) => void;
   isLoading?: boolean;
+  buttonPrefix?: TeactNode;
 }
 
 const DEFAULT_ARROW = 'caret';
@@ -61,15 +62,20 @@ function Dropdown<T extends string>({
   shouldTranslateOptions,
   onChange,
   isLoading = false,
+  buttonPrefix,
 }: OwnProps<T>): TeactJsx {
-  const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
+  const withMenu = items.length > 1;
+  const isFullyInteractive = Boolean(label);
 
-  const [selectedItem, selectedItemName] = useMemo(() => {
-    const item = items.find((i) => selectedValue !== undefined && i.value === selectedValue);
-    const selectedName = item?.selectedName ?? item?.name ?? '';
-    return [item, selectedName];
-  }, [items, selectedValue]);
+  const selectedItem = useMemo<DropdownItem<T>>(() => {
+    let item = selectedValue !== undefined && items.find((i) => i.value === selectedValue);
+    item ||= { value: '' as T, name: '' };
+    return {
+      ...item,
+      isDisabled: !isFullyInteractive && disabled,
+    };
+  }, [items, selectedValue, isFullyInteractive, disabled]);
 
   const handleSelect = useLastCallback((value: T) => {
     if (value !== selectedValue) {
@@ -81,16 +87,8 @@ function Dropdown<T extends string>({
     return undefined;
   }
 
-  const buttonArrowIcon = buildClassName(
-    styles.buttonIcon,
-    arrow === 'chevron' ? 'icon-chevron-down' : 'icon-caret-down',
-  );
-
-  const withMenu = items.length > 1;
-  const isFullyInteractive = Boolean(label);
   const fullClassName = buildClassName(
     className,
-    theme && styles[theme],
     withMenu && styles.interactive,
     isFullyInteractive && styles.wide,
     isFullyInteractive && disabled && styles.disabled,
@@ -98,10 +96,22 @@ function Dropdown<T extends string>({
   const buttonFullClassName = buildClassName(
     styles.button,
     withMenu && styles.interactive,
-    !isFullyInteractive && disabled && styles.disabled,
     withMenu && menuClassName,
+    theme && styles[theme],
     itemClassName,
   );
+
+  const buttonSuffix = useMemo(() => {
+    return withMenu && (
+      <i
+        className={buildClassName(
+          styles.buttonIcon,
+          arrow === 'chevron' ? 'icon-chevron-down' : 'icon-caret-down',
+        )}
+        aria-hidden
+      />
+    );
+  }, [withMenu, arrow]);
 
   return (
     <div
@@ -113,31 +123,16 @@ function Dropdown<T extends string>({
       {isLoading ? (
         <Spinner className={styles.spinner} />
       ) : (
-        <button
-          type="button"
+        <DropdownItemContent
+          item={selectedItem}
+          prefix={buttonPrefix}
+          suffix={buttonSuffix}
+          shouldTranslate={shouldTranslateOptions}
+          shouldUseSelectedName
           className={buttonFullClassName}
+          itemClassName={buildClassName('itemName', itemClassName)}
           onClick={!isFullyInteractive && withMenu ? openMenu : undefined}
-          disabled={disabled}
-        >
-          {selectedItem?.icon && <img src={selectedItem.icon} alt="" className={styles.itemIcon} />}
-          {selectedItem?.overlayIcon && (
-            <img
-              src={selectedItem?.overlayIcon}
-              alt=""
-              className={buildClassName('icon', styles.itemOverlayIcon, styles.insideButton)}
-            />
-          )}
-          {selectedItem?.fontIcon && (
-            <i
-              className={buildClassName(`icon-${selectedItem.fontIcon}`, styles.fontIcon)}
-              aria-hidden
-            />
-          )}
-          <span className={buildClassName(styles.itemName, 'itemName', itemClassName)}>
-            {shouldTranslateOptions ? lang(selectedItemName) : selectedItemName}
-          </span>
-          {withMenu && <i className={buttonArrowIcon} aria-hidden />}
-        </button>
+        />
       )}
 
       {withMenu && (

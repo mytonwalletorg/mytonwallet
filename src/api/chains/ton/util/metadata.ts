@@ -251,6 +251,7 @@ export async function parsePayloadSlice(
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
           forwardPayloadOpCode,
           slug,
+          tokenAddress,
         };
       }
       case NftOpCode.TransferOwnership: {

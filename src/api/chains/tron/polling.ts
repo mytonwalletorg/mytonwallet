@@ -14,11 +14,11 @@ import { getChainConfig } from '../../../util/chain';
 import isEmptyObject from '../../../util/isEmptyObject';
 import { logDebugError } from '../../../util/logs';
 import { createTaskQueue } from '../../../util/schedulers';
-import { activeWalletTiming, inactiveWalletTiming } from '../../common/polling';
-import { swapReplaceCexActivities } from '../../common/swap';
+import { enrichActivities } from '../../common/activities';
+import { activeWalletTiming, inactiveWalletTiming } from '../../common/polling/utils';
+import { WalletPolling } from '../../common/polling/walletPolling';
 import { buildTokenSlug } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
-import { WalletPolling } from '../../common/walletPolling';
 import { FIRST_TRANSACTIONS_LIMIT } from '../../constants';
 import { getTokenTransactionSlice, mergeActivities } from './transactions';
 import { getTrc20Balance, getWalletBalance } from './wallet';
@@ -53,19 +53,24 @@ export function setupActivePolling(
     onUpdatingStatusChange.bind(undefined, 'activities'),
   );
 
-  async function update(isConfident: boolean) {
-    if (isConfident) {
+  let isFirstUpdate = true;
+
+  async function handleUpdate(isConfident: boolean) {
+    if (isConfident || isFirstUpdate) {
       await Promise.all([
         balancePolling.update(),
         activityPolling.update(),
       ]);
     } else {
-      // Legacy (timer) polling mode
+      // Legacy (timer) polling mode.
+      // The balance is checked before the activities, because the backend throttling for balance is much looser.
       const hasBalanceChanged = await balancePolling.update();
       if (hasBalanceChanged) {
         await activityPolling.update();
       }
     }
+
+    isFirstUpdate = false;
   }
 
   const walletPolling = new WalletPolling({
@@ -73,7 +78,7 @@ export function setupActivePolling(
     chain: 'tron',
     network: parseAccountId(accountId).network,
     address,
-    onUpdate: update,
+    onUpdate: handleUpdate,
   });
 
   return () => {
@@ -202,7 +207,7 @@ async function loadInitialActivities(
       accountId, slug, undefined, undefined, FIRST_TRANSACTIONS_LIMIT,
     );
 
-    activities = await swapReplaceCexActivities(accountId, activities, slug, true);
+    activities = await enrichActivities(accountId, activities, slug, true);
 
     result[slug] = activities[0]?.timestamp;
     bySlug[slug] = activities;
@@ -250,18 +255,21 @@ async function loadNewActivities(
   const [trxChunk, ...tokenChunks] = chunks;
   let activities = mergeActivities(trxChunk, ...tokenChunks);
 
-  activities = await swapReplaceCexActivities(accountId, activities, undefined, true);
+  activities = await enrichActivities(accountId, activities, undefined, true);
 
   activities.slice().reverse().forEach((activity) => {
     txCallbacks.runCallbacks(activity);
   });
 
-  onUpdate({
-    type: 'newActivities',
-    chain: 'tron',
-    activities,
-    accountId,
-  });
+  if (activities.length > 0) {
+    onUpdate({
+      type: 'newActivities',
+      chain: 'tron',
+      activities,
+      pendingActivities: [],
+      accountId,
+    });
+  }
 
   return result;
 }

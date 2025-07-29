@@ -82,8 +82,11 @@ export function getActivityTokenSlugs(activity: ApiActivity): string[] {
   }
 }
 
-export function getIsIdSuitableForFetchingTimestamp(id: string) {
-  return !getIsTxIdLocal(id) && !getIsBackendSwapId(id);
+export function getIsActivitySuitableForFetchingTimestamp(activity: ApiActivity | undefined) {
+  return !!activity
+    && !getIsTxIdLocal(activity.id)
+    && !getIsBackendSwapId(activity.id)
+    && !getIsActivityPending(activity);
 }
 
 export function getTransactionTitle(
@@ -201,4 +204,14 @@ export function mergeActivityIdsToMaxTime(array1: string[], array2: string[], by
 
 export function getIsActivityWithHash(activity: ApiTransactionActivity) {
   return !getIsTxIdLocal(activity.id) || !activity.extra?.withW5Gasless;
+}
+
+export function getIsActivityPending(activity: ApiActivity) {
+  if (activity.kind === 'swap') {
+    // "Pending" is a blockchain term.
+    // CEX activities are never considered pending, because they are originated by the backend instead of the blockchains.
+    return !activity.cex && activity.status === 'pending';
+  } else {
+    return !!activity.isPending;
+  }
 }

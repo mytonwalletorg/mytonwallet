@@ -30,7 +30,7 @@ import {
   TRX_SWAP_COUNT_FEE_ADDRESS,
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
-import { buildLocalTxId, parseTxId } from '../../../util/activities';
+import { parseTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { findChainConfig, getChainConfig } from '../../../util/chain';
 import { fromDecimal, roundDecimal, toDecimal } from '../../../util/decimals';
@@ -350,7 +350,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   } else {
     global = getGlobal();
     global = updateCurrentSwap(global, {
-      activityId: buildLocalTxId(result.msgHash),
+      activityId: result.activityId,
     });
     setGlobal(global);
   }

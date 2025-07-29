@@ -213,8 +213,6 @@ a {
     height: 0.0625rem;
 
     opacity: 0;
-
-    /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: 0 0.035rem 0 0 var(--color-separator);
 
     transition: opacity 200ms;

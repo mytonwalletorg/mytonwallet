@@ -5,6 +5,7 @@ import type {
   ApiNetwork,
   ApiNewActivitySocketMessage,
   ApiServerSocketMessage,
+  ApiSocketEventType,
   ApiSubscribedSocketMessage,
 } from '../types';
 
@@ -12,13 +13,14 @@ import { BRILLIANT_API_BASE_URL } from '../../config';
 import ReconnectingWebSocket from '../../util/reconnectingWebsocket';
 import safeExec from '../../util/safeExec';
 import { throttle } from '../../util/schedulers';
-import { getBackendHeaders } from './backend';
+import { addBackendHeadersToSocketUrl } from './backend';
 import { getBackendConfigCache } from './cache';
 
 const ACTUALIZATION_DELAY = 10;
 
 interface WatchedWallet {
   chain: ApiChain;
+  events: ApiSocketEventType[];
   address: string;
 }
 
@@ -34,9 +36,12 @@ interface WalletWatcherInternal extends WalletWatcher {
   wallets: WatchedWallet[];
   isConnected: boolean;
   /**
-   * Called when a new activity arrives into one of the listened address. Called only when isConnected is true.
-   * Therefore, when the socket reconnects, the users should synchronize, otherwise the activity happening during the
-   * reconnect will miss.
+   * Called when a new activity arrives into one of the listened address.
+   * In this context activity is any confirmed wallet change.
+   * Called only for wallets with an `activity` event.
+   *
+   * Called only when isConnected is true. Therefore, when the socket reconnects, the users should synchronize,
+   * otherwise the activity happening during the reconnect will miss.
    */
   onNewActivity?: NewActivityCallback;
   /** Called when isConnected turns true */
@@ -110,9 +115,9 @@ class BackendSocket {
   #actualizeSocket = throttle(async () => {
     const { isWebSocketEnabled } = await getBackendConfigCache();
 
-    if (isWebSocketEnabled ?? this.#doesHaveWatchedAddresses()) {
+    if (isWebSocketEnabled && this.#doesHaveWatchedAddresses()) {
       this.#socket ??= this.#createSocket();
-      if (this.#socket.isConnected()) {
+      if (this.#socket.isConnected) {
         this.#sendWatchedWalletsToSocket();
       } // Otherwise, the addresses will be sent when the socket gets connected
     } else {
@@ -180,7 +185,11 @@ class BackendSocket {
       }
 
       for (const wallet of wallets) {
-        const doesWalletMatch = wallet.chain === message.chain && messageAddresses.has(wallet.address);
+        const doesWalletMatch = (
+          wallet.chain === message.chain
+          && messageAddresses.has(wallet.address)
+          && wallet.events.includes('activity')
+        );
 
         if (doesWalletMatch) {
           safeExec(() => onNewActivity(wallet));
@@ -192,10 +201,10 @@ class BackendSocket {
   #sendWatchedWalletsToSocket() {
     // It's necessary to collect the watched addresses synchronously with locking the request id.
     // It makes sure that all the watchers with ids < the response id will be subscribed.
-    const addresses = this.#getWatchedAddresses();
+    const addresses = this.#getWatchedAddresses(['activity']);
     const requestId = this.#currentUniqueId++;
 
-    this.#socket?.send({
+    this.#socket!.send({
       type: 'subscribe',
       id: requestId,
       addresses: addresses.map((address) => ({
@@ -210,11 +219,15 @@ class BackendSocket {
   }
 
   /** Collects the addresses (grouped by chain) from the current watchers */
-  #getWatchedAddresses() {
+  #getWatchedAddresses(events: ApiSocketEventType[]) {
     const addresses: { chain: ApiChain; address: string }[] = [];
 
     for (const watcher of this.#walletWatchers) {
       for (const wallet of watcher.wallets) {
+        if (!wallet.events.some((event) => events.includes(event))) {
+          continue;
+        }
+
         addresses.push({
           chain: wallet.chain,
           address: wallet.address,
@@ -230,15 +243,8 @@ function getSocketUrl(network: ApiNetwork) {
   const url = new URL(BRILLIANT_API_BASE_URL);
   url.protocol = url.protocol === 'http' ? 'ws' : 'wss';
   url.pathname += `${network === 'testnet' ? 'testnet/' : ''}ws`;
-
-  for (const [name, value] of Object.entries(getBackendHeaders())) {
-    const match = /^X-App-(.+)$/i.exec(name);
-    if (match) {
-      url.searchParams.append(match[1].toLowerCase(), value);
-    }
-  }
-
-  return url.toString();
+  addBackendHeadersToSocketUrl(url);
+  return url;
 }
 
 const backendSockets: Partial<Record<ApiNetwork, BackendSocket>> = {};

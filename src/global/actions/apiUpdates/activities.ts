@@ -10,6 +10,7 @@ import {
 } from '../../../config';
 import { parseTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
+import { groupBy } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
@@ -31,12 +32,18 @@ import {
   replaceCurrentDomainRenewalId,
   replaceCurrentSwapId,
   replaceCurrentTransferId,
+  replacePendingActivities,
   setIsInitialActivitiesLoadedTrue,
   updateAccountState,
   updateActivitiesIsLoadingByAccount,
   updateCurrentTransfer,
 } from '../../reducers';
-import { selectAccountState, selectLocalActivities } from '../../selectors';
+import {
+  selectAccountState,
+  selectLocalActivitiesSlow,
+  selectPendingActivitiesSlow,
+  selectRecentNonLocalActivitiesSlow,
+} from '../../selectors';
 
 const TX_AGE_TO_PLAY_SOUND = 60000; // 1 min
 
@@ -56,27 +63,30 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'newLocalActivity': {
+    case 'newLocalActivities': {
       const {
         accountId,
-        activity,
+        activities,
       } = update;
 
-      global = addNewActivities(global, accountId, [activity]);
+      hideOutdatedLocalActivities(global, accountId, activities);
+      global = addNewActivities(global, accountId, activities);
 
-      if (activity.kind === 'transaction' && -activity.amount === global.currentTransfer.amount) {
-        global = updateCurrentTransfer(global, {
-          txId: activity.txId,
-          state: TransferState.Complete,
-          isLoading: false,
-        });
+      for (const activity of activities) {
+        if (activity.kind === 'transaction' && -activity.amount === global.currentTransfer.amount) {
+          global = updateCurrentTransfer(global, {
+            txId: activity.txId,
+            state: TransferState.Complete,
+            isLoading: false,
+          });
 
-        if (getDoesUsePinPad()) {
-          global = clearIsPinAccepted(global);
-        }
+          if (getDoesUsePinPad()) {
+            global = clearIsPinAccepted(global);
+          }
 
-        if (getIsTonToken(activity.slug)) {
-          actions.fetchTransferDieselState({ tokenSlug: activity.slug });
+          if (getIsTonToken(activity.slug)) {
+            actions.fetchTransferDieselState({ tokenSlug: activity.slug });
+          }
         }
       }
 
@@ -94,30 +104,42 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         // A local swap transaction is not created if the NBS is closed before the exchange is completed
         callActionInMain('apiUpdate', { ...update, noForward: true });
       }
-      const { accountId, activities: incomingActivities, chain } = update;
+      const { accountId, activities: newConfirmedActivities, pendingActivities, chain } = update;
 
-      global = updateActivitiesIsLoadingByAccount(global, accountId, false);
+      const replacedLocalIds = getLocalActivityIdReplacements(
+        selectLocalActivitiesSlow(global, accountId),
+        newConfirmedActivities,
+        pendingActivities,
+      );
+      const replacedPendingIds = getPendingActivityIdReplacements(
+        chain ? selectPendingActivitiesSlow(global, accountId, chain) : [],
+        pendingActivities,
+        newConfirmedActivities,
+      );
+      const replacedIds = new Map([...replacedLocalIds, ...replacedPendingIds]);
 
-      const localActivities = selectLocalActivities(global, accountId) ?? [];
-      const { replacedLocalIds, newActivities } = splitReplacedAndNewActivities(localActivities, incomingActivities);
-
+      // A good TON address for testing: UQD5mxRgCuRNLxKxeOjG6r14iSroLF5FtomPnet-sgP5xI-e
       global = removeActivities(global, accountId, replacedLocalIds.keys());
-      global = addNewActivities(global, accountId, incomingActivities);
+      if (chain && pendingActivities !== undefined) {
+        global = replacePendingActivities(global, accountId, chain, pendingActivities);
+      }
+      global = addNewActivities(global, accountId, newConfirmedActivities);
 
-      global = replaceCurrentTransferId(global, replacedLocalIds);
-      global = replaceCurrentDomainLinkingId(global, replacedLocalIds);
-      global = replaceCurrentDomainRenewalId(global, replacedLocalIds);
-      global = replaceCurrentSwapId(global, replacedLocalIds);
-      global = replaceCurrentActivityId(global, accountId, replacedLocalIds);
-      notifyAboutNewActivities(global, newActivities);
+      global = replaceCurrentTransferId(global, replacedIds);
+      global = replaceCurrentDomainLinkingId(global, replacedIds);
+      global = replaceCurrentDomainRenewalId(global, replacedIds);
+      global = replaceCurrentSwapId(global, replacedIds);
+      global = replaceCurrentActivityId(global, accountId, replacedIds);
+      notifyAboutNewActivities(global, newConfirmedActivities);
 
       if (!IS_CORE_WALLET) {
         // NFT polling is executed at long intervals, so it is more likely that a user will see a new transaction
         // rather than receiving a card in the collection. Therefore, when a new activity occurs,
         // we check for a card from the MyTonWallet collection and apply it.
-        global = processCardMintingActivity(global, accountId, incomingActivities);
+        global = processCardMintingActivity(global, accountId, newConfirmedActivities);
       }
 
+      global = updateActivitiesIsLoadingByAccount(global, accountId, false);
       if (chain) {
         global = setIsInitialActivitiesLoadedTrue(global, accountId, chain);
       }
@@ -132,26 +154,30 @@ addActionHandler('apiUpdate', (global, actions, update) => {
  * Finds the ids of the local activities that match any of the new blockchain activities (those are to be replaced).
  * Also finds the ids of the blockchain activities that have no matching local activities (those are to be notified about).
  */
-function splitReplacedAndNewActivities(localActivities: ApiActivity[], incomingActivities: ApiActivity[]) {
-  const replacedLocalIds = new Map<string, string>();
-  const newActivities: ApiActivity[] = [];
+function getLocalActivityIdReplacements(
+  localActivities: ApiActivity[],
+  newConfirmedActivities: ApiActivity[],
+  newPendingActivities: readonly ApiActivity[] = [], // Undefined when the pending activities don't change
+) {
+  const idReplaceMap = new Map<string, string>();
 
-  for (const incomingActivity of incomingActivities) {
-    let hasLocalMatch = false;
+  if (!localActivities.length) {
+    return idReplaceMap;
+  }
 
-    for (const localActivity of localActivities) {
-      if (doesLocalActivityMatch(localActivity, incomingActivity)) {
-        replacedLocalIds.set(localActivity.id, incomingActivity.id);
-        hasLocalMatch = true;
-      }
-    }
+  const chainActivities = [...newPendingActivities, ...newConfirmedActivities];
 
-    if (!hasLocalMatch) {
-      newActivities.push(incomingActivity);
+  for (const localActivity of localActivities) {
+    const chainActivity = chainActivities.find((chainActivity) => {
+      return doesLocalActivityMatch(localActivity, chainActivity);
+    });
+
+    if (chainActivity) {
+      idReplaceMap.set(localActivity.id, chainActivity.id);
     }
   }
 
-  return { replacedLocalIds, newActivities };
+  return idReplaceMap;
 }
 
 /** Decides whether the local activity matches the activity from the blockchain */
@@ -168,11 +194,50 @@ function doesLocalActivityMatch(localActivity: ApiActivity, chainActivity: ApiAc
     }
   }
 
-  if (localActivity.externalMsgHash) {
-    return localActivity.externalMsgHash === chainActivity.externalMsgHash && !chainActivity.shouldHide;
+  if (localActivity.externalMsgHashNorm) {
+    return localActivity.externalMsgHashNorm === chainActivity.externalMsgHashNorm && !chainActivity.shouldHide;
   }
 
   return parseTxId(localActivity.id).hash === parseTxId(chainActivity.id).hash;
+}
+
+/** For each old pending activities, finds its new id (pending activity ids may change during their lifetime) */
+function getPendingActivityIdReplacements(
+  oldPendingActivities: ApiActivity[],
+  newPendingActivities: readonly ApiActivity[] = [], // Undefined when the pending activities don't change
+  newConfirmedActivities: ApiActivity[],
+) {
+  const idReplaceMap = new Map<string, string>();
+
+  if (!oldPendingActivities.length) {
+    return idReplaceMap;
+  }
+
+  const newIdsByMessageHash: Record<string, string[]> = {};
+  const oldPendingActivitiesByMessageHash = groupBy(oldPendingActivities, 'externalMsgHashNorm');
+
+  // Building the newIdsByMessageHash map
+  for (const { id, externalMsgHashNorm } of [...newPendingActivities, ...newConfirmedActivities]) {
+    if (externalMsgHashNorm) {
+      newIdsByMessageHash[externalMsgHashNorm] ??= [];
+      newIdsByMessageHash[externalMsgHashNorm].push(id);
+    }
+  }
+
+  // Finding the corresponding new ids for each old pending activity
+  for (const [externalMsgHashNorm, oldActivities] of Object.entries(oldPendingActivitiesByMessageHash)) {
+    const newIds = newIdsByMessageHash[externalMsgHashNorm];
+    if (!newIds?.length) continue;
+
+    for (let i = 0; i < oldActivities.length; i++) {
+      idReplaceMap.set(
+        oldActivities[i].id,
+        newIds[Math.min(i, newIds.length - 1)],
+      );
+    }
+  }
+
+  return idReplaceMap;
 }
 
 function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivity[]) {
@@ -183,6 +248,7 @@ function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivit
   const shouldPlaySound = newActivities.some((activity) => {
     return activity.kind === 'transaction'
       && activity.isIncoming
+      && !activity.isPending
       && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
       && !(
         global.settings.areTinyTransfersHidden
@@ -228,4 +294,22 @@ function processCardMintingActivity(global: GlobalState, accountId: string, acti
   }
 
   return global;
+}
+
+/**
+ * Thanks to the socket, there is a possibility that a pending activity will arrive before the corresponding local
+ * activity. Such local activities duplicate the pending activities, which is unwanted. They shouldn't be removed,
+ * because other parts of the global state may point to their ids, so they get hidden instead.
+ */
+function hideOutdatedLocalActivities(global: GlobalState, accountId: string, localActivities: ApiActivity[]) {
+  const maxCheckDepth = localActivities.length + 20;
+  const chainActivities = selectRecentNonLocalActivitiesSlow(global, accountId, maxCheckDepth);
+
+  for (const localActivity of localActivities) {
+    localActivity.shouldHide ||= chainActivities.some((chainActivity) => {
+      return doesLocalActivityMatch(localActivity, chainActivity);
+    });
+  }
+
+  return localActivities;
 }

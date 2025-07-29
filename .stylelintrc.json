@@ -49,7 +49,8 @@
       true,
       {
         "ignoreList": [
-          "letter-spacing"
+          "letter-spacing",
+          "box-shadow"
         ]
       }
     ],

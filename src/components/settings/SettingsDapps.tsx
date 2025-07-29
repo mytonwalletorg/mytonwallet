@@ -4,6 +4,7 @@ import type { ApiDapp } from '../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, APP_NAME } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { getDappConnectionUniqueId } from '../../util/getDappConnectionUniqueId';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useFlag from '../../hooks/useFlag';
@@ -79,7 +80,7 @@ function SettingsDapps({
         <div className={styles.block}>
           {dapps.map((dapp) => (
             <DappInfo
-              key={dapp.url}
+              key={`dapp-${dapp.url}-${getDappConnectionUniqueId(dapp)}`}
               dapp={dapp}
               className={styles.dapp}
               onDisconnect={handleDisconnectDapp}

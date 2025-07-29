@@ -6,7 +6,7 @@ import { ApiAuthError, ApiCommonError } from '../../../api/types';
 import { AppState, AuthState, BiometricsState } from '../../types';
 
 import {
-  APP_NAME, IS_TELEGRAM_APP, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT,
+  APP_NAME, IS_BIP39_MNEMONIC_ENABLED, IS_TELEGRAM_APP, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import authApi from '../../../util/authApi';
@@ -120,7 +120,7 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   }
 
   const promiseCalls = [
-    callApi('generateMnemonic'),
+    callApi('generateMnemonic', IS_BIP39_MNEMONIC_ENABLED && !global.auth.forceAddingTonOnlyAccount),
     ...(!isPasswordPresent ? [pause(CREATING_DURATION)] : []),
   ] as [Promise<Promise<string[]> | undefined>, Promise<void> | undefined];
 

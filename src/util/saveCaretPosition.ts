@@ -1,4 +1,4 @@
-export function saveCaretPosition(context: HTMLElement, decimals: number) {
+export function saveCaretPosition(context: HTMLElement, prefixLength: number, decimals: number) {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) {
     return undefined;
@@ -7,7 +7,7 @@ export function saveCaretPosition(context: HTMLElement, decimals: number) {
   const range = selection.getRangeAt(0);
   range.setStart(context, 0);
   const clearedValue = range.toString().match(new RegExp(`(\\d+(?:[.,]\\d{0,${decimals}})?)`));
-  const len = clearedValue?.[0]?.length || range.toString().length || 0;
+  const len = prefixLength + (clearedValue?.[0]?.length || range.toString().length || 0);
 
   return function restore() {
     try {
@@ -35,10 +35,12 @@ function getTextNodeAtPosition(root: HTMLElement, index: number) {
     return NodeFilter.FILTER_ACCEPT;
   });
 
-  const node = treeWalker.nextNode();
+  const node = treeWalker.nextNode() ?? treeWalker.currentNode;
 
   return {
-    node: node || root,
-    position: index,
+    node,
+    // Limiting the position for cases when `index` is outside the `root`.
+    // It happens when the prefix disappears after the change.
+    position: Math.min(index, node.textContent!.length),
   };
 }

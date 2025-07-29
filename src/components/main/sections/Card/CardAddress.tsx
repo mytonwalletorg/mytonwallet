@@ -1,8 +1,9 @@
-import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
+import React, { memo, useMemo, useRef, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiChain } from '../../../../api/types';
-import type { Account, AccountType } from '../../../../global/types';
+import type { Account, AccountType, IAnchorPosition } from '../../../../global/types';
+import type { Layout } from '../../../../hooks/useMenuPosition';
 
 import { selectAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -13,7 +14,7 @@ import getChainNetworkIcon from '../../../../util/swap/getChainNetworkIcon';
 import { getExplorerAddressUrl, getExplorerName } from '../../../../util/url';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 
-import useFlag from '../../../../hooks/useFlag';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
@@ -21,6 +22,8 @@ import Menu from '../../../ui/Menu';
 
 import menuStyles from '../../../ui/Dropdown.module.scss';
 import styles from './Card.module.scss';
+
+import multichainIconSrc from '../../../../assets/multichain_account.svg';
 
 interface StateProps {
   addressByChain?: Account['addressByChain'];
@@ -38,7 +41,13 @@ function CardAddress({
   const { showNotification } = getActions();
 
   const lang = useLang();
-  const [isMenuOpen, openMenu, closeMenu] = useFlag(false);
+  const { isPortrait } = useDeviceScreen();
+
+  const ref = useRef<HTMLDivElement>();
+  const menuRef = useRef<HTMLDivElement>();
+  const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition>();
+  const isMenuOpen = Boolean(menuAnchor);
+
   const chains = useMemo(() => Object.keys(addressByChain || {}) as ApiChain[], [addressByChain]);
   const isHardwareAccount = accountType === 'hardware';
   const isViewAccount = accountType === 'view';
@@ -61,6 +70,15 @@ function CardAddress({
       ).join(''),
     }));
   }, [addressByChain, domainByChain, chains, lang]);
+
+  const openMenu = () => {
+    const { left, width, bottom: y } = ref.current!.getBoundingClientRect();
+    setMenuAnchor({ x: left + width / 2, y });
+  };
+
+  const closeMenu = () => {
+    setMenuAnchor(undefined);
+  };
 
   const handleCopyAddress = useLastCallback((address: string) => {
     showNotification({ message: lang('Address was copied!'), icon: 'icon-copy' });
@@ -93,12 +111,28 @@ function CardAddress({
   const handleMouseLeave = useLastCallback(() => {
     closeTimeoutRef.current = window.setTimeout(closeMenu, MOUSE_LEAVE_TIMEOUT);
   });
+  const getTriggerElement = useLastCallback(() => ref.current);
+  const getRootElement = useLastCallback(() => document.body);
+  const getMenuElement = useLastCallback(() => menuRef.current);
+  const getLayout = useLastCallback((): Layout => ({
+    withPortal: true,
+    centerHorizontally: isPortrait,
+    preferredPositionX: 'left' as const,
+    doNotCoverTrigger: isPortrait,
+  }));
 
   function renderAddressMenu() {
     return (
       <Menu
+        menuRef={menuRef}
         isOpen={isMenuOpen}
         type="dropdown"
+        withPortal
+        getTriggerElement={getTriggerElement}
+        getRootElement={getRootElement}
+        getMenuElement={getMenuElement}
+        getLayout={getLayout}
+        anchor={menuAnchor}
         bubbleClassName={styles.addressMenuBubble}
         noBackdrop={!IS_TOUCH_ENV}
         onMouseEnter={!IS_TOUCH_ENV ? handleMouseEnter : undefined}
@@ -165,7 +199,7 @@ function CardAddress({
     const buttonText = chains.length === 1 && domain ? domain : lang('Multichain');
 
     return (
-      <div className={styles.addressContainer}>
+      <div ref={ref} className={styles.addressContainer}>
         {isViewAccount && (
           <span className={styles.addressLabel}>
             <i className={buildClassName(styles.icon, 'icon-eye-filled')} aria-hidden />
@@ -180,6 +214,10 @@ function CardAddress({
           onMouseLeave={!IS_TOUCH_ENV ? handleMouseLeave : undefined}
           onClick={openMenu}
         >
+          {chains.length > 1
+            ? <img src={multichainIconSrc} alt="" className={styles.multichainIcon} />
+            : <img src={getChainNetworkIcon(chain)} alt="" className={styles.chainIcon} />}
+
           <span className={buildClassName(styles.itemName, 'itemName')}>
             {buttonText}
           </span>
@@ -212,6 +250,7 @@ function CardAddress({
         aria-label={lang('Copy wallet address')}
         onClick={() => handleCopyAddress(address)}
       >
+        <img src={getChainNetworkIcon(chain)} alt="" className={styles.chainIcon} />
         {displayText}
         <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
       </button>

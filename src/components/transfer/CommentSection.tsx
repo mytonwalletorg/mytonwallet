@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { ApiChain } from '../../api/types';
@@ -50,16 +50,20 @@ function CommentSection({
     setTransferShouldEncrypt({ shouldEncrypt: option === 'encrypted' });
   });
 
+  const dropdownItems = useMemo(
+    () => isEncryptedCommentSupported ? COMMENT_DROPDOWN_ITEMS : COMMENT_DROPDOWN_ITEMS.slice(0, 1),
+    [isEncryptedCommentSupported],
+  );
+
   function renderCommentLabel() {
     return (
       <Dropdown
-        items={isEncryptedCommentSupported ? COMMENT_DROPDOWN_ITEMS : [COMMENT_DROPDOWN_ITEMS[0]]}
+        items={dropdownItems}
         selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncrypt ? 1 : 0].value}
-        theme="light"
+        theme="inherit"
         disabled={chain === 'tron'}
         menuPositionX="left"
         shouldTranslateOptions
-        className={styles.commentLabel}
         onChange={handleCommentOptionsChange}
       />
     );

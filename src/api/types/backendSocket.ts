@@ -1,9 +1,11 @@
 import type { ApiChain } from './misc';
 
+export type ApiSocketEventType = 'activity';
+
 type ApiSubscriptionAddress = {
   chain: ApiChain;
   address: string;
-  events: 'activity'[];
+  events: ApiSocketEventType[];
 };
 
 type ApiBaseClientSocketMessage = {

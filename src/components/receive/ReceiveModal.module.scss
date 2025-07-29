@@ -84,12 +84,46 @@
 }
 
 .tabs {
-  gap: 2rem;
+  --tab-gap-size: 2rem;
+
   justify-content: center !important;
+  padding: 0.75rem 0.75rem 0.5rem;
+}
+
+.tabsOverlay {
+  --tab-gap-size: 2rem;
+
+  top: 0.75rem;
+
+  justify-content: center !important;
+
+  min-width: 100%;
+  padding: 0 0.75rem;
+
+  background: linear-gradient(
+      90deg,
+      var(--color-activity-blue-background) 0%,
+      var(--color-activity-blue-background) 42%,
+      var(--color-activity-red-background) 58%,
+      var(--color-activity-red-background) 100%);
+}
+
+.tabsInModal {
+  @include mixins.separatorBottom();
 }
 
 .tab {
   flex-grow: 0 !important;
+}
+
+.tabTon:global(.current-tab) {
+  color: var(--color-activity-blue);
+  background-color: var(--color-activity-blue-background) !important;
+}
+
+.tabTron:global(.current-tab) {
+  color: var(--color-activity-red-text);
+  background-color: var(--color-activity-red-background) !important;
 }
 
 .qrCode {

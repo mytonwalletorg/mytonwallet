@@ -129,6 +129,7 @@ Toggle Hide Tiny Transfers: Alternar ocultar transacciones pequeñas
 Network: Red
 Developer Options: Opciones de desarrollador
 All Wallet Versions: Todas las versiones de wallet
+Create TON-Only Wallet: Crear wallet solo de TON
 Confirmation: Confirmar
 Signing Data: Datos de Firma
 Contract Initialization Data: Datos de Inicialización del Contrato
@@ -152,7 +153,7 @@ Copy wallet address: Copiar la dirección del monedero
 View address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
 You have just created a new wallet: Acabas de crear un nuevo monedero
 You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
-Assets: Activos
+Coins: Monedas
 Activity: Actividad
 NFT: NFT
 No NFTs yet: Aún no tienes NFT
@@ -299,7 +300,7 @@ $dapps-description: Puede iniciar sesión en dapps compatibles con %app_name%. P
 Logged in with %app_name%: Conectado con %app_name%
 No active connections: No hay conexiones activas
 Other: Otros
-Assets & Activity: Activos & Actividad
+Coins & Activity: Monedas & Actividad
 Token Settings: Configuración de fichas
 My Tokens: Mis Tokens
 Add Token: Agregar token
@@ -926,8 +927,12 @@ Show All: Mostrar todo
 Description: Descripción
 No additional data.: No hay datos adicionales.
 Domain was copied!: ¡Dominio copiado!
+$in_currency: en %currency%
+Rename Wallet: Renombrar monedero
+You can rename this wallet for easier identification.: Puedes renombrar este monedero para identificarlo más fácilmente.
 $storage_cleared_title: Almacenamiento de la aplicación borrado
 $storage_cleared_message: |
   Los datos de su billetera han sido borrados debido a problemas del navegador o de espacio en disco. Por favor, cierre sesión de todas las billeteras y luego impórtelas manualmente usando sus palabras secretas.
 
   Si necesita asistencia, por favor contacte a %support_link%.
+Collectibles: Coleccionables

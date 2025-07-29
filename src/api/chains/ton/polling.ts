@@ -23,47 +23,42 @@ import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs } from '../../../util/activities';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import Deferred from '../../../util/Deferred';
+import { focusAwareDelay } from '../../../util/focusAwareDelay';
 import { compact, pick } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
-import { createTaskQueue } from '../../../util/schedulers';
+import { createTaskQueue, pause, throttle } from '../../../util/schedulers';
 import { fetchStoredAccount, fetchStoredTonWallet, updateStoredTonWallet } from '../../common/accounts';
+import { enrichActivities } from '../../common/activities';
 import { getBackendConfigCache, getStakingCommonCache } from '../../common/cache';
-import { processNftUpdates, updateAccountNfts } from '../../common/nft';
-import { activeWalletTiming, inactiveWalletTiming, pollingLoop, withDoubleCheck } from '../../common/polling';
-import { swapReplaceCexActivities } from '../../common/swap';
+import { inactiveWalletTiming, periodToMs, pollingLoop, withDoubleCheck } from '../../common/polling/utils';
+import { WalletPolling } from '../../common/polling/walletPolling';
 import { txCallbacks } from '../../common/txCallbacks';
 import { hexToBytes } from '../../common/utils';
-import { WalletPolling } from '../../common/walletPolling';
 import { FIRST_TRANSACTIONS_LIMIT, MINUTE, SEC } from '../../constants';
 import { fetchActivitySlice } from './activities';
 import { getWalletFromAddress } from './auth';
 import { fetchDomains } from './domains';
 import { getAccountNfts, getNftUpdates } from './nfts';
+import { RichActivityStream } from './richActivityStream';
 import { getBackendStakingState, getStakingStates } from './staking';
 import { loadTokenBalances } from './tokens';
+import { ActivityStream } from './toncenter';
 import { fetchVestings } from './vesting';
 import { getWalletInfo, getWalletVersionInfos, isAddressInitialized } from './wallet';
 
 type OnUpdatingStatusChange = (kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => void;
 
-const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
-const DOUBLE_CHECK_ACTIVITIES_PAUSE = 10 * SEC; // TODO (actions) Can it be reduced?
-const TRIPLE_CHECK_ACTIVITIES_PAUSE = 20 * SEC;
+const POLL_DELAY_AFTER_SOCKET = 3 * SEC;
+const POLL_MIN_INTERVAL = { focused: 2 * SEC, notFocused: 10 * SEC };
+const BALANCE_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
+const INITIALIZATION_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
+const STAKING_INTERVAL = { focused: 5 * SEC, notFocused: 20 * SEC };
+const VERSIONS_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
+const VESTING_INTERVAL = { focused: 10 * SEC, notFocused: MINUTE };
+const TON_DNS_INTERVAL = { focused: 15 * SEC, notFocused: 2 * MINUTE };
 
-const NFT_FULL_INTERVAL = MINUTE;
-const NFT_FULL_INTERVAL_WHEN_NOT_FOCUSED = 5 * MINUTE;
+const NFT_FULL_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
 const DOUBLE_CHECK_NFT_PAUSE = 5 * SEC;
-
-const STAKING_INTERVAL = 5 * SEC;
-const STAKING_INTERVAL_WHEN_NOT_FOCUSED = 20 * SEC;
-
-const VERSIONS_INTERVAL = 5 * MINUTE;
-const VERSIONS_INTERVAL_WHEN_NOT_FOCUSED = 15 * MINUTE;
-const VESTING_INTERVAL = 10 * SEC;
-const VESTING_INTERVAL_WHEN_NOT_FOCUSED = MINUTE;
-
-const TON_DNS_INTERVAL = 15 * SEC;
-const TON_DNS_INTERVAL_WHEN_NOT_FOCUSED = 2 * MINUTE;
 
 const MAX_ACTIVITY_LOAD_CONCURRENCY = 10;
 
@@ -85,49 +80,37 @@ export function setupActivePolling(
     onUpdate,
     onUpdatingStatusChange.bind(undefined, 'balance'),
   );
-  const activityPolling = setupActivityPolling(
+  const stopActivityPolling = setupActivityPolling(
     accountId,
+    account.ton.address,
     newestActivityTimestamps,
     balanceAndDomainPolling.getBalances,
+    handleWalletUpdate,
     onUpdate,
     onUpdatingStatusChange.bind(undefined, 'activities'),
   );
   const nftPolling = setupNftPolling(accountId, onUpdate);
+  const walletInitializationPolling = setupWalletInitializationPolling(accountId);
   const stopWalletVersionPolling = setupWalletVersionsPolling(accountId, onUpdate);
   const stopTonDnsPolling = setupTonDnsPolling(accountId, onUpdate);
   const stopStakingPolling = setupStakingPolling(accountId, balanceAndDomainPolling.getBalances, onUpdate);
   const stopVestingPolling = setupVestingPolling(accountId, onUpdate);
 
-  async function update(isConfident: boolean) {
-    const updateOther = () => Promise.all([
-      activityPolling.update(),
-      nftPolling.update(),
-      checkWalletInitialization(accountId),
-    ]);
+  async function handleWalletUpdate() {
+    // The TON balance updates in `getWalletInfo` several seconds after an activity arrive from the Toncenter socket.
+    // This delay is up to 2 seconds, and 1 second is added as a safety margin.
+    // We suppose that the other HTTP API data can be delayed, so we delay all socket-triggerred pollings.
+    await pause(POLL_DELAY_AFTER_SOCKET);
 
-    if (isConfident) {
-      await Promise.all([balanceAndDomainPolling.update(), updateOther()]);
-    } else {
-      // Legacy (timer) polling mode
-      const hasBalanceChanged = await balanceAndDomainPolling.update(true);
-      if (hasBalanceChanged) {
-        await updateOther();
-      }
-    }
+    // These data change only when the wallet gets new activities. The other pollings don't depend on the wallet content.
+    balanceAndDomainPolling.poll();
+    nftPolling.poll();
+    walletInitializationPolling.poll();
   }
 
-  const walletPolling = new WalletPolling({
-    ...activeWalletTiming,
-    chain: 'ton',
-    network: parseAccountId(accountId).network,
-    address: account.ton.address,
-    onUpdate: update,
-  });
-
   return () => {
-    walletPolling.destroy();
     balanceAndDomainPolling.stop();
-    activityPolling.stop();
+    stopActivityPolling();
     nftPolling.stop();
     stopWalletVersionPolling();
     stopTonDnsPolling();
@@ -141,43 +124,62 @@ function setupBalanceAndDomainPolling(
   onUpdate: OnApiUpdate,
   onUpdatingStatusChange?: (isUpdating: boolean) => void,
 ) {
+  const balanceUpdater = makeBalanceAndDomainUpdater(accountId, onUpdate, onUpdatingStatusChange);
+
+  const polling = pollingLoop({
+    period: BALANCE_INTERVAL,
+    minDelay: POLL_MIN_INTERVAL,
+    poll: balanceUpdater.update,
+  });
+
+  return {
+    ...polling,
+    getBalances: balanceUpdater.get,
+  };
+}
+
+function makeBalanceAndDomainUpdater(
+  accountId: string,
+  onUpdate: OnApiUpdate,
+  onUpdatingStatusChange?: (isUpdating: boolean) => void,
+) {
   const { network } = parseAccountId(accountId);
   let balances: ApiBalanceBySlug | undefined;
   let balancesDeferred = new Deferred();
   let lastDomain: string | false | undefined; // Undefined means unknown, false means no domain
 
-  /**
-   * `onlyIfTonBalanceChanged` makes the function check the TON balance first, and proceed only if it has changed.
-   * Returns `true` if the balances have changed since the last update.
-   */
-  async function update(onlyIfTonBalanceChanged = false) {
+  async function get() {
+    await balancesDeferred.promise;
+    return balances!;
+  }
+
+  async function update() {
     onUpdatingStatusChange?.(true);
 
     try {
       const wallet = await fetchStoredTonWallet(accountId);
-      let tonBalance: bigint;
-      let tokenBalances: ApiBalanceBySlug;
+      const [tonBalance, tokenBalances] = await Promise.all([
+        getTonBalanceAndCheckDomain(wallet.address),
+        loadTokenBalances(network, wallet.address, onUpdate),
+      ]);
 
-      if (onlyIfTonBalanceChanged) {
-        tonBalance = await getTonBalanceAndCheckDomain(wallet.address);
-        if (tonBalance === balances?.[TONCOIN.slug]) {
-          return false;
-        }
-        tokenBalances = await updateTokenBalances.run(wallet.address);
-      } else {
-        [tonBalance, tokenBalances] = await Promise.all([
-          getTonBalanceAndCheckDomain(wallet.address),
-          updateTokenBalances.run(wallet.address),
-        ]);
-      }
-
-      const hasChanged = handleNewBalances({
+      const newBalances = {
         [TONCOIN.slug]: tonBalance,
         ...tokenBalances,
-      });
+      };
+      const hasChanged = !areDeepEqual(balances, newBalances);
+      balances = newBalances;
+
+      if (hasChanged) {
+        onUpdate({
+          type: 'updateBalances',
+          accountId,
+          chain: 'ton',
+          balances,
+        });
+      }
 
       balancesDeferred.resolve();
-      return hasChanged;
     } catch (err) {
       logDebugError('setupBalanceAndDomainPolling update', err);
 
@@ -188,34 +190,7 @@ function setupBalanceAndDomainPolling(
     } finally {
       onUpdatingStatusChange?.(false);
     }
-
-    return false;
   }
-
-  // The token balances may not be updated instantly, so checking again in several seconds
-  const updateTokenBalances = withDoubleCheck(
-    [DOUBLE_CHECK_TOKENS_PAUSE],
-    async (attemptNumber, address: string) => {
-      // In the first attempt the other nuances are handled by `update`
-      if (attemptNumber === 0) {
-        return loadTokenBalances(network, address, onUpdate);
-      }
-
-      try {
-        const tokenBalances = await loadTokenBalances(network, address, onUpdate);
-
-        handleNewBalances({
-          ...pick(balances ?? {}, [TONCOIN.slug]),
-          ...tokenBalances,
-        });
-
-        return tokenBalances;
-      } catch (err) {
-        logDebugError('setupBalanceAndDomainPolling updateTokenBalances', err);
-        return {}; // This is just for type compliance. The returned value of 2nd+ attempts is never used.
-      }
-    },
-  );
 
   async function getTonBalanceAndCheckDomain(address: string) {
     // Getting the balance and the domain go together, only because they arrive from the same endpoint
@@ -234,67 +209,87 @@ function setupBalanceAndDomainPolling(
     return balance;
   }
 
-  function handleNewBalances(newBalances: ApiBalanceBySlug) {
-    const hasChanged = !areDeepEqual(balances, newBalances);
-    balances = newBalances;
-
-    if (hasChanged) {
-      onUpdate({
-        type: 'updateBalances',
-        accountId,
-        chain: 'ton',
-        balances,
-      });
-    }
-
-    return hasChanged;
-  }
-
-  return {
-    update,
-    async getBalances() {
-      await balancesDeferred.promise;
-      return balances!;
-    },
-    stop: updateTokenBalances.cancel,
-  };
+  return { get, update };
 }
 
+// A good address for testing: UQD5mxRgCuRNLxKxeOjG6r14iSroLF5FtomPnet-sgP5xI-e
 function setupActivityPolling(
   accountId: string,
-  newestActivityTimestamps: ApiActivityTimestamps,
+  address: string,
+  newestConfirmedActivityTimestamps: ApiActivityTimestamps,
   getBalances: () => Promise<ApiBalanceBySlug>,
+  onRawActivity: NoneToVoidFunction,
   onUpdate: OnApiUpdate,
   onUpdatingStatusChange: (isUpdating: boolean) => void,
 ) {
-  const newestTimestamps = compact(Object.values(newestActivityTimestamps));
-  let newestActivityTimestamp = newestTimestamps.length ? Math.max(...newestTimestamps) : undefined;
+  let isStopped = false;
+  let rawActivityStream: ActivityStream | undefined;
+  let richActivityStream: RichActivityStream | undefined;
 
-  // The activity update may be delayed after the socket signal, so we wait a few seconds before the 2nd attempt.
-  // We suspect that the 2nd attempt after a short delay doesn't always bring the new activities, so we check 3 times.
-  const update = withDoubleCheck(
-    [DOUBLE_CHECK_ACTIVITIES_PAUSE, TRIPLE_CHECK_ACTIVITIES_PAUSE],
-    async () => {
+  const newestTimestamps = compact(Object.values(newestConfirmedActivityTimestamps));
+  let newestConfirmedActivityTimestamp = newestTimestamps.length ? Math.max(...newestTimestamps) : undefined;
+
+  async function loadInitialActivities() {
+    try {
       onUpdatingStatusChange(true);
+      const tokenSlugs = Object.keys(await getBalances());
+      return await loadInitialConfirmedActivities(accountId, tokenSlugs, onUpdate);
+    } catch (err) {
+      logDebugError('loadInitialConfirmedActivities', err);
+      return undefined;
+    } finally {
+      onUpdatingStatusChange(false);
+    }
+  }
 
-      try {
-        if (newestActivityTimestamp) {
-          newestActivityTimestamp = await loadNewActivities(accountId, newestActivityTimestamp, onUpdate);
-        } else {
-          const balances = await getBalances();
-          newestActivityTimestamp = await loadInitialActivities(accountId, Object.keys(balances), onUpdate);
-        }
-      } catch (err) {
-        logDebugError('setupActivityPolling update', err);
-      } finally {
-        onUpdatingStatusChange(false);
-      }
-    },
-  );
+  function onRawActivities(confirmedActivities: ApiActivity[]) {
+    if (confirmedActivities.length) {
+      onRawActivity();
+    }
+  }
 
-  return {
-    update: update.run,
-    stop: update.cancel,
+  function onRichActivities(confirmedActivities: ApiActivity[], pendingActivities: readonly ApiActivity[]) {
+    confirmedActivities.slice().reverse().forEach((activity) => {
+      txCallbacks.runCallbacks(activity);
+    });
+
+    onUpdate({
+      type: 'newActivities',
+      chain: 'ton',
+      activities: confirmedActivities,
+      pendingActivities,
+      accountId,
+    });
+  }
+
+  void (async () => {
+    const doesNeedInitial = newestConfirmedActivityTimestamp === undefined;
+    if (doesNeedInitial) {
+      newestConfirmedActivityTimestamp = await loadInitialActivities();
+      onRawActivity(); // Just in case, because new activities may have arrived while loading the initial ones
+    }
+
+    if (isStopped) return;
+
+    rawActivityStream = new ActivityStream(
+      parseAccountId(accountId).network,
+      address,
+      newestConfirmedActivityTimestamp,
+      // If the initial activities are loaded, the polling on start is excessive
+      !doesNeedInitial,
+    );
+
+    richActivityStream = new RichActivityStream(accountId, rawActivityStream);
+
+    rawActivityStream.onUpdate(onRawActivities);
+    richActivityStream.onUpdate(onRichActivities);
+    richActivityStream.onLoadingChange(onUpdatingStatusChange);
+  })();
+
+  return () => {
+    isStopped = true;
+    richActivityStream?.destroy();
+    rawActivityStream?.destroy();
   };
 }
 
@@ -312,7 +307,9 @@ function setupNftPolling(accountId: string, onUpdate: OnApiUpdate) {
         if (nftResult) {
           let nftUpdates: ApiNftUpdate[];
           [nftFromSec, nftUpdates] = nftResult;
-          void processNftUpdates(accountId, nftUpdates, onUpdate);
+          nftUpdates
+            .filter((update) => !(update.type === 'nftReceived' && update.nft.isHidden))
+            .forEach(onUpdate);
         }
       } catch (err) {
         logDebugError('setupNftPolling updatePartial', err);
@@ -320,9 +317,8 @@ function setupNftPolling(accountId: string, onUpdate: OnApiUpdate) {
     },
   );
 
-  const stopFullPolling = pollingLoop({
-    pause: NFT_FULL_INTERVAL,
-    pauseWhenNotFocused: NFT_FULL_INTERVAL_WHEN_NOT_FOCUSED,
+  const fullPolling = pollingLoop({
+    period: NFT_FULL_INTERVAL,
     async poll() {
       updatePartial.cancel();
 
@@ -331,7 +327,11 @@ function setupNftPolling(accountId: string, onUpdate: OnApiUpdate) {
 
         if (nfts) {
           nftFromSec = Math.round(Date.now() / 1000);
-          void updateAccountNfts(accountId, nfts, onUpdate);
+          onUpdate({
+            type: 'updateNfts',
+            accountId,
+            nfts,
+          });
         }
       } catch (err) {
         logDebugError('setupNftPolling updateFull', err);
@@ -340,10 +340,13 @@ function setupNftPolling(accountId: string, onUpdate: OnApiUpdate) {
   });
 
   return {
-    update: updatePartial.run,
+    poll: throttle(
+      updatePartial.run,
+      () => focusAwareDelay(...periodToMs(POLL_MIN_INTERVAL)),
+    ),
     stop() {
       updatePartial.cancel();
-      stopFullPolling();
+      fullPolling.stop();
     },
   };
 }
@@ -356,8 +359,7 @@ function setupStakingPolling(accountId: string, getBalances: () => Promise<ApiBa
   let lastStates: ApiStakingState[] | undefined;
 
   return pollingLoop({
-    pause: STAKING_INTERVAL,
-    pauseWhenNotFocused: STAKING_INTERVAL_WHEN_NOT_FOCUSED,
+    period: STAKING_INTERVAL,
     async poll() {
       try {
         const [common, balances, backendState] = await Promise.all([
@@ -383,35 +385,10 @@ function setupStakingPolling(accountId: string, getBalances: () => Promise<ApiBa
         logDebugError('setupStakingPolling', err);
       }
     },
-  });
+  }).stop;
 }
 
-async function loadNewActivities(accountId: string, newestActivityTimestamp: number, onUpdate: OnApiUpdate) {
-  let activities = await fetchActivitySlice(
-    accountId, undefined, undefined, newestActivityTimestamp, FIRST_TRANSACTIONS_LIMIT,
-  );
-
-  if (activities.length) {
-    newestActivityTimestamp = activities[0].timestamp;
-  }
-
-  activities = await swapReplaceCexActivities(accountId, activities, undefined, true);
-
-  activities.slice().reverse().forEach((transaction) => {
-    txCallbacks.runCallbacks(transaction);
-  });
-
-  onUpdate({
-    type: 'newActivities',
-    chain: 'ton',
-    activities,
-    accountId,
-  });
-
-  return newestActivityTimestamp;
-}
-
-async function loadInitialActivities(accountId: string, tokenSlugs: string[], onUpdate: OnApiUpdate) {
+async function loadInitialConfirmedActivities(accountId: string, tokenSlugs: string[], onUpdate: OnApiUpdate) {
   const concurrencyLimiter = createTaskQueue(MAX_ACTIVITY_LOAD_CONCURRENCY);
 
   const bySlug: Record<string, ApiActivity[]> = {};
@@ -422,9 +399,9 @@ async function loadInitialActivities(accountId: string, tokenSlugs: string[], on
   const loadTokenActivity = concurrencyLimiter.wrap(async (slug: string) => {
     try {
       const tokenSlug = slug !== TONCOIN.slug ? slug : undefined;
-      let activities = await fetchActivitySlice(accountId, tokenSlug, undefined, FIRST_TRANSACTIONS_LIMIT);
+      let activities = await fetchActivitySlice(accountId, tokenSlug, undefined, undefined, FIRST_TRANSACTIONS_LIMIT);
 
-      activities = await swapReplaceCexActivities(accountId, activities, slug, true);
+      activities = await enrichActivities(accountId, activities, slug, true);
 
       if (slug === TONCOIN.slug && activities.length) {
         // Activities for each Jetton wallet are loaded only the first time.
@@ -467,8 +444,7 @@ function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
   let lastResult: ApiWalletInfo[] | undefined;
 
   return pollingLoop({
-    pause: VERSIONS_INTERVAL,
-    pauseWhenNotFocused: VERSIONS_INTERVAL_WHEN_NOT_FOCUSED,
+    period: VERSIONS_INTERVAL,
     async poll() {
       try {
         const { type: accountType, ton: tonWallet } = await fetchStoredAccount(accountId);
@@ -516,15 +492,14 @@ function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
 
       return undefined;
     },
-  });
+  }).stop;
 }
 
 function setupTonDnsPolling(accountId: string, onUpdate: OnApiUpdate) {
   let lastResult: Awaited<ReturnType<typeof fetchDomains>> | undefined;
 
   return pollingLoop({
-    pause: TON_DNS_INTERVAL,
-    pauseWhenNotFocused: TON_DNS_INTERVAL_WHEN_NOT_FOCUSED,
+    period: TON_DNS_INTERVAL,
     async poll() {
       try {
         const result = await fetchDomains(accountId);
@@ -546,7 +521,7 @@ function setupTonDnsPolling(accountId: string, onUpdate: OnApiUpdate) {
         logDebugError('setupTonDnsPolling', err);
       }
     },
-  });
+  }).stop;
 }
 
 function setupVestingPolling(accountId: string, onUpdate: OnApiUpdate) {
@@ -557,8 +532,7 @@ function setupVestingPolling(accountId: string, onUpdate: OnApiUpdate) {
   let lastVestingInfo: ApiVestingInfo[] | undefined;
 
   return pollingLoop({
-    pause: VESTING_INTERVAL,
-    pauseWhenNotFocused: VESTING_INTERVAL_WHEN_NOT_FOCUSED,
+    period: VESTING_INTERVAL,
     async prepare() {
       const { isVestingEnabled } = await getBackendConfigCache();
       return isVestingEnabled;
@@ -585,7 +559,7 @@ function setupVestingPolling(accountId: string, onUpdate: OnApiUpdate) {
 
       return undefined;
     },
-  });
+  }).stop;
 }
 
 export function setupInactivePolling(
@@ -597,55 +571,60 @@ export function setupInactivePolling(
     return () => {};
   }
 
-  const balancePolling = setupBalanceAndDomainPolling(accountId, onUpdate);
+  const balanceUpdater = makeBalanceAndDomainUpdater(accountId, onUpdate);
 
   const walletPolling = new WalletPolling({
     ...inactiveWalletTiming,
     chain: 'ton',
     network: parseAccountId(accountId).network,
     address: account.ton.address,
-    onUpdate: inactiveUpdateConcurrencyLimiter.wrap(async (isConfident) => {
-      await balancePolling.update(!isConfident);
+    onUpdate: inactiveUpdateConcurrencyLimiter.wrap(async () => {
+      await balanceUpdater.update();
     }),
   });
 
   return () => {
     walletPolling.destroy();
-    balancePolling.stop();
   };
 }
 
-async function checkWalletInitialization(accountId: string) {
-  try {
-    const wallet = await fetchStoredTonWallet(accountId);
+function setupWalletInitializationPolling(accountId: string) {
+  return pollingLoop({
+    period: INITIALIZATION_INTERVAL,
+    minDelay: POLL_MIN_INTERVAL,
+    async poll() {
+      try {
+        const wallet = await fetchStoredTonWallet(accountId);
 
-    if (wallet.isInitialized) {
-      return;
-    }
+        if (wallet.isInitialized) {
+          return 'stop';
+        }
 
-    const { network } = parseAccountId(accountId);
-    const doesNeedPublicKey = !wallet.publicKey;
-    let walletUpdate: Partial<ApiTonWallet> | undefined;
+        const { network } = parseAccountId(accountId);
+        const doesNeedPublicKey = !wallet.publicKey;
+        let walletUpdate: Partial<ApiTonWallet> | undefined;
 
-    if (doesNeedPublicKey) {
-      // This branch isn't used always, because it makes more network requests than the other
-      const updatedWallet = await getWalletFromAddress(network, wallet.address);
-      if (!('error' in updatedWallet) && updatedWallet.wallet.isInitialized) {
-        // It's important to load and save `version` along with `publicKey` because the app couldn't get the proper
-        // wallet version without knowing the `publicKey`.
-        walletUpdate = pick(updatedWallet.wallet, ['isInitialized', 'publicKey', 'version']);
+        if (doesNeedPublicKey) {
+          // This branch isn't used always, because it makes more network requests than the other
+          const updatedWallet = await getWalletFromAddress(network, wallet.address);
+          if (!('error' in updatedWallet) && updatedWallet.wallet.isInitialized) {
+            // It's important to load and save `version` along with `publicKey` because the app couldn't get the proper
+            // wallet version without knowing the `publicKey`.
+            walletUpdate = pick(updatedWallet.wallet, ['isInitialized', 'publicKey', 'version']);
+          }
+        } else {
+          const isInitialized = await isAddressInitialized(network, wallet.address);
+          if (isInitialized) {
+            walletUpdate = { isInitialized };
+          }
+        }
+
+        if (walletUpdate) {
+          await updateStoredTonWallet(accountId, walletUpdate);
+        }
+      } catch (err) {
+        logDebugError('checkWalletInitialization', err);
       }
-    } else {
-      const isInitialized = await isAddressInitialized(network, wallet.address);
-      if (isInitialized) {
-        walletUpdate = { isInitialized };
-      }
-    }
-
-    if (walletUpdate) {
-      await updateStoredTonWallet(accountId, walletUpdate);
-    }
-  } catch (err) {
-    logDebugError('checkWalletInitialization', err);
-  }
+    },
+  });
 }

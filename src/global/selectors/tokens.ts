@@ -45,7 +45,7 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
     .map(([slug, balance]) => {
       const {
         symbol, name, image, decimals, cmcSlug, color, chain, tokenAddress, codeHash,
-        type, price, percentChange24h, priceUsd,
+        type, price = 0, percentChange24h = 0, priceUsd,
       } = tokenInfo.bySlug[slug];
 
       const balanceBig = toBig(balance, decimals);

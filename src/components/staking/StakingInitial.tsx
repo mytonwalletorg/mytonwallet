@@ -1,14 +1,18 @@
 import { Dialog } from '@capacitor/dialog';
-import React, { memo, type TeactNode, useEffect, useMemo, useState } from '../../lib/teact/teact';
+import React, { memo, type TeactNode, useCallback, useEffect, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiStakingState, ApiTokenWithPrice } from '../../api/types';
+import type { ApiBaseCurrency, ApiStakingState, ApiTokenWithPrice } from '../../api/types';
 import type { UserToken } from '../../global/types';
+import type { Big } from '../../lib/big.js';
 import { StakingState } from '../../global/types';
 
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
-  ANIMATED_STICKER_SMALL_SIZE_PX, ETHENA_ELIGIBILITY_CHECK_URL,
+  ANIMATED_STICKER_SMALL_SIZE_PX,
+  CURRENCIES,
+  DEFAULT_PRICE_CURRENCY,
+  ETHENA_ELIGIBILITY_CHECK_URL,
   HELP_CENTER_ETHENA_URL,
   JVAULT_URL,
   SHORT_FRACTION_DIGITS,
@@ -24,7 +28,7 @@ import {
 } from '../../global/selectors';
 import { bigintMax } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
-import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
+import { toBig, toDecimal } from '../../util/decimals';
 import { stopEvent } from '../../util/domEvents';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency } from '../../util/formatNumber';
@@ -37,21 +41,20 @@ import calcJettonStakingApr from '../../util/ton/calcJettonStakingApr';
 import { getHostnameFromUrl } from '../../util/url';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import { buildStakingDropdownItems } from './helpers/buildStakingDropdownItems';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useSyncEffect from '../../hooks/useSyncEffect';
+import { useAmountInputState } from '../ui/hooks/useAmountInputState';
+import { useTokenDropdown } from './hooks/useTokenDropdown';
 
-import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
+import AmountInput from '../ui/AmountInput';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
 import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
 import RichNumberField from '../ui/RichNumberField';
-import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -68,11 +71,19 @@ interface StateProps {
   apiError?: string;
   tokens?: UserToken[];
   tokenBySlug?: Record<string, ApiTokenWithPrice>;
-  fee?: bigint;
   stakingState?: ApiStakingState;
   states?: ApiStakingState[];
   shouldUseNominators?: boolean;
   isSensitiveDataHidden?: true;
+  baseCurrency: ApiBaseCurrency;
+}
+
+const enum BottomRightSlide {
+  Fee,
+  InsufficientBalance,
+  InsufficientFee,
+  BelowMinimumAmount,
+  ApiError,
 }
 
 const ACTIVE_STATES = new Set([StakingState.StakeInitial, StakingState.None]);
@@ -87,11 +98,11 @@ function StakingInitial({
   apiError,
   tokens,
   tokenBySlug,
-  fee,
   stakingState,
   states,
   shouldUseNominators,
   isSensitiveDataHidden,
+  baseCurrency,
 }: OwnProps & StateProps) {
   const {
     submitStakingInitial, fetchStakingFee, cancelStaking, changeCurrentStaking,
@@ -101,16 +112,15 @@ function StakingInitial({
 
   const [isSafeInfoModalOpen, openSafeInfoModal, closeSafeInfoModal] = useFlag();
   const [amount, setAmount] = useState<bigint | undefined>();
-  const [isIncorrectAmount, setIsIncorrectAmount] = useState<boolean>(false);
-  const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
-  const [isInsufficientFee, setIsInsufficientFee] = useState(false);
-  const [isBelowMinimumAmount, setIsBelowMinimumAmount] = useState(false);
-  const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
+  let isIncorrectAmount = false;
+  let isInsufficientBalance = false;
+  let isInsufficientFee = false;
+  let isBelowMinimumAmount = false;
 
   const {
+    id: stakingId,
     type: stakingType,
     tokenSlug,
-    balance: stakingBalance = 0n,
   } = stakingState ?? {};
 
   const token: UserToken | undefined = useMemo(() => {
@@ -145,7 +155,6 @@ function StakingInitial({
   }, [tokens, token, isNativeToken]);
   const nativeBalance = nativeToken?.amount ?? 0n;
 
-  const hasAmountError = Boolean(isInsufficientBalance || apiError);
   const minAmount = getStakingMinAmount(stakingType);
 
   const { gas: networkFee, real: realFee } = getTonStakingFees(stakingState?.type).stake;
@@ -163,56 +172,29 @@ function StakingInitial({
 
   const title = getStakingTitle();
 
-  const validateAndSetAmount = useLastCallback((newAmount: bigint | undefined, noReset = false) => {
-    if (!noReset) {
-      setShouldUseAllBalance(false);
-      setIsIncorrectAmount(false);
-      setIsInsufficientBalance(false);
-      setIsBelowMinimumAmount(false);
-      setIsInsufficientFee(false);
-    }
-
-    if (newAmount === undefined) {
-      setAmount(undefined);
-      return;
-    }
-
-    if (Number.isNaN(newAmount) || newAmount < 0) {
-      setIsIncorrectAmount(true);
-      return;
-    }
-
-    if (newAmount < minAmount) {
-      setIsBelowMinimumAmount(true);
-    } else if (!maxAmount || newAmount > balance) {
-      setIsInsufficientBalance(true);
+  if (amount !== undefined) {
+    if (Number.isNaN(amount) || amount < 0) {
+      isIncorrectAmount = true;
+    } else if (amount < minAmount) {
+      isBelowMinimumAmount = true;
+    } else if (!maxAmount || amount > balance) {
+      isInsufficientBalance = true;
     } else if (nativeBalance < networkFee || (isNativeToken && nativeAmount > balance)) {
-      setIsInsufficientFee(true);
+      isInsufficientFee = true;
     }
+  }
 
-    setAmount(newAmount);
+  const [selectedToken, selectableTokens] = useTokenDropdown({
+    tokenBySlug,
+    states,
+    shouldUseNominators,
+    selectedStakingId: stakingId,
   });
-
-  const dropDownItems = useMemo(() => {
-    if (!tokenBySlug || !states) {
-      return [];
-    }
-
-    return buildStakingDropdownItems({ tokenBySlug, states, shouldUseNominators });
-  }, [tokenBySlug, states, shouldUseNominators]);
 
   const handleHelpCenterClick = useLastCallback(() => {
     const url = HELP_CENTER_ETHENA_URL[lang.code as never] ?? HELP_CENTER_ETHENA_URL.en;
     void openUrl(url, { title: lang('Help Center'), subtitle: getHostnameFromUrl(url) });
   });
-
-  useEffect(() => {
-    if (shouldUseAllBalance && maxAmount) {
-      validateAndSetAmount(maxAmount, true);
-    } else {
-      validateAndSetAmount(amount, true);
-    }
-  }, [amount, fee, shouldUseAllBalance, validateAndSetAmount, maxAmount]);
 
   useEffect(() => {
     if (!amount) {
@@ -278,16 +260,6 @@ function StakingInitial({
     }
   }, [isSafeInfoModalOpen, lang, stakingState, title]);
 
-  const handleMaxAmountClick = useLastCallback(() => {
-    if (!maxAmount) {
-      return;
-    }
-
-    void vibrate();
-
-    setShouldUseAllBalance(true);
-  });
-
   const canSubmit = amount
     && maxAmount
     && !isViewMode
@@ -308,59 +280,42 @@ function StakingInitial({
     submitStakingInitial({ amount });
   });
 
-  const handleAmountChange = useLastCallback((stringValue?: string) => {
-    const value = stringValue ? fromDecimal(stringValue, decimals) : undefined;
-    validateAndSetAmount(value);
-  });
-
   const handleCheckEligibility = useLastCallback(() => {
     void openUrl(ETHENA_ELIGIBILITY_CHECK_URL);
   });
 
-  function getError() {
+  const [error, errorTransitionKey] = useMemo(() => {
     if (isInsufficientBalance) {
-      return lang('Insufficient balance');
+      return [
+        lang('Insufficient balance'),
+        BottomRightSlide.InsufficientBalance,
+      ];
     }
 
     if (isInsufficientFee) {
-      return lang('$insufficient_fee', { fee: formatCurrency(toDecimal(networkFee), nativeToken?.symbol ?? '') });
+      return [
+        lang('$insufficient_fee', { fee: formatCurrency(toDecimal(networkFee), nativeToken?.symbol ?? '') }),
+        BottomRightSlide.InsufficientFee,
+      ];
     }
 
     if (isBelowMinimumAmount) {
-      return lang('$min_value', {
-        value: (
-          <span className={styles.minAmountValue}>
-            {formatCurrency(toDecimal(minAmount, decimals), symbol ?? '')}
-          </span>
-        ),
-      });
+      return [
+        lang('$min_value', { value: formatCurrency(toDecimal(minAmount, decimals), symbol ?? '') }),
+        BottomRightSlide.BelowMinimumAmount,
+      ];
     }
 
-    return apiError ? lang(apiError) : undefined;
-  }
+    return apiError
+      ? [lang(apiError), BottomRightSlide.ApiError]
+      : [undefined, BottomRightSlide.Fee];
+  }, [
+    apiError, decimals, isBelowMinimumAmount, isInsufficientBalance, isInsufficientFee, lang, minAmount,
+    nativeToken?.symbol, networkFee, symbol,
+  ]);
 
-  function renderTopRight() {
-    return (
-      <AmountFieldMaxButton
-        maxAmount={maxAmount}
-        token={token}
-        isLoading={!token}
-        isSensitiveDataHidden={isSensitiveDataHidden}
-        onAmountClick={handleMaxAmountClick}
-      />
-    );
-  }
-
-  function renderBottomRight() {
-    const error = getError();
-
-    const activeKey = isInsufficientBalance ? 0
-      : isInsufficientFee ? 1
-        : isBelowMinimumAmount ? 2
-          : apiError ? 3
-            : !stakingBalance && !hasAmountError ? 4
-              : 5;
-
+  // It is necessary to use useCallback instead of useLastCallback here
+  const renderBottomRight = useCallback((className?: string) => {
     let content: string | TeactNode[] | React.JSX.Element = ' ';
 
     if (error) {
@@ -375,15 +330,19 @@ function StakingInitial({
 
     return (
       <Transition
-        className={buildClassName(styles.amountBottomRight, isIncorrectAmount && styles.amountBottomRight_error)}
+        className={buildClassName(
+          styles.amountBottomRight,
+          isIncorrectAmount && styles.amountBottomRight_error,
+          className,
+        )}
         slideClassName={styles.amountBottomRight_slide}
-        name="fade"
-        activeKey={activeKey}
+        name="semiFade"
+        activeKey={errorTransitionKey}
       >
         {content}
       </Transition>
     );
-  }
+  }, [error, errorTransitionKey, isIncorrectAmount, lang, realFee, token]);
 
   function renderJettonDescription() {
     return (
@@ -472,21 +431,46 @@ function StakingInitial({
   }
 
   function renderStakingResult() {
-    const balanceResult = amount
-      ? toBig(amount, decimals).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString()
-      : '0';
+    const amountBig = toBig(amount ?? 0, decimals);
+    let currentAmount: Big;
+    let prefix: string | undefined;
+    let suffix: string | undefined;
+
+    if (amountInputProps.isBaseCurrency) {
+      currentAmount = amountBig.mul(token?.price ?? 0);
+      const { shortSymbol } = CURRENCIES[baseCurrency];
+      if (shortSymbol) {
+        prefix = shortSymbol;
+      } else {
+        suffix = baseCurrency;
+      }
+    } else {
+      currentAmount = amountBig;
+    }
+
+    const balanceResult = currentAmount.mul((annualYield / 100) + 1).toString();
 
     return (
-      <RichNumberField
-        labelText={lang('Est. balance in a year')}
-        zeroValue="..."
-        value={balanceResult}
-        decimals={decimals}
+      <Transition
+        activeKey={amountInputProps.isBaseCurrency ? 0 : 1}
+        name="semiFade"
         className={styles.balanceResultWrapper}
-        inputClassName={buildClassName(styles.balanceResultInput, isStatic && styles.inputRichStatic)}
-        labelClassName={styles.balanceResultLabel}
-        valueClassName={styles.balanceResult}
-      />
+        slideClassName={styles.balanceResultWrapper__slide}
+        shouldCleanup
+      >
+        <RichNumberField
+          labelText={lang('Est. balance in a year')}
+          zeroValue="..."
+          value={balanceResult}
+          decimals={SHORT_FRACTION_DIGITS}
+          prefix={prefix}
+          suffix={suffix}
+          isStatic={isStatic}
+          inputClassName={styles.balanceResultInput}
+          labelClassName={styles.balanceResultLabel}
+          valueClassName={styles.balanceResult}
+        />
+      </Transition>
     );
   }
 
@@ -494,6 +478,14 @@ function StakingInitial({
     cancelStaking();
 
     changeCurrentStaking({ stakingId: id, shouldReopenModal: !isStatic });
+  });
+
+  const amountInputProps = useAmountInputState({
+    amount,
+    token,
+    baseCurrency,
+    onAmountChange: setAmount,
+    onTokenChange: handleChangeStaking,
   });
 
   return (
@@ -525,32 +517,18 @@ function StakingInitial({
         </div>
       </div>
 
-      {renderTopRight()}
-      <RichNumberInput
-        key="staking_amount"
-        id="staking_amount"
+      <AmountInput
+        {...amountInputProps}
+        maxAmount={maxAmount}
+        token={selectedToken}
+        allTokens={selectableTokens}
+        isStatic={isStatic}
         hasError={isIncorrectAmount || isInsufficientBalance}
-        value={amount === undefined ? undefined : toDecimal(amount, decimals)}
-        labelText={lang('Amount')}
-        onChange={handleAmountChange}
+        isMaxAmountLoading={!selectedToken}
+        isSensitiveDataHidden={isSensitiveDataHidden}
+        renderBottomRight={renderBottomRight}
         onPressEnter={handleSubmit}
-        decimals={decimals}
-        inputClassName={isStatic ? styles.inputRichStatic : undefined}
-        className={styles.amountInput}
-      >
-        <Dropdown
-          items={dropDownItems}
-          selectedValue={stakingState?.id}
-          className={styles.tokenDropdown}
-          itemClassName={styles.tokenDropdownItem}
-          onChange={handleChangeStaking}
-        />
-      </RichNumberInput>
-      <div className={buildClassName(styles.amountBottomWrapper, isStatic && styles.amountBottomWrapper_static)}>
-        <div className={styles.amountBottom}>
-          {renderBottomRight()}
-        </div>
-      </div>
+      />
 
       {renderStakingResult()}
 
@@ -578,11 +556,11 @@ export default memo(
       const accountState = selectCurrentAccountState(global);
       const tokens = selectCurrentAccountTokens(global);
       const tokenBySlug = global.tokenInfo.bySlug;
+      const { baseCurrency = DEFAULT_PRICE_CURRENCY, isSensitiveDataHidden } = global.settings;
 
       const {
         state,
         isLoading,
-        fee,
         error: apiError,
       } = global.currentStaking;
 
@@ -595,11 +573,11 @@ export default memo(
         tokens,
         tokenBySlug,
         apiError,
-        fee,
         stakingState,
         states,
         shouldUseNominators: accountState?.staking?.shouldUseNominators,
-        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+        isSensitiveDataHidden,
+        baseCurrency,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

@@ -15,6 +15,9 @@ import styles from './Dapp.module.scss';
 
 interface OwnProps {
   dapp?: ApiDapp;
+  customTokenBalance?: bigint;
+  customTokenSymbol?: string;
+  customTokenDecimals?: number;
 }
 
 interface StateProps {
@@ -28,12 +31,22 @@ function DappInfoWithAccount({
   toncoinBalance,
   currentAccountId,
   accounts,
+  customTokenBalance,
+  customTokenSymbol,
+  customTokenDecimals,
 }: OwnProps & StateProps) {
+  // Use custom token display if provided, otherwise use TON balance
+  const displayBalance = customTokenBalance !== undefined ? customTokenBalance : toncoinBalance;
+  const displaySymbol = customTokenSymbol || TONCOIN.symbol;
+  const displayDecimals = customTokenDecimals !== undefined ? customTokenDecimals : TONCOIN.decimals;
+
   return (
     <div className={styles.transactionDirection}>
       <div className={styles.transactionAccount}>
         <div className={styles.accountTitle}>{accounts?.[currentAccountId]?.title}</div>
-        <div className={styles.accountBalance}>{formatCurrency(toDecimal(toncoinBalance), TONCOIN.symbol)}</div>
+        <div className={styles.accountBalance}>
+          {formatCurrency(toDecimal(displayBalance, displayDecimals), displaySymbol)}
+        </div>
       </div>
 
       <DappInfo

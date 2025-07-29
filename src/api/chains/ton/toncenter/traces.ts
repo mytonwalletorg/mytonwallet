@@ -11,18 +11,23 @@ export type TracesResponse = {
 
 export async function fetchTrace(options: {
   network: ApiNetwork;
-  traceId: string;
+  msgHashNormalized: string;
+  isActionPending?: boolean;
 }): Promise<{
-    trace: Trace;
+    trace?: Trace;
     addressBook: AddressBook;
     metadata: MetadataMap;
   }> {
-  const { network, traceId } = options;
+  const { network, msgHashNormalized, isActionPending } = options;
 
-  const response = await callToncenterV3<TracesResponse>(network, '/traces', {
-    trace_id: traceId,
-    include_actions: true,
-  });
+  const response = await callToncenterV3<TracesResponse>(
+    network,
+    isActionPending ? '/pendingTraces' : '/traces',
+    {
+      [isActionPending ? 'ext_msg_hash' : 'msg_hash']: msgHashNormalized,
+      include_actions: true,
+    },
+  );
 
   return {
     trace: response.traces[0],

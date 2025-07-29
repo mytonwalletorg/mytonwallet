@@ -5,6 +5,7 @@ import type { IAnchorPosition } from '../types';
 
 import { requestForcedReflow } from '../lib/fasterdom/fasterdom';
 import { clamp } from '../util/math';
+import windowSize from '../util/windowSize';
 import { useStateRef } from './useStateRef';
 
 import styles from '../components/ui/Menu.module.scss';
@@ -190,6 +191,8 @@ function gatherBounds({
     ? triggerEl.getBoundingClientRect()
     : { ...EMPTY_RECT, left: anchor.x, top: anchor.y, right: anchor.x, bottom: anchor.y } as DOMRect;
   const rootRect = rootEl ? rootEl.getBoundingClientRect() : EMPTY_RECT;
+
+  rootRect.height -= windowSize.get().safeAreaBottom;
 
   let menuDimensions: MenuDimensions;
   if (menuEl) {
@@ -460,7 +463,7 @@ function processDynamically(
     layout.withPortal || false,
   );
 
-  const style = `left: ${finalCoordinates.x}px; top: ${finalCoordinates.y}px`;
+  const style = `left: ${finalCoordinates.x}px; top: ${finalCoordinates.y}px; --menu-width: ${menuDimensions.width}px;`;
 
   let bubbleStyle;
   if (withMaxHeight) {

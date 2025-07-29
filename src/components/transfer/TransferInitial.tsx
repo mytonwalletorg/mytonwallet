@@ -1,7 +1,5 @@
 import type { TeactNode } from '../../lib/teact/teact';
-import React, {
-  memo, useEffect, useMemo, useRef,
-} from '../../lib/teact/teact';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiFetchEstimateDieselResult } from '../../api/chains/ton/types';
@@ -11,8 +9,7 @@ import type { ExplainedTransferFee } from '../../util/fee/transferFee';
 import type { FeePrecision, FeeTerms } from '../../util/fee/types';
 import { TransferState } from '../../global/types';
 
-import { TONCOIN } from '../../config';
-import { Big } from '../../lib/big.js';
+import { DEFAULT_PRICE_CURRENCY, TONCOIN } from '../../config';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokenBalance,
@@ -23,31 +20,29 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { SECOND } from '../../util/dateFormat';
-import { fromDecimal, toBig } from '../../util/decimals';
 import { stopEvent } from '../../util/domEvents';
 import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
 } from '../../util/fee/transferFee';
-import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { vibrate } from '../../util/haptics';
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { trimStringByMaxBytes } from '../../util/text';
 import { getChainBySlug, getIsServiceToken, getNativeToken } from '../../util/tokens';
 
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useShowTransition from '../../hooks/useShowTransition';
+import { useTransitionActiveKey } from '../../hooks/useTransitionActiveKey';
+import { useAmountInputState } from '../ui/hooks/useAmountInputState';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
 import AddressInput from '../ui/AddressInput';
+import AmountInputSection from '../ui/AmountInput';
 import Button from '../ui/Button';
 import FeeLine from '../ui/FeeLine';
 import Transition from '../ui/Transition';
-import AmountInputSection from './AmountInputSection';
 import CommentSection from './CommentSection';
 import NftChips from './NftChips';
 import NftInfo from './NftInfo';
@@ -57,6 +52,7 @@ import styles from './Transfer.module.scss';
 
 interface OwnProps {
   isStatic?: boolean;
+  slideClassName?: string;
 }
 
 interface StateProps {
@@ -66,6 +62,7 @@ interface StateProps {
   amount?: bigint;
   comment?: string;
   shouldEncrypt?: boolean;
+  isActive: boolean;
   isLoading?: boolean;
   fee?: bigint;
   realFee?: bigint;
@@ -77,7 +74,7 @@ interface StateProps {
   nativeTokenBalance: bigint;
   isEncryptedCommentSupported: boolean;
   isMemoRequired?: boolean;
-  baseCurrency?: ApiBaseCurrency;
+  baseCurrency: ApiBaseCurrency;
   nfts?: ApiNft[];
   binPayload?: string;
   stateInit?: string;
@@ -95,6 +92,7 @@ const runDebounce = debounce((cb) => cb(), 500, false);
 
 function TransferInitial({
   isStatic,
+  slideClassName,
   tokenSlug,
   toAddress = '',
   resolvedAddress,
@@ -111,6 +109,7 @@ function TransferInitial({
   currentAccountId,
   isEncryptedCommentSupported,
   isMemoRequired,
+  isActive,
   isLoading,
   baseCurrency,
   nfts,
@@ -147,17 +146,13 @@ function TransferInitial({
   const lang = useLang();
 
   const transferToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
-  const {
-    amount: balance,
-    decimals,
-    price,
-    symbol,
-    chain,
-  } = transferToken || {};
+  const { amount: balance, symbol, chain } = transferToken || {};
 
   const isDisabledDebounce = useRef<boolean>(false);
   const isToncoin = tokenSlug === TONCOIN.slug;
   const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
+  const doesSupportComment = chain === 'ton';
+  const transitionKey = useTransitionActiveKey(nfts?.length ? nfts : [tokenSlug]);
 
   const handleAddressInput = useLastCallback((newToAddress?: string, isValueReplaced?: boolean) => {
     // If value is replaced, callbacks must be executed immediately, without debounce
@@ -170,12 +165,6 @@ function TransferInitial({
 
   const shouldDisableClearButton = !toAddress && !(comment || binPayload) && !shouldEncrypt
     && !(isNftTransfer ? isStatic : amount !== undefined);
-
-  const amountInCurrency = price && amount
-    ? toBig(amount, decimals).mul(price).round(decimals, Big.roundHalfUp).toString()
-    : undefined;
-  const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
-  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const explainedFee = useMemo(
     () => explainApiTransferFee({
@@ -206,18 +195,6 @@ function TransferInitial({
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted
     ? AUTHORIZE_DIESEL_INTERVAL_MS
     : undefined;
-
-  const { shouldRender: shouldRenderCurrency, ref: currencyRef } = useShowTransition({
-    isOpen: Boolean(amountInCurrency),
-    withShouldRender: true,
-  });
-  const renderedCurrencyValue = useMemo(() => {
-    return (
-      <span ref={currencyRef} className={styles.amountInCurrency}>
-        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol, undefined, true)}
-      </span>
-    );
-  }, [currencyRef, renderingAmountInCurrency, shortBaseSymbol]);
 
   const updateDieselState = useLastCallback(() => {
     fetchTransferDieselState({ tokenSlug });
@@ -300,22 +277,24 @@ function TransferInitial({
     }
   });
 
-  const handleAmountChange = useLastCallback((stringValue?: string) => {
-    const value = stringValue ? fromDecimal(stringValue, decimals) : undefined;
-    if (value === undefined || value >= 0) {
-      setTransferAmount({ amount: value });
-    }
-  });
-
-  const handleMaxAmountClick = useLastCallback(() => {
-    if (!balance) {
+  const handleAmountChange = (amount?: bigint, isValueReplaced?: boolean) => {
+    // The amount input may change the amount when it's in the base currency mode and the token price changes.
+    // Meanwhile, the amount in the global state must not change after the transfer form is submitted.
+    if (!isActive) {
       return;
     }
 
-    void vibrate();
-    isDisabledDebounce.current = true;
-    setTransferAmount({ amount: maxAmount });
-  });
+    if (amount !== undefined && amount < 0) {
+      return;
+    }
+
+    // If the value is replaced, callbacks must be executed immediately, without debounce
+    if (isValueReplaced) {
+      isDisabledDebounce.current = true;
+    }
+
+    setTransferAmount({ amount });
+  };
 
   const handlePaste = useLastCallback(() => {
     isDisabledDebounce.current = true;
@@ -375,7 +354,21 @@ function TransferInitial({
 
   const [isFeeModalOpen, openFeeModal, closeFeeModal] = useFeeModal(explainedFee);
 
-  const renderedBottomRight = useMemo(() => {
+  const tokensToSelect = useMemo(
+    () => (tokens ?? []).filter((token) => isSelectableToken(token, tokenSlug)),
+    [tokens, tokenSlug],
+  );
+
+  const amountInputProps = useAmountInputState({
+    amount,
+    token: transferToken,
+    baseCurrency,
+    onAmountChange: handleAmountChange,
+    onTokenChange: handleTokenChange,
+  });
+
+  // It is necessary to use useCallback instead of useLastCallback here
+  const renderBottomRight = useCallback((className?: string) => {
     let transitionKey = 0;
     let content: TeactNode = ' ';
 
@@ -391,15 +384,14 @@ function TransferInitial({
 
     return (
       <Transition
-        className={buildClassName(styles.amountBottomRight, isStatic && styles.amountBottomRight_static)}
-        slideClassName={styles.amountBottomRight_slide}
+        className={className}
         name="fade"
         activeKey={transitionKey}
       >
         {content}
       </Transition>
     );
-  }, [amount, hasInsufficientFeeError, isAmountGreaterThanBalance, isStatic, lang]);
+  }, [amount, hasInsufficientFeeError, isAmountGreaterThanBalance, lang]);
 
   function renderButtonText() {
     if (diesel?.status === 'not-authorized') {
@@ -440,85 +432,87 @@ function TransferInitial({
         onSubmit={handleSubmit}
         onPaste={handlePaste}
       >
-        {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} withMediaViewer />}
-        {Boolean(nfts?.length) && nfts.length > 1 && <NftChips nfts={nfts} isStatic={isStatic} />}
+        <Transition
+          activeKey={transitionKey}
+          name="semiFade"
+          direction={isStatic && !doesSupportComment ? 'inverse' : undefined}
+          shouldCleanup
+          slideClassName={buildClassName(styles.formSlide, isStatic && styles.formSlide_static, slideClassName)}
+        >
+          {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} withMediaViewer />}
+          {Boolean(nfts?.length) && nfts.length > 1 && <NftChips nfts={nfts} isStatic={isStatic} />}
 
-        <AddressInput
-          label={lang('Recipient Address')}
-          value={toAddress}
-          chain={chain}
-          // NFT transfers are available only on the TON blockchain on this moment
-          addressBookChain={isNftTransfer ? 'ton' : undefined}
-          currentAccountId={currentAccountId}
-          accounts={accounts}
-          savedAddresses={savedAddresses}
-          validateAddress={checkTransferAddress}
-          isStatic={isStatic}
-          withQrScan
-          address={resolvedAddress || toAddress}
-          addressName={toAddressName}
-          onInput={handleAddressInput}
-          onClose={cancelTransfer}
-        />
-
-        {!isNftTransfer && (
-          <AmountInputSection
-            amount={amount}
-            decimals={decimals!}
-            maxAmount={maxAmount}
-            token={transferToken}
-            allTokens={tokens}
-            tokenSlug={tokenSlug}
-            isStatic={isStatic}
-            hasAmountError={hasAmountError}
-            isMultichainAccount={isMultichainAccount}
-            isSensitiveDataHidden={isSensitiveDataHidden}
-            shouldRenderCurrency={shouldRenderCurrency}
-            currencyValue={renderedCurrencyValue}
-            bottomRightElement={renderedBottomRight}
-            onChange={handleAmountChange}
-            onTokenChange={handleTokenChange}
-            onMaxClick={handleMaxAmountClick}
-            onPressEnter={handleSubmit}
-          />
-        )}
-
-        {chain === 'ton' && (
-          <CommentSection
-            comment={comment}
-            shouldEncrypt={shouldEncrypt}
-            binPayload={binPayload}
-            stateInit={stateInit}
+          <AddressInput
+            label={lang('Recipient Address')}
+            value={toAddress}
             chain={chain}
+            // NFT transfers are available only on the TON blockchain on this moment
+            addressBookChain={isNftTransfer ? 'ton' : undefined}
+            currentAccountId={currentAccountId}
+            accounts={accounts}
+            savedAddresses={savedAddresses}
+            validateAddress={checkTransferAddress}
             isStatic={isStatic}
-            isCommentRequired={isCommentRequired}
-            isEncryptedCommentSupported={isEncryptedCommentSupported}
-            onCommentChange={handleCommentChange}
+            withQrScan
+            address={resolvedAddress || toAddress}
+            addressName={toAddressName}
+            onInput={handleAddressInput}
+            onClose={cancelTransfer}
           />
-        )}
 
-        <div className={buildClassName(styles.footer, isStatic && chain !== 'ton' && styles.footer_shifted)}>
-          {renderFee()}
+          {!isNftTransfer && (
+            <AmountInputSection
+              {...amountInputProps}
+              maxAmount={maxAmount}
+              token={transferToken}
+              allTokens={tokensToSelect}
+              isStatic={isStatic}
+              hasError={hasAmountError}
+              isMultichainAccount={isMultichainAccount}
+              isMaxAmountLoading={maxAmount === undefined}
+              isSensitiveDataHidden={isSensitiveDataHidden}
+              renderBottomRight={renderBottomRight}
+              onPressEnter={handleSubmit}
+            />
+          )}
 
-          <div className={styles.buttons}>
-            <Button
-              isDisabled={shouldDisableClearButton || isLoading}
-              className={styles.button}
-              onClick={handleClear}
-            >
-              {lang('Clear')}
-            </Button>
-            <Button
-              isPrimary
-              isSubmit
-              isDisabled={!canSubmit}
-              isLoading={isLoading}
-              className={styles.button}
-            >
-              {renderButtonText()}
-            </Button>
+          {doesSupportComment && (
+            <CommentSection
+              comment={comment}
+              shouldEncrypt={shouldEncrypt}
+              binPayload={binPayload}
+              stateInit={stateInit}
+              chain={chain}
+              isStatic={isStatic}
+              isCommentRequired={isCommentRequired}
+              isEncryptedCommentSupported={isEncryptedCommentSupported}
+              onCommentChange={handleCommentChange}
+            />
+          )}
+
+          <div className={buildClassName(styles.footer, isStatic && chain !== 'ton' && styles.footer_shifted)}>
+            {renderFee()}
+
+            <div className={styles.buttons}>
+              <Button
+                isDisabled={shouldDisableClearButton || isLoading}
+                className={styles.button}
+                onClick={handleClear}
+              >
+                {lang('Clear')}
+              </Button>
+              <Button
+                isPrimary
+                isSubmit
+                isDisabled={!canSubmit}
+                isLoading={isLoading}
+                className={styles.button}
+              >
+                {renderButtonText()}
+              </Button>
+            </div>
           </div>
-        </div>
+        </Transition>
       </form>
       <FeeDetailsModal
         isOpen={isFeeModalOpen}
@@ -558,7 +552,8 @@ export default memo(
 
       const isLedger = selectIsHardwareAccount(global);
       const accountState = selectCurrentAccountState(global);
-      const baseCurrency = global.settings.baseCurrency;
+      const { baseCurrency = DEFAULT_PRICE_CURRENCY, isSensitiveDataHidden } = global.settings;
+      const isActive = ACTIVE_STATES.has(state);
 
       return {
         toAddress,
@@ -577,7 +572,8 @@ export default memo(
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
         isMemoRequired,
-        isLoading: isLoading && ACTIVE_STATES.has(state),
+        isActive,
+        isLoading: isLoading && isActive,
         baseCurrency,
         currentAccountId: global.currentAccountId!,
         accounts: selectNetworkAccounts(global),
@@ -585,19 +581,10 @@ export default memo(
         diesel,
         isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
-        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+        isSensitiveDataHidden,
       };
     },
-    (global, { isStatic }, stickToFirst) => {
-      if (!isStatic) {
-        return stickToFirst(global.currentAccountId);
-      }
-
-      const { nfts, tokenSlug = TONCOIN.slug } = global.currentTransfer;
-      const key = nfts?.length ? `${nfts[0].address}_${nfts.length}` : tokenSlug;
-
-      return stickToFirst(`${global.currentAccountId}_${key}`);
-    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
   )(TransferInitial),
 );
 
@@ -606,4 +593,10 @@ function useFeeModal(explainedFee: ExplainedTransferFee) {
   const [isOpen, open, close] = useFlag(false);
   const openIfAvailable = isAvailable ? open : undefined;
   return [isOpen, openIfAvailable, close] as const;
+}
+
+function isSelectableToken(token: UserToken, selectedTokenSlug: string) {
+  return token.type !== 'lp_token'
+    || (token.amount > 0 && !token.isDisabled)
+    || token.slug === selectedTokenSlug;
 }

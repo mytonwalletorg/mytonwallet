@@ -30,9 +30,12 @@ import {
   updateStoredAccount,
 } from '../common/accounts';
 import {
-  decryptMnemonic, encryptMnemonic, generateBip39Mnemonic, validateBip39Mnemonic,
+  decryptMnemonic,
+  encryptMnemonic,
+  generateBip39Mnemonic,
+  validateBip39Mnemonic,
 } from '../common/mnemonic';
-import { nftRepository, tokenRepository } from '../db';
+import { tokenRepository } from '../db';
 import { getEnvironment } from '../environment';
 import { handleServerError } from '../errors';
 import { storage } from '../storages';
@@ -47,7 +50,7 @@ import {
 
 const { ton, tron } = chains;
 
-export function generateMnemonic(isBip39 = IS_BIP39_MNEMONIC_ENABLED) {
+export function generateMnemonic(isBip39: boolean) {
   if (isBip39) return generateBip39Mnemonic();
   return ton.generateMnemonic();
 }
@@ -225,7 +228,6 @@ export async function resetAccounts() {
     deactivateAllAccounts(),
     storage.removeItem('accounts'),
     getEnvironment().isDappSupported && removeAllDapps(),
-    nftRepository.clear(),
     tokenRepository.clear(),
   ]);
 }
@@ -240,7 +242,6 @@ export async function removeAccount(
   await Promise.all([
     removeAccountValue(accountId, 'accounts'),
     getEnvironment().isDappSupported && removeAccountDapps(accountId),
-    nftRepository.deleteWhere({ accountId }),
   ]);
 
   await activateAccount(nextAccountId, newestActivityTimestamps);

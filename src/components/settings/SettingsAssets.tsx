@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiBaseCurrency, ApiNft } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
-import { CURRENCY_LIST, DEFAULT_PRICE_CURRENCY, TINY_TRANSFER_MAX_COST } from '../../config';
+import { CURRENCIES, DEFAULT_PRICE_CURRENCY, TINY_TRANSFER_MAX_COST } from '../../config';
 import {
   selectCurrentAccountSettings,
   selectCurrentAccountState,
@@ -22,7 +22,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
+import Dropdown, { type DropdownItem } from '../ui/Dropdown';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
@@ -88,6 +88,11 @@ function SettingsAssets({
     isScrolled,
   } = useScrolledState();
 
+  const currencyItems = useMemo<DropdownItem<ApiBaseCurrency>[]>(() => (
+    Object.entries(CURRENCIES)
+      .map(([currency, { name }]) => ({ value: currency as keyof typeof CURRENCIES, name }))
+  ), []);
+
   const handleTinyTransfersHiddenToggle = useLastCallback(() => {
     toggleTinyTransfersHidden({ isEnabled: !areTinyTransfersHidden });
   });
@@ -137,7 +142,7 @@ function SettingsAssets({
     <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader
-          title={lang('Assets & Activity')}
+          title={lang('Coins & Activity')}
           withNotch={isScrolled}
           onBackButtonClick={onBack}
           className={styles.modalHeader}
@@ -148,7 +153,7 @@ function SettingsAssets({
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
           </Button>
-          <span className={styles.headerTitle}>{lang('Assets & Activity')}</span>
+          <span className={styles.headerTitle}>{lang('Coins & Activity')}</span>
         </div>
       )}
       <div
@@ -159,7 +164,7 @@ function SettingsAssets({
         <div className={styles.settingsBlock}>
           <Dropdown
             label={lang('Base Currency')}
-            items={CURRENCY_LIST}
+            items={currencyItems}
             selectedValue={baseCurrency ?? DEFAULT_PRICE_CURRENCY}
             theme="light"
             shouldTranslateOptions

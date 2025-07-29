@@ -12,10 +12,6 @@
   }
 }
 
-.amountInput {
-  margin-bottom: 2rem;
-}
-
 .help,
 .label {
   padding: 0 0.5rem;
@@ -23,57 +19,8 @@
   line-height: 0.875rem;
 }
 
-.amountBottomWrapper {
-  position: relative;
-}
-
-.amountBottom {
-  position: absolute;
-  top: -1.75rem;
-
-  display: flex;
-  justify-content: space-between;
-
-  width: 100%;
-  min-height: 1rem;
-  padding: 0 0.5rem;
-
-  font-size: 0.75rem;
-  line-height: 1rem;
-  color: var(--color-gray-3);
-}
-
-.amountBottomRight {
-  flex: 1;
-  font-weight: 600;
-  white-space: nowrap;
-
-  &_slide {
-    text-align: right;
-    background: var(--color-background-window);
-  }
-
-  &.Transition {
-    > .Transition_slide-from {
-      animation-duration: 150ms !important;
-    }
-
-    > .Transition_slide-to {
-      animation-duration: 150ms !important;
-    }
-  }
-
-  &_static &_slide {
-    background: var(--color-background-first);
-  }
-}
-
 .balanceError {
   color: var(--color-red);
-}
-
-.amountInCurrency {
-  font-weight: 600;
 }
 
 .help {
@@ -305,50 +252,11 @@
   vertical-align: -0.1875rem;
 }
 
-.tokenDropdown {
-  --offset-y-value: calc(100% - 3.25rem);
-  --offset-x-value: 0;
-
-  position: relative;
-  top: 0.375rem;
-  right: 0.375rem;
-
-  :global(.itemName) {
-    overflow: hidden;
-
-    max-width: 5rem;
-    height: 1.25rem;
-    margin-bottom: -0.125rem;
-
-    line-height: 1.25rem;
-    text-overflow: ellipsis;
-  }
-
-  :global(.menuItemName) {
-    overflow: hidden;
-
-    max-width: 15rem;
-    height: 1.25rem;
-    margin-bottom: -0.125rem;
-
-    line-height: 1.25rem;
-    text-overflow: ellipsis;
-  }
-}
-
-.tokenDropdownItem :global(.menuItemName), .tokenDropdownItem :global(.itemName) {
-  font-weight: 700;
-}
-
-.inputStatic,
-.inputRichStatic {
-  border: 1px solid var(--color-separator-input-stroke);
-  background: transparent;
-}
-
 .inputStatic {
   /* Default input padding minus 1px accounted for border width */
   padding: 0.5rem 0.6875rem 0.375rem;
+  border: 1px solid var(--color-separator-input-stroke);
+  background: transparent;
 }
 
 .inputWithIcon {
@@ -358,20 +266,6 @@
 textarea.inputStatic {
   /* default input padding minus 1px accounted for border width */
   padding: 0.875rem 0.75rem 0.8125rem;
-}
-
-.commentLabel :global(.itemName) {
-  position: relative;
-
-  padding-left: 0.5rem;
-
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-accent);
-}
-
-.commentLabel :global(.menuItemName) {
-  margin: unset;
 }
 
 .footer {
@@ -462,4 +356,14 @@ textarea.inputStatic {
 
 .spinner {
   margin: 2rem auto;
+}
+
+.formSlide {
+  display: flex;
+  flex-direction: column;
+  background: var(--background-color); // To ensure a glitch-free "semiFade" transition
+
+  &_static {
+    height: auto !important;
+  }
 }

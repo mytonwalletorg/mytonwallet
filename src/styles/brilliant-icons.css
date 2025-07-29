@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?dcd22a31b655fc9670dc314a9a03269c") format("woff"),
-url("./brilliant-icons.woff2?dcd22a31b655fc9670dc314a9a03269c") format("woff2");
+    src: url("./brilliant-icons.woff?cf89c6c968ed7158f565dc9a22f32960") format("woff"),
+url("./brilliant-icons.woff2?cf89c6c968ed7158f565dc9a22f32960") format("woff2");
     font-weight: normal;
     font-style: normal;
     font-display: block;
@@ -309,63 +309,66 @@ url("./brilliant-icons.woff2?dcd22a31b655fc9670dc314a9a03269c") format("woff2");
 .icon-swap::before {
     content: "\f162";
 }
-.icon-tag::before {
+.icon-switch::before {
     content: "\f163";
 }
-.icon-telegram-filled::before {
+.icon-tag::before {
     content: "\f164";
 }
-.icon-telegram::before {
+.icon-telegram-filled::before {
     content: "\f165";
 }
-.icon-ton::before {
+.icon-telegram::before {
     content: "\f166";
 }
-.icon-tonexplorer-small::before {
+.icon-ton::before {
     content: "\f167";
 }
-.icon-tonexplorer::before {
+.icon-tonexplorer-small::before {
     content: "\f168";
 }
-.icon-tooltip::before {
+.icon-tonexplorer::before {
     content: "\f169";
 }
-.icon-touch-id::before {
+.icon-tooltip::before {
     content: "\f16a";
 }
-.icon-trash-small::before {
+.icon-touch-id::before {
     content: "\f16b";
 }
-.icon-trash::before {
+.icon-trash-small::before {
     content: "\f16c";
 }
-.icon-update::before {
+.icon-trash::before {
     content: "\f16d";
 }
-.icon-versions::before {
+.icon-update::before {
     content: "\f16e";
 }
-.icon-view-landscape::before {
+.icon-versions::before {
     content: "\f16f";
 }
-.icon-view-portrait::before {
+.icon-view-landscape::before {
     content: "\f170";
 }
-.icon-wallet-add::before {
+.icon-view-portrait::before {
     content: "\f171";
 }
-.icon-wallet-view::before {
+.icon-wallet-add::before {
     content: "\f172";
 }
-.icon-wallet::before {
+.icon-wallet-view::before {
     content: "\f173";
 }
-.icon-windows-close::before {
+.icon-wallet::before {
     content: "\f174";
 }
-.icon-windows-maximize::before {
+.icon-windows-close::before {
     content: "\f175";
 }
-.icon-windows-minimize::before {
+.icon-windows-maximize::before {
     content: "\f176";
+}
+.icon-windows-minimize::before {
+    content: "\f177";
 }

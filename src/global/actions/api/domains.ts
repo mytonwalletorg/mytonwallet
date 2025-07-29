@@ -2,7 +2,6 @@ import type { ApiNft } from '../../../api/types';
 import type { GlobalState } from '../../types';
 import { DomainLinkingState, DomainRenewalState } from '../../types';
 
-import { buildLocalTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { callApi } from '../../../api';
@@ -41,7 +40,7 @@ function handleDomainOperationResult<T extends DomainOperationType>(
   global = updateState(global, {
     isLoading: false,
     state,
-    ...(result.length === 1 && typeof result[0] === 'string' ? { txId: buildLocalTxId(result[0], 0) } : undefined),
+    ...(result.length === 1 && typeof result[0] === 'string' ? { txId: result[0] } : undefined),
   });
   setGlobal(global);
 
@@ -138,7 +137,7 @@ addActionHandler('submitDomainsRenewal', async (global, actions, { password }) =
   handleDomainOperationResult<'renewal'>(
     getGlobal(),
     result.map((subResult) => (
-      subResult && 'msgHashNormalized' in subResult ? subResult.msgHashNormalized : subResult
+      subResult && 'activityIds' in subResult ? subResult.activityIds[0] : subResult
     )),
     updateCurrentDomainRenewal,
     DomainRenewalState.Complete,
@@ -230,7 +229,7 @@ addActionHandler('submitDomainLinking', async (global, actions, { password }) =>
 
   handleDomainOperationResult<'linking'>(
     getGlobal(),
-    [result && 'msgHashNormalized' in result ? result.msgHashNormalized : result],
+    [result && 'activityId' in result ? result.activityId : result],
     updateCurrentDomainLinking,
     DomainLinkingState.Complete,
   );

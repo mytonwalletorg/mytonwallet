@@ -10,7 +10,7 @@ import { shortenAddress } from '../../util/shortenAddress';
 import { useCachedImage } from '../../hooks/useCachedImage';
 import useCardCustomization from '../../hooks/useCardCustomization';
 
-import { ACCOUNT_ADDRESS_SHIFT, ACCOUNT_WITH_ICON_ADDRESS_SHIFT } from '../main/sections/Card/AccountButton';
+import { ACCOUNT_ADDRESS_SHIFT, ACCOUNT_WITH_ICON_ADDRESS_SHIFT } from '../main/sections/Header/AccountButton';
 
 import styles from './AccountButton.module.scss';
 

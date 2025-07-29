@@ -5,21 +5,10 @@ import TonConnect from '@tonconnect/sdk';
 import { DEBUG } from '../config';
 import { initIframeBridgeConnector } from '../../util/embeddedDappBridge/connector/iframeConnector';
 import { shortenAddress } from '../../util/shortenAddress';
+import { sendTransaction as sendTransactionBase } from '../../util/tonConnectForDapps';
 
 const MANIFEST_URL = 'https://multisend.mytonwallet.io/mytonwallet-multisend-tonconnect-manifest.json';
 const PRETTIFY_SYMBOL_COUNT = 6;
-
-interface TxMessage {
-  address: string;
-  amount: string;
-  payload?: string;
-  stateInit?: string;
-}
-
-interface SendTxOptions {
-  validUntil?: number;
-  messages: TxMessage[];
-}
 
 declare global {
   interface Window {
@@ -78,29 +67,8 @@ export async function handleTonConnectButtonClick(walletInfo: WalletInfo) {
   }
 }
 
-export async function sendTransaction(options: SendTxOptions) {
-  if (!tonConnect.connected) {
-    throw new Error('Wallet is not connected');
-  }
-
-  const tx = {
-    validUntil: options.validUntil || Math.floor(Date.now() / 1000) + 360, // Default: 5 minutes timeout
-    network: tonConnect.wallet?.account.chain,
-    messages: options.messages.map((msg) => ({
-      address: msg.address,
-      amount: msg.amount,
-      payload: msg.payload,
-      stateInit: msg.stateInit,
-    })),
-  };
-
-  try {
-    return await tonConnect.sendTransaction(tx);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to send transaction:', error);
-    throw error;
-  }
+export async function sendTransaction(options: any) {
+  return sendTransactionBase(tonConnect, options);
 }
 
 export function prettifyAddress(address: string) {

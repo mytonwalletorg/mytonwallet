@@ -52,14 +52,14 @@ function Content({
       result.push({
         id: TON_TAB_ID,
         title: 'TON',
-        className: styles.tab,
+        className: buildClassName(styles.tab, styles.tabTon),
       });
     }
     if (addressByChain?.tron) {
       result.push({
         id: TRON_TAB_ID,
         title: 'TRON',
-        className: styles.tab,
+        className: buildClassName(styles.tab, styles.tabTron),
       });
     }
 
@@ -120,10 +120,10 @@ function Content({
 
       {tabs.length > 1 && (
         <TabList
-          withBorder
           tabs={tabs}
           activeTab={activeTab}
           className={buildClassName(styles.tabs, !isStatic && styles.tabsInModal)}
+          overlayClassName={styles.tabsOverlay}
           onSwitchTab={handleSwitchTab}
         />
       )}

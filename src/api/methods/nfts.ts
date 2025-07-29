@@ -4,7 +4,7 @@ import { TONCOIN } from '../../config';
 import { bigintDivideToNumber } from '../../util/bigint';
 import chains from '../chains';
 import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
-import { createLocalTransaction } from './transactions';
+import { createLocalTransactions } from './transactions';
 
 const { ton } = chains;
 
@@ -42,20 +42,18 @@ export async function submitNftTransfers(
 
   const realFeePerNft = bigintDivideToNumber(totalRealFee, Object.keys(result.messages).length);
 
-  for (const [index, message] of result.messages.entries()) {
-    createLocalTransaction(accountId, 'ton', {
-      txId: result.msgHashNormalized,
-      amount: 0n, // Regular NFT transfers should have no amount in the activity list
-      fromAddress,
-      toAddress,
-      comment,
-      fee: realFeePerNft,
-      normalizedAddress: message.toAddress,
-      slug: TONCOIN.slug,
-      externalMsgHash: result.msgHash,
-      nft: nfts?.[index],
-    }, index);
-  }
+  createLocalTransactions(accountId, 'ton', result.messages.map((message, index) => ({
+    txId: result.msgHashNormalized,
+    amount: 0n, // Regular NFT transfers should have no amount in the activity list
+    fromAddress,
+    toAddress,
+    comment,
+    fee: realFeePerNft,
+    normalizedAddress: message.toAddress,
+    slug: TONCOIN.slug,
+    externalMsgHashNorm: result.msgHashNormalized,
+    nft: nfts?.[index],
+  })));
 
   return result;
 }

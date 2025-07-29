@@ -19,7 +19,7 @@ import { getTonClient } from '../chains/ton/util/tonCore';
 import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { setStakingCommonCache } from '../common/cache';
-import { createLocalTransaction } from './transactions';
+import { createLocalTransactions } from './transactions';
 
 import { StakingPool } from '../chains/ton/contracts/JettonStaking/StakingPool';
 
@@ -56,7 +56,7 @@ export async function submitStake(
   let localActivity: ApiTransactionActivity;
 
   if (state.tokenSlug === TONCOIN.slug) {
-    localActivity = createLocalTransaction(accountId, 'ton', {
+    [localActivity] = createLocalTransactions(accountId, 'ton', [{
       txId: result.msgHashNormalized,
       amount,
       fromAddress,
@@ -64,10 +64,10 @@ export async function submitStake(
       fee: realFee ?? 0n,
       type: 'stake',
       slug: state.tokenSlug,
-      externalMsgHash: result.msgHash,
-    });
+      externalMsgHashNorm: result.msgHashNormalized,
+    }]);
   } else {
-    localActivity = createLocalTransaction(accountId, 'ton', {
+    [localActivity] = createLocalTransactions(accountId, 'ton', [{
       txId: result.msgHashNormalized,
       amount,
       fromAddress,
@@ -75,8 +75,8 @@ export async function submitStake(
       fee: realFee ?? 0n,
       type: 'stake',
       slug: state.tokenSlug,
-      externalMsgHash: result.msgHash,
-    });
+      externalMsgHashNorm: result.msgHashNormalized,
+    }]);
   }
 
   return {
@@ -99,7 +99,7 @@ export async function submitUnstake(
     return false;
   }
 
-  const localActivity = createLocalTransaction(accountId, 'ton', {
+  const [localActivity] = createLocalTransactions(accountId, 'ton', [{
     txId: result.msgHashNormalized,
     amount: result.toncoinAmount,
     fromAddress,
@@ -107,9 +107,9 @@ export async function submitUnstake(
     fee: realFee ?? 0n,
     type: 'unstakeRequest',
     slug: TONCOIN.slug,
-    externalMsgHash: result.msgHash,
+    externalMsgHashNorm: result.msgHashNormalized,
     ...result.localActivityParams,
-  });
+  }]);
 
   return {
     ...result,
@@ -181,16 +181,16 @@ export async function submitStakingClaimOrUnlock(
     return result;
   }
 
-  const localActivity = createLocalTransaction(accountId, 'ton', {
+  const [localActivity] = createLocalTransactions(accountId, 'ton', [{
     txId: result.msgHashNormalized,
     amount: result.amount,
     fromAddress: walletAddress,
     toAddress: result.toAddress,
     fee: realFee ?? 0n,
     slug: TONCOIN.slug,
-    externalMsgHash: result.msgHash,
+    externalMsgHashNorm: result.msgHashNormalized,
     ...result.localActivityParams,
-  });
+  }]);
 
   return {
     ...result,

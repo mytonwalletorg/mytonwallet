@@ -25,7 +25,6 @@ import {
 } from '../../../../config';
 import {
   DNS_TRANSACTION_TYPES,
-  getIsTxIdLocal,
   getTransactionAmountDisplayMode,
   getTransactionTitle,
   isScamTransaction,
@@ -122,6 +121,7 @@ function Transaction({
     slug,
     nft,
     extra,
+    isPending,
   } = transaction;
 
   const isStaking = STAKING_TRANSACTION_TYPES.has(type);
@@ -143,7 +143,6 @@ function Transaction({
   }, [accounts, address, chain, currentAccountId, savedAddresses]);
   const addressName = localAddressName || metadata?.name;
   const dnsIconText = useMemo(() => isDnsOperation ? getDnsIconText(nft) : '', [isDnsOperation, nft]);
-  const isLocal = getIsTxIdLocal(txId);
   const amountCols = useMemo(() => getPseudoRandomNumber(5, 13, timestamp.toString()), [timestamp]);
   const attachmentsTakeSubheader = shouldAttachmentTakeSubheader(transaction, isFuture);
   const isNoSubheaderLeft = getIsNoSubheaderLeft(transaction, isFuture);
@@ -240,7 +239,7 @@ function Transaction({
             {dnsIconText}
           </span>
         )}
-        {isLocal && (
+        {isPending && (
           <AnimatedIconWithPreview
             play
             size={ANIMATED_STICKER_TINY_ICON_PX}

@@ -131,6 +131,7 @@ Toggle Hide Tiny Transfers: Przełącz Ukryj drobne transfery
 Network: Sieć
 Developer Options: Opcje dla deweloperów
 All Wallet Versions: Wszystkie wersje portfela
+Create TON-Only Wallet: Utwórz portfel tylko TON
 Confirmation: Potwierdzenie
 Signing Data: Dane do Podpisu
 Contract Initialization Data: Dane Inicjalizacji Kontraktu
@@ -155,7 +156,7 @@ Copy wallet address: Kopiowanie adresu portfela
 View address on %ton_explorer_name%: Wyświetl adres w %ton_explorer_name%
 You have just created a new wallet: Właśnie utworzyłeś nowy portfel
 You can now transfer your tokens from another wallet or exchange.: Możesz teraz przenieść swoje tokeny z innego portfela lub giełdy.
-Assets: Aktywa
+Coins: Monety
 Activity: Aktywność
 NFT: NFT
 No NFTs yet: Nie ma jeszcze NFT
@@ -302,7 +303,7 @@ $dapps-description: Możesz zalogować się na aplikacje wspierające %app_name%
 Logged in with %app_name%: Zalogowany za pomocą %app_name%
 No active connections: Brak aktywnych połączeń
 Other: Inne
-Assets & Activity: Aktywa i aktywność
+Coins & Activity: Monety & aktywność
 Token Settings: Ustawienia tokenów
 My Tokens: Moje Tokeny
 Add Token: Dodaj token
@@ -939,8 +940,12 @@ Show All: Pokaż wszystkie
 Description: Opis
 No additional data.: Brak dodatkowych danych.
 Domain was copied!: Domena została skopiowana!
+$in_currency: w %currency%
+Rename Wallet: Zmień nazwę portfela
+You can rename this wallet for easier identification.: Możesz zmienić nazwę tego portfela dla łatwiejszej identyfikacji.
 $storage_cleared_title: Pamięć aplikacji została wyczyszczona
 $storage_cleared_message: |
   Dane portfela zostały wyczyszczone z powodu problemów z przeglądarką lub miejscem na dysku. Proszę wylogować się ze wszystkich portfeli, a następnie ręcznie zaimportować je ponownie, używając swoich sekretnych słów.
 
   Jeśli potrzebujesz pomocy, skontaktuj się z %support_link%.
+Collectibles: Kolekcjonerskie

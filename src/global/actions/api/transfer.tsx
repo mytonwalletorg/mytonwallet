@@ -62,7 +62,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   let result: ApiCheckTransactionDraftResult | undefined;
 
   if (isNftTransfer) {
-    // This assignment is needed only for the amount checking hack in the 'newLocalActivity' handler in
+    // This assignment is needed only for the amount checking hack in the 'newLocalActivities' handler in
     // `src/global/actions/apiUpdates/activities.ts` to work.
     amount = 0n;
 

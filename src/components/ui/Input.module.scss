@@ -6,6 +6,9 @@
 }
 
 .input {
+  --font-size-scale: 1;
+  --input-font-size: 1rem;
+
   display: block;
 
   width: 100%;
@@ -14,7 +17,7 @@
   border: none;
   border-radius: var(--border-radius-default);
 
-  font-size: 1rem;
+  font-size: calc(var(--input-font-size) * var(--font-size-scale));
   font-weight: 600;
   line-height: 1.25;
   color: var(--color-black);
@@ -47,8 +50,8 @@
     clip: rect(0, 0, 0, 0);
   }
 
-  :global(html:not(.is-ios):not(.is-macos)) &:not(&_rich) {
-    font-size: 0.9375rem;
+  :global(html:not(.is-ios):not(.is-macos)) & {
+    --input-font-size: 0.9375rem;
   }
 
   &.error,
@@ -107,17 +110,28 @@
   &_password {
     padding-right: 2.5rem;
   }
+}
 
-  &_rich {
+.rich {
+  position: relative;
+  overflow: hidden;
+  flex: 1 1 auto;
+
+  &:not(:last-child) {
+    margin-right: 0.5rem;
+  }
+
+  &__value,
+  &__placeholder {
     overflow: hidden;
-    flex: 1 1 auto;
 
     height: 2.75rem;
-    margin-right: 0.5rem;
     padding: 0.375rem 0 0.375rem 0.625rem;
 
     line-height: 2rem;
     white-space: nowrap;
+
+    background: none;
 
     @include mixins.transition(color 150ms);
 
@@ -130,14 +144,9 @@
       display: inline;
       white-space: nowrap;
     }
+  }
 
-    &:empty::before {
-      content: "0";
-      color: var(--color-gray-4);
-
-      @include mixins.transition(color 150ms);
-    }
-
+  &__value {
     &.disabled {
       cursor: default !important;
       opacity: 1;
@@ -146,25 +155,33 @@
     &:focus {
       box-shadow: none;
     }
-
-    &:hover,
-    &:focus {
-      &:empty:not(.disabled)::before {
-        color: var(--color-interactive-input-text-hover-active);
-      }
-    }
   }
 
-  &_large {
-    height: 3.75rem;
-    font-size: calc(3rem * var(--base-font-size, 1));
-    line-height: 3rem;
+  &__placeholder {
+    pointer-events: none;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    color: var(--color-gray-4);
+  }
+
+  &__value:hover + &__placeholder,
+  &__value:focus + &__placeholder {
+    color: var(--color-interactive-input-text-hover-active);
   }
 }
 
 .isLoading {
-  font-size: calc(3rem * var(--base-font-size, 1));
   color: var(--color-gray-4);
+}
+
+.large {
+  --input-font-size: 3rem !important;
+
+  height: 3.75rem;
+  line-height: 3rem;
 }
 
 textarea.input {
@@ -236,7 +253,7 @@ textarea.input {
 }
 
 .fractional {
-  font-size: max(0.75rem, calc(1rem * var(--base-font-size, 1)));
+  font-size: max(0.75rem, calc(min(1rem, var(--input-font-size)) * var(--font-size-scale)));
   font-weight: 700;
 }
 

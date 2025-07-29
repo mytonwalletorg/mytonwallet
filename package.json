@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.8.4",
+  "version": "4.0.0",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -60,6 +60,9 @@
     "multisend:build": "webpack --config webpack-multisend.config.ts && bash ./deploy/copy_to_dist.sh dist-multisend src/multisend/public",
     "multisend:build:dev": "APP_ENV=development webpack --mode development --config webpack-multisend.config.ts",
     "multisend:dev": "APP_ENV=development webpack serve --mode development --config webpack-multisend.config.ts",
+    "push:build": "IS_TELEGRAM_APP=1 webpack --config webpack-push.config.ts && bash ./deploy/copy_to_dist.sh dist-push src/push/public",
+    "push:build:dev": "APP_ENV=development IS_TELEGRAM_APP=1 webpack --mode development --config webpack-push.config.ts",
+    "push:dev": "APP_ENV=development IS_TELEGRAM_APP=1 webpack serve --mode development --config webpack-push.config.ts",
     "resolve-stacktrace": "node ./dev/resolveStackTrace.mjs",
     "i18n:build:default": "node ./dev/locales/buildDefault.js",
     "i18n:update": "node ./dev/locales/updateLocales.js",
@@ -210,6 +213,7 @@
     "@ton/core": "0.60.1",
     "@ton/ton": "15.2.1",
     "@tonconnect/sdk": "3.1.0",
+    "@tonconnect/ui": "^2.2.0",
     "bip39": "3.1.0",
     "buffer": "6.0.3",
     "capacitor-native-settings": "7.0.1",

@@ -21,7 +21,7 @@ export function makeMockTransactionActivity(partial: Partial<ApiTransactionActiv
     id,
     txId: id,
     timestamp: Date.now(),
-    externalMsgHash: randomBase64(32),
+    externalMsgHashNorm: randomBase64(32),
     fee: BigInt(random(1e3, 1e6)),
     fromAddress: randomBase64(36),
     toAddress: randomBase64(36),

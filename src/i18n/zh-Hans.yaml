@@ -126,6 +126,7 @@ Toggle Hide Tiny Transfers: 切换隐藏小额转账
 Network: 网络
 Developer Options: 开发者选项
 All Wallet Versions: 所有钱包版本
+Create TON-Only Wallet: 创建纯TON钱包
 Confirmation: 确认
 Signing Data: 签名数据
 Contract Initialization Data: 合约初始化数据
@@ -151,7 +152,7 @@ Copy wallet address: 复制钱包地址
 View address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
 You have just created a new wallet: 您刚刚创建了一个新钱包
 You can now transfer your tokens from another wallet or exchange.: 您现在可以从另一个钱包或交易所转移您的代币
-Assets: 资产
+Coins: 代币
 Activity: 活动记录
 NFT: NFT
 No NFTs yet: NFT 空空如也···
@@ -294,7 +295,7 @@ $dapps-description: 您可以登录支持 %app_name% 的 dapp。 它们可以查
 Logged in with %app_name%: 使用 %app_name% 登录
 No active connections: 没有活动连接
 Other: 其他的
-Assets & Activity: 资产 & 活动记录
+Coins & Activity: 代币与活动
 Token Settings: 代币设置
 My Tokens: 我的代币
 Add Token: 添加令牌
@@ -918,8 +919,12 @@ Show All: 显示全部
 Description: 描述
 No additional data.: 无附加数据。
 Domain was copied!: 域名已复制！
+$in_currency: 以 %currency%
+Rename Wallet: 重命名钱包
+You can rename this wallet for easier identification.: 您可以重命名该钱包以便于识别。
 $storage_cleared_title: 应用程序存储已清除
 $storage_cleared_message: |
   您的钱包数据因浏览器或磁盘空间问题而被清除。请从所有钱包中退出登录，然后使用您的助记词手动重新导入。
 
   如需帮助，请联系%support_link%。
+Collectibles: 收藏品

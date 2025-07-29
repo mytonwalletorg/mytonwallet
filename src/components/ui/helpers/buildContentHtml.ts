@@ -4,12 +4,18 @@ import styles from '../Input.module.scss';
 
 export function buildContentHtml(
   text: string,
-  suffix?: string,
+  prefix = '',
+  suffix = '',
   decimals = FRACTION_DIGITS,
   withRadix = false,
 ) {
   text = sanitizeHtml(text);
-  suffix = suffix ? sanitizeHtml(suffix) : undefined;
+  prefix = sanitizeHtml(prefix);
+  suffix = sanitizeHtml(suffix);
+
+  if (!text) {
+    return '';
+  }
 
   const hasDot = text.includes('.');
   const [wholePart = '0', fractionPart] = hasDot ? text.split('.') : [text];
@@ -23,7 +29,7 @@ export function buildContentHtml(
     `<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`
   ) : '';
 
-  return `${formattedWholePart}${extraSpan}`;
+  return `${prefix}${formattedWholePart}${extraSpan}`;
 }
 
 function sanitizeHtml(string: string) {

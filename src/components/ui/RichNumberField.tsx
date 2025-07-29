@@ -20,6 +20,7 @@ type OwnProps = {
   labelText?: string;
   value?: string;
   error?: string;
+  prefix?: string;
   suffix?: string;
   zeroValue?: string;
   decimals?: number;
@@ -27,6 +28,7 @@ type OwnProps = {
   isSensitiveData?: true;
   isSensitiveDataHidden?: true;
   sensitiveDataMaskSkin?: SensitiveDataMaskSkin;
+  isStatic?: boolean;
   inputClassName?: string;
   labelClassName?: string;
   valueClassName?: string;
@@ -40,6 +42,7 @@ function RichNumberField({
   labelText,
   value,
   error,
+  prefix,
   suffix,
   zeroValue,
   decimals = FRACTION_DIGITS,
@@ -47,6 +50,7 @@ function RichNumberField({
   isSensitiveData,
   isSensitiveDataHidden,
   sensitiveDataMaskSkin,
+  isStatic,
   inputClassName,
   labelClassName,
   valueClassName,
@@ -76,11 +80,10 @@ function RichNumberField({
     const textContent = values?.[0] || '';
     prevValueRef.current = inputValue;
 
-    const html = buildContentHtml(inputValue, suffix, decimals, true);
-    contentEl.innerHTML = html;
+    contentEl.innerHTML = buildContentHtml(inputValue, prefix, suffix, decimals, true);
 
     if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
-      updateFontScale(html);
+      updateFontScale();
     }
   });
 
@@ -90,19 +93,21 @@ function RichNumberField({
     } else if (zeroValue) {
       contentRef.current!.textContent = zeroValue;
     }
-  }, [decimals, renderValue, value, zeroValue]);
+  }, [prefix, suffix, decimals, renderValue, value, zeroValue]);
 
   const inputWrapperFullClass = buildClassName(
     styles.input__wrapper,
+    isStatic && styles.inputWrapperStatic,
     inputClassName,
   );
   const inputFullClass = buildClassName(
+    styles.rich__value,
     styles.input,
-    styles.input_rich,
-    styles.input_large,
+    styles.large,
     styles.disabled,
     error && styles.error,
     'rounded-font',
+    valueClassName,
   );
   const labelTextClassName = buildClassName(
     styles.label,
@@ -131,14 +136,16 @@ function RichNumberField({
             rows={3}
             cellSize={16}
             maskSkin={sensitiveDataMaskSkin}
-            className={inputFullClass}
-            contentClassName={valueClassName}
+            // Adding `.large` to remove the excessive bottom padding created by SensitiveData (the `height` property does the job)
+            className={buildClassName(styles.rich, styles.large)}
             maskClassName={styles.mask}
           >
-            <div ref={contentRef} id={id} />
+            <div ref={contentRef} id={id} className={inputFullClass} />
           </SensitiveData>
         ) : (
-          <div ref={contentRef} id={id} className={buildClassName(inputFullClass, valueClassName)} />
+          <div className={styles.rich}>
+            <div ref={contentRef} id={id} className={inputFullClass} />
+          </div>
         )}
         {children}
       </div>

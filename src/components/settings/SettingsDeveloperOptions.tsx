@@ -6,6 +6,7 @@ import type { Account } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 
 import { APP_COMMIT_HASH, APP_ENV, APP_VERSION, IS_CORE_WALLET, IS_EXTENSION, IS_TELEGRAM_APP } from '../../config';
+import { selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
@@ -36,6 +37,7 @@ interface OwnProps {
 interface StateProps {
   currentAccountId?: string;
   accountsById?: Record<string, Account>;
+  canViewAllWalletVersions: boolean;
 }
 
 const NETWORK_OPTIONS: DropdownItem<ApiNetwork>[] = [{
@@ -55,13 +57,16 @@ function SettingsDeveloperOptions({
   isOpen,
   isTestnet,
   isCopyStorageEnabled,
-  currentAccountId,
-  accountsById,
   onShowAllWalletVersions,
   onClose,
+  currentAccountId,
+  accountsById,
+  canViewAllWalletVersions,
 }: OwnProps & StateProps) {
   const {
     startChangingNetwork,
+    closeSettings,
+    openAddAccountModal,
     copyStorageData,
     showNotification,
   } = getActions();
@@ -71,6 +76,12 @@ function SettingsDeveloperOptions({
   const handleNetworkChange = useLastCallback((newNetwork: ApiNetwork) => {
     startChangingNetwork({ network: newNetwork });
     onClose();
+  });
+
+  const handleAddTonOnlyWallet = useLastCallback(() => {
+    onClose();
+    closeSettings();
+    openAddAccountModal({ forceAddingTonOnlyAccount: true });
   });
 
   const handleDownloadLogs = useLastCallback(async () => {
@@ -105,10 +116,29 @@ function SettingsDeveloperOptions({
           onChange={handleNetworkChange}
         />
 
-        <div className={buildClassName(styles.item, styles.item_small)} onClick={onShowAllWalletVersions}>
+        <div className={buildClassName(styles.item, styles.item_small)} onClick={handleAddTonOnlyWallet}>
+          {lang('Create TON-Only Wallet')}
+
+          <i className={buildClassName(styles.iconChevronRight, 'icon-plus')} aria-hidden />
+        </div>
+
+        <div
+          className={buildClassName(styles.item, styles.item_small, !canViewAllWalletVersions && styles.item_disabled)}
+          onClick={onShowAllWalletVersions}
+        >
           {lang('All Wallet Versions')}
 
-          <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+          <div className={styles.itemInfo}>
+            {canViewAllWalletVersions ? (
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+
+            ) : (
+              <>
+                <span className={styles.small}>{lang('Multichain')}</span>
+                <i className={buildClassName(styles.iconChevronRight, 'icon-lock')} aria-hidden />
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -152,21 +182,20 @@ function SettingsDeveloperOptions({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const currentAccountId = global.currentAccountId;
-
   const accountsById = global.accounts?.byId;
+  const canViewAllWalletVersions = !selectIsMultichainAccount(global, currentAccountId!);
 
   return {
     currentAccountId,
     accountsById,
+    canViewAllWalletVersions,
   };
 })(SettingsDeveloperOptions));
 
-async function getLogsString(
-  {
-    currentAccountId,
-    accountsById,
-  }: StateProps,
-) {
+async function getLogsString({
+  currentAccountId,
+  accountsById,
+}: Partial<StateProps>) {
   const accountsInfo = accountsById && Object.keys(accountsById).reduce((acc, accountId) => {
     const { addressByChain, type } = accountsById[accountId];
     acc[accountId] = {

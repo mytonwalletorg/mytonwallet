@@ -39,6 +39,12 @@
   &:active {
     --color-accent: var(--action-color-hover, var(--color-card-text));
   }
+
+  @include mixins.respond-above(xs) {
+    right: 0.625rem;
+    bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
 }
 
 .icon {

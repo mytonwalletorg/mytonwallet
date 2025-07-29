@@ -1,4 +1,76 @@
-import { createTaskQueue, pause } from './schedulers';
+import { createTaskQueue, pause, throttle } from './schedulers';
+
+import Deferred from './Deferred';
+
+describe('throttle', () => {
+  it.concurrent('executes fn only once if called multiple times during pause', async () => {
+    const fn = jest.fn();
+    const throttleMs = 10;
+    const throttled = throttle(fn, throttleMs);
+    throttled();
+    await pause(1);
+    fn.mockReset();
+    throttled();
+    throttled();
+    throttled();
+    await pause(throttleMs * 2.5);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it.concurrent('waits the given ms before executing fn again', async () => {
+    const calls: number[] = [];
+    const throttleMs = 10;
+    const throttled = throttle(() => calls.push(Date.now()), throttleMs);
+    throttled();
+    await pause(5);
+    throttled();
+    await pause(30);
+    const actualDuration = calls[1] - calls[0];
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    expect(actualDuration).toBeGreaterThanOrEqual(throttleMs - 1); // Allow 1ms drift
+  });
+
+  it.concurrent('does not allow parallel execution of async fn', async () => {
+    let running = 0;
+    let maxRunning = 0;
+    const throttled = throttle(async () => {
+      running++;
+      maxRunning = Math.max(maxRunning, running);
+      await pause(10);
+      running--;
+    }, 1);
+    throttled();
+    throttled();
+    throttled();
+    await pause(40);
+    expect(maxRunning).toBe(1);
+  });
+
+  it.concurrent('respects shouldRunFirst = false', async () => {
+    const calls: number[] = [];
+    const throttleMs = 10;
+    const throttled = throttle(() => calls.push(Date.now()), throttleMs, false);
+    const start = Date.now();
+    throttled();
+    await pause(15);
+    const actualDuration = calls[0] - start;
+    expect(calls.length).toBe(1);
+    expect(actualDuration).toBeGreaterThanOrEqual(throttleMs - 1); // Allow 1ms drift
+  });
+
+  it.concurrent('supports a custom pause scheduler (function ms)', async () => {
+    const msDeferred = new Deferred();
+    const ms = jest.fn().mockReturnValue(msDeferred.promise);
+    const fn = jest.fn();
+    const throttled = throttle(fn, ms, false);
+    throttled();
+    await pause(1);
+    expect(fn).not.toHaveBeenCalled();
+    msDeferred.resolve();
+    await pause(1);
+    expect(fn).toHaveBeenCalled();
+  });
+});
 
 describe('createTaskQueue', () => {
   it.concurrent('limits the concurrency', async () => {

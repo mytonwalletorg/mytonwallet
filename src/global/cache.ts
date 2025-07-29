@@ -23,7 +23,7 @@ import {
   TONCOIN,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
-import { getActivityTokenSlugs, getIsTxIdLocal } from '../util/activities';
+import { getActivityTokenSlugs, getIsActivityPending, getIsTxIdLocal } from '../util/activities';
 import { bigintReviver } from '../util/bigint';
 import isEmptyObject from '../util/isEmptyObject';
 import {
@@ -356,22 +356,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 14;
   }
 
-  if (cached.stateVersion === 14) {
-    clearActivities();
-    cached.stateVersion = 15;
-  }
-
-  if (cached.stateVersion === 15) {
-    clearActivities();
-    cached.stateVersion = 16;
-  }
-
-  if (cached.stateVersion === 16) {
-    clearActivities();
-    cached.stateVersion = 17;
-  }
-
-  if (cached.stateVersion === 17) {
+  if (cached.stateVersion >= 14 && cached.stateVersion <= 17) {
     clearActivities();
     cached.stateVersion = 18;
   }
@@ -383,17 +368,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 20;
   }
 
-  if (cached.stateVersion === 20) {
-    clearActivities();
-    cached.stateVersion = 21;
-  }
-
-  if (cached.stateVersion === 21) {
-    clearActivities();
-    cached.stateVersion = 22;
-  }
-
-  if (cached.stateVersion === 22) {
+  if (cached.stateVersion >= 20 && cached.stateVersion <= 22) {
     clearActivities();
     cached.stateVersion = 23;
   }
@@ -510,6 +485,11 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
       }
     }
     cached.stateVersion = 42;
+  }
+
+  if (cached.stateVersion === 42) {
+    clearActivities();
+    cached.stateVersion = 43;
   }
 
   // When adding migration here, increase `STATE_VERSION`
@@ -709,7 +689,7 @@ function pickVisibleActivities(ids: string[], byId: Record<string, ApiActivity>)
   let visibleIdCount = 0;
 
   ids
-    .filter((id) => !getIsTxIdLocal(id) && Boolean(byId[id]))
+    .filter((id) => shouldCacheActivity(id, byId))
     .forEach((id) => {
       if (visibleIdCount === ACTIVITIES_LIMIT) return;
 
@@ -721,4 +701,11 @@ function pickVisibleActivities(ids: string[], byId: Record<string, ApiActivity>)
     });
 
   return result;
+}
+
+function shouldCacheActivity(id: string, byId: Record<string, ApiActivity>) {
+  const activity = byId[id];
+  return activity
+    && !getIsTxIdLocal(id)
+    && !getIsActivityPending(activity);
 }

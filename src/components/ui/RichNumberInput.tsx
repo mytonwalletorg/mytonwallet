@@ -19,6 +19,7 @@ type OwnProps = {
   value?: string;
   hasError?: boolean;
   isLoading?: boolean;
+  prefix?: string;
   suffix?: string;
   className?: string;
   inputClassName?: string;
@@ -45,7 +46,8 @@ function RichNumberInput({
   labelText,
   hasError,
   isLoading = false,
-  suffix,
+  prefix = '',
+  suffix = '',
   value,
   children,
   className,
@@ -64,6 +66,7 @@ function RichNumberInput({
   size = 'large',
 }: OwnProps) {
   const inputRef = useRef<HTMLInputElement>();
+  const placeholderRef = useRef<HTMLDivElement>();
   const lang = useLang();
 
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
@@ -73,19 +76,22 @@ function RichNumberInput({
 
   const updateHtml = useLastCallback((newText: string) => {
     const input = inputRef.current!;
-    const html = buildContentHtml(newText, suffix, decimals);
+    const html = buildContentHtml(newText, prefix, suffix, decimals);
+
+    // Don't use the :empty pseudo-class to hide the placeholder, because it's noticeable delayed on iOS
+    placeholderRef.current!.innerHTML = newText ? '' : buildContentHtml('0', prefix, suffix);
 
     if (html !== input.innerHTML) {
       const restoreCaretPosition = document.activeElement === input
-        ? saveCaretPosition(input, decimals)
+        ? saveCaretPosition(input, prefix.length, decimals)
         : undefined;
 
       input.innerHTML = html;
       restoreCaretPosition?.();
     }
 
-    if (newText.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
-      updateFontScale(html);
+    if (`${prefix}${newText}${suffix}`.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
+      updateFontScale();
     }
   });
 
@@ -96,7 +102,11 @@ function RichNumberInput({
       updateHtml(newText);
       textRef.current = newText;
     }
-  }, [decimals, textRef, value]);
+  }, [textRef, value]);
+
+  useLayoutEffect(() => {
+    updateHtml(textRef.current);
+  }, [prefix, suffix, decimals]);
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const newText = clearText(e.currentTarget.textContent ?? undefined);
@@ -141,8 +151,7 @@ function RichNumberInput({
   );
   const inputFullClass = buildClassName(
     styles.input,
-    styles.input_rich,
-    size === 'large' && styles.input_large,
+    size === 'large' && styles.large,
     valueClassName,
     disabled && styles.disabled,
     isLoading && styles.isLoading,
@@ -171,23 +180,29 @@ function RichNumberInput({
         </label>
       )}
       <div className={inputWrapperFullClass}>
-        <div
-          ref={inputRef}
-          contentEditable={!disabled && !isLoading}
-          id={id}
-          role="textbox"
-          aria-required
-          aria-placeholder={lang('Amount value')}
-          aria-labelledby={labelText ? `${id}Label` : undefined}
-          tabIndex={0}
-          inputMode="decimal"
-          className={inputFullClass}
-          onKeyDown={handleKeyDown}
-          onChange={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onClick={onInputClick}
-        />
+        <div className={styles.rich}>
+          <div
+            ref={inputRef}
+            contentEditable={!disabled && !isLoading}
+            id={id}
+            role="textbox"
+            aria-required
+            aria-placeholder={lang('Amount value')}
+            aria-labelledby={labelText ? `${id}Label` : undefined}
+            tabIndex={0}
+            inputMode="decimal"
+            className={buildClassName(inputFullClass, styles.rich__value)}
+            onKeyDown={handleKeyDown}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onClick={onInputClick}
+          />
+          <div
+            ref={placeholderRef}
+            className={buildClassName(inputFullClass, styles.rich__placeholder)}
+          />
+        </div>
         {children}
       </div>
       {cornerClassName && <div className={cornerFullClass} />}
@@ -214,3 +229,17 @@ function isValidValue(text: string) {
 }
 
 export default memo(RichNumberInput);
+
+export function focusAtTheEnd(inputId: string) {
+  const input = document.getElementById(inputId);
+  const selection = window.getSelection();
+  if (!input || !selection) {
+    return;
+  }
+
+  const range = document.createRange();
+  range.selectNodeContents(input);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}

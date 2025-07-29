@@ -52,8 +52,16 @@ export type WalletState = AciveWalletState | ActiveNotWalletState | InactiveWall
 
 // Actions
 type BaseAction = {
-  trace_id: string;
+  /** May be null in early pending actions, otherwise doesn't change. Not unique. */
+  trace_id: string | null;
+  /** May change during the lifetime of pending actions. Unique within all actions. */
   action_id: string;
+  /**
+   * Raw addresses that the action belongs to.
+   * Always presented in the socket and /api/v3/pendingActions.
+   * Presented in /api/v3/actions only when `include_accounts=true` is set in the request.
+   */
+  accounts?: string[];
   start_lt: string;
   end_lt: string;
   start_utime: number;
@@ -63,7 +71,10 @@ type BaseAction = {
   trace_end_lt: string;
   trace_end_utime: number;
   trace_mc_seqno_end: number;
+  /** Never changes. Not unique. */
   trace_external_hash: string;
+  /** Never changes. Not unique. Undefined if the same as `trace_external_hash`. */
+  trace_external_hash_norm?: string;
 };
 
 export type AnyAction = TonTransferAction
@@ -535,3 +546,56 @@ type TransactionAccountState = {
   data_hash: string;
   code_hash: string;
 };
+
+type BaseSocketMessage = {
+  id?: string;
+};
+
+export type ConfigureSocketMessage = BaseSocketMessage & {
+  operation: 'configure';
+  include_address_book: boolean;
+  include_metadata: boolean;
+};
+
+export type SubscribeSocketMessage = BaseSocketMessage & {
+  operation: 'subscribe';
+  addresses: string[];
+  types: ('actions' | 'pending_actions')[];
+};
+
+export type UnsubscribeSocketMessage = BaseSocketMessage & {
+  operation: 'unsubscribe';
+  addresses: string[];
+};
+
+export type PingSocketMessage = BaseSocketMessage & {
+  operation: 'ping';
+};
+
+export type ClientSocketMessage =
+  | ConfigureSocketMessage
+  | SubscribeSocketMessage
+  | UnsubscribeSocketMessage
+  | PingSocketMessage;
+
+export type StatusSocketMessage = BaseSocketMessage & {
+  status: 'subscribed' | 'unsubscribed' | 'configured' | 'pong';
+};
+
+export type ActionsSocketMessage = BaseSocketMessage & {
+  type: 'actions' | 'pending_actions';
+  trace_external_hash_norm: string;
+  actions: AnyAction[];
+  address_book: AddressBook;
+  metadata: MetadataMap;
+};
+
+export type InvalidationSocketMessage = BaseSocketMessage & {
+  type: 'trace_invalidated';
+  trace_external_hash_norm: string;
+};
+
+export type ServerSocketMessage =
+  | StatusSocketMessage
+  | ActionsSocketMessage
+  | InvalidationSocketMessage;

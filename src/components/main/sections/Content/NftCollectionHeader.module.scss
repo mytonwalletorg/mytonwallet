@@ -12,11 +12,7 @@
 
   background: var(--color-background-first);
 
-  transition: background-color 150ms;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
+  @include mixins.transition(background-color 150ms);
 }
 
 .backButton {

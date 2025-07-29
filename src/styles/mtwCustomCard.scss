@@ -3,11 +3,6 @@
   --second-text: #00000099;
   --action-color: #00000099;
   --action-color-hover: #000;
-  --color-card-default-text: #000;
-  --color-card-green-text: #000;
-  --color-card-green-background: #2CD36F59;
-  --color-card-red-text: #000;
-  --color-card-red-background: #FAD2EA59;
 
   .glare-text {
     --glare-main: #000;
@@ -20,11 +15,6 @@
   --second-text: #FFFFFF99;
   --action-color: #FFFFFFBB;
   --action-color-hover: #FFF;
-  --color-card-default-text: #FFF;
-  --color-card-green-text: #FFF;
-  --color-card-green-background: #2CD36F59;
-  --color-card-red-text: #FFF;
-  --color-card-red-background: #FAD2EA59;
 }
 
 .MtwCard__black {
@@ -32,11 +22,6 @@
   --second-text: #A6A6B1;
   --action-color: rgba(255, 255, 255, 0.23);
   --action-color-hover: rgba(255, 255, 255, 0.75);
-  --color-card-default-text: #A6A6B1;
-  --color-card-green-text: #A6A6B1;
-  --color-card-green-background: #2CD36F33;
-  --color-card-red-text: #A6A6B1;
-  --color-card-red-background: #FAD2EA33;
 }
 
 .MtwCard__platinum {
@@ -44,11 +29,6 @@
   --second-text: #A6A6B1;
   --action-color: #888891;
   --action-color-hover: #FFFFFF;
-  --color-card-default-text: #A6A6B1;
-  --color-card-green-text: #A6A6B1;
-  --color-card-green-background: #2CD36F33;
-  --color-card-red-text: #A6A6B1;
-  --color-card-red-background: #FAD2EA33;
 }
 
 .MtwCard__gold {
@@ -56,11 +36,7 @@
   --second-text: #845F16;
   --action-color: #B07D1D;
   --action-color-hover: #845F16;
-  --color-card-default-text: #845F16;
-  --color-card-green-text: #845F16;
-  --color-card-green-background: #2CD36F59;
-  --color-card-red-text: #845F16;
-  --color-card-red-background: #FAD2EA59;
+  --color-card-change-text: #845F16;
 }
 
 .MtwCard__silver {
@@ -68,11 +44,6 @@
   --second-text: #6E6E6E;
   --action-color: #888;
   --action-color-hover: #595959;
-  --color-card-default-text: #6E6E6E;
-  --color-card-green-text:#6E6E6E;
-  --color-card-green-background: #2CD36F59;
-  --color-card-red-text: #6E6E6E;
-  --color-card-red-background: #FAD2EA59;
 }
 
 .MtwCard__black,

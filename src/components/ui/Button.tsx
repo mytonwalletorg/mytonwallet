@@ -9,7 +9,7 @@ import LoadingDots from './LoadingDots';
 
 import styles from './Button.module.scss';
 
-type OwnProps = {
+export type OwnProps = {
   ref?: ElementRef<HTMLButtonElement>;
   children: TeactNode;
   id?: string;

@@ -1,6 +1,6 @@
 type HandlerName = 'onEnter' | 'onBackspace' | 'onDelete' | 'onEsc' | 'onUp' | 'onDown' | 'onLeft' | 'onRight'
   | 'onTab';
-type EventHandler = (e: KeyboardEvent) => boolean | void;
+type EventHandler = (e: KeyboardEvent) => boolean | void | Promise<void>;
 type HandlerWithOptions = {
   handler: (e: KeyboardEvent) => void;
   shouldPreventDefault?: boolean;
@@ -76,7 +76,7 @@ function handleKeyDown(e: KeyboardEvent) {
   const handlerOrOptions = handlers[handlerName][length - 1];
 
   if (typeof handlerOrOptions === 'function') {
-    handlerOrOptions(e);
+    void handlerOrOptions(e);
 
     e.stopPropagation();
   } else {

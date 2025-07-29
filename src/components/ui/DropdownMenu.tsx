@@ -6,8 +6,9 @@ import type { MenuPositionOptions } from './Menu';
 
 import buildClassName from '../../util/buildClassName';
 
-import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
+import DropdownItemContent from './DropdownItemContent';
 import Menu from './Menu';
 
 import styles from './Dropdown.module.scss';
@@ -63,8 +64,6 @@ function DropdownMenu<T extends string>({
   getLayout,
   onCloseAnimationEnd,
 }: OwnProps<T>) {
-  const lang = useLang();
-
   let menuRef = useRef<HTMLDivElement>();
   if (ref) {
     menuRef = ref;
@@ -94,11 +93,11 @@ function DropdownMenu<T extends string>({
         positionY: menuPositionY,
       };
 
-  const handleItemClick = (e: React.MouseEvent, value: T) => {
+  const handleItemClick = useLastCallback((e: React.MouseEvent, value: T) => {
     e.stopPropagation();
     onSelect?.(value, e);
     onClose();
-  };
+  });
 
   return (
     <Menu
@@ -117,8 +116,6 @@ function DropdownMenu<T extends string>({
         const fullButtonClassName = buildClassName(
           styles.item,
           (item.icon || item.fontIcon) && styles.item_with_icon,
-          item.isDisabled && styles.disabled,
-          item.isDangerous && styles.dangerous,
           item.withDelimiter && index > 0 && styles.delimiter,
           item.withDelimiterAfter && styles.delimiterAfter,
           selectedValue === item.value && styles.item_selected,
@@ -126,36 +123,17 @@ function DropdownMenu<T extends string>({
           'capture-scroll',
         );
         return (
-          <button
+          <DropdownItemContent
             key={item.value}
-            type="button"
+            item={item}
+            shouldTranslate={shouldTranslateOptions}
             className={fullButtonClassName}
-            disabled={item.isDisabled}
-            onClick={(e) => handleItemClick(e, item.value)}
-          >
-            {item.icon && (
-              <img src={item.icon} alt="" className={buildClassName('icon', styles.itemIcon, iconClassName)} />
-            )}
-            {item.overlayIcon && (
-              <img src={item.overlayIcon} alt="" className={buildClassName('icon', styles.itemOverlayIcon)} />
-            )}
-            {item.fontIcon && (
-              <i
-                className={buildClassName(`icon icon-${item.fontIcon}`, styles.fontIcon, fontIconClassName)}
-                aria-hidden
-              />
-            )}
-            <span className={buildClassName(styles.itemName, 'menuItemName')}>
-              {shouldTranslateOptions ? lang(item.name) : item.name}
-              {!!item.description && (
-                <span className={buildClassName(styles.itemDescription, itemDescriptionClassName)}>
-                  {shouldTranslateOptions && typeof item.description === 'string'
-                    ? lang(item.description)
-                    : item.description}
-                </span>
-              )}
-            </span>
-          </button>
+            iconClassName={iconClassName}
+            fontIconClassName={fontIconClassName}
+            itemClassName="menuItemName"
+            itemDescriptionClassName={itemDescriptionClassName}
+            onClick={handleItemClick}
+          />
         );
       })}
     </Menu>

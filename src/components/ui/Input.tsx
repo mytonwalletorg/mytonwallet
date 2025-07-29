@@ -189,12 +189,12 @@ function Input({
           <i className={isPasswordVisible ? 'icon-eye' : 'icon-eye-closed'} aria-hidden />
         </button>
       )}
+      {children}
       {error && !label && (
         <label className={buildClassName(styles.label, styles.label_errorBottom, styles.error)} htmlFor={id}>
           {error}
         </label>
       )}
-      {children}
     </div>
   );
 }

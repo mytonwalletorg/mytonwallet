@@ -1,15 +1,27 @@
+@mixin _separator-base($position-offset, $inset: '') {
+  content: '';
+
+  position: absolute;
+  left: 0;
+
+  width: 100%;
+  height: 0.0625rem;
+
+  box-shadow: $inset 0 $position-offset 0 0 var(--color-separator);
+}
+
 @mixin separator() {
   &:not(:first-child)::before {
-    content: '';
+    @include _separator-base(-0.03rem);
 
-    position: absolute;
     top: 0;
-    left: 0;
+  }
+}
 
-    width: 100%;
-    height: 0.0625rem;
+@mixin separatorBottom() {
+  &::after {
+    @include _separator-base(0.03rem, inset);
 
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    box-shadow: 0 -0.03rem 0 0 var(--color-separator);
+    bottom: 0;
   }
 }

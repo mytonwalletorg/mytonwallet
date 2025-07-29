@@ -1,7 +1,13 @@
 import type { Cell } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
-import type { ApiAnyDisplayError, ApiEmulationResult, ApiLocalTransactionParams, ApiTransaction } from '../../types';
+import type {
+  ApiAnyDisplayError,
+  ApiEmulationResult,
+  ApiLocalTransactionParams,
+  ApiParsedPayload,
+  ApiTransaction,
+} from '../../types';
 import type { ContractType } from './constants';
 import type { AddressBook, AnyAction, TraceDetail } from './toncenter/types';
 
@@ -189,14 +195,22 @@ export type ApiSubmitTransferOptions = {
 
 export type ApiEmulationWithFallbackResult = (
   { isFallback: false } & ApiEmulationResult |
-  // Emulation is expected to work in 100% cases. The legacy method is kept as a fallback while the emulation is tested.
-  // The legacy method should be completely removed eventually.
+  // Emulation is expected to work in 100% cases.
+  // The fallback is used for insufficient balance cases and for the cases when the emulation is not available.
+  // The legacy method is kept as a fallback while the emulation is tested. It should be completely removed eventually.
   { isFallback: true; networkFee: bigint }
 );
 
 export type ApiCheckMultiTransactionDraftResult = (
-  { emulation?: ApiEmulationWithFallbackResult; error: ApiAnyDisplayError } |
-  { emulation: ApiEmulationWithFallbackResult }
+  {
+    emulation?: ApiEmulationWithFallbackResult;
+    parsedPayloads?: (ApiParsedPayload | undefined)[];
+    error: ApiAnyDisplayError;
+  } |
+  {
+    emulation: ApiEmulationWithFallbackResult;
+    parsedPayloads?: (ApiParsedPayload | undefined)[];
+  }
 );
 
 export type ApiTransactionExtended = ApiTransaction & {

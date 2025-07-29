@@ -25,7 +25,7 @@ describe('parseTrace + calculateActivityDetails', () => {
         activityPart: {
           id: 'eamGZJTFfqWoRX5MgBlLZlJ20372CUiL6uEtKh7xeU8='
             + ':50757011000001-y740RzK3hGPDFSkzvkK40PU7WJMjK00jz+FxBOmitzA=',
-          externalMsgHash: 'BSn6jVJGA3/qfCvFaugHNYYsz5fXDUSYd6RTX396e4Q=',
+          externalMsgHashNorm: 'BSn6jVJGA3/qfCvFaugHNYYsz5fXDUSYd6RTX396e4Q=',
           fromAddress: 'UQCgf9xAc0HumzY_N2Lgk5oQk3_pL7N04GT0KaP-H7upN-qH',
           toAddress: 'UQDxO-azxmbgK2vb_FMPE2y7PMCGeMal0wXqCt9w797d1YFR',
           isIncoming: false,
@@ -43,7 +43,7 @@ describe('parseTrace + calculateActivityDetails', () => {
         activityPart: {
           id: 'OnWzsl9e4nQZd6iCCy6HoFj+grX2RcH68MoNW4Dv5Jw='
             + ':48818110000001-9K6Gj0dR+3KIpfTeQ03h5q22dHTXpco5P7RCqOxzIBs=',
-          externalMsgHash: 'Bipiu5Wd8Z87Vz1d8jVXTXPPRJbsT4ydVT2TWrMgmqg=',
+          externalMsgHashNorm: 'Bipiu5Wd8Z87Vz1d8jVXTXPPRJbsT4ydVT2TWrMgmqg=',
           fromAddress: 'UQCgf9xAc0HumzY_N2Lgk5oQk3_pL7N04GT0KaP-H7upN-qH',
           toAddress: 'UQBGDiFhz7JAEYSe7gSYgic5az5ynJnzvL3BcEGMO-M-3iD_',
           isIncoming: false,
@@ -61,7 +61,7 @@ describe('parseTrace + calculateActivityDetails', () => {
         activityPart: {
           id: 'aauhCIOh6YFanxo483sLtzfeVEj05q4HCozrmNGsXdI='
             + ':57371927000002-gbNcDqRV9NJg1oMoOpC0CGXGeHv3/78rwkTj6UkNIgY=',
-          externalMsgHash: 'K6gpSRaFh9t4//KLB/+gTL9XDSQJN9apL3VFyYNH4P0=',
+          externalMsgHashNorm: 'K6gpSRaFh9t4//KLB/+gTL9XDSQJN9apL3VFyYNH4P0=',
           fromAddress: 'UQAD87Hs-_MrShb84GwhM1Mnwe_72i10VWQWU1eQ6v1nGkR8',
           toAddress: 'EQBS114FhHMAASOdTNjHPWUbIG6sZ9tVFTW2ttUF5tQcd-kx',
           isIncoming: false,
@@ -84,7 +84,7 @@ describe('parseTrace + calculateActivityDetails', () => {
       });
       const parsedTrace = parseTraceResponse('mainnet', walletAddress, traceResponse);
 
-      expect(calculateActivityDetails(activity, parsedTrace).activity).toEqual({
+      expect(calculateActivityDetails(activity, parsedTrace)?.activity).toEqual({
         ...activity,
         fee: expectedFee,
         shouldLoadDetails: undefined,

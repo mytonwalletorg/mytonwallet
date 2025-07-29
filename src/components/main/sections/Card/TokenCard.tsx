@@ -34,7 +34,7 @@ import SensitiveData from '../../../ui/SensitiveData';
 import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import ChartHistorySwitcher from './ChartHistorySwitcher';
-import CurrencySwitcher from './CurrencySwitcher';
+import CurrencySwitcherMenu from './CurrencySwitcherMenu';
 
 import styles from './Card.module.scss';
 
@@ -229,7 +229,7 @@ function TokenCard({
                   ≈&thinsp;{formatCurrency(value, currencySymbol, undefined, true)}
                   <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
                 </div>
-                <CurrencySwitcher
+                <CurrencySwitcherMenu
                   isOpen={isCurrencyMenuOpen}
                   menuPositionX="right"
                   excludedCurrency={token.symbol}

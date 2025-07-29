@@ -243,22 +243,32 @@ addActionHandler('clearAccountError', (global) => {
   return updateAccounts(global, { error: undefined });
 });
 
-addActionHandler('openAddAccountModal', (global, actions, props) => {
+addActionHandler('openAddAccountModal', (global, _, props) => {
+  const { forceAddingTonOnlyAccount } = props || {};
+
   if (IS_DELEGATED_BOTTOM_SHEET && !global.areSettingsOpen) {
     callActionInMain('openAddAccountModal', props);
     return;
   }
 
   global = { ...global, isAddAccountModalOpen: true };
+
+  if (forceAddingTonOnlyAccount) {
+    global = updateAuth(global, { forceAddingTonOnlyAccount });
+  }
+
   setGlobal(global);
 });
 
-addActionHandler('closeAddAccountModal', (global) => {
+addActionHandler('closeAddAccountModal', (global, _, props) => {
   if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
 
-  return { ...global, isAddAccountModalOpen: undefined };
+  global = updateAuth(global, { forceAddingTonOnlyAccount: undefined });
+  global = { ...global, isAddAccountModalOpen: undefined };
+
+  return global;
 });
 
 addActionHandler('changeNetwork', (global, actions, { network }) => {

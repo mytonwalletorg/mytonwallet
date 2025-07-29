@@ -377,9 +377,11 @@ export interface AccountState {
     newestActivitiesBySlug?: Record<string, ApiActivity>;
     isMainHistoryEndReached?: boolean;
     isHistoryEndReachedBySlug?: Record<string, boolean>;
-    localActivities?: ApiActivity[];
+    localActivityIds?: string[];
+    /** Doesn't include the local activities */
+    pendingActivityIds?: Partial<Record<ApiChain, string[]>>;
+    isFirstTransactionsLoaded?: Partial<Record<ApiChain, boolean>>;
   };
-  byChain?: Partial<Record<ApiChain, { isFirstTransactionsLoaded?: boolean }>>;
   nfts?: {
     byAddress?: Record<string, ApiNft>;
     orderedAddresses?: string[];
@@ -489,6 +491,7 @@ export type GlobalState = {
     isImportModalOpen?: boolean;
     firstNetworkAccount?: AuthAccount;
     secondNetworkAccount?: AuthAccount;
+    forceAddingTonOnlyAccount?: boolean;
   };
 
   biometrics: {
@@ -983,7 +986,7 @@ export interface ActionPayloads {
   checkTransferAddress: { address?: string };
 
   setCurrentTokenPeriod: { period: TokenPeriod };
-  openAddAccountModal: undefined;
+  openAddAccountModal: { forceAddingTonOnlyAccount: boolean } | undefined;
   closeAddAccountModal: undefined;
 
   setLandscapeActionsActiveTabIndex: { index: ActiveTab };

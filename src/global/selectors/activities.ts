@@ -1,8 +1,8 @@
-import type { ApiActivityTimestamps, ApiChain } from '../../api/types';
+import type { ApiActivity, ApiActivityTimestamps, ApiChain } from '../../api/types';
 import type { GlobalState } from '../types';
 
-import { getIsIdSuitableForFetchingTimestamp } from '../../util/activities';
-import { findLast, mapValues } from '../../util/iteratees';
+import { getIsActivitySuitableForFetchingTimestamp, getIsTxIdLocal } from '../../util/activities';
+import { compact, findLast, mapValues } from '../../util/iteratees';
 import { selectAccount, selectAccountState } from './accounts';
 
 export function selectNewestActivityTimestamps(global: GlobalState, accountId: string): ApiActivityTimestamps {
@@ -17,7 +17,7 @@ export function selectLastMainTxTimestamp(global: GlobalState, accountId: string
   if (!activities) return undefined;
 
   const { byId, idsMain = [] } = activities;
-  const txId = findLast(idsMain, (id) => getIsIdSuitableForFetchingTimestamp(id) && Boolean(byId[id]));
+  const txId = findLast(idsMain, (id) => getIsActivitySuitableForFetchingTimestamp(byId[id]));
   if (!txId) return undefined;
 
   return byId[txId].timestamp;
@@ -30,19 +30,47 @@ export function selectAccountTxTokenSlugs(global: GlobalState, accountId: string
   return Object.keys(idsBySlug).filter((slug) => slug.startsWith(`${chain}-`));
 }
 
-export function selectLocalActivities(global: GlobalState, accountId: string) {
-  const accountState = global.byAccountId?.[accountId];
+export function selectLocalActivitiesSlow(global: GlobalState, accountId: string) {
+  const { byId = {}, localActivityIds = [] } = global.byAccountId[accountId]?.activities ?? {};
 
-  return accountState?.activities?.localActivities;
+  return compact(localActivityIds.map((id) => byId[id]));
+}
+
+/** Doesn't include local activities */
+export function selectPendingActivitiesSlow(global: GlobalState, accountId: string, chain: ApiChain) {
+  const { byId = {}, pendingActivityIds = {} } = global.byAccountId[accountId]?.activities ?? {};
+  const ids = pendingActivityIds[chain] ?? [];
+
+  return compact(ids.map((id) => byId[id]));
+}
+
+export function selectRecentNonLocalActivitiesSlow(global: GlobalState, accountId: string, maxCount: number) {
+  const { byId = {}, idsMain = [] } = global.byAccountId[accountId]?.activities ?? {};
+  const result: ApiActivity[] = [];
+
+  for (const id of idsMain) {
+    if (result.length >= maxCount) {
+      break;
+    }
+    if (getIsTxIdLocal(id)) {
+      continue;
+    }
+    const activity = byId[id];
+    if (activity) {
+      result.push(activity);
+    }
+  }
+
+  return result;
 }
 
 export function selectIsFirstTransactionsLoaded(global: GlobalState, accountId: string) {
-  const { byChain } = selectAccountState(global, accountId) ?? {};
+  const { isFirstTransactionsLoaded } = selectAccountState(global, accountId)?.activities ?? {};
   const { addressByChain } = selectAccount(global, accountId) ?? {};
 
-  if (!byChain || !addressByChain) {
+  if (!isFirstTransactionsLoaded || !addressByChain) {
     return false;
   }
 
-  return Object.keys(addressByChain).every((chain) => byChain[chain as ApiChain]?.isFirstTransactionsLoaded);
+  return Object.keys(addressByChain).every((chain) => isFirstTransactionsLoaded[chain as ApiChain]);
 }
