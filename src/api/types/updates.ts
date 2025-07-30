@@ -167,6 +167,16 @@ export type ApiUpdateDapps = {
   type: 'updateDapps';
 };
 
+export type ApiUpdateDappTransferComplete = {
+  type: 'dappTransferComplete';
+  accountId: string;
+};
+
+export type ApiUpdateDappSignDataComplete = {
+  type: 'dappSignDataComplete';
+  accountId: string;
+};
+
 export type ApiUpdatePrepareTransaction = {
   type: 'prepareTransaction';
   toAddress: string;
@@ -311,6 +321,8 @@ export type ApiUpdate =
   | ApiUpdateDappCloseLoading
   | ApiUpdateDappSignData
   | ApiUpdateDapps
+  | ApiUpdateDappTransferComplete
+  | ApiUpdateDappSignDataComplete
   | ApiUpdatePrepareTransaction
   | ApiUpdateProcessDeeplink
   | ApiUpdateShowError

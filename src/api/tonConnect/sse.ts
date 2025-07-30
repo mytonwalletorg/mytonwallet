@@ -7,6 +7,7 @@ import type {
 import nacl, { randomBytes } from 'tweetnacl';
 
 import type { ApiDappRequest, ApiSseOptions, OnApiUpdate } from '../types';
+import { CONNECT_EVENT_ERROR_CODES } from './types';
 
 import { SSE_BRIDGE_URL } from '../../config';
 import { parseAccountId } from '../../util/account';
@@ -105,6 +106,23 @@ export async function startSseConnection({
   }
 
   const result = await tonConnect.connect(request, connectRequest, lastOutputId);
+
+  if (result.event === 'connect_error') {
+    const { code } = result.payload;
+
+    if ([
+      CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
+      CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR,
+      CONNECT_EVENT_ERROR_CODES.BAD_REQUEST_ERROR,
+      CONNECT_EVENT_ERROR_CODES.UNKNOWN_APP_ERROR,
+      CONNECT_EVENT_ERROR_CODES.METHOD_NOT_SUPPORTED,
+    ].includes(code)) {
+      onUpdate({
+        type: 'showError',
+        error: result.payload.message,
+      });
+    }
+  }
 
   await sendMessage(result, secretKey, clientId, appClientId);
 

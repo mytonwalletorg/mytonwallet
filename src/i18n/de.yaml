@@ -154,7 +154,7 @@ Copy wallet address: Wallet adresse kopieren
 View address on %ton_explorer_name%: Adresse im %ton_explorer_name% anzeigen
 You have just created a new wallet: Sie haben gerade eine neue Wallet erstellt.
 You can now transfer your tokens from another wallet or exchange.: Sie können jetzt Ihre Token von einer anderen Wallet oder Börse übertragen.
-Coins: Coins
+Assets: Vermögenswerte
 Activity: Aktivität
 NFT: NFT
 No NFTs yet: Noch keine NFTs vorhanden
@@ -195,6 +195,8 @@ Fee: Gebühr
 Edit: Bearbeiten
 Confirm: Bestätigen
 Coins have been sent!: Die Coins wurden gesendet!
+Transaction Sent!: Transaktion gesendet!
+Data Signed!: Daten signiert!
 Details: Details
 Change password visibility: Sichtbarkeit des Passworts ändern
 Amount value: Betragswert
@@ -300,7 +302,7 @@ $dapps-description: Sie können sich bei Dapps anmelden, die %app_name% unterst�
 Logged in with %app_name%: Mit %app_name% angemeldet
 No active connections: Keine aktiven Verbindungen
 Other: Sonstige
-Coins & Activity: Coins & Aktivität
+Assets & Activity: Vermögenswerte und Aktivitäten
 Token Settings: Token-Einstellungen
 My Tokens: Meine Token
 Add Token: Token hinzufügen

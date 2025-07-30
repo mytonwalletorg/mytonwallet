@@ -8,6 +8,10 @@ $listHorizontalPadding: 1rem;
 
 .rootSlide {
   overflow: visible !important;
+
+  @include mixins.respond-above(xs) {
+    --background-color: var(--color-background-first);
+  }
 }
 
 .slide {
@@ -236,12 +240,8 @@ $listHorizontalPadding: 1rem;
   border-radius: var(--border-radius-normal);
 }
 
-.badge {
-  position: absolute;
-  z-index: 2;
-  top: -0.25rem;
-  right: 0;
-
+.badge,
+.badgeLabel {
   padding: 0 0.25rem;
   border-radius: 0.3125rem;
 
@@ -251,10 +251,24 @@ $listHorizontalPadding: 1rem;
   color: var(--color-accent-button-text);
 
   background: var(--color-accent);
+}
+
+.badge {
+  position: absolute;
+  z-index: 2;
+  top: -0.25rem;
+  right: 0;
 
   .trending & {
     right: -0.25rem;
   }
+}
+
+.badgeLabel {
+  display: inline;
+  margin-left: 0.25rem;
+  line-height: 1rem;
+  vertical-align: 0.0625rem;
 }
 
 .imageWrapper {

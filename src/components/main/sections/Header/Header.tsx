@@ -2,7 +2,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
 import { IS_CORE_WALLET, IS_EXTENSION, IS_TELEGRAM_APP } from '../../../../config';
-import { selectIsCurrentAccountViewMode } from '../../../../global/selectors';
+import { selectIsCurrentAccountViewMode, selectIsPasswordPresent } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { IS_ELECTRON } from '../../../../util/windowEnvironment';
 
@@ -21,6 +21,7 @@ import styles from './Header.module.scss';
 export const HEADER_HEIGHT_REM = 3;
 
 interface OwnProps {
+  isScrolled?: boolean;
   withBalance?: boolean;
 }
 
@@ -34,6 +35,7 @@ interface StateProps {
 function Header({
   isViewMode,
   withBalance,
+  isScrolled,
   isAppLockEnabled,
   isSensitiveDataHidden,
   isFullscreen,
@@ -42,8 +44,14 @@ function Header({
   const canToggleAppLayout = IS_EXTENSION || IS_ELECTRON;
 
   if (isPortrait) {
+    const fullClassName = buildClassName(
+      styles.header,
+      withBalance && styles.withSeparator,
+      isScrolled && styles.isScrolled,
+    );
+
     return (
-      <div className={buildClassName(styles.header, withBalance && styles.withSeparator)}>
+      <div className={fullClassName}>
         <div className={styles.headerInner}>
           <QrScannerButton isViewMode={isViewMode} />
           <AccountSelector withBalance={withBalance} withAccountSelector={!IS_CORE_WALLET} />
@@ -90,11 +98,12 @@ export default memo(withGlobal(
       },
     } = global;
 
+    const isPasswordPresent = selectIsPasswordPresent(global);
     const isViewMode = selectIsCurrentAccountViewMode(global);
 
     return {
       isViewMode,
-      isAppLockEnabled: isAppLockEnabled && !isViewMode,
+      isAppLockEnabled: isAppLockEnabled && isPasswordPresent,
       isFullscreen: Boolean(isFullscreen),
       isSensitiveDataHidden: Boolean(isSensitiveDataHidden),
     };

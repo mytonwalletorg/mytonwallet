@@ -30,6 +30,10 @@
     position: relative;
   }
 
+  .modalDialog & {
+    --safe-area-top: 0;
+  }
+
   & > & {
     --safe-area-top: 0px;
 
@@ -69,6 +73,7 @@
   grid-template-columns: 1fr max-content 1fr;
   align-items: center;
 
+  width: 100%;
   padding: var(--header-padding-top) 0.125rem var(--header-padding-bottom);
 
   font-size: 1.0625rem;

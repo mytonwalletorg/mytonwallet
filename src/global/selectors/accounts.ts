@@ -115,17 +115,17 @@ export function selectLedgerAccountIndexToImport(global: GlobalState, network: A
   return hardwareAccountIndexes.length - 1;
 }
 
-function isPasswordAccount(account: Account) {
+function isMnemonicAccount(account: Account) {
   return account.type === 'mnemonic';
 }
 
-export function selectIsPasswordAccount(global: GlobalState) {
+export function selectIsMnemonicAccount(global: GlobalState) {
   const account = selectCurrentAccount(global);
-  return Boolean(account) && isPasswordAccount(account);
+  return Boolean(account) && isMnemonicAccount(account);
 }
 
 const selectIsPasswordPresentMemoized = memoize((accounts: Record<string, Account> | undefined) => {
-  return Object.values(accounts ?? {}).some(isPasswordAccount);
+  return Object.values(accounts ?? {}).some(isMnemonicAccount);
 });
 
 export function selectIsPasswordPresent(global: GlobalState) {

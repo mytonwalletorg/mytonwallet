@@ -1,5 +1,5 @@
 import React, {
-  memo, useEffect, useRef, useState,
+  memo, useEffect, useRef,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -35,6 +35,7 @@ import useFlag from '../../hooks/useFlag';
 import useInterval from '../../hooks/useInterval';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePreventPinchZoomGesture from '../../hooks/usePreventPinchZoomGesture';
+import useScrollDetection from '../../hooks/useScrollDetection';
 
 import LinkingDomainModal from '../domain/LinkingDomainModal';
 import RenewDomainModal from '../domain/RenewDomainModal';
@@ -109,7 +110,6 @@ function Main({
   const portraitContainerRef = useRef<HTMLDivElement>();
   const landscapeContainerRef = useRef<HTMLDivElement>();
 
-  const [shouldRenderBalanceInHeader, setShouldRenderBalanceInHeader] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
   const [isFocused, markIsFocused, unmarkIsFocused] = useFlag(!isBackgroundModeActive());
 
@@ -130,29 +130,19 @@ function Main({
 
   useInterval(updatePendingSwaps, isFocused ? UPDATE_SWAPS_INTERVAL : UPDATE_SWAPS_INTERVAL_NOT_FOCUSED);
 
-  useEffect(() => {
-    if (!isPortrait || !isActive) {
-      return undefined;
-    }
+  // Use scroll detection for portrait mode
+  const { isIntersecting: isPageAtTop } = useScrollDetection({
+    isDisabled: !isPortrait || !isActive,
+    targetRef: cardRef,
+    rootMargin: `-${HEADER_HEIGHT_REM * REM + safeAreaTop}px 0px 0px`,
+    threshold: [1],
+  });
 
-    const cardBottomSideObserver = new IntersectionObserver((entries) => {
-      const { isIntersecting } = entries[0];
-
-      setShouldRenderBalanceInHeader(!isIntersecting);
-    }, { rootMargin: `-${HEADER_HEIGHT_REM * REM}px 0px 0px`, threshold: [0] });
-    const cardElement = cardRef.current;
-
-    if (cardElement) {
-      cardBottomSideObserver.observe(cardElement);
-    }
-
-    return () => {
-      if (cardElement) {
-        cardBottomSideObserver.unobserve(cardElement);
-        setShouldRenderBalanceInHeader(false);
-      }
-    };
-  }, [isActive, isPortrait, safeAreaTop]);
+  const { isIntersecting: shouldHideBalanceInHeader } = useScrollDetection({
+    isDisabled: !isPortrait || !isActive,
+    targetRef: cardRef,
+    rootMargin: `-${HEADER_HEIGHT_REM * REM}px 0px 0px`,
+  });
 
   const handleTokenCardClose = useLastCallback(() => {
     selectToken({ slug: undefined });
@@ -196,7 +186,7 @@ function Main({
         <div className={styles.head}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
 
-          <Header withBalance={shouldRenderBalanceInHeader} />
+          <Header withBalance={!shouldHideBalanceInHeader} isScrolled={!isPageAtTop} />
 
           <Card
             ref={cardRef}

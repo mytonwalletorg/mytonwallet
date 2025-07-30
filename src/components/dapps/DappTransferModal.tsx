@@ -24,6 +24,7 @@ import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
 import DappLedgerWarning from './DappLedgerWarning';
 import DappTransaction from './DappTransaction';
+import DappTransferComplete from './DappTransferComplete';
 import DappTransferInitial from './DappTransferInitial';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -150,6 +151,14 @@ function DappTransferModal({
             text={lang('Please confirm transaction on your Ledger')}
             error={error}
             onTryAgain={submitDappTransferHardware}
+            onClose={closeDappTransfer}
+          />
+        );
+
+      case TransferState.Complete:
+        return (
+          <DappTransferComplete
+            isActive={isActive}
             onClose={closeDappTransfer}
           />
         );

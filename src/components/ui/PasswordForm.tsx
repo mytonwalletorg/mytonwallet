@@ -60,6 +60,7 @@ interface OwnProps {
   help?: string;
   resetStateDelayMs?: number;
   containerClassName?: string;
+  pinPadClassName?: string;
   withCloseButton?: boolean;
   children?: TeactNode;
   noAnimatedIcon?: boolean;
@@ -146,6 +147,7 @@ function PasswordForm({
   help,
   resetStateDelayMs,
   containerClassName,
+  pinPadClassName,
   children,
   withCloseButton,
   noAnimatedIcon,
@@ -418,6 +420,7 @@ function PasswordForm({
             resetStateDelayMs={resetStateDelayMs}
             value={password}
             topContent={shouldRenderAutoConfirmCheckbox ? renderAutoConfirmCheckbox() : undefined}
+            className={pinPadClassName}
             onBiometricsClick={isNativeBiometricAuthEnabled ? handleBiometrics : undefined}
             onLogOutClick={operationType === 'unlock' ? openLogOutModal : undefined}
             onChange={setPassword}

@@ -29,7 +29,7 @@ import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsCurrentAccountViewMode,
-  selectIsPasswordAccount,
+  selectIsPasswordPresent,
   selectNetworkAccounts,
 } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
@@ -123,7 +123,7 @@ type StateProps = {
   dapps: ApiDapp[];
   isOpen?: boolean;
   tokens?: UserToken[];
-  isPasswordAccount?: boolean;
+  isPasswordPresent?: boolean;
   currentVersion?: ApiTonWalletVersion;
   versions?: ApiWalletWithVersionInfo[];
   isCopyStorageEnabled?: boolean;
@@ -155,7 +155,7 @@ function Settings({
   isOpen = false,
   tokens,
   isInsideModal,
-  isPasswordAccount,
+  isPasswordPresent,
   currentVersion,
   versions,
   isCopyStorageEnabled,
@@ -557,12 +557,12 @@ function Settings({
             {!SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY && (
               <div className={styles.item} onClick={handleAssetsOpen}>
                 <img className={styles.menuIcon} src={assetsActivityImg} alt={lang('Assets & Activity')} />
-                {lang('Coins & Activity')}
+                {lang('Assets & Activity')}
 
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
-            {isPasswordAccount && (
+            {isPasswordPresent && (
               <div className={styles.item} onClick={handleSecurityOpen}>
                 <img className={styles.menuIcon} src={securityImg} alt={lang('Security')} />
                 {lang('Security')}
@@ -828,6 +828,7 @@ function Settings({
         return (
           <SettingsNativeBiometricsTurnOn
             isActive={isActive && isSlideActive}
+            isInsideModal={isInsideModal}
             handleBackClick={handleBackClick}
           />
         );
@@ -913,7 +914,7 @@ function Settings({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const isPasswordAccount = selectIsPasswordAccount(global);
+  const isPasswordPresent = selectIsPasswordPresent(global);
   const accounts = selectNetworkAccounts(global);
   const { isCopyStorageEnabled, supportAccountsCount = 1, isNftBuyingDisabled } = global.restrictions;
 
@@ -927,7 +928,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     dapps,
     isOpen: global.areSettingsOpen,
     tokens: selectCurrentAccountTokens(global),
-    isPasswordAccount,
+    isPasswordPresent,
     currentVersion,
     versions,
     isCopyStorageEnabled,

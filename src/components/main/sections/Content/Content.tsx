@@ -192,7 +192,7 @@ function Content({
 
   const [mainContentTabsCount, tabs] = useMemo(() => {
     const mainContentTabs = compact([
-      !shouldShowSeparateAssetsPanel && { id: ContentTab.Assets, title: lang('Coins'), className: styles.tab },
+      !shouldShowSeparateAssetsPanel && { id: ContentTab.Assets, title: lang('Assets'), className: styles.tab },
       { id: ContentTab.Activity, title: lang('Activity'), className: styles.tab },
       !isPortrait && !IS_CORE_WALLET && { id: ContentTab.Explore, title: lang('Explore'), className: styles.tab },
       doesSupportNft && {
@@ -329,6 +329,8 @@ function Content({
           handleSwitchTab(tab.id);
           return true;
         } else if (direction === SwipeDirection.Right) {
+          if (currentSiteCategoryId) return false;
+
           if (currentCollectionAddress) {
             closeNftCollection();
           } else {
@@ -342,7 +344,7 @@ function Content({
       },
       selectorToPreventScroll: '.custom-scroll',
     });
-  }, [tabs, handleSwitchTab, activeTabIndex, currentCollectionAddress]);
+  }, [tabs, handleSwitchTab, activeTabIndex, currentCollectionAddress, currentSiteCategoryId]);
 
   const handleClickAsset = useLastCallback((slug: string) => {
     showTokenActivity({ slug });

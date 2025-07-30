@@ -142,7 +142,7 @@ function SettingsAssets({
     <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader
-          title={lang('Coins & Activity')}
+          title={lang('Assets & Activity')}
           withNotch={isScrolled}
           onBackButtonClick={onBack}
           className={styles.modalHeader}
@@ -153,7 +153,7 @@ function SettingsAssets({
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
           </Button>
-          <span className={styles.headerTitle}>{lang('Coins & Activity')}</span>
+          <span className={styles.headerTitle}>{lang('Assets & Activity')}</span>
         </div>
       )}
       <div

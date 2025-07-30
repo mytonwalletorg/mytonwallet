@@ -154,7 +154,7 @@ Copy wallet address: Cüzdan adresini kopyala
 View address on %ton_explorer_name%: "%ton_explorer_name%'da adresi görüntüleyin"
 You have just created a new wallet: Az önce yeni bir cüzdan oluşturdunuz
 You can now transfer your tokens from another wallet or exchange.: Artık tokenlarınızı başka bir cüzdandan veya borsadan aktarabilirsiniz.
-Coins: Coinler
+Assets: Varlıklar
 Activity: Etkinlik
 NFT: NFT
 No NFTs yet: Henüz NFT'niz yok
@@ -195,6 +195,8 @@ Fee: Ücret
 Edit: Düzenle
 Confirm: Onayla
 Coins have been sent!: Coin'ler gönderildi!
+Transaction Sent!: İşlem gönderildi!
+Data Signed!: Veri imzalandı!
 Details: Detaylar
 Change password visibility: Parola görünürlüğünü değiştir
 Amount value: Tutarın değeri
@@ -297,7 +299,7 @@ $dapps-description: "%app_name%'ı destekleyen Dapp'lerde oturum açabilirsiniz.
 Logged in with %app_name%: "%app_name% ile oturum açıldı"
 No active connections: Aktif bağlantı yok
 Other: Diğer
-Coins & Activity: Coinler ve Etkinlik
+Assets & Activity: Varlıklar ve Etkinlik
 Token Settings: Token ayarları
 My Tokens: Benim Jetonlarım
 Add Token: Token ekle

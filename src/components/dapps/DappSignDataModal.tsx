@@ -19,6 +19,7 @@ import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
 import DappSignDataInitial from './DappSignDataInitial';
+import DappTransferComplete from './DappTransferComplete';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
@@ -87,6 +88,15 @@ function DappSignDataModal({
 
       case SignDataState.Password:
         return renderPassword(isActive);
+
+      case SignDataState.Complete:
+        return (
+          <DappTransferComplete
+            isActive={isActive}
+            onClose={closeDappSignData}
+            type="signData"
+          />
+        );
     }
   }
 

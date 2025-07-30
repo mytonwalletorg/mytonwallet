@@ -12,7 +12,7 @@
 
     width: 100%;
 
-    background-color: var(--color-background-tab-bar);
+    background-color: var(--background-color);
     backdrop-filter: saturate(180%) blur(20px);
 
     :global(html.is-electron:not(.is-linux)) & {
@@ -28,6 +28,10 @@
 
     &.withSeparator::after {
       opacity: 1;
+    }
+
+    &.isScrolled {
+      background-color: var(--color-background-tab-bar);
     }
   }
 
@@ -51,6 +55,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    height: auto;
     padding: 0 0.8125rem;
   }
 }

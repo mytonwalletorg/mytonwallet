@@ -1,6 +1,8 @@
 @use "../../styles/mixins";
 
 .wrapper {
+  --fallback-token-color: var(--color-gray-3);
+
   position: relative;
 }
 
@@ -25,6 +27,12 @@
       width: 2.5rem !important;
       height: 2.5rem !important;
     }
+  }
+
+  &.x-large {
+    flex-basis: 2.5rem;
+    width: 2.5rem !important;
+    height: 2.5rem !important;
   }
 
   &.x-small {
@@ -60,7 +68,7 @@
   font-size: 1.0625rem;
   font-weight: 800;
   line-height: 1;
-  color: var(--color-gray-3);
+  color: var(--fallback-token-color);
 
   &.x-small {
     font-size: 0.75rem;

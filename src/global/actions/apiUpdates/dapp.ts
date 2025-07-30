@@ -1,4 +1,4 @@
-import { TransferState } from '../../types';
+import { SignDataState, TransferState } from '../../types';
 
 import { TONCOIN } from '../../../config';
 import { processDeeplink } from '../../../util/deeplink';
@@ -10,6 +10,8 @@ import {
   clearCurrentSignature,
   clearCurrentTransfer,
   clearDappConnectRequest,
+  updateCurrentDappSignData,
+  updateCurrentDappTransfer,
   updateCurrentSignature,
   updateCurrentTransfer,
 } from '../../reducers';
@@ -168,6 +170,28 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const { url } = update;
 
       void processDeeplink(url);
+      break;
+    }
+
+    case 'dappTransferComplete': {
+      if (global.currentDappTransfer.state !== TransferState.None) {
+        global = updateCurrentDappTransfer(global, {
+          state: TransferState.Complete,
+          isLoading: false,
+        });
+        setGlobal(global);
+      }
+      break;
+    }
+
+    case 'dappSignDataComplete': {
+      if (global.currentDappSignData.state !== SignDataState.None) {
+        global = updateCurrentDappSignData(global, {
+          state: SignDataState.Complete,
+          isLoading: false,
+        });
+        setGlobal(global);
+      }
       break;
     }
   }

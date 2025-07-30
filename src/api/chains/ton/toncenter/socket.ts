@@ -5,7 +5,7 @@ import { TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config
 import { findDifference } from '../../../../util/iteratees';
 import ReconnectingWebSocket, { type InMessageCallback } from '../../../../util/reconnectingWebsocket';
 import safeExec from '../../../../util/safeExec';
-import { forbidConcurrency, throttle } from '../../../../util/schedulers';
+import { forbidConcurrency, setCancellableTimeout, throttle } from '../../../../util/schedulers';
 import { getNftSuperCollectionsByCollectionAddress } from '../../../common/addresses';
 import { addBackendHeadersToSocketUrl } from '../../../common/backend';
 import { SEC } from '../../../constants';
@@ -15,6 +15,10 @@ const ACTUALIZATION_DELAY = 10;
 
 // Toncenter closes the socket after 30 seconds of inactivity
 const PING_INTERVAL = 20 * SEC;
+
+// When the internet connection is interrupted, the Toncenter socket doesn't always disconnect automatically.
+// Disconnecting manually if there is no response for "ping".
+const PONG_TIMEOUT = 5 * SEC;
 
 const toncenterSockets: Partial<Record<ApiNetwork, ToncenterSocket>> = {};
 
@@ -80,6 +84,7 @@ class ToncenterSocket {
   #currentUniqueId = 0;
 
   #stopPing?: NoneToVoidFunction;
+  #cancelReconnect?: NoneToVoidFunction;
 
   constructor(network: ApiNetwork) {
     this.#network = network;
@@ -146,6 +151,8 @@ class ToncenterSocket {
   }
 
   #handleSocketMessage: InMessageCallback<ServerSocketMessage> = (message) => {
+    this.#cancelReconnect?.();
+
     if ('status' in message) {
       if (message.status === 'subscribed') {
         this.#handleSubscribed(message);
@@ -293,6 +300,11 @@ class ToncenterSocket {
 
     const pingIntervalId = setInterval(() => {
       this.#socket?.send({ operation: 'ping' });
+
+      this.#cancelReconnect?.();
+      this.#cancelReconnect = setCancellableTimeout(PONG_TIMEOUT, () => {
+        this.#socket?.reconnect();
+      });
     }, PING_INTERVAL);
 
     this.#stopPing = () => clearInterval(pingIntervalId);

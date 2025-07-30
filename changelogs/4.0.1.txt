@@ -1,0 +1,11 @@
+Meet MyTonWallet v4.0!
+
+· New Sleek UI · A cleaner, lighter, and more intuitive design.
+
+· Instant Transfers · Incoming transactions now appear in less than 0.1 seconds—a first for TON wallets.
+
+· Enter Amounts in Fiat Currency · Send, stake, or unstake assets using your preferred currency—token amounts are automatically calculated from USD, EUR, RUB, CNY, and more.
+
+· Improved TON Connect Experience · Get clear info on missing tokens and connect to the same dapps from multiple devices at once.
+
+· Extra Tools for Developers · Create TON-only wallets and import any wallet version through Developer Options.

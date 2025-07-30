@@ -8,7 +8,7 @@ import { AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP } from '../../config';
 import {
   selectIsBiometricAuthEnabled,
   selectIsNativeBiometricAuthEnabled,
-  selectIsPasswordAccount,
+  selectIsPasswordPresent,
 } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
@@ -363,7 +363,7 @@ function AppLocked({
 export default memo(withGlobal((global): StateProps => {
   const { autolockValue, isAppLockEnabled } = global.settings;
 
-  const isPasswordAccount = selectIsPasswordAccount(global);
+  const isPasswordPresent = selectIsPasswordPresent(global);
 
   const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
   const isNativeBiometricAuthEnabled = selectIsNativeBiometricAuthEnabled(global);
@@ -372,7 +372,7 @@ export default memo(withGlobal((global): StateProps => {
   return {
     isNonNativeBiometricAuthEnabled,
     autolockValue,
-    canRender: Boolean(isAppLockEnabled && isPasswordAccount),
+    canRender: Boolean(isAppLockEnabled && isPasswordPresent),
     isAppLockEnabled,
     theme: global.settings.theme,
     isManualLockActive: global.isManualLockActive,

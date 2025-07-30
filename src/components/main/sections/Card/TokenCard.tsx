@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiBaseCurrency, ApiStakingState } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, IS_CORE_WALLET, TONCOIN } from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, IS_CORE_WALLET } from '../../../../config';
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { calcBigChangeValue } from '../../../../util/calcChangeValue';
@@ -17,7 +17,6 @@ import { handleUrlClick } from '../../../../util/openUrl';
 import { round } from '../../../../util/round';
 import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';
-import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 import { calculateTokenCardColor } from '../../helpers/cardColors';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -28,6 +27,7 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import useSyncEffect from '../../../../hooks/useSyncEffect';
 import useTimeout from '../../../../hooks/useTimeout';
 
+import TokenIcon from '../../../common/TokenIcon';
 import TokenPriceChart from '../../../common/TokenPriceChart';
 import Button from '../../../ui/Button';
 import SensitiveData from '../../../ui/SensitiveData';
@@ -37,8 +37,6 @@ import ChartHistorySwitcher from './ChartHistorySwitcher';
 import CurrencySwitcherMenu from './CurrencySwitcherMenu';
 
 import styles from './Card.module.scss';
-
-import tonUrl from '../../../../assets/coins/ton.svg';
 
 interface OwnProps {
   ref?: ElementRef<HTMLDivElement>;
@@ -103,7 +101,7 @@ function TokenCard({
   }, [selectedHistoryIndex]);
 
   const {
-    slug, symbol, amount, image, name, price: lastPrice, decimals,
+    slug, symbol, amount, name, price: lastPrice, decimals,
   } = token;
 
   const { annualYield, yieldType, id: stakingId } = useMemo(() => {
@@ -116,10 +114,6 @@ function TokenCard({
       return bestState;
     }, undefined as ApiStakingState | undefined);
   }, [stakingStates, slug]) ?? {};
-
-  const logoPath = slug === TONCOIN.slug
-    ? tonUrl
-    : image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
   const refreshHistory = useLastCallback((newPeriod?: TokenPeriod) => {
     loadPriceHistory({ slug, period: newPeriod ?? period });
@@ -202,7 +196,11 @@ function TokenCard({
         <Button className={styles.backButton} isSimple onClick={onClose} ariaLabel={lang('Back')}>
           <i className="icon-chevron-left" aria-hidden />
         </Button>
-        <img className={styles.tokenLogo} src={logoPath} alt={token.name} />
+        <TokenIcon
+          token={token}
+          size="x-large"
+          className={styles.tokenLogo}
+        />
         <div className={styles.tokenInfoHeader}>
           <b className={styles.tokenAmount}>
             <SensitiveData

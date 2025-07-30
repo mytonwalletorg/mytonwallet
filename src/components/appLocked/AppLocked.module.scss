@@ -1,3 +1,5 @@
+$contentMaxWidth: 31.4375rem;
+
 .appLocked {
   --header-gap-size: 2rem;
 
@@ -20,7 +22,7 @@
 
   .withPinPad & {
     width: 100% !important;
-    max-width: 31.4375rem !important;
+    max-width: $contentMaxWidth !important;
     height: 100% !important;
   }
 }
@@ -56,6 +58,12 @@
   height: fit-content;
   max-height: 100vh;
   margin: auto;
+}
+
+.pinPadContent {
+  @media (min-width: $contentMaxWidth) {
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0 !important;
+  }
 }
 
 .logo {

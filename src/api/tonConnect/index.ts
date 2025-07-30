@@ -415,6 +415,12 @@ export async function sendTransaction(
       }));
     }
 
+    // Notify that dapp transfer is complete after successful blockchain submission
+    onUpdate({
+      type: 'dappTransferComplete',
+      accountId,
+    });
+
     return {
       result: boc!,
       id: message.id,
@@ -516,14 +522,21 @@ export async function signData(
 
     const password: string = await promise;
 
+    const result = await performSignData(
+      accountId,
+      account,
+      dapp,
+      payloadToSign,
+      password,
+    );
+
+    onUpdate({
+      type: 'dappSignDataComplete',
+      accountId,
+    });
+
     return {
-      result: await performSignData(
-        accountId,
-        account,
-        dapp,
-        payloadToSign,
-        password,
-      ),
+      result,
       id: message.id,
     };
   } catch (err) {

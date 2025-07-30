@@ -176,7 +176,6 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
     (global) => global.currentDappTransfer,
     () => callActionInMain('submitDappTransferPassword', { password }),
     updateCurrentDappTransfer,
-    clearCurrentDappTransfer,
   );
 });
 
@@ -185,7 +184,6 @@ async function submitDappOperationPassword(
   getState: (global: GlobalState) => { promiseId?: string },
   callInMain: NoneToVoidFunction,
   updateState: (global: GlobalState, update: { isLoading?: true; error?: string }) => GlobalState,
-  clearState: (global: GlobalState) => GlobalState,
 ) {
   let global = getGlobal();
   const { promiseId } = getState(global);
@@ -225,12 +223,10 @@ async function submitDappOperationPassword(
   await vibrateOnSuccess(true);
   void callApi('confirmDappRequest', promiseId, password);
 
-  global = getGlobal();
-  if (IS_CAPACITOR) {
-    global = clearIsPinAccepted(global);
+  if (getDoesUsePinPad()) {
+    global = clearIsPinAccepted(getGlobal());
+    setGlobal(global);
   }
-  global = clearState(global);
-  setGlobal(global);
 }
 
 addActionHandler('submitDappTransferHardware', async (global, actions) => {
@@ -312,7 +308,6 @@ addActionHandler('submitDappSignDataPassword', async (global, actions, { passwor
     (global) => global.currentDappSignData,
     () => callActionInMain('submitDappSignDataPassword', { password }),
     updateCurrentDappSignData,
-    clearCurrentDappSignData,
   );
 });
 

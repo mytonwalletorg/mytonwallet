@@ -14,6 +14,7 @@ import styles from './Explore.module.scss';
 interface OwnProps {
   site: ApiSite;
   isTrending?: boolean;
+  isInList?: boolean;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ function Site({
     url, icon, name, description, isExternal, extendedIcon, withBorder, badgeText,
   },
   isTrending,
+  isInList,
   className,
 }: OwnProps) {
   function handleClick() {
@@ -35,7 +37,7 @@ function Site({
         styles.item,
         (extendedIcon && isTrending) && styles.extended,
         isTrending && styles.trending,
-        withBorder && styles.withBorder,
+        !isInList && withBorder && styles.withBorder,
         className,
       )}
       tabIndex={0}
@@ -54,10 +56,11 @@ function Site({
           {!isTrending && isTelegramUrl(url) && (
             <i className={buildClassName(styles.telegram, 'icon-telegram-filled')} aria-hidden />
           )}
+          {isInList && badgeText && <div className={styles.badgeLabel}>{badgeText}</div>}
         </b>
         <div className={styles.description}>{description}</div>
       </div>
-      {badgeText && <div className={styles.badge}>{badgeText}</div>}
+      {!isInList && badgeText && <div className={styles.badge}>{badgeText}</div>}
     </div>
   );
 }

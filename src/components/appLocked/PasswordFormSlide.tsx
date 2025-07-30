@@ -71,6 +71,7 @@ function PasswordFormSlide({
         resetStateDelayMs={PINPAD_RESET_DELAY}
         operationType="unlock"
         containerClassName={buildClassName(styles.passwordFormContent, 'custom-scroll')}
+        pinPadClassName={styles.pinPadContent}
         inputWrapperClassName={styles.passwordInputWrapper}
         submitLabel={lang('Unlock')}
         onSubmit={handleSubmitPassword}

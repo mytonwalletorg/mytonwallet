@@ -21,6 +21,7 @@ import {
 } from '../../config';
 import {
   selectIsBiometricAuthEnabled,
+  selectIsMnemonicAccount,
   selectIsMultichainAccount,
   selectIsNativeBiometricAuthEnabled,
   selectIsPasswordPresent,
@@ -101,6 +102,7 @@ interface StateProps {
   isAppLockEnabled?: boolean;
   autolockValue?: AutolockValueType;
   isAutoConfirmEnabled?: boolean;
+  shouldShowBackup: boolean;
   isLoading?: boolean;
   currentAccountId: string;
 }
@@ -124,6 +126,7 @@ function SettingsSecurity({
   onSettingsClose,
   onAutoUpdateEnabledToggle,
   isLoading,
+  shouldShowBackup,
 }: OwnProps & StateProps) {
   const {
     setIsPinAccepted,
@@ -389,14 +392,16 @@ function SettingsSecurity({
           className={buildClassName(styles.content, 'custom-scroll')}
           onScroll={handleContentScroll}
         >
-          <div className={styles.settingsBlock}>
-            <div className={buildClassName(styles.item)} onClick={handleOpenBackupWallet}>
-              <img className={styles.menuIcon} src={backupImg} alt={lang('$back_up_security')} />
-              {lang('$back_up_security')}
+          {shouldShowBackup && (
+            <div className={styles.settingsBlock}>
+              <div className={buildClassName(styles.item)} onClick={handleOpenBackupWallet}>
+                <img className={styles.menuIcon} src={backupImg} alt={lang('$back_up_security')} />
+                {lang('$back_up_security')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
             </div>
-          </div>
+          )}
 
           {shouldRenderNativeBiometrics && (
             <NativeBiometricsToggle
@@ -816,6 +821,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const isNativeBiometricAuthEnabled = selectIsNativeBiometricAuthEnabled(global);
   const isPasswordPresent = selectIsPasswordPresent(global);
   const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
+  const isMnemonicAccount = selectIsMnemonicAccount(global);
 
   return {
     isBiometricAuthEnabled,
@@ -826,6 +832,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isAppLockEnabled,
     autolockValue,
     isAutoConfirmEnabled,
+    shouldShowBackup: isMnemonicAccount,
     isLoading: global.auth.isLoading,
     currentAccountId: global.currentAccountId!,
   };

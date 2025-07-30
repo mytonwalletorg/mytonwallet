@@ -153,7 +153,7 @@ Copy wallet address: Copiar la dirección del monedero
 View address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
 You have just created a new wallet: Acabas de crear un nuevo monedero
 You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
-Coins: Monedas
+Assets: Activos
 Activity: Actividad
 NFT: NFT
 No NFTs yet: Aún no tienes NFT
@@ -194,6 +194,8 @@ Fee: Comisión
 Edit: Editar
 Confirm: Confirmar
 Coins have been sent!: ¡Se han enviado monedas!
+Transaction Sent!: ¡Transacción enviada!
+Data Signed!: ¡Datos firmados!
 Details: Detalles
 Change password visibility: Cambiar la visibilidad de la contraseña
 Amount value: Valor de la cantidad
@@ -300,7 +302,7 @@ $dapps-description: Puede iniciar sesión en dapps compatibles con %app_name%. P
 Logged in with %app_name%: Conectado con %app_name%
 No active connections: No hay conexiones activas
 Other: Otros
-Coins & Activity: Monedas & Actividad
+Assets & Activity: Activos & Actividad
 Token Settings: Configuración de fichas
 My Tokens: Mis Tokens
 Add Token: Agregar token

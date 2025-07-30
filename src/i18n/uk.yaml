@@ -158,7 +158,7 @@ Copy wallet address: Скопіювати адресу
 View address on %ton_explorer_name%: Подивитися адресу в %ton_explorer_name%
 You have just created a new wallet: Вітаємо! Ви щойно створили новий гаманець
 You can now transfer your tokens from another wallet or exchange.: Тепер ви можете поповнити його з іншого гаманця або біржі.
-Coins: Монети
+Assets: Активи
 Activity: Стрічка
 NFT: NFT
 No NFTs yet: Поки у вас немає NFT
@@ -200,6 +200,8 @@ Fee: Комісія
 Edit: Виправити
 Confirm: Підтвердити
 Coins have been sent!: Переказ надіслано!
+Transaction Sent!: Транзакцію надіслано!
+Data Signed!: Дані підписано!
 Details: Інфо
 Change password visibility: Змінити видимість пароля
 Amount value: Значення
@@ -304,7 +306,7 @@ $dapps-description: Ви можете підключитися до децент
 Logged in with %app_name%: Підключені за допомогою %app_name%
 No active connections: Немає активних підключень
 Other: Інші
-Coins & Activity: Монети та Стрічка
+Assets & Activity: Активи та Стрічка
 Token Settings: Налаштування токенів
 My Tokens: Мої Токени
 Add Token: Додати токен

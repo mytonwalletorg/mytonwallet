@@ -154,7 +154,7 @@ Copy wallet address: Copy wallet address
 View address on %ton_explorer_name%: View address on %ton_explorer_name%
 You have just created a new wallet: You have just created a new wallet
 You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
-Coins: Coins
+Assets: Assets
 Activity: Activity
 NFT: NFT
 No NFTs yet: No NFTs yet
@@ -195,6 +195,8 @@ Fee: Fee
 Edit: Edit
 Confirm: Confirm
 Coins have been sent!: Coins have been sent!
+Transaction Sent!: Transaction Sent!
+Data Signed!: Data Signed!
 Details: Details
 Change password visibility: Change password visibility
 Amount value: Amount value
@@ -300,7 +302,7 @@ $dapps-description: You can log in on dapps that support %app_name%. They can vi
 Logged in with %app_name%: Logged in with %app_name%
 No active connections: No active connections
 Other: Other
-Coins & Activity: Coins & Activity
+Assets & Activity: Assets & Activity
 Token Settings: Token Settings
 My Tokens: My Tokens
 Add Token: Add Token
