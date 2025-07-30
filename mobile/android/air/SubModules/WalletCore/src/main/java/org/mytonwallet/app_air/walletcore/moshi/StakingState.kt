@@ -4,7 +4,6 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import java.math.BigInteger
 
-@JsonClass(generateAdapter = true)
 sealed class StakingState {
     abstract val stakingType: String
     abstract val id: String
@@ -81,7 +80,7 @@ sealed class StakingState {
         val pendingDepositAmount: String
     ) : StakingState()
 
-    @JsonClass(generateAdapter = true)
+    @JsonClass(generateAdapter = false)
     enum class YieldType {
         @Json(name = "APY")
         APY,

@@ -9,11 +9,9 @@ import android.net.NetworkRequest
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
-import android.widget.PopupWindow
+import android.view.ViewGroup
+import androidx.core.view.isVisible
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.cacheStorage.WCacheStorage
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
@@ -26,16 +24,7 @@ import org.mytonwallet.app_air.walletcore.helpers.PoisoningCacheHelper
 import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.MAssetsAndActivityData
 import org.mytonwallet.app_air.walletcore.models.MBaseCurrency
-import org.mytonwallet.app_air.walletcore.moshi.ApiDapp
-import org.mytonwallet.app_air.walletcore.moshi.MApiTransaction
-import org.mytonwallet.app_air.walletcore.moshi.StakingState
-import org.mytonwallet.app_air.walletcore.moshi.adapter.BigDecimalJsonAdapter
-import org.mytonwallet.app_air.walletcore.moshi.adapter.BigIntegerJsonAdapter
-import org.mytonwallet.app_air.walletcore.moshi.adapter.JSONArrayAdapter
-import org.mytonwallet.app_air.walletcore.moshi.adapter.JSONObjectAdapter
-import org.mytonwallet.app_air.walletcore.moshi.adapter.ReturnStrategyAdapter
-import org.mytonwallet.app_air.walletcore.moshi.adapter.factory.EnumJsonAdapterFactory
-import org.mytonwallet.app_air.walletcore.moshi.adapter.factory.SealedJsonAdapterFactory
+import org.mytonwallet.app_air.walletcore.moshi.MoshiBuilder
 import org.mytonwallet.app_air.walletcore.moshi.api.ApiMethod
 import org.mytonwallet.app_air.walletcore.moshi.api.ApiUpdate
 import org.mytonwallet.app_air.walletcore.pushNotifications.AirPushNotifications
@@ -45,9 +34,6 @@ import org.mytonwallet.app_air.walletcore.stores.NftStore
 import org.mytonwallet.app_air.walletcore.stores.StakingStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
-
-// FIXME:: It may change in the js env
-const val LIQUID_JETTON = "EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE"
 
 const val TONCOIN_SLUG = "toncoin"
 const val MYCOIN_SLUG = "ton-eqcfvnlrbn"
@@ -63,6 +49,10 @@ const val MAIN_NETWORK = "mainnet"
 const val TEST_NETWORK = "testnet"
 const val BURN_ADDRESS = "UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ"
 const val TON_DNS_COLLECTION = "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz"
+
+val STAKING_SLUGS = listOf(
+    STAKE_SLUG, STAKED_MYCOIN_SLUG, STAKED_USDE_SLUG
+)
 
 val POPULAR_WALLET_VERSIONS = listOf(
     "v3R1", "v3R2", "v4R2", "W5"
@@ -88,110 +78,31 @@ val DEFAULT_SHOWN_TOKENS = setOf(
     TRON_USDT_SLUG,
 )
 
-const val UNSTAKE_COMMENT = "w"
-
 object WalletCore {
     val moshi: Moshi by lazy {
-        Moshi.Builder()
-            .add(BigIntegerJsonAdapter())
-            .add(BigDecimalJsonAdapter())
-            .add(SealedJsonAdapterFactory())
-            .add(ReturnStrategyAdapter())
-            .add(EnumJsonAdapterFactory())
-            .add(JSONArrayAdapter())
-            .add(JSONObjectAdapter())
-            .add(
-                PolymorphicJsonAdapterFactory.of(StakingState::class.java, "type")
-                    .withSubtype(StakingState.Liquid::class.java, "liquid")
-                    .withSubtype(StakingState.Jetton::class.java, "jetton")
-                    .withSubtype(StakingState.Ethena::class.java, "ethena")
-                    .withSubtype(StakingState.Nominators::class.java, "nominators")
-                    .withDefaultValue(null)
-            )
-            .add(KotlinJsonAdapterFactory())
-            .build()
+        MoshiBuilder.build()
     }
 
     var bridge: JSWebViewBridge? = null
+        private set
     var activeNetwork = "mainnet"
     var isMultichain = false
 
     var baseCurrency: MBaseCurrency? = MBaseCurrency.valueOf(WGlobalStorage.getBaseCurrency())
 
-    // Events
-    sealed class Event {
-        data object UpdatingStatusChanged : Event()
-        data object BalanceChanged : Event()
-        data object NotActiveAccountBalanceChanged : Event()
-
-        data object TokensChanged : Event()
-
-        data object BaseCurrencyChanged : Event()
-
-        data class ReceivedNewActivities(
-            val accountId: String? = null,
-            val newActivities: List<MApiTransaction>? = null,
-            val isUpdateEvent: Boolean? = null,
-            val loadedAll: Boolean?
-        ) : Event()
-
-        data object NftsUpdated : Event()
-        data object ReceivedNewNFT : Event()
-        data class AccountChanged(
-            val accountId: String? = null
-        ) : Event()
-
-        data object AccountNameChanged : Event()
-        data object AddNewWalletCompletion : Event()
-        data object AccountChangedInApp : Event()
-        data object DappsCountUpdated : Event()
-        data class DappRemoved(val dapp: ApiDapp) : Event()
-        data object StakingDataUpdated : Event()
-        data object AssetsAndActivityDataUpdated : Event()
-        data object HideTinyTransfersChanged : Event()
-        data object NetworkConnected : Event()
-        data object NetworkDisconnected : Event()
-        data class InvalidateCache(
-            val accountId: String? = null,
-            val tokenSlug: String? = null
-        ) : Event()
-
-        data class OpenUrl(
-            val url: String
-        ) : Event()
-
-        data object NftCardUpdated : Event()
-        data class LedgerWriteRequest(
-            val apdu: String,
-            val onResponse: (response: String?) -> Unit
-        ) : Event()
-
-        data class LedgerIsJettonIdSupported(
-            val onResponse: (response: Boolean?) -> Unit
-        ) : Event()
-
-        data class LedgerIsUnsafeSupported(
-            val onResponse: (response: Boolean?) -> Unit
-        ) : Event()
-
-        data object ConfigReceived : Event()
-        data object AccountConfigReceived : Event()
-
-        data object NftsReordered : Event()
-        data object HomeNftCollectionsUpdated : Event()
-    }
+    // Events //////////////////////////////////////////////////////////////////////////////////////
 
     // Event observers
     interface EventObserver {
-        fun onWalletEvent(event: Event)
+        fun onWalletEvent(walletEvent: WalletEvent)
     }
 
     private val eventObservers = ArrayList<WeakReference<EventObserver>>()
     private var lock = false
 
-    // Notify observers
+    // Notify observers ////////////////////////////////////////////////////////////////////////////
     private val expiredItems = ArrayList<WeakReference<EventObserver>>()
-    fun notifyEvent(event: Event) {
+    fun notifyEvent(walletEvent: WalletEvent) {
         Handler(Looper.getMainLooper()).post {
             lock = true
             for (eventObserver in eventObservers) {
@@ -204,7 +115,7 @@ object WalletCore {
             }
             lock = false
             // Converted to list to prevent concurrent modification exception
-            eventObservers.toList().forEach { it.get()?.onWalletEvent(event) }
+            eventObservers.toList().forEach { it.get()?.onWalletEvent(walletEvent) }
         }
     }
 
@@ -213,7 +124,6 @@ object WalletCore {
         AccountStore.updateActiveAccount(accountId)
         WGlobalStorage.setActiveAccountId(accountId)
         PoisoningCacheHelper.clearPoisoningCache()
-        NftStore.resetWhitelistAndBlacklist()
         NftStore.loadCachedNfts(accountId)
         AccountStore.walletVersionsData = null
         AccountStore.updateAssetsAndActivityData(MAssetsAndActivityData(accountId), notify = false)
@@ -223,14 +133,16 @@ object WalletCore {
             WalletContextManager.delegate?.themeChanged()
         }
         //WalletContextManager.delegate?.protectedModeChanged()
-        notifyEvent(Event.AccountChanged(accountId = accountId))
+        notifyEvent(WalletEvent.AccountChanged(accountId = accountId))
         AirPushNotifications.subscribe(activeAccount)
     }
 
     fun switchingToLegacy() {
+        WSecureStorage.clearCache()
         WGlobalStorage.setTokenInfo(TokenStore.getTokenInfo())
-        WCacheStorage.clean(WGlobalStorage.accountIds())
         WGlobalStorage.clearPriceHistory()
+        WCacheStorage.clean(WGlobalStorage.accountIds())
+        WCacheStorage.setInitialScreen(WCacheStorage.InitialScreen.INTRO)
         observers.clear()
         eventObservers.clear()
     }
@@ -249,26 +161,69 @@ object WalletCore {
         }
     }
 
-    // Popups
-    private val popups = ArrayList<WeakReference<PopupWindow>>()
-    fun popupShown(popup: PopupWindow) {
-        popups.add(WeakReference(popup))
-    }
-
-    fun popupDismissed(popup: PopupWindow) {
-        popups.removeAll {
-            it.get() == popup
+    // BRIDGE SETUP ////////////////////////////////////////////////////////////////////////////////
+    fun setupBridge(
+        context: Context,
+        bridgeHostView: ViewGroup,
+        forcedRecreation: Boolean,
+        onReady: () -> Unit
+    ) {
+        if (forcedRecreation || bridge == null) {
+            val newBridge = JSWebViewBridge(context)
+            newBridge.isVisible = false
+            bridgeHostView.addView(newBridge)
+            newBridge.setupBridge {
+                bridge?.destroy()
+                bridge = newBridge
+                setupWalletCore()
+                onReady()
+            }
+        } else {
+            if (bridge!!.parent != bridgeHostView) {
+                (bridge!!.parent as ViewGroup).removeView(bridge)
+                bridgeHostView.addView(bridge)
+            }
+            doOnBridgeReady {
+                onReady()
+            }
         }
     }
 
-    fun dismissAllPopups() {
-        popups.forEach {
-            it.get()?.dismiss()
+    fun destroyBridge() {
+        bridge?.destroy()
+        bridge = null
+    }
+
+    val isBridgeReady: Boolean
+        get() {
+            return bridge?.injected == true
         }
+
+    var pendingBridgeReady: MutableList<() -> Unit>? = null
+
+    // Used to ensure sdk bridge is already ready
+    fun doOnBridgeReady(callback: () -> Unit) {
+        if (bridge?.injected == true) {
+            callback()
+            return
+        }
+        if (pendingBridgeReady == null)
+            pendingBridgeReady = mutableListOf()
+        pendingBridgeReady?.add(callback)
+    }
+
+    @Synchronized
+    fun checkPendingBridgeTasks() {
+        if (bridge?.injected != true)
+            return
+        pendingBridgeReady?.forEach {
+            it()
+        }
+        pendingBridgeReady = null
     }
 
     private var setupDone = false
-    fun setup() {
+    private fun setupWalletCore() {
         if (setupDone)
             return
         setupDone = true
@@ -280,13 +235,13 @@ object WalletCore {
         val networkCallback: NetworkCallback = object : NetworkCallback() {
             override fun onAvailable(network: Network) {
                 Handler(Looper.getMainLooper()).post {
-                    notifyEvent(Event.NetworkConnected)
+                    notifyEvent(WalletEvent.NetworkConnected)
                 }
             }
 
             override fun onLost(network: Network) {
                 Handler(Looper.getMainLooper()).post {
-                    notifyEvent(Event.NetworkDisconnected)
+                    notifyEvent(WalletEvent.NetworkDisconnected)
                 }
             }
         }
@@ -308,16 +263,16 @@ object WalletCore {
                 val networkCapabilities =
                     connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
                 if (networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true) {
-                    notifyEvent(Event.NetworkConnected)
+                    notifyEvent(WalletEvent.NetworkConnected)
                 } else {
-                    notifyEvent(Event.NetworkDisconnected)
+                    notifyEvent(WalletEvent.NetworkDisconnected)
                 }
             } else {
                 val activeNetworkInfo = connectivityManager.activeNetworkInfo
                 if (activeNetworkInfo?.isConnected == true) {
-                    notifyEvent(Event.NetworkConnected)
+                    notifyEvent(WalletEvent.NetworkConnected)
                 } else {
-                    notifyEvent(Event.NetworkDisconnected)
+                    notifyEvent(WalletEvent.NetworkDisconnected)
                 }
             }
         }
@@ -359,7 +314,6 @@ object WalletCore {
     object Swap
     object Transfer
 
-
     suspend fun <T> call(method: ApiMethod<T>): T {
         return bridge!!.callApiAsync(method.name, method.arguments, method.type)
     }
@@ -392,8 +346,6 @@ object WalletCore {
     }
 
     fun <T : ApiUpdate> notifyApiUpdate(update: T) {
-        Log.i("BridgeMoshi", "moshi " + update.javaClass.name)
-
         when (update) {
             is ApiUpdate.ApiUpdateDappConnectComplete,
             is ApiUpdate.ApiUpdateDappDisconnect,
@@ -419,6 +371,8 @@ object WalletCore {
                     return
                 AccountStore.walletVersionsData = update
             }
+
+            else -> {}
         }
 
         val iterator = observers[update::class.java] ?: return

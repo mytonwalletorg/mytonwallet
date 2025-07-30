@@ -378,4 +378,10 @@ class WNavigationController(
         get() {
             return viewControllers.lastOrNull()?.swipeTouchListener?.isSwiping == true
         }
+
+    fun onScreenRecordStateChanged(isRecording: Boolean) {
+        viewControllers.forEach {
+            it.onScreenRecordStateChanged(isRecording)
+        }
+    }
 }

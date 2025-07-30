@@ -7,6 +7,8 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.content.pm.PackageInfoCompat
 import org.mytonwallet.app_air.uicomponents.extensions.dp
+import org.mytonwallet.app_air.uicomponents.helpers.DebugMenuHelpers
+import org.mytonwallet.app_air.uicomponents.helpers.MultiTapDetector
 import org.mytonwallet.app_air.uicomponents.widgets.WCell
 import org.mytonwallet.app_air.uicomponents.widgets.WLabel
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
@@ -16,6 +18,13 @@ import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 
 class SettingsVersionCell(context: Context) : WCell(context), WThemedView {
+
+    private val multiTapDetector = MultiTapDetector(
+        requiredTaps = 5,
+        timeoutMs = 1000L
+    ) {
+        presentDebugMenu()
+    }
 
     private val lbl = WLabel(context).apply {
         setStyle(14f)
@@ -29,6 +38,13 @@ class SettingsVersionCell(context: Context) : WCell(context), WThemedView {
             )
         } catch (e: PackageManager.NameNotFoundException) {
             ""
+        }
+        setOnClickListener {
+            multiTapDetector.registerTap()
+        }
+        setOnLongClickListener {
+            presentDebugMenu()
+            return@setOnLongClickListener true
         }
     }
 
@@ -46,5 +62,9 @@ class SettingsVersionCell(context: Context) : WCell(context), WThemedView {
 
     override fun updateTheme() {
         lbl.setTextColor(WColor.SecondaryText.color)
+    }
+
+    private fun presentDebugMenu() {
+        DebugMenuHelpers.present(context, lbl)
     }
 }

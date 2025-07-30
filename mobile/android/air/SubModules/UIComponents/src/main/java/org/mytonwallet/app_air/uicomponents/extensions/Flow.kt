@@ -1,7 +1,6 @@
 package org.mytonwallet.app_air.uicomponents.extensions
 
 import android.os.SystemClock
-import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
@@ -31,7 +30,6 @@ fun <T> Flow<T>.throttle(milliseconds: Long): Flow<T> {
 
         val d = maxOf(0, milliseconds - (uptime - prevUptime))
 
-        Log.i("WTH_DEBUG", "throttle " + d)
         d
     }
 }

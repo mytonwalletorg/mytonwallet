@@ -30,12 +30,12 @@ object WGlobalStorage {
 
     fun incDoNotSynchronize() {
         globalStorageProvider.doNotSynchronize += 1
-        //Log.d("---", "doNotSynchronize: ${globalStorageProvider.doNotSynchronize}")
+        //Logger.d("---", "doNotSynchronize: ${globalStorageProvider.doNotSynchronize}")
     }
 
     fun decDoNotSynchronize() {
         globalStorageProvider.doNotSynchronize -= 1
-        //Log.d("---", "doNotSynchronize: ${globalStorageProvider.doNotSynchronize}")
+        //Logger.d("---", "doNotSynchronize: ${globalStorageProvider.doNotSynchronize}")
     }
 
     private const val CURRENT_ACCOUNT_ID = "currentAccountId"
@@ -51,6 +51,7 @@ object WGlobalStorage {
     private const val BASE_CURRENCY = "settings.baseCurrency"
     private const val ASSETS_AND_ACTIVITY = "settings.byAccountId"
     private const val BIOMETRIC_KIND = "settings.authConfig.kind"
+    private const val LANG_CODE = "settings.langCode"
     private const val PRICE_HISTORY = "tokenPriceHistory.bySlug"
     private const val AUTO_LOCK_VALUE = "settings.autolockValue"
     private const val IS_APP_LOCK_ENABLED = "settings.isAppLockEnabled"
@@ -109,7 +110,8 @@ object WGlobalStorage {
         address: String?,
         tronAddress: String?,
         ledgerWallet: JSONObject? = null,
-        name: String? = null
+        name: String? = null,
+        importedAt: Long?,
     ) {
         val accountIds = accountIds()
         val suggestedName =
@@ -144,6 +146,12 @@ object WGlobalStorage {
                 IGlobalStorageProvider.PERSIST_NO
             )
         }
+        if (importedAt != null)
+            globalStorageProvider.set(
+                "accounts.byId.$accountId.importedAt",
+                value = importedAt,
+                persistInstantly = IGlobalStorageProvider.PERSIST_NO
+            )
         globalStorageProvider.set(
             "byAccountId.$accountId.isBackupRequired",
             value = false,
@@ -637,6 +645,17 @@ object WGlobalStorage {
             config,
             IGlobalStorageProvider.PERSIST_NORMAL
         )
+    }
+
+    fun removeAccountImportedAt(accountId: String) {
+        globalStorageProvider.remove(
+            "accounts.byId.$accountId.importedAt",
+            IGlobalStorageProvider.PERSIST_NORMAL
+        )
+    }
+
+    fun getLangCode(): String {
+        return globalStorageProvider.getString(LANG_CODE) ?: "en"
     }
 
     fun getCardsInfo(accountId: String): JSONObject? {

@@ -3,7 +3,7 @@ package org.mytonwallet.app_air.airasframework
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
-import android.util.Log
+import android.view.ViewGroup
 import com.facebook.drawee.backends.pipeline.Fresco
 import org.mytonwallet.app_air.uicomponents.helpers.FontManager
 import org.mytonwallet.app_air.walletcontext.cacheStorage.WCacheStorage
@@ -12,8 +12,10 @@ import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.ApplicationContextHolder
 import org.mytonwallet.app_air.walletcontext.helpers.DevicePerformanceClassifier
 import org.mytonwallet.app_air.walletcontext.helpers.LauncherIconController
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.secureStorage.WSecureStorage
 import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
+import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.ActivityStore
 import org.mytonwallet.app_air.walletcore.stores.BalanceStore
@@ -24,86 +26,112 @@ class AirAsFrameworkApplication {
     companion object {
         fun onCreate(
             applicationContext: Context,
-            globalStorageProvider: IGlobalStorageProvider
+            globalStorageProvider: IGlobalStorageProvider,
+            bridgeHostView: ViewGroup
         ) {
-            Log.i("MTWAirApplication", "Initializing basic required objects")
+            Logger.initialize(applicationContext)
+
+            Logger.i(Logger.LogTag.AIR_APPLICATION, "Initializing basic required objects")
             val start = System.currentTimeMillis()
 
             var t = System.currentTimeMillis()
             ApplicationContextHolder.update(applicationContext)
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "ApplicationContextHolder.update: ${System.currentTimeMillis() - t}ms"
             )
 
             t = System.currentTimeMillis()
             WSecureStorage.init(applicationContext)
-            Log.i("MTWAirApplication", "WSecureStorage.init: ${System.currentTimeMillis() - t}ms")
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
+                "WSecureStorage.init: ${System.currentTimeMillis() - t}ms"
+            )
 
             t = System.currentTimeMillis()
             WCacheStorage.init(applicationContext)
-            Log.i("MTWAirApplication", "WCacheStorage.init: ${System.currentTimeMillis() - t}ms")
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
+                "WCacheStorage.init: ${System.currentTimeMillis() - t}ms"
+            )
 
             t = System.currentTimeMillis()
             WGlobalStorage.init(globalStorageProvider)
-            Log.i("MTWAirApplication", "WGlobalStorage.init: ${System.currentTimeMillis() - t}ms")
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
+                "WGlobalStorage.init: ${System.currentTimeMillis() - t}ms"
+            )
 
             t = System.currentTimeMillis()
             FontManager.init(applicationContext)
-            Log.i("MTWAirApplication", "FontManager.init: ${System.currentTimeMillis() - t}ms")
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
+                "FontManager.init: ${System.currentTimeMillis() - t}ms"
+            )
 
             t = System.currentTimeMillis()
             initTheme(applicationContext)
-            Log.i("MTWAirApplication", "initTheme: ${System.currentTimeMillis() - t}ms")
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
+                "initTheme: ${System.currentTimeMillis() - t}ms"
+            )
 
             t = System.currentTimeMillis()
             Fresco.initialize(applicationContext)
-            Log.i("MTWAirApplication", "Fresco.initialize: ${System.currentTimeMillis() - t}ms")
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
+                "Fresco.initialize: ${System.currentTimeMillis() - t}ms"
+            )
 
             t = System.currentTimeMillis()
             ActivityStore.loadFromCache()
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "ActivityStore.loadFromCache: ${System.currentTimeMillis() - t}ms"
             )
 
             t = System.currentTimeMillis()
             BalanceStore.loadFromCache()
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "BalanceStore.loadFromCache: ${System.currentTimeMillis() - t}ms"
             )
 
             t = System.currentTimeMillis()
             TokenStore.loadFromCache()
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "TokenStore.loadFromCache: ${System.currentTimeMillis() - t}ms"
             )
 
             t = System.currentTimeMillis()
             ValueAnimator.setFrameDelay(8)
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "ValueAnimator.setFrameDelay: ${System.currentTimeMillis() - t}ms"
             )
 
             t = System.currentTimeMillis()
             LauncherIconController.tryFixLauncherIconIfNeeded(applicationContext)
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "LauncherIconController.tryFixLauncherIconIfNeeded: ${System.currentTimeMillis() - t}ms"
             )
 
             t = System.currentTimeMillis()
             DevicePerformanceClassifier.init(applicationContext)
-            Log.i(
-                "MTWAirApplication",
+            Logger.i(
+                Logger.LogTag.AIR_APPLICATION,
                 "DevicePerformanceClassifier.init: ${System.currentTimeMillis() - t}ms"
             )
 
             val end = System.currentTimeMillis()
-            Log.i("MTWAirApplication", "Total initialization time: ${end - start}ms")
+            Logger.i(Logger.LogTag.AIR_APPLICATION, "Total initialization time: ${end - start}ms")
+
+            Logger.i(Logger.LogTag.AIR_APPLICATION, "Setup Bridge")
+            WalletCore.setupBridge(applicationContext, bridgeHostView, forcedRecreation = true) {
+                Logger.i(Logger.LogTag.AIR_APPLICATION, "Bridge Ready")
+            }
         }
 
         fun initTheme(applicationContext: Context) {

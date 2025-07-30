@@ -3,14 +3,13 @@ package org.mytonwallet.uihome.home.views
 import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextUtils
+import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
-import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
-import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.helpers.WFont
 import org.mytonwallet.app_air.uicomponents.widgets.WReplaceableLabel
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
-import org.mytonwallet.app_air.uicomponents.widgets.WView
 import org.mytonwallet.app_air.uicomponents.widgets.fadeIn
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.walletcontext.R
@@ -20,7 +19,7 @@ import org.mytonwallet.app_air.walletcontext.theme.color
 
 class UpdateStatusView(
     context: Context,
-) : WView(context, LayoutParams(WRAP_CONTENT, WNavigationBar.DEFAULT_HEIGHT.dp)),
+) : FrameLayout(context),
     WThemedView {
 
     enum class State {
@@ -39,15 +38,12 @@ class UpdateStatusView(
         rLabel
     }
 
-    override fun setupViews() {
-        super.setupViews()
-
+    init {
         clipChildren = false
-        addView(statusReplaceableLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        setConstraints {
-            toCenterX(statusReplaceableLabel)
-            toCenterY(statusReplaceableLabel)
-        }
+        clipToPadding = false
+        addView(statusReplaceableLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+            gravity = Gravity.CENTER
+        })
 
         updateTheme()
     }

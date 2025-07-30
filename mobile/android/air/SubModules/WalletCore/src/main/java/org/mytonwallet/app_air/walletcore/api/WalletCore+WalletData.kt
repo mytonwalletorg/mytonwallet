@@ -2,9 +2,9 @@ package org.mytonwallet.app_air.walletcore.api
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.utils.toJSONString
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
@@ -22,9 +22,9 @@ fun WalletCore.fetchAllActivitySlice(
     tronTokenSlugs: Array<String>,
     callback: (ArrayList<MApiTransaction>?, MBridgeError?) -> Unit
 ) {
-    Log.d(
-        "fetchAllActivitySlice",
-        "Account: $accountId - limit: $limit - toTimestamp: $toTimestamp"
+    Logger.d(
+        Logger.LogTag.ACTIVITY_STORE,
+        "fetchAllActivitySlice, Account: $accountId - limit: $limit - toTimestamp: $toTimestamp"
     )
     bridge?.callApi(
         "fetchAllActivitySlice",
@@ -64,7 +64,10 @@ fun WalletCore.fetchTokenActivitySlice(
     limit: Int,
     callback: (ArrayList<MApiTransaction>?, MBridgeError?, String) -> Unit
 ) {
-    Log.d("fetchTokenActivitySlice", "Account: $accountId - Chain: $chain - Slug: $slug")
+    Logger.d(
+        Logger.LogTag.ACTIVITY_STORE,
+        "fetchTokenActivitySlice, Account: $accountId - Chain: $chain - Slug: $slug"
+    )
     bridge?.callApi(
         "fetchActivitySlice",
         "[${JSONObject.quote(accountId)}, ${JSONObject.quote(chain)}, ${
@@ -122,7 +125,12 @@ fun WalletCore.fetchNfts(
                         nfts.add(nft)
                     }
                     Handler(Looper.getMainLooper()).post {
-                        NftStore.setNfts(nfts, notifyObservers = true, isReorder = false)
+                        NftStore.setNfts(
+                            nfts,
+                            accountId = accountId,
+                            notifyObservers = true,
+                            isReorder = false
+                        )
                         callback(nfts, null)
                     }
                 } catch (_: Error) {

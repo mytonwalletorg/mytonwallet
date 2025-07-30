@@ -2,7 +2,6 @@ package org.mytonwallet.app_air.uicomponents.base
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -17,7 +16,6 @@ open class WViewControllerWithModelStore(context: Context) : WViewController(con
 
     init {
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
-        Log.i("WTH_DEBUG", "ViewModelStore Create")
     }
 
     override val viewModelStore = ViewModelStore()
@@ -27,6 +25,5 @@ open class WViewControllerWithModelStore(context: Context) : WViewController(con
         super.onDestroy()
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         viewModelStore.clear()
-        Log.i("WTH_DEBUG", "ViewModelStore Destroy")
     }
 }

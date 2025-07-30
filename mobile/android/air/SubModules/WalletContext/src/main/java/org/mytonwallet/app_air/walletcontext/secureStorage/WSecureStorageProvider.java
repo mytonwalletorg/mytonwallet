@@ -11,9 +11,10 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
+
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,7 +46,7 @@ import javax.security.auth.x500.X500Principal;
 
 class WSecureStorageProvider {
 
-    private static final String LOG_TAG = WSecureStorageProvider.class.getSimpleName();
+    private static final Logger.LogTag LOG_TAG = Logger.LogTag.SECURE_STORAGE;
     private static final String PREFERENCES_FILE = "cap_sec";
 
     private PasswordStorageImpl passwordStorage;
@@ -58,7 +59,7 @@ class WSecureStorageProvider {
         try {
             isInitialized = passwordStorage.init(context);
         } catch (Exception ex) {
-            Log.e(LOG_TAG, "PasswordStorage initialisation error:" + ex.getMessage(), ex);
+            Logger.INSTANCE.e(LOG_TAG, "PasswordStorage initialisation error:" + ex.getMessage());
         }
 
         if (!isInitialized && passwordStorage instanceof PasswordStorageHelper_SDK18) {
@@ -312,7 +313,7 @@ class WSecureStorageProvider {
                     KeyInfo keyInfo = keyFactory.getKeySpec(privateKey, KeyInfo.class);
                     isHardwareBackedKeystoreSupported = keyInfo.isInsideSecureHardware();
                 }
-                Log.d(LOG_TAG, "Hardware-Backed Keystore Supported: " + isHardwareBackedKeystoreSupported);
+                Logger.INSTANCE.d(LOG_TAG, "Hardware-Backed Keystore Supported: " + isHardwareBackedKeystoreSupported);
             } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException |
                      InvalidKeySpecException | NoSuchProviderException e) {
             }
@@ -326,7 +327,7 @@ class WSecureStorageProvider {
                 PublicKey publicKey = ks.getCertificate(alias).getPublicKey();
 
                 if (publicKey == null) {
-                    Log.d(LOG_TAG, "Error: Public key was not found in Keystore");
+                    Logger.INSTANCE.d(LOG_TAG, "Error: Public key was not found in Keystore");
                     return;
                 }
 

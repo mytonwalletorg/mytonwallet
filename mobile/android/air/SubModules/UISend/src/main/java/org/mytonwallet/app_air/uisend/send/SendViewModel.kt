@@ -17,10 +17,12 @@ import org.mytonwallet.app_air.uicomponents.extensions.collectFlow
 import org.mytonwallet.app_air.uicomponents.extensions.throttle
 import org.mytonwallet.app_air.uisend.send.helpers.TransferHelpers
 import org.mytonwallet.app_air.walletcontext.R
+import org.mytonwallet.app_air.walletcontext.helpers.DNSHelpers
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.utils.CoinUtils
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.helpers.TokenEquivalent
 import org.mytonwallet.app_air.walletcore.models.ExplainedTransferFee
 import org.mytonwallet.app_air.walletcore.models.MBaseCurrency
@@ -516,10 +518,10 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
         return lastUiState?.draft as? DraftResult.Result
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.NetworkConnected,
-            WalletCore.Event.NetworkDisconnected -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.NetworkConnected,
+            WalletEvent.NetworkDisconnected -> {
                 val correctVal = _inputStateFlow.value
                 _inputStateFlow.value = InputStateRaw()
                 _inputStateFlow.value = correctVal
@@ -580,10 +582,24 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
             input: InputStateFull,
             estimated: DraftResult?
         ): ButtonState {
-            if (input.input.destination.isEmpty()) {
+            val destination = input.input.destination
+            if (destination.isEmpty()) {
                 return ButtonState(
                     ButtonStatus.WaitAddress,
                     LocaleController.getString(R.string.SendTo_AddressOrDomain)
+                )
+            }
+            val chain = TokenStore.getToken(input.input.tokenSlug)?.mBlockchain
+            val isValidAddress =
+                destination != AccountStore.activeAccount?.tronAddress &&
+                    (
+                        chain?.isValidAddress(destination) != false ||
+                            (chain == MBlockchain.ton && DNSHelpers.isDnsDomain(destination))
+                        )
+            if (!isValidAddress) {
+                return ButtonState(
+                    ButtonStatus.WaitAddress,
+                    LocaleController.getString(R.string.Error_InvalidAddress)
                 )
             }
             if (input.input.amount.isEmpty()) {

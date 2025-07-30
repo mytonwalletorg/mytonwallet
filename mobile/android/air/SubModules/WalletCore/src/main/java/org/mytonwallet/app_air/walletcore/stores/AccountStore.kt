@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.secureStorage.WSecureStorage
-import org.mytonwallet.app_air.walletcore.WalletCore.Event
 import org.mytonwallet.app_air.walletcore.WalletCore.notifyEvent
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.MAssetsAndActivityData
 import org.mytonwallet.app_air.walletcore.moshi.MUpdateStaking
@@ -37,7 +37,7 @@ object AccountStore {
         assetsAndActivityData = newValue
         WGlobalStorage.setAssetsAndActivityData(activeAccountId!!, newValue.toJSON)
         if (notify)
-            notifyEvent(Event.AssetsAndActivityDataUpdated)
+            notifyEvent(WalletEvent.AssetsAndActivityDataUpdated)
     }
 
     var walletVersionsData: ApiUpdate.ApiUpdateWalletVersions? = null
@@ -46,7 +46,8 @@ object AccountStore {
         get() {
             activeAccountId?.let {
                 return StakingStore.getStakingState(activeAccountId!!)
-            } ?: return null
+            }
+            return null
         }
 
     fun accountIdByAddress(tonAddress: String?): String? {

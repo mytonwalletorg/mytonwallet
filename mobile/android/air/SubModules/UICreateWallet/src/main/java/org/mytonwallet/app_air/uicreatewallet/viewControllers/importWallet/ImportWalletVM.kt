@@ -4,6 +4,8 @@ import android.app.Activity
 import android.os.Handler
 import android.os.Looper
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.LogMessage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.secureStorage.WSecureStorage
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.api.importWallet
@@ -24,11 +26,13 @@ class ImportWalletVM(delegate: Delegate) {
 
     // Called to import a wallet into js-logic accounts
     fun importWallet(words: Array<String>) {
-        WalletCore.validateMnemonic(words) { success, error ->
-            if (!success || error != null) {
-                delegate.get()?.showError(error)
-            } else {
-                delegate.get()?.walletCanBeImported(words)
+        WalletCore.doOnBridgeReady {
+            WalletCore.validateMnemonic(words) { success, error ->
+                if (!success || error != null) {
+                    delegate.get()?.showError(error)
+                } else {
+                    delegate.get()?.walletCanBeImported(words)
+                }
             }
         }
     }
@@ -58,11 +62,28 @@ class ImportWalletVM(delegate: Delegate) {
                 }
             } else {
                 val importedAccountId = importedAccount?.accountId ?: return@importWallet
+                Logger.d(
+                    Logger.LogTag.ACCOUNT,
+                    LogMessage.Builder()
+                        .append(
+                            importedAccountId,
+                            LogMessage.MessagePartPrivacy.PUBLIC
+                        )
+                        .append(
+                            "Imported",
+                            LogMessage.MessagePartPrivacy.PUBLIC
+                        )
+                        .append(
+                            "Address: ${importedAccount.tonAddress}",
+                            LogMessage.MessagePartPrivacy.REDACTED
+                        ).build()
+                )
                 WGlobalStorage.addAccount(
                     accountId = importedAccountId,
                     accountType = MAccount.AccountType.MNEMONIC.value,
                     importedAccount.tonAddress,
-                    importedAccount.addressByChain["tron"]
+                    importedAccount.addressByChain["tron"],
+                    importedAt = importedAccount.importedAt
                 )
                 if (biometricsActivated != null) {
                     if (biometricsActivated) {

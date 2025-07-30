@@ -21,6 +21,7 @@ import androidx.appcompat.widget.AppCompatEditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.isGone
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -46,9 +47,11 @@ import org.mytonwallet.app_air.uicomponents.widgets.dialog.WDialog
 import org.mytonwallet.app_air.uicomponents.widgets.hideKeyboard
 import org.mytonwallet.app_air.uicomponents.widgets.menu.WMenuPopup
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
+import org.mytonwallet.app_air.uisend.send.helpers.ScamDetectionHelpers
 import org.mytonwallet.app_air.uisend.send.lauouts.AddressInputLayout
 import org.mytonwallet.app_air.uisend.sent.SentVC
 import org.mytonwallet.app_air.walletcontext.R
+import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
@@ -65,20 +68,25 @@ import org.mytonwallet.app_air.walletcore.STAKE_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.deeplink.Deeplink
 import org.mytonwallet.app_air.walletcore.deeplink.DeeplinkParser
+import org.mytonwallet.app_air.walletcore.models.MBlockchain
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import java.math.BigInteger
 import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
-class SendStartInputVC(
+class SendVC(
     context: Context,
     private val initialTokenSlug: String? = null,
     private val initialValues: InitialValues? = null,
 ) : WViewControllerWithModelStore(context) {
     private val viewModel by lazy { ViewModelProvider(this)[SendViewModel::class.java] }
 
-    data class InitialValues(val address: String?, val amount: String?, val comment: String?)
+    data class InitialValues(
+        val address: String?,
+        val amount: String? = null,
+        val comment: String? = null
+    )
 
     private val topGapView = View(context).apply {
         id = View.generateViewId()
@@ -191,7 +199,9 @@ class SendStartInputVC(
     private val onInputDestinationTextWatcher = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            viewModel.onInputDestination(s?.toString() ?: "")
+            val address = s?.toString() ?: ""
+            viewModel.onInputDestination(address)
+            switchTokenBasedOnChain(address)
         }
 
         override fun afterTextChanged(s: Editable?) {}
@@ -229,6 +239,7 @@ class SendStartInputVC(
 
         initialTokenSlug?.let {
             viewModel.onInputToken(it)
+            updateCommentViews()
             showServiceTokenWarningIfRequired()
         }
 
@@ -314,9 +325,9 @@ class SendStartInputVC(
         addressInputView.qrScanImageView.setOnClickListener {
             QrScannerDialog.build(context) {
                 val deeplink = DeeplinkParser.parse(it.toUri())
-                addressInputView.editTextView.setText(
-                    if (deeplink is Deeplink.Invoice) deeplink.address else it
-                )
+                val address = if (deeplink is Deeplink.Invoice) deeplink.address else it
+                addressInputView.editTextView.setText(address)
+                switchTokenBasedOnChain(address)
             }.show()
         }
 
@@ -328,7 +339,7 @@ class SendStartInputVC(
             lateinit var dialogRef: WDialog
             dialogRef = FeeDetailsDialog.create(
                 context,
-                TokenStore.getToken(viewModel.inputStateFlow.value.tokenSlug)!!,
+                TokenStore.getToken(viewModel.getTokenSlug())!!,
                 viewModel.getConfirmationPageConfig()!!.explainedFee!!
             ) {
                 dialogRef.dismiss()
@@ -340,6 +351,7 @@ class SendStartInputVC(
             push(SendTokenVC(context).apply {
                 setOnAssetSelectListener {
                     viewModel.onInputToken(it.slug)
+                    updateCommentViews()
                     showServiceTokenWarningIfRequired()
                 }
             })
@@ -362,6 +374,9 @@ class SendStartInputVC(
                 continueButton.isEnabled = it.uiButton.status.isEnabled
                 continueButton.isError = it.uiButton.status.isError
                 continueButton.text = it.uiButton.title
+            }
+            if (it.uiButton.status == SendViewModel.ButtonStatus.NotEnoughNativeToken) {
+                showScamWarningIfRequired()
             }
         }
 
@@ -504,19 +519,46 @@ class SendStartInputVC(
         }
     }
 
+    private fun updateCommentViews() {
+        val isCommentSupported =
+            TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain?.isCommentSupported
+        title2.isGone = isCommentSupported != true
+        commentInputView.isGone = title2.isGone
+        if (isCommentSupported != true) {
+            commentInputView.text = null
+        }
+    }
+
+    private fun showScamWarningIfRequired() {
+        TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain?.let { blockchain ->
+            if (ScamDetectionHelpers.shouldShowSeedPhraseScamWarning(blockchain)) {
+                WGlobalStorage.removeAccountImportedAt(AccountStore.activeAccountId!!)
+                AccountStore.activeAccount?.importedAt = null
+                showAlert(
+                    LocaleController.getString(R.string.SendAmount_Warning),
+                    ScamDetectionHelpers.scamWarningMessage(),
+                    button = LocaleController.getString(R.string.SendAmount_ScamWallet_GotIt),
+                    primaryIsDanger = true,
+                    allowLinkInText = true
+                )
+            }
+        }
+    }
+
     private fun showServiceTokenWarningIfRequired() {
-        val token = TokenStore.getToken(viewModel.inputStateFlow.value.tokenSlug)
+        val token = TokenStore.getToken(viewModel.getTokenSlug())
         if (token?.isLpToken == true ||
             listOf(
                 STAKE_SLUG,
                 STAKED_MYCOIN_SLUG,
                 STAKED_USDE_SLUG
-            ).contains(viewModel.inputStateFlow.value.tokenSlug) ||
+            ).contains(viewModel.getTokenSlug()) ||
             PRICELESS_TOKEN_HASHES.contains(viewModel.inputStateFlow.value.tokenCodeHash)
         )
             showAlert(
                 LocaleController.getString(R.string.SendAmount_Warning),
                 LocaleController.getString(R.string.SendAmount_SendingImportantToken),
+                button = LocaleController.getString(R.string.SendAmount_ScamWallet_GotIt),
                 primaryIsDanger = true
             )
     }
@@ -535,5 +577,17 @@ class SendStartInputVC(
         amountInputView.amountEditText.removeTextChangedListener(onAmountTextWatcher)
         commentInputView.removeTextChangedListener(onInputCommentTextWatcher)
         continueButton.setOnClickListener(null)
+    }
+
+    private fun switchTokenBasedOnChain(address: String) {
+        val token =
+            TokenStore.getToken(viewModel.getTokenSlug())
+        if (token?.mBlockchain?.isValidAddress(address) != true) {
+            for (blockchain in MBlockchain.supportedChains) {
+                if (blockchain.isValidAddress(address)) {
+                    viewModel.onInputToken(blockchain.nativeSlug)
+                }
+            }
+        }
     }
 }

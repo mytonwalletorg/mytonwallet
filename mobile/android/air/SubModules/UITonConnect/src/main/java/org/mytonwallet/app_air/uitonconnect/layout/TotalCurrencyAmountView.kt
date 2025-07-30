@@ -1,9 +1,10 @@
 package org.mytonwallet.app_air.uitonconnect.layout
 
 import android.content.Context
-import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.appcompat.widget.AppCompatTextView
 import org.mytonwallet.app_air.uicomponents.adapter.BaseListHolder
 import org.mytonwallet.app_air.uicomponents.extensions.setPaddingDp
@@ -14,11 +15,9 @@ import org.mytonwallet.app_air.uitonconnect.adapter.TonConnectItem
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 
-class TotalCurrencyAmountView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyle: Int = 0,
-) : AppCompatTextView(context, attrs, defStyle), WThemedView {
+class TotalCurrencyAmountView(
+    context: Context
+) : AppCompatTextView(context), WThemedView {
 
     init {
         setPaddingDp(20, 8, 20, 16)
@@ -33,7 +32,12 @@ class TotalCurrencyAmountView @JvmOverloads constructor(
     }
 
     class Holder(parent: ViewGroup) :
-        BaseListHolder<TonConnectItem.CurrencyAmount>(TotalCurrencyAmountView(parent.context)) {
+        BaseListHolder<TonConnectItem.CurrencyAmount>(TotalCurrencyAmountView(parent.context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                MATCH_PARENT,
+                WRAP_CONTENT
+            )
+        }) {
         private val view: AppCompatTextView = itemView as AppCompatTextView
         override fun onBind(item: TonConnectItem.CurrencyAmount) {
             view.text = item.text

@@ -34,6 +34,7 @@ import org.mytonwallet.app_air.uiinappbrowser.views.InAppBrowserTopBarView
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.helpers.TonConnectHelper
 import org.mytonwallet.app_air.walletcore.helpers.TonConnectInjectedInterface
 import org.mytonwallet.app_air.walletcore.models.InAppBrowserConfig
@@ -371,15 +372,15 @@ class InAppBrowserVC(
         }
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.DappRemoved -> {
-                if (config.url.removeSuffix("/") == event.dapp.url) {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.DappRemoved -> {
+                if (config.url.removeSuffix("/") == walletEvent.dapp.url) {
                     webView.loadUrl(config.url)
                 }
             }
 
-            WalletCore.Event.DappsCountUpdated ->
+            WalletEvent.DappsCountUpdated ->
                 if (DappsStore.dApps[AccountStore.activeAccountId].isNullOrEmpty())
                     webView.loadUrl(config.url)
 

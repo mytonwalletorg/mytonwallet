@@ -27,6 +27,7 @@ import org.mytonwallet.app_air.walletcore.STAKE_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.USDE_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.submitStake
 import org.mytonwallet.app_air.walletcore.api.submitUnstake
 import org.mytonwallet.app_air.walletcore.models.MToken
@@ -281,23 +282,26 @@ class StakingViewModel(val tokenSlug: String, val mode: Mode) : ViewModel(),
         val estimatedEarningStr =
             if (estimatedEarning == BigInteger.ZERO) "0"
             else {
-                val str = if (inputStateValue().isInputCurrencyCrypto) {
-                    CoinUtils.toDecimalString(
-                        estimatedEarning,
-                        currentToken.decimals
+                if (inputStateValue().isInputCurrencyCrypto) {
+                    estimatedEarning.toString(
+                        currentToken.decimals,
+                        "",
+                        estimatedEarning.smartDecimalsCount(currentToken.decimals),
+                        true
                     )
                 } else {
-                    CoinUtils.toDecimalString(
-                        PriceConversionUtils.convertTokenToBaseCurrency(
-                            estimatedEarning,
-                            currentToken.decimals,
-                            tokenPrice,
-                            WalletCore.baseCurrency?.decimalsCount
-                        ),
-                        WalletCore.baseCurrency?.decimalsCount ?: 2
-                    )
+                    "+${
+                        CoinUtils.toDecimalString(
+                            PriceConversionUtils.convertTokenToBaseCurrency(
+                                estimatedEarning,
+                                currentToken.decimals,
+                                tokenPrice,
+                                WalletCore.baseCurrency?.decimalsCount
+                            ),
+                            WalletCore.baseCurrency?.decimalsCount ?: 2
+                        )
+                    }"
                 }
-                "+$str"
             }
 
         return "$estimatedEarningStr $estimatedEarningsSymbol"
@@ -415,7 +419,7 @@ class StakingViewModel(val tokenSlug: String, val mode: Mode) : ViewModel(),
                 val token = tokenToStake ?: return ""
                 return tokenToStakeBalance.toString(
                     decimals = token.decimals,
-                    currency = token.symbol ?: "",
+                    currency = token.symbol,
                     currencyDecimals = tokenToStakeBalance.smartDecimalsCount(token.decimals),
                     showPositiveSign = false
                 )
@@ -482,8 +486,7 @@ class StakingViewModel(val tokenSlug: String, val mode: Mode) : ViewModel(),
 
     private fun updateBalance() {
         var availableBalance =
-            BalanceStore.getBalances(AccountStore.activeAccountId)?.get(currentToken.slug)
-                ?: BigInteger.ZERO
+            AccountStore.stakingData?.stakingState(tokenSlug)?.balance ?: BigInteger.ZERO
 
         when (mode) {
             Mode.STAKE -> {
@@ -491,7 +494,9 @@ class StakingViewModel(val tokenSlug: String, val mode: Mode) : ViewModel(),
                 availableBalance = if (shouldRenderBalanceWithSmallFee) {
                     availableBalance - (BigInteger.valueOf(2) * networkFee)
                 } else {
-                    if (availableBalance > networkFee) {
+                    if (token?.isBlockchainNative == true &&
+                        availableBalance > networkFee
+                    ) {
                         availableBalance - networkFee
                     } else {
                         availableBalance
@@ -544,19 +549,19 @@ class StakingViewModel(val tokenSlug: String, val mode: Mode) : ViewModel(),
     fun isUnstake() = mode == Mode.UNSTAKE
 
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
 
-            WalletCore.Event.StakingDataUpdated -> {
+            WalletEvent.StakingDataUpdated -> {
                 stakingState?.annualYield?.let {
                     apy.value = it
                 }
             }
 
-            is WalletCore.Event.AccountChanged,
-            WalletCore.Event.BalanceChanged,
-            WalletCore.Event.TokensChanged,
-            WalletCore.Event.BaseCurrencyChanged -> {
+            is WalletEvent.AccountChanged,
+            WalletEvent.BalanceChanged,
+            WalletEvent.TokensChanged,
+            WalletEvent.BaseCurrencyChanged -> {
                 accountId = AccountStore.activeAccountId
                 updateBalance()
                 currentToken =

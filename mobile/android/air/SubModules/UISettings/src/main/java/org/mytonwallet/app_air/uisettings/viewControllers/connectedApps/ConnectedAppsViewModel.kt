@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import org.mytonwallet.app_air.uicomponents.adapter.BaseListItem
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.requestDAppList
 import org.mytonwallet.app_air.walletcore.moshi.ApiDapp
 import org.mytonwallet.app_air.walletcore.moshi.api.ApiMethod
@@ -22,9 +23,9 @@ class ConnectedAppsViewModel : ViewModel(), WalletCore.EventObserver {
         combine(_accountIdFlow, DappsStore.dAppsFlow, ::buildUiItems)
             .filterNotNull()
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        if (event is WalletCore.Event.AccountChanged) {
-            _accountIdFlow.value = event.accountId
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        if (walletEvent is WalletEvent.AccountChanged) {
+            _accountIdFlow.value = walletEvent.accountId
         }
     }
 
@@ -44,7 +45,7 @@ class ConnectedAppsViewModel : ViewModel(), WalletCore.EventObserver {
         viewModelScope.launch {
             try {
                 WalletCore.call(ApiMethod.DApp.DeleteDapp(accountId, dapp.url))
-                WalletCore.notifyEvent(WalletCore.Event.DappRemoved(dapp))
+                WalletCore.notifyEvent(WalletEvent.DappRemoved(dapp))
                 WalletCore.requestDAppList()
             } catch (e: JSWebViewBridge.ApiError) {
 

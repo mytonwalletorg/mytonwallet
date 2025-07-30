@@ -172,8 +172,8 @@ class HomeAssetsCell(
     val segmentItems: Array<WSegmentedControllerItem>
         get() {
             val hiddenNFTsExist =
-                NftStore.cachedNfts?.firstOrNull { it.isHidden == true } != null ||
-                    NftStore.blacklistedNftAddresses.isNotEmpty()
+                NftStore.nftData?.cachedNfts?.firstOrNull { it.isHidden == true } != null ||
+                    NftStore.nftData?.blacklistedNftAddresses?.isNotEmpty() == true
             val showCollectionsMenu = !NftStore.getCollections().isEmpty() || hiddenNFTsExist
             val homeNftCollections =
                 WGlobalStorage.getHomeNftCollections(AccountStore.activeAccountId ?: "")
@@ -260,8 +260,8 @@ class HomeAssetsCell(
     fun updateCollectiblesClick() {
         backgroundExecutor.execute {
             val hiddenNFTsExist =
-                NftStore.cachedNfts?.firstOrNull { it.isHidden == true } != null ||
-                    NftStore.blacklistedNftAddresses.isNotEmpty()
+                NftStore.nftData?.cachedNfts?.firstOrNull { it.isHidden == true } != null ||
+                    NftStore.nftData?.blacklistedNftAddresses?.isNotEmpty() == true
             val showCollectionsMenu = !NftStore.getCollections().isEmpty() || hiddenNFTsExist
             segmentedController.updateOnClick(
                 identifier = AssetsTabVC.ASSETS_IDENTIFIER,

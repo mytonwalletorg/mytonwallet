@@ -16,11 +16,14 @@ import org.mytonwallet.app_air.uisettings.viewControllers.walletVersions.cells.W
 import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
+import org.mytonwallet.app_air.walletcontext.helpers.logger.LogMessage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.activateAccount
 import org.mytonwallet.app_air.walletcore.api.importNewWalletVersion
 import org.mytonwallet.app_air.walletcore.models.MAccount
@@ -118,7 +121,7 @@ class WalletVersionsVC(context: Context) : WViewController(context),
                     WalletCore.activateAccount(accountId, notifySDK = true) { res, err ->
                         if (res != null && err == null) {
                             navigationController?.popToRoot()
-                            WalletCore.notifyEvent(WalletCore.Event.AccountChangedInApp)
+                            WalletCore.notifyEvent(WalletEvent.AccountChangedInApp)
                         }
                     }
                     return
@@ -185,8 +188,8 @@ class WalletVersionsVC(context: Context) : WViewController(context),
         }
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
             else -> {}
         }
     }
@@ -206,12 +209,30 @@ class WalletVersionsVC(context: Context) : WViewController(context),
                 view.unlockView()
                 return@importNewWalletVersion
             }
+
+            Logger.d(
+                Logger.LogTag.ACCOUNT,
+                LogMessage.Builder()
+                    .append(
+                        importedAccountId,
+                        LogMessage.MessagePartPrivacy.PUBLIC
+                    )
+                    .append(
+                        "WalletVersion Imported",
+                        LogMessage.MessagePartPrivacy.PUBLIC
+                    )
+                    .append(
+                        "Address: ${importedAccount.tonAddress}",
+                        LogMessage.MessagePartPrivacy.REDACTED
+                    ).build()
+            )
             WGlobalStorage.addAccount(
                 accountId = importedAccountId,
                 accountType = importedAccount.accountType.value,
                 importedAccount.tonAddress,
                 importedAccount.addressByChain["tron"],
-                name = importedAccount.name
+                name = importedAccount.name,
+                importedAt = importedAccount.importedAt
             )
             WalletCore.activateAccount(
                 accountId = importedAccountId,
@@ -222,7 +243,7 @@ class WalletVersionsVC(context: Context) : WViewController(context),
                     return@activateAccount
                 }
                 navigationController?.pop(false)
-                WalletCore.notifyEvent(WalletCore.Event.AddNewWalletCompletion)
+                WalletCore.notifyEvent(WalletEvent.AddNewWalletCompletion)
             }
         }
     }

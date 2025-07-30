@@ -438,7 +438,12 @@ class ConfirmNftVC(
                         context,
                         (view.height * PasscodeScreenView.TOP_HEADER_MAX_HEIGHT_RATIO).roundToInt()
                     ).apply {
-                        config(Content.ofUrl(nft.image ?: ""), nft.name ?: "", addressAttr)
+                        config(
+                            Content.ofUrl(nft.image ?: ""),
+                            nft.name ?: "",
+                            addressAttr,
+                            Content.Rounding.Radius(12f.dp)
+                        )
                     },
                     LocaleController.getString(R.string.DApp_Send_Confirm)
                 ),

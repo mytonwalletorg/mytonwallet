@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.helpers.ActivityLoader
 import org.mytonwallet.app_air.walletcore.helpers.IActivityLoader
 import org.mytonwallet.app_air.walletcore.models.MHistoryTimePeriod
@@ -116,30 +117,30 @@ class TokenVM(
         delegate.get()?.loadedAll()
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.HideTinyTransfersChanged -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.HideTinyTransfersChanged -> {
                 delegate.get()?.dataUpdated(false)
             }
 
-            WalletCore.Event.BalanceChanged,
-            WalletCore.Event.TokensChanged -> {
+            WalletEvent.BalanceChanged,
+            WalletEvent.TokensChanged -> {
                 delegate.get()?.priceDataUpdated()
                 delegate.get()?.dataUpdated(false)
             }
 
-            WalletCore.Event.BaseCurrencyChanged -> {
+            WalletEvent.BaseCurrencyChanged -> {
                 historyData = emptyArray()
                 delegate.get()?.priceDataUpdated()
                 loadPriceHistoryChart(selectedPeriod)
                 delegate.get()?.dataUpdated(false)
             }
 
-            is WalletCore.Event.AccountChanged -> {
+            is WalletEvent.AccountChanged -> {
                 delegate.get()?.accountChanged()
             }
 
-            WalletCore.Event.NetworkDisconnected -> {
+            WalletEvent.NetworkDisconnected -> {
                 delegate.get()?.stateChanged()
             }
 

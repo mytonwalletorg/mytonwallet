@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.mytonwallet.app_air.uiassets.viewControllers.assets.AssetsVC
 import org.mytonwallet.app_air.uiassets.viewControllers.nft.views.NftAttributesView
 import org.mytonwallet.app_air.uiassets.viewControllers.nft.views.NftHeaderView
+import org.mytonwallet.app_air.uiassets.viewControllers.renew.RenewVC
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WViewController
@@ -61,6 +62,8 @@ import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.AnimUtils.Companion.lerp
 import org.mytonwallet.app_air.walletcontext.utils.VerticalImageSpan
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
+import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.NftCollection
 import org.mytonwallet.app_air.walletcore.moshi.ApiNft
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
@@ -71,13 +74,15 @@ import kotlin.math.max
 class NftVC(
     context: Context,
     var nft: ApiNft,
-    collectionNFTs: List<ApiNft>
+    val collectionNFTs: List<ApiNft>
 ) : WViewController(context), NftHeaderView.Delegate {
 
     override val shouldDisplayBottomBar = true
     override val isSwipeBackAllowed: Boolean
         get() {
-            return headerView.isInCompactState || headerView.isInExpandedState
+            return collectionNFTs.size == 1 ||
+                headerView.isInCompactState ||
+                headerView.isInExpandedState
         }
     override val isEdgeSwipeBackAllowed = true
 
@@ -258,6 +263,7 @@ class NftVC(
             setOnClickListener {
                 push(SendNftVC(context, nft))
             }
+            isVisible = AccountStore.activeAccount?.accountType != MAccount.AccountType.VIEW
         }
     }
     private val actionsView: WView by lazy {
@@ -693,7 +699,7 @@ class NftVC(
     }
 
     private fun openLink(url: String) {
-        WalletCore.notifyEvent(WalletCore.Event.OpenUrl(url))
+        WalletCore.notifyEvent(WalletEvent.OpenUrl(url))
     }
 
     private var currentVal = ViewConstants.BIG_RADIUS.dp
@@ -931,6 +937,16 @@ class NftVC(
                             openLink(nft.tonDnsUrl)
                         })
                 }
+                if (nft.canRenew() && AccountStore.activeAccount?.accountType != MAccount.AccountType.VIEW) {
+                    add(
+                        WMenuPopup.Item(
+                            org.mytonwallet.app_air.uiassets.R.drawable.ic_renew,
+                            LocaleController.getString(R.string.Asset_Renew),
+                            false,
+                        ) {
+                            openRenewModal()
+                        })
+                }
                 if (nft.shouldHide()) {
                     add(
                         WMenuPopup.Item(
@@ -950,21 +966,22 @@ class NftVC(
                             NftStore.hideNft(nft)
                         })
                 }
-                add(
-                    WMenuPopup.Item(
-                        WMenuPopup.Item.Config.Item(
-                            icon = WMenuPopup.Item.Config.Icon(
-                                icon = org.mytonwallet.app_air.uiassets.R.drawable.ic_burn,
-                                tintColor = null,
-                                iconSize = 28.dp
+                if (AccountStore.activeAccount?.accountType != MAccount.AccountType.VIEW)
+                    add(
+                        WMenuPopup.Item(
+                            WMenuPopup.Item.Config.Item(
+                                icon = WMenuPopup.Item.Config.Icon(
+                                    icon = org.mytonwallet.app_air.uiassets.R.drawable.ic_burn,
+                                    tintColor = null,
+                                    iconSize = 28.dp
+                                ),
+                                title = LocaleController.getString(R.string.Asset_Burn),
+                                titleColor = WColor.Red.color
                             ),
-                            title = LocaleController.getString(R.string.Asset_Burn),
-                            titleColor = WColor.Red.color
-                        ),
-                        false,
-                    ) {
-                        push(ConfirmNftVC(context, ConfirmNftVC.Mode.Burn, nft, null))
-                    })
+                            false,
+                        ) {
+                            push(ConfirmNftVC(context, ConfirmNftVC.Mode.Burn, nft, null))
+                        })
             },
             offset = (-147).dp,
             popupWidth = 187.dp,
@@ -1006,7 +1023,7 @@ class NftVC(
                             installPalette()
                         }
                     }
-                    WalletCore.notifyEvent(WalletCore.Event.NftCardUpdated)
+                    WalletCore.notifyEvent(WalletEvent.NftCardUpdated)
                 },
                 WMenuPopup.Item(
                     WMenuPopup.Item.Config.Item(
@@ -1061,5 +1078,16 @@ class NftVC(
             }
             WalletContextManager.delegate?.themeChanged()
         }
+    }
+
+    private fun openRenewModal() {
+        val nav = WNavigationController(
+            window!!, WNavigationController.PresentationConfig(
+                overFullScreen = false,
+                isBottomSheet = true
+            )
+        )
+        nav.setRoot(RenewVC(context, nft))
+        window?.present(nav)
     }
 }

@@ -14,7 +14,8 @@ class MAccount(
     val addressByChain: Map<String, String>,
     var name: String,
     var accountType: AccountType,
-    val ledger: Ledger?
+    val ledger: Ledger?,
+    var importedAt: Long?,
 ) {
 
     enum class AccountType(val value: String) {
@@ -71,7 +72,8 @@ class MAccount(
         ).filterValues { it.isNotEmpty() },
         globalJSON.optString("title"),
         AccountType.fromValue(globalJSON.optString("type"))!!,
-        globalJSON.optJSONObject("ledger")?.let { Ledger(it) }
+        globalJSON.optJSONObject("ledger")?.let { Ledger(it) },
+        globalJSON.optLong("importedAt"),
     )
 
     val isHardware: Boolean

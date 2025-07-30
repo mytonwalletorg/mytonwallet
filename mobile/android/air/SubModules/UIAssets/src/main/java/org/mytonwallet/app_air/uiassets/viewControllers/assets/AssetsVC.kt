@@ -12,10 +12,11 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.core.view.setPadding
-import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.mytonwallet.app_air.uiassets.viewControllers.assets.cells.AssetCell
 import org.mytonwallet.app_air.uiassets.viewControllers.assets.views.EmptyCollectionsView
@@ -27,7 +28,6 @@ import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WRecyclerViewAdapter
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.uicomponents.base.WWindow
-import org.mytonwallet.app_air.uicomponents.commonViews.ReversedCornerView
 import org.mytonwallet.app_air.uicomponents.commonViews.WEmptyIconView
 import org.mytonwallet.app_air.uicomponents.commonViews.cells.ShowAllView
 import org.mytonwallet.app_air.uicomponents.extensions.dp
@@ -41,6 +41,7 @@ import org.mytonwallet.app_air.uicomponents.widgets.addRippleEffect
 import org.mytonwallet.app_air.uicomponents.widgets.fadeIn
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.uicomponents.widgets.menu.WMenuPopup
+import org.mytonwallet.app_air.uicomponents.widgets.segmentedController.WSegmentedControllerItemVC
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
@@ -48,13 +49,13 @@ import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.NftCollection
 import org.mytonwallet.app_air.walletcore.moshi.ApiNft
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class AssetsVC(
@@ -66,7 +67,8 @@ class AssetsVC(
     private val onHeightChanged: (() -> Unit)? = null,
     private val onScroll: ((rv: RecyclerView) -> Unit)? = null,
 ) : WViewController(context),
-    WRecyclerViewAdapter.WRecyclerViewDataSource, AssetsVM.Delegate {
+    WRecyclerViewAdapter.WRecyclerViewDataSource, AssetsVM.Delegate,
+    WSegmentedControllerItemVC {
 
     enum class Mode {
         THUMB,
@@ -119,11 +121,14 @@ class AssetsVC(
     var currentHeight: Int? = null
     private val finalHeight: Int
         get() {
-            return if (assetsVM.nfts.isNullOrEmpty()) 224.dp else
-                (if ((assetsVM.nfts?.size
-                        ?: 0) > 3
-                ) 2 else 1) * (recyclerView.width - 32
-                    .dp) / 3 + 4.dp + (if (thereAreMoreToShow) 56 else 4).dp
+            return if (assetsVM.nfts.isNullOrEmpty())
+                224.dp
+            else {
+                val rows = if ((assetsVM.nfts?.size ?: 0) > 3) 2 else 1
+                rows * (recyclerView.width - 32.dp) / 3 +
+                    4.dp +
+                    (if (thereAreMoreToShow) 56 else 8).dp
+            }
         }
 
     private val rvAdapter =
@@ -240,8 +245,6 @@ class AssetsVC(
             super.onScrolled(recyclerView, dx, dy)
             if (dx == 0 && dy == 0)
                 return
-            reversedCornerViewAboveRecyclerView.translationY =
-                -recyclerView.computeVerticalScrollOffset().toFloat()
             updateBlurViews(recyclerView)
             onScroll?.invoke(recyclerView)
         }
@@ -370,7 +373,7 @@ class AssetsVC(
                             AccountStore.activeAccountId!!,
                             homeNftCollections
                         )
-                        WalletCore.notifyEvent(WalletCore.Event.HomeNftCollectionsUpdated)
+                        WalletCore.notifyEvent(WalletEvent.HomeNftCollectionsUpdated)
                     }),
                 offset = (-140).dp,
                 popupWidth = 180.dp,
@@ -379,14 +382,6 @@ class AssetsVC(
         }
         btn
     }
-
-    // We can't use the usual trick of setting top and bottom rounding to cells for grid cells here,
-    //  So, we add a reversed corner view to simulate that without ui issues and keep blur as expected.
-    val reversedCornerViewAboveRecyclerView = ReversedCornerView(
-        context, initialConfig = ReversedCornerView.Config(
-            overrideBackgroundColor = WColor.SecondaryBackground
-        )
-    )
 
     override fun setupViews() {
         super.setupViews()
@@ -397,24 +392,10 @@ class AssetsVC(
             navigationBar?.addTrailingView(moreButton, LayoutParams(40.dp, 40.dp))
         }
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-        if (mode == Mode.COMPLETE) {
-            view.addView(
-                reversedCornerViewAboveRecyclerView,
-                ViewGroup.LayoutParams(
-                    MATCH_PARENT,
-                    recyclerView.paddingTop + ViewConstants.BAR_ROUNDS.dp.roundToInt()
-                )
-            )
-        }
         if (mode == Mode.THUMB) {
             view.addView(showAllView, LayoutParams(MATCH_PARENT, 56.dp))
         }
         view.setConstraints {
-            toTop(reversedCornerViewAboveRecyclerView)
-            toCenterX(
-                reversedCornerViewAboveRecyclerView,
-                if (mode == Mode.COMPLETE) -ViewConstants.HORIZONTAL_PADDINGS.toFloat() else 0f
-            )
             if (mode == Mode.THUMB) {
                 toCenterX(showAllView)
             }
@@ -468,8 +449,25 @@ class AssetsVC(
                 0,
                 navigationController?.getSystemBars()?.bottom ?: 0
             )
-            reversedCornerViewAboveRecyclerView.updateLayoutParams {
-                height = recyclerView.paddingTop + ViewConstants.BAR_ROUNDS.dp.roundToInt()
+        }
+    }
+
+    fun setAnimations(paused: Boolean) {
+        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
+        layoutManager?.let {
+            val firstVisible = it.findFirstVisibleItemPosition()
+            val lastVisible = it.findLastVisibleItemPosition()
+
+            for (i in firstVisible..lastVisible) {
+                val holder = recyclerView.findViewHolderForAdapterPosition(i)
+                if (holder != null) {
+                    (holder.itemView as AssetCell).apply {
+                        if (paused)
+                            pauseAnimation()
+                        else
+                            resumeAnimation()
+                    }
+                }
             }
         }
     }
@@ -537,7 +535,7 @@ class AssetsVC(
                     if (assetsVM.nfts == null)
                         emptyView?.visibility == View.GONE
                 })
-        } else if (assetsVM.nfts.isNullOrEmpty()) {
+        } else if (assetsVM.nfts!!.isEmpty()) {
             if (emptyView == null) {
                 emptyView =
                     when (mode) {
@@ -561,17 +559,18 @@ class AssetsVC(
                     else
                         toTop(emptyView!!, 85f)
                 }.layout()
-            } else if ((emptyView?.alpha ?: 0f) < 1) {
+            } else if (emptyView?.isVisible != true) {
                 if ((emptyView as? WEmptyIconView)?.startedAnimation != false) {
                     emptyView?.visibility = View.VISIBLE
+                    emptyView?.alpha = 1f
                     emptyView?.fadeIn()
                 }
             }
-        } else if (assetsVM.nfts?.isNotEmpty() == true) {
-            if ((emptyView?.alpha ?: 0f) > 0)
+        } else {
+            if (emptyView?.isVisible == true)
                 emptyView?.fadeOut(onCompletion = {
-                    if (assetsVM.nfts?.isNotEmpty() == true)
-                        emptyView?.visibility == View.GONE
+                    if (assetsVM.nfts?.isNotEmpty() != false)
+                        emptyView?.visibility = View.GONE
                 })
         }
     }
@@ -625,5 +624,13 @@ class AssetsVC(
         itemTouchHelper.attachToRecyclerView(null)
         recyclerView.adapter = null
         recyclerView.removeAllViews()
+    }
+
+    override fun onFullyVisible() {
+        setAnimations(paused = false)
+    }
+
+    override fun onPartiallyVisible() {
+        setAnimations(paused = true)
     }
 }

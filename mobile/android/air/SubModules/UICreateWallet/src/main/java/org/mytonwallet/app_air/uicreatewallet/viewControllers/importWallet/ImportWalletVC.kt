@@ -34,6 +34,7 @@ import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.activateAccount
 import org.mytonwallet.app_air.walletcore.constants.PossibleWords
 import org.mytonwallet.app_air.walletcore.models.MBridgeError
@@ -311,7 +312,7 @@ class ImportWalletVC(
                     navigationController.setRoot(TabsVC(context))
                     window!!.replace(navigationController, true)
                 } else {
-                    WalletCore.notifyEvent(WalletCore.Event.AddNewWalletCompletion)
+                    WalletCore.notifyEvent(WalletEvent.AddNewWalletCompletion)
                     window!!.dismissLastNav()
                 }
             }

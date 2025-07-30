@@ -31,7 +31,7 @@ data class MApiCheckNftDraftOptions(
     val comment: String?,
 )
 
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 enum class ApiMtwCardType {
     @Json(name = "black")
     BLACK,
@@ -49,7 +49,7 @@ enum class ApiMtwCardType {
     STANDARD
 }
 
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 enum class ApiMtwCardTextType {
     @Json(name = "light")
     LIGHT,
@@ -58,7 +58,7 @@ enum class ApiMtwCardTextType {
     DARK
 }
 
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 enum class ApiMtwCardBorderShineType {
     @Json(name = "up")
     UP,
@@ -96,7 +96,6 @@ data class ApiNftMetadata(
         get() {
             return "https://static.mytonwallet.org/cards/$mtwCardId.webp"
         }
-
 
     fun gradient(radius: Float): LayerDrawable {
         return when (mtwCardBorderShineType) {
@@ -183,7 +182,7 @@ data class ApiNftMetadata(
         }
     }
 
-    private val gradientColors: IntArray
+    val gradientColors: IntArray
         get() {
             if (mtwCardBorderShineType == RADIOACTIVE) {
                 val greenColor = Color.parseColor("#5CE850")
@@ -305,9 +304,13 @@ data class ApiNft(
         }
 
     fun shouldHide(): Boolean {
-        if (NftStore.whitelistedNftAddresses.contains(address))
+        if (NftStore.nftData?.whitelistedNftAddresses?.contains(address) == true)
             return false
-        return isHidden == true || NftStore.blacklistedNftAddresses.contains(address)
+        return isHidden == true || NftStore.nftData?.blacklistedNftAddresses?.contains(address) == true
+    }
+
+    fun canRenew(): Boolean {
+        return NftStore.nftData?.expirationByAddress?.contains(address) == true
     }
 
     override fun isSame(comparing: WEquatable<*>): Boolean {

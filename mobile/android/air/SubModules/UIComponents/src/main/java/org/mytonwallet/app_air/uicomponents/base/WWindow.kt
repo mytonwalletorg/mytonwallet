@@ -5,6 +5,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
@@ -42,6 +43,9 @@ import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
+import org.mytonwallet.app_air.walletcore.models.MAccount
+import org.mytonwallet.app_air.walletcore.stores.AccountStore
+import java.util.function.Consumer
 import kotlin.math.min
 
 abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
@@ -87,9 +91,16 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
 
     private var activeAnimator: ValueAnimator? = null
 
+    fun isTablet(): Boolean {
+        return (resources.configuration.screenLayout and
+            Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (!isTablet())
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
         setContentView(windowView)
 
@@ -127,6 +138,16 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
         }
 
         updateTheme()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        startScreenRecordListener()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        stopScreenRecordListener()
     }
 
     public override fun onPause() {
@@ -216,6 +237,10 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
             else
                 unblockTouches()
         }
+    val topViewController: WViewController?
+        get() {
+            return navigationControllers.lastOrNull()?.viewControllers?.lastOrNull()
+        }
 
     // Called to replace all the showing fragment stacks (navigation controllers) with a clean new one!
     fun replace(
@@ -238,10 +263,33 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
         })
     }
 
+    private var pendingPresentationNav: WNavigationController? = null
+    fun presentOnWalletReady(
+        navigationController: WNavigationController
+    ): Boolean {
+        if (WalletContextManager.delegate?.isWalletReady() != true ||
+            (WalletContextManager.delegate?.isAppUnlocked() != true &&
+                AccountStore.activeAccount?.accountType != MAccount.AccountType.VIEW)
+        ) {
+            // Should not present anything over lock screen
+            pendingPresentationNav = navigationController
+            return false
+        }
+        present(navigationController, true)
+        return true
+    }
+
+    fun presentPendingPresentationNav(): Boolean {
+        val pendingPresentationNav = pendingPresentationNav ?: return false
+        if (presentOnWalletReady(pendingPresentationNav)) {
+            this.pendingPresentationNav = null
+            return true
+        }
+        return false
+    }
+
     // Called to present a new stack on top of previous ones
     fun present(navigationController: WNavigationController, animated: Boolean = true) {
-        // TODO:: Present nav below lock screen if app is locked
-
         // Overlay for previous views
         val overlayView: WBaseView?
         if (navigationController.presentationConfig.isBottomSheet) {
@@ -365,7 +413,7 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
         navigationController?.willBeDismissed()
         addPrevNavigationControllersToHierarchy()
         val lastOverlay = navigationControllerOverlays.lastOrNull()
-        val startOverlayAlpha = navigationControllerOverlays.lastOrNull()?.alpha ?: 0f
+        val startOverlayAlpha = lastOverlay?.alpha ?: 0f
 
         fun animationEnded() {
             navigationController?.visibility = View.GONE
@@ -403,11 +451,11 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
                         interpolator = WInterpolator.emphasizedAccelerate
 
                         addUpdateListener { updatedAnimation ->
-                            lastOverlay?.alpha =
-                                (1 - updatedAnimation.animatedFraction) * startOverlayAlpha
+                            val fraction = updatedAnimation.animatedFraction
                             val updatedValue = updatedAnimation.animatedValue as Int
+                            lastOverlay?.alpha = (1 - fraction) * startOverlayAlpha
                             navigationController?.y = updatedValue.toFloat()
-                            navigationController?.alpha = startAlpha * (1 - animatedFraction)
+                            navigationController?.alpha = startAlpha * (1 - fraction)
                         }
                         addListener(object : AnimatorListenerAdapter() {
                             override fun onAnimationEnd(animation: Animator) {
@@ -432,8 +480,9 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
                     duration = AnimationConstants.QUICK_ANIMATION
 
                     addUpdateListener {
-                        prevNavigationController.scaleX = 1.2f - 0.2f * animatedFraction
-                        prevNavigationController.scaleY = prevNavigationController.scaleX
+                        val scale = 1.2f - 0.2f * animatedFraction
+                        prevNavigationController.scaleX = scale
+                        prevNavigationController.scaleY = scale
                         navigationController?.alpha = startAlpha * (1 - animatedFraction)
                     }
                     addListener(object : AnimatorListenerAdapter() {
@@ -445,7 +494,9 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
                     })
 
                     WGlobalStorage.incDoNotSynchronize()
-                    start()
+                    prevNavigationController.viewControllers.lastOrNull()?.view?.post {
+                        start()
+                    }
                 }
             }
         }
@@ -607,5 +658,34 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
         startActivity(WalletContextManager.getMainActivityIntent(this))
         finish()
         return
+    }
+
+    // Screen Record ///////////////////////////////////////////////////////////////////////////////
+    private fun startScreenRecordListener() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            val initialState =
+                windowManager.addScreenRecordingCallback(mainExecutor, screenRecordCallback)
+            screenRecordCallback.accept(initialState)
+        }
+    }
+
+    private fun stopScreenRecordListener() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            windowManager.removeScreenRecordingCallback(screenRecordCallback)
+        }
+    }
+
+    var isScreenRecordInProgress = false
+        private set
+    private val screenRecordCallback = Consumer<Int> { state ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            val newState = state == WindowManager.SCREEN_RECORDING_STATE_VISIBLE
+            if (isScreenRecordInProgress != newState) {
+                isScreenRecordInProgress = newState
+                navigationControllers.forEach {
+                    it.onScreenRecordStateChanged(newState)
+                }
+            }
+        }
     }
 }

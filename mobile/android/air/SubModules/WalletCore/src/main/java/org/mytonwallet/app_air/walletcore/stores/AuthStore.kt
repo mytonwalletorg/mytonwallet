@@ -23,6 +23,11 @@ object AuthStore {
             WSecureStorage.setLastFailedAttempt(value)
         }
 
+    private val shouldDelayVerification: Boolean
+        get() {
+            return failedLoginAttempts >= 5
+        }
+
     fun getCooldownDate(): Long {
         return lastFailedAttempt + cooldownForNumberOfFailedAttempts(failedLoginAttempts)
     }
@@ -39,11 +44,9 @@ object AuthStore {
         val performVerification = {
             WalletCore.verifyPassword(password) { res, err ->
                 if (res == true) {
-                    failedLoginAttempts = 0
-                    lastFailedAttempt = 0L
+                    submitSuccessfulLogin()
                 } else {
-                    failedLoginAttempts += 1
-                    lastFailedAttempt = System.currentTimeMillis()
+                    submitFailedLogin()
                 }
                 val success = res == true
                 callback(
@@ -53,7 +56,7 @@ object AuthStore {
             }
         }
 
-        if (failedLoginAttempts >= 5) {
+        if (shouldDelayVerification) {
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                 performVerification()
             }, 1000)
@@ -70,5 +73,15 @@ object AuthStore {
             7 -> 900_000
             else -> 3600_000
         }
+    }
+
+    private fun submitSuccessfulLogin() {
+        failedLoginAttempts = 0
+        lastFailedAttempt = 0L
+    }
+
+    private fun submitFailedLogin() {
+        failedLoginAttempts += 1
+        lastFailedAttempt = System.currentTimeMillis()
     }
 }

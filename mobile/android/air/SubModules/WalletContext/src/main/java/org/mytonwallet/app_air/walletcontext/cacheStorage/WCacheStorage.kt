@@ -13,6 +13,7 @@ object WCacheStorage {
 
     private const val CACHE_PREF_STAKING_DATA = "stakingData."
     private const val CACHE_PREF_NFTS = "nfts."
+    private const val CACHE_INITIAL_SCREEN = "initialScreen"
 
     fun init(context: Context) {
         sharedPreferences = context.getSharedPreferences(CACHE_PREF_NAME, Context.MODE_PRIVATE)
@@ -59,6 +60,26 @@ object WCacheStorage {
             }
         }
     }
+
+    enum class InitialScreen(val value: Int) {
+        INTRO(0),
+        HOME(1),
+        LOCK(2);
+    }
+
+    fun getInitialScreen(): InitialScreen? {
+        val initialInt = sharedPreferences.getInt(CACHE_INITIAL_SCREEN, 0)
+        return InitialScreen.entries.firstOrNull {
+            it.value == initialInt
+        }
+    }
+
+    fun setInitialScreen(initialScreen: InitialScreen) {
+        sharedPreferences.edit {
+            putInt(CACHE_INITIAL_SCREEN, initialScreen.value)
+        }
+    }
+
 
     fun clean(accountIds: Array<String>) {
         for (accountId in accountIds) {

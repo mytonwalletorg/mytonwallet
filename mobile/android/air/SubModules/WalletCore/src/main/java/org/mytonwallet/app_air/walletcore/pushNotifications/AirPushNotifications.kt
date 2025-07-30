@@ -1,6 +1,5 @@
 package org.mytonwallet.app_air.walletcore.pushNotifications
 
-import android.util.Log
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
@@ -12,6 +11,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.LogMessage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.MBlockchain
@@ -29,11 +30,19 @@ object AirPushNotifications {
             .addOnCompleteListener(
                 OnCompleteListener { task: Task<String?>? ->
                     if (task?.isSuccessful != true) {
-                        Log.w(
-                            "AirPushNotifications",
-                            "Fetching FCM registration token failed",
-                            task?.exception
-                        );
+                        Logger.w(
+                            Logger.LogTag.AIR_APPLICATION,
+                            LogMessage.Builder()
+                                .append(
+                                    "Fetching FCM registration token failed",
+                                    LogMessage.MessagePartPrivacy.PUBLIC
+                                )
+                                .append(
+                                    task?.exception,
+                                    LogMessage.MessagePartPrivacy.REDACTED
+                                )
+                                .build()
+                        )
                         return@OnCompleteListener
                     }
                     val token = task.getResult() ?: return@OnCompleteListener

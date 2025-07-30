@@ -6,18 +6,15 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
-import android.util.Log
 import android.view.MotionEvent
-import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import org.mytonwallet.app_air.airasframework.splash.SplashVC
 import org.mytonwallet.app_air.uicomponents.base.WWindow
 import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.AutoLockHelper
-import org.mytonwallet.app_air.walletcore.JSWebViewBridge
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
+import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.pushNotifications.AirPushNotifications
 
 class MainWindow : WWindow() {
@@ -33,9 +30,8 @@ class MainWindow : WWindow() {
         return navigationController
     }
 
-    private var webViewBridge: JSWebViewBridge? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
+        Logger.i(Logger.LogTag.AIR_APPLICATION, "MainWindow Created")
         super.onCreate(savedInstanceState)
 
         if (!WGlobalStorage.isInitialized) {
@@ -44,31 +40,23 @@ class MainWindow : WWindow() {
 
         AirAsFrameworkApplication.initTheme(applicationContext)
 
-        restartBridge()
+        restartBridge(forcedRecreation = false)
 
         AutoLockHelper.start(WGlobalStorage.getAppLock().period)
 
         checkPushNotifications()
     }
 
-    fun restartBridge() {
-        val startTime = SystemClock.elapsedRealtime()
-
-        webViewBridge?.destroy()
-        webViewBridge = JSWebViewBridge(this)
-        webViewBridge!!.visibility = View.GONE
-        windowView.addView(webViewBridge, ConstraintLayout.LayoutParams(0, 0))
-        webViewBridge!!.setupBridge {
+    fun restartBridge(forcedRecreation: Boolean) {
+        splashVC.preloadScreens()
+        WalletCore.setupBridge(this, windowView, forcedRecreation = forcedRecreation) {
             // Bridge ready now!
             splashVC.bridgeIsReady()
-
-            val endTime = SystemClock.elapsedRealtime()
-            Log.d("MTWAirApplication", "Bridge setup took ${endTime - startTime} ms")
         }
     }
 
     fun destroyBridge() {
-        webViewBridge?.destroy()
+        WalletCore.destroyBridge()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

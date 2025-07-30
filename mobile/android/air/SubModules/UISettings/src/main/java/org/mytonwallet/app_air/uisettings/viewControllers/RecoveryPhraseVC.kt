@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference
 @SuppressLint("ViewConstructor")
 open class RecoveryPhraseVC(context: Context, words: Array<String>) : WViewController(context) {
 
+    override val protectFromScreenRecord = true
     override val shouldDisplayBottomBar = true
     override val ignoreSideGuttering = true
 

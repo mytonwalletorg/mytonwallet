@@ -26,6 +26,7 @@ import org.mytonwallet.app_air.walletcore.STAKE_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.USDE_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.fetchTokenActivitySlice
 import org.mytonwallet.app_air.walletcore.api.getStakingHistory
 import org.mytonwallet.app_air.walletcore.models.MBridgeError
@@ -53,7 +54,6 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
     private var historyItems: MutableList<EarnItem>? = null
     var apy: Float? = null
     var unclaimedRewards: BigInteger? = null
-    var accountId = AccountStore.activeAccountId!!
     var token: MToken? = null
         get() {
             if (field == null) {
@@ -81,7 +81,6 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
         historyItems = null
         apy = null
         unclaimedRewards = null
-        accountId = AccountStore.activeAccountId!!
         token = TokenStore.getToken(tokenSlug)
     }
 
@@ -169,7 +168,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
     }
 
     private fun refreshStakingHistoryLatestChanges() {
-        requestStakingHistory(accountId, 1, true)
+        requestStakingHistory(AccountStore.activeAccountId!!, 1, true)
         requestTokenActivitiesForUnstakedItems(null, true)
         requestTokenActivitiesForStakedItems(null, true)
     }
@@ -261,7 +260,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
 
     fun loadMoreStakingHistoryItems() {
         if (hasLoadedAllStakingHistoryItems) return
-        requestStakingHistory(accountId, lastLoadedPage + 1)
+        requestStakingHistory(AccountStore.activeAccountId!!, lastLoadedPage + 1)
     }
 
     var lastUnstakedActivityItem: EarnItem? = null
@@ -280,7 +279,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
         if (isLoadingUnstakedActivityItems) return
         val callback: ((ArrayList<MApiTransaction>?, MBridgeError?, String) -> Unit) =
             callback@{ transactions, err, requestAccountId ->
-                if (requestAccountId != accountId) return@callback
+                if (requestAccountId != AccountStore.activeAccountId!!) return@callback
                 val transactions = transactions?.filter { it is MApiTransaction.Transaction }
                 if (!transactions.isNullOrEmpty()) {
                     if (!isCheckingLatestChanges) {
@@ -307,7 +306,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
 
         isLoadingUnstakedActivityItems = true
         WalletCore.fetchTokenActivitySlice(
-            accountId,
+            AccountStore.activeAccountId!!,
             "ton",
             tokenSlug,
             fromTimestamp,
@@ -338,7 +337,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
     ) {
         if (isLoadingStakedActivityItems) return
 
-        if (BalanceStore.getBalances(accountId)?.get(stakedTokenSlug) == null) {
+        if (AccountStore.stakingData?.stakingState(stakedTokenSlug)?.balance == null) {
             hasLoadedAllStakedActivityItems = true
             if (historyItems.isNullOrEmpty()) {
                 showNoItemView()
@@ -347,7 +346,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
         }
         isLoadingStakedActivityItems = true
         WalletCore.fetchTokenActivitySlice(
-            accountId,
+            AccountStore.activeAccountId!!,
             "ton",
             stakedTokenSlug,
             fromTimestamp,
@@ -513,7 +512,14 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
     //
     private fun getTokenBalance(): BigInteger {
         return if (token == null) BigInteger.ZERO
-        else BalanceStore.getBalances(accountId)?.get(token!!.slug) ?: BigInteger.valueOf(0)
+        else {
+            if (token?.isEarnAvailable == true)
+                BalanceStore.getBalances(AccountStore.activeAccountId!!)?.get(token!!.slug)
+                    ?: BigInteger.valueOf(0)
+            else
+                AccountStore.stakingData?.stakingState(token!!.slug)?.balance
+                    ?: BigInteger.valueOf(0)
+        }
     }
 
     private fun EarnItem.updateAmountInBaseCurrency(): EarnItem {
@@ -595,18 +601,17 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
         }
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.AccountChanged -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.AccountChanged -> {
                 clearMainVariables()
                 clearStakingHistoryVariables()
                 clearUnstakedItemsVariables()
                 clearStakedItemsVariables()
-                requestStakingState(accountId)
+                requestStakingState(AccountStore.activeAccountId!!)
             }
 
-            WalletCore.Event.BalanceChanged -> {
-                accountId = AccountStore.activeAccountId!!
+            WalletEvent.BalanceChanged -> {
                 _viewState.tryEmit(
                     viewStateValue().copy(
                         enableAddStakeButton = getTokenBalance() > BigInteger.ZERO
@@ -614,12 +619,12 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
                 )
             }
 
-            WalletCore.Event.NetworkConnected -> {
+            WalletEvent.NetworkConnected -> {
                 loadOrRefreshStakingData()
             }
 
-            WalletCore.Event.TokensChanged,
-            WalletCore.Event.BaseCurrencyChanged -> {
+            WalletEvent.TokensChanged,
+            WalletEvent.BaseCurrencyChanged -> {
                 token = TokenStore.getToken(tokenSlug)!!
                 historyItems?.forEach { earnItem ->
                     earnItem.updateAmountInBaseCurrency()
@@ -634,7 +639,7 @@ class EarnViewModel(val tokenSlug: String) : ViewModel(), WalletCore.EventObserv
                 }
             }
 
-            WalletCore.Event.StakingDataUpdated -> {
+            WalletEvent.StakingDataUpdated -> {
                 AccountStore.stakingData?.let { stakingData ->
                     updateViewState(stakingData)
                     if (token == null || allLoadedOnce) return

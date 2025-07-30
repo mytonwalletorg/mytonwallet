@@ -7,7 +7,7 @@ import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 import android.hardware.usb.UsbRequest
-import android.util.Log
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
@@ -66,7 +66,7 @@ class HIDDevice(manager: UsbManager, device: UsbDevice) {
                     HID_BUFFER_SIZE
                 )
                 if (debug) {
-                    Log.d("SHIDDevice", "=> " + toHex(command))
+                    Logger.d(Logger.LogTag.SHIDDevice, "=> " + toHex(command))
                 }
 
                 var request = UsbRequest()
@@ -110,7 +110,7 @@ class HIDDevice(manager: UsbManager, device: UsbDevice) {
                 }
 
                 if (debug) {
-                    Log.d("SHIDDevice", "<= " + toHex(responseData!!))
+                    Logger.d(Logger.LogTag.SHIDDevice, "<= " + toHex(responseData!!))
                 }
 
                 request.close()

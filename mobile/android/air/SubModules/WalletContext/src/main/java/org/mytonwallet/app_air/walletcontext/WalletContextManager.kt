@@ -13,8 +13,11 @@ interface WalletContextManagerDelegate {
     fun isAppUnlocked(): Boolean
     fun handleDeeplink(deeplink: String): Boolean
     fun walletIsReady()
+    fun isWalletReady(): Boolean
     fun switchToLegacy()
 }
+
+val DEBUG_MODE = BuildConfig.DEBUG_MODE!!
 
 object WalletContextManager {
     var delegate: WalletContextManagerDelegate? = null

@@ -35,7 +35,8 @@ enum class WColor {
     OutgoingComment,
     SearchFieldBackground,
     Transparent,
-    White;
+    White,
+    Black;
 
     data class Accent(
         val id: Int,

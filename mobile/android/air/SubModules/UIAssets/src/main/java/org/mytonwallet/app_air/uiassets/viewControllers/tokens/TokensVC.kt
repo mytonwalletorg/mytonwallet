@@ -3,6 +3,8 @@ package org.mytonwallet.app_air.uiassets.viewControllers.tokens
 import WNavigationController
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -26,10 +28,12 @@ import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MTokenBalance
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
 
 @SuppressLint("ViewConstructor")
 class TokensVC(
@@ -160,20 +164,25 @@ class TokensVC(
 
     var prevSize = -1
     private fun dataUpdated() {
-        val allWalletTokens = AccountStore.assetsAndActivityData.getAllTokens()
-        val filteredWalletTokens = allWalletTokens.filter {
-            val token = TokenStore.getToken(it.token)
-            token?.isHidden() != true
+        Executors.newSingleThreadExecutor().execute {
+            val allWalletTokens =
+                AccountStore.assetsAndActivityData.getAllTokens(addVirtualStakingTokens = true)
+            val filteredWalletTokens = allWalletTokens.filter {
+                val token = TokenStore.getToken(it.token)
+                it.isVirtualStakingRow || token?.isHidden() != true
+            }
+            Handler(Looper.getMainLooper()).post {
+                walletTokens = if (mode == Mode.HOME) filteredWalletTokens.take(5)
+                    .toTypedArray() else filteredWalletTokens.toTypedArray()
+                thereAreMoreToShow = filteredWalletTokens.size > 5
+                showAllView.visibility = if (thereAreMoreToShow) View.VISIBLE else View.GONE
+                if (walletTokens.size != prevSize) {
+                    prevSize = walletTokens.size
+                    onHeightChanged?.invoke()
+                }
+                rvAdapter.reloadData()
+            }
         }
-        walletTokens = if (mode == Mode.HOME) filteredWalletTokens.take(5)
-            .toTypedArray() else filteredWalletTokens.toTypedArray()
-        thereAreMoreToShow = filteredWalletTokens.size > 5
-        showAllView.visibility = if (thereAreMoreToShow) View.VISIBLE else View.GONE
-        if (walletTokens.size != prevSize) {
-            prevSize = walletTokens.size
-            onHeightChanged?.invoke()
-        }
-        rvAdapter.reloadData()
     }
 
     val calculatedHeight: Int
@@ -181,17 +190,17 @@ class TokensVC(
             return (64 * walletTokens.size).dp + (if (thereAreMoreToShow) 56 else 0).dp
         }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.BalanceChanged,
-            WalletCore.Event.TokensChanged,
-            WalletCore.Event.AssetsAndActivityDataUpdated,
-            is WalletCore.Event.AccountChanged,
-            WalletCore.Event.StakingDataUpdated -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.BalanceChanged,
+            WalletEvent.TokensChanged,
+            WalletEvent.AssetsAndActivityDataUpdated,
+            is WalletEvent.AccountChanged,
+            WalletEvent.StakingDataUpdated -> {
                 dataUpdated()
             }
 
-            WalletCore.Event.BaseCurrencyChanged -> {
+            WalletEvent.BaseCurrencyChanged -> {
                 walletTokens.forEach {
                     it.toBaseCurrency = null
                     it.toBaseCurrency24h = null
@@ -219,12 +228,12 @@ class TokensVC(
         when (cellType) {
             TOKEN_CELL -> {
                 val cell = TokenCell(context, mode)
-                cell.onTap = { slug ->
-                    val token = TokenStore.getToken(slug)
+                cell.onTap = { tokenBalance ->
+                    val token = TokenStore.getToken(tokenBalance.token)
                     token?.let {
-                        if (token.isStakingToken) {
+                        if (tokenBalance.isVirtualStakingRow) {
                             val navVC = WNavigationController(window!!)
-                            navVC.setRoot(EarnRootVC(context, tokenSlug = token.unstakedSlug!!))
+                            navVC.setRoot(EarnRootVC(context, tokenSlug = token.slug))
                             window?.present(navVC)
                             return@let
                         }
@@ -248,7 +257,6 @@ class TokensVC(
     ) {
         (cellHolder.cell as TokenCell).configure(
             walletTokens[indexPath.row],
-            isFirst = indexPath.row == 0,
             isLast = indexPath.row == walletTokens.size - 1
         )
     }

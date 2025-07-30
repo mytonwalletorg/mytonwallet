@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MBridgeError
 import org.mytonwallet.app_air.walletcore.models.MExploreCategory
 import org.mytonwallet.app_air.walletcore.models.MExploreSite
@@ -63,7 +64,7 @@ fun WalletCore.requestDAppList() {
         try {
             val apps = call(ApiMethod.DApp.GetDapps(accountId))
             DappsStore.setDapps(accountId, apps)
-            notifyEvent(WalletCore.Event.DappsCountUpdated)
+            notifyEvent(WalletEvent.DappsCountUpdated)
         } catch (e: JSWebViewBridge.ApiError) {
             // todo: repeat request
         }

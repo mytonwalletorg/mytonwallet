@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    Log.i("MTWAirApplication", "Main Activity Created");
     super.onCreate(savedInstanceState);
     getApplication().setTheme(R.style.AppTheme_NoActionBar);
     setTheme(R.style.AppTheme_NoActionBar);
@@ -79,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
     makeNavigationBarTransparent();
     updateStatusBarStyle();
 
+    airLauncher = new AirLauncher(this);
+    AirLauncher.setInstance(airLauncher);
+    airLauncher.handle(getIntent());
+
     // Splash-Screen doesn't work as expected on Android 12
     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.S) {
       splashScreenAnimatedEnded();
@@ -115,11 +121,9 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void splashScreenAnimatedEnded() {
+    Log.i("MTWAirApplication", "Splash animation ended");
     updateStatusBarStyle();
-    AirLauncher airLauncher = new AirLauncher(this);
-    AirLauncher.setInstance(airLauncher);
-    airLauncher.handle(getIntent());
-    airLauncher.soarIntoAir(false);
+    AirLauncher.getInstance().soarIntoAir(false);
   }
 
   private void makeStatusBarTransparent() {

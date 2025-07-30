@@ -14,12 +14,14 @@ class IntroVM(delegate: Delegate) {
     val delegate: WeakReference<Delegate> = WeakReference(delegate)
 
     fun createWallet() {
-        WalletCore.call(ApiMethod.Auth.GenerateMnemonic(), callback = { words, err ->
-            if (words != null) {
-                delegate.get()?.mnemonicGenerated(words)
-            } else {
-                delegate.get()?.showError(err?.parsed)
-            }
-        })
+        WalletCore.doOnBridgeReady {
+            WalletCore.call(ApiMethod.Auth.GenerateMnemonic(), callback = { words, err ->
+                if (words != null) {
+                    delegate.get()?.mnemonicGenerated(words)
+                } else {
+                    delegate.get()?.showError(err?.parsed)
+                }
+            })
+        }
     }
 }

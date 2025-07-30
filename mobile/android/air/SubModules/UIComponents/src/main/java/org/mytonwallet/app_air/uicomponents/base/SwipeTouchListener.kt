@@ -155,6 +155,7 @@ class SwipeTouchListener
                         ConstraintLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     )
                     it.visibility = VISIBLE
+                    it.alpha = 1f
                     (it.parent as? View)?.setBackgroundColor(if (ThemeManager.uiMode.hasRoundedCorners) WColor.SecondaryBackground.color else WColor.Background.color)
                 }
             }
@@ -231,6 +232,7 @@ class SwipeTouchListener
             viewController.get()?.viewWillDisappear()
             behindView.get()?.let {
                 it.visibility = VISIBLE
+                it.alpha = 1f
                 // Adds behind view when user used back button on device
                 if (it.parent == null)
                     viewController.get()?.navigationController?.addView(

@@ -7,7 +7,7 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.os.MessageQueue.IdleHandler
-import android.util.Log
+import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +22,7 @@ import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.RecyclerView
 import org.mytonwallet.app_air.uicomponents.commonViews.ReversedCornerView
 import org.mytonwallet.app_air.uicomponents.commonViews.ReversedCornerViewUpsideDown
+import org.mytonwallet.app_air.uicomponents.commonViews.ScreenRecordProtectionView
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.widgets.WLabel
 import org.mytonwallet.app_air.uicomponents.widgets.WProtectedView
@@ -29,12 +30,14 @@ import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.WView
 import org.mytonwallet.app_air.uicomponents.widgets.dialog.WDialog
 import org.mytonwallet.app_air.uicomponents.widgets.dialog.WDialogButton
+import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.uicomponents.widgets.hideKeyboard
 import org.mytonwallet.app_air.uicomponents.widgets.material.bottomSheetBehavior.BottomSheetBehavior
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
@@ -70,6 +73,8 @@ open class WViewController(val context: Context) : WThemedView, WProtectedView {
     open val bottomBlurRootView: ViewGroup? by lazy {
         topBarConfiguration.blurRootView
     }
+
+    open val protectFromScreenRecord = false
     //////////////////////////////////////////////////
 
     // ContainerView /////////////////////////////////
@@ -229,8 +234,7 @@ open class WViewController(val context: Context) : WThemedView, WProtectedView {
             return@lazy null
         WFramePerformanceMonitor(
             activity = window!!,
-            isEnabled = shouldMonitorFrames,
-            logTag = "FramePerformance - $this"
+            isEnabled = shouldMonitorFrames
         ).apply {
             setContextProvider { getPerformanceContext() }
             setCallback(object : WFramePerformanceMonitor.PerformanceCallback {
@@ -252,8 +256,8 @@ open class WViewController(val context: Context) : WThemedView, WProtectedView {
 
                 override fun onPerformanceSummary(frameDropRate: Float, sessionInfo: String) {
                     if (frameDropRate > 2.0f) {
-                        Log.w(
-                            "FramePerformance - $this",
+                        Logger.w(
+                            Logger.LogTag.FPS_PERFORMANCE,
                             "Poor session performance: ${frameDropRate}% drops"
                         )
                     }
@@ -272,8 +276,8 @@ open class WViewController(val context: Context) : WThemedView, WProtectedView {
         isSevere: Boolean
     ) {
         if (isSevere) {
-            Log.w(
-                "FramePerformance - $this",
+            Logger.w(
+                Logger.LogTag.FPS_PERFORMANCE,
                 "Serious performance issue detected!"
             )
         }
@@ -313,7 +317,10 @@ open class WViewController(val context: Context) : WThemedView, WProtectedView {
     //////////////////////////////////////////////////
 
     // Lifecycle callbacks ///////////////////////////
-    open fun setupViews() {}
+    open fun setupViews() {
+        if (protectFromScreenRecord && window?.isScreenRecordInProgress == true)
+            presentScreenRecordProtectionView()
+    }
 
     open fun onViewAttachedToWindow() {
         navigationController?.tabBarController?.let { tabBarController ->
@@ -365,6 +372,39 @@ open class WViewController(val context: Context) : WThemedView, WProtectedView {
     open fun onDestroy() {
         frameMonitor?.stopMonitoring()
         view.removeAllViews()
+    }
+    //////////////////////////////////////////////////
+
+    // Protect screen record
+    var screenRecordProtectionView: ScreenRecordProtectionView? = null
+    fun onScreenRecordStateChanged(isRecording: Boolean) {
+        if (!protectFromScreenRecord)
+            return
+        if (isRecording) {
+            presentScreenRecordProtectionView()
+        } else {
+            dismissScreenRecordProtectionView(proceed = false)
+        }
+    }
+
+    private fun presentScreenRecordProtectionView() {
+        if (screenRecordProtectionView == null) {
+            screenRecordProtectionView = ScreenRecordProtectionView(this, {
+                dismissScreenRecordProtectionView(proceed = true)
+            })
+            screenRecordProtectionView?.clearAnimation()
+            screenRecordProtectionView?.alpha = 1f
+            view.addView(screenRecordProtectionView, LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        }
+    }
+
+    private fun dismissScreenRecordProtectionView(proceed: Boolean) {
+        if (screenRecordProtectionView?.parent != null)
+            screenRecordProtectionView?.fadeOut {
+                // Double check if it's not recording yet
+                if (proceed || window?.isScreenRecordInProgress != true)
+                    view.removeView(screenRecordProtectionView)
+            }
     }
     //////////////////////////////////////////////////
 
@@ -612,10 +652,18 @@ fun WViewController.showAlert(
     secondaryButtonPressed: (() -> Unit)? = null,
     preferPrimary: Boolean = true,
     primaryIsDanger: Boolean = false,
+    allowLinkInText: Boolean = false,
 ) {
     WDialog(
         customView = FrameLayout(context).apply {
             val messageLabel = object : WLabel(context), WThemedView {
+                init {
+                    if (allowLinkInText) {
+                        movementMethod = LinkMovementMethod.getInstance()
+                    }
+                    highlightColor = Color.TRANSPARENT
+                }
+
                 override fun updateTheme() {
                     super.updateTheme()
                     setTextColor(WColor.PrimaryText.color)

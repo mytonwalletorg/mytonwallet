@@ -81,7 +81,7 @@ val lightAccentColors = arrayListOf(
 val darkAccentColors = arrayListOf(
     WColor.Accent(
         id = 1,
-        accent = "#309FE3".toColorInt(),
+        accent = "#3C90D5".toColorInt(),
         textOnAccent = Color.WHITE,
     ),
     WColor.Accent(
@@ -163,7 +163,7 @@ object NftAccentColors {
     )
 
     val dark = listOf(
-        "#3C90D5", "#32D74B", "#FF9F0B", "#FF325A",
+        "#3AB5CC", "#32D74B", "#FF9F0B", "#FF325A",
         "#BF5AF2", "#7977FF", "#73AAED", "#FFB07A",
         "#B76C78", "#9689D1", "#E572CC", "#6BA07A",
         "#338FCC", "#2CD36F", "#C3C5C6", "#DDBA00",

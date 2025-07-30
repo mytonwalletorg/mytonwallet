@@ -28,18 +28,20 @@ import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.toString
+import org.mytonwallet.app_air.walletcore.MYCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.STAKE_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.TON_USDT_SLUG
 import org.mytonwallet.app_air.walletcore.TRON_USDT_SLUG
+import org.mytonwallet.app_air.walletcore.USDE_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.models.MToken
 import org.mytonwallet.app_air.walletcore.models.MTokenBalance
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
-import org.mytonwallet.app_air.walletcore.stores.BalanceStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import java.math.BigInteger
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WThemedView {
@@ -62,8 +64,8 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
         val lbl = WCounterLabel(context)
         lbl.id = generateViewId()
         lbl.textAlignment = TEXT_ALIGNMENT_CENTER
-        lbl.setPadding(4.dp, 4.dp, 4.dp, 0)
-        lbl.setStyle(12f, WFont.Medium)
+        lbl.setPadding(4.5f.dp.roundToInt(), 4.dp, 4.5f.dp.roundToInt(), 0)
+        lbl.setStyle(11f, WFont.SemiBold)
         lbl
     }
 
@@ -96,7 +98,7 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
         v
     }
 
-    var onTap: ((slug: String) -> Unit)? = null
+    var onTap: ((tokenBalance: MTokenBalance) -> Unit)? = null
 
     init {
         layoutParams.apply {
@@ -135,8 +137,8 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
             toEnd(separator, 16f)
         }
         setOnClickListener {
-            tokenBalance?.token.let {
-                onTap?.invoke(it ?: "")
+            tokenBalance?.let {
+                onTap?.invoke(it)
             }
         }
 
@@ -146,12 +148,12 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
     override fun updateTheme() {
         setBackgroundColor(
             if (mode == TokensVC.Mode.HOME) Color.TRANSPARENT else WColor.Background.color,
-            if (isFirst) ViewConstants.TOP_RADIUS.dp else 0f,
+            0f,
             if (isLast) ViewConstants.BIG_RADIUS.dp else 0f
         )
         addRippleEffect(
             WColor.SecondaryBackground.color,
-            if (isFirst) ViewConstants.TOP_RADIUS.dp else 0f,
+            0f,
             if (isLast) ViewConstants.BIG_RADIUS.dp else 0f
         )
         topLeftLabel.setTextColor(WColor.PrimaryText.color)
@@ -164,12 +166,10 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
     }
 
     private var tokenBalance: MTokenBalance? = null
-    private var isFirst = false
     private var isLast = false
 
-    fun configure(tokenBalance: MTokenBalance, isFirst: Boolean, isLast: Boolean) {
+    fun configure(tokenBalance: MTokenBalance, isLast: Boolean) {
         this.tokenBalance = tokenBalance
-        this.isFirst = isFirst
         this.isLast = isLast
         updateTheme()
 
@@ -184,10 +184,18 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
         iconView.config(
             tokenBalance,
             alwaysShowChain = WalletCore.isMultichain,
-            showPercentBadge = (token?.isStakingToken == true && tokenBalance.amountValue > BigInteger.ZERO)
+            showPercentBadge = (tokenBalance.isVirtualStakingRow && tokenBalance.amountValue > BigInteger.ZERO)
         )
-        if (topLeftLabel.text != token?.name)
-            topLeftLabel.text = token?.name
+        val tokenName = if (tokenBalance.isVirtualStakingRow) {
+            when (tokenBalance.token) {
+                TONCOIN_SLUG -> "Toncoin Staking"
+                MYCOIN_SLUG -> "MyTonWallet Staking"
+                USDE_SLUG -> "Ethena Staking"
+                else -> ""
+            }
+        } else token?.name
+        if (topLeftLabel.text != tokenName)
+            topLeftLabel.text = tokenName
         topRightLabel.contentView.setAmount(
             tokenBalance.amountValue,
             token?.decimals ?: 9,
@@ -221,7 +229,7 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
                         WColor.SecondaryText.color
                     )
                 )
-                topLeftTagLabel.setBackgroundColor(WColor.BadgeBackground.color, 4f.dp)
+                topLeftTagLabel.setBackgroundColor(WColor.BadgeBackground.color, 8f.dp)
                 shouldShowTagLabel = true
             }
 
@@ -233,18 +241,17 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
                         WColor.SecondaryText.color
                     )
                 )
-                topLeftTagLabel.setBackgroundColor(WColor.BadgeBackground.color, 4f.dp)
+                topLeftTagLabel.setBackgroundColor(WColor.BadgeBackground.color, 8f.dp)
                 shouldShowTagLabel = true
             }
 
-            token?.isStakingToken == true || token?.isEarnAvailable == true -> {
-                val apy = AccountStore.stakingData?.stakingState(token.slug)?.annualYield
-                val hasStakingAmount =
-                    (BalanceStore.getBalances(AccountStore.activeAccountId)?.get(
-                        if (token.isStakingToken) token.slug else token.stakingSlug
-                    ) ?: BigInteger.ZERO) > BigInteger.ZERO
+            tokenBalance?.isVirtualStakingRow == true || token?.isEarnAvailable == true -> {
+                val stakingState = AccountStore.stakingData?.stakingState(token?.slug ?: "")
+                val apy = stakingState?.annualYield
+                val hasStakingAmount = (stakingState?.balance ?: BigInteger.ZERO) > BigInteger.ZERO
                 if (apy != null) {
-                    shouldShowTagLabel = token.isStakingToken || !hasStakingAmount
+                    shouldShowTagLabel =
+                        tokenBalance?.isVirtualStakingRow == true || !hasStakingAmount
                     if (shouldShowTagLabel) {
                         if (hasStakingAmount) {
                             topLeftTagLabel.setGradientColor(
@@ -261,11 +268,11 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
                                 )
                             )
                         }
-                        topLeftTagLabel.setAmount("APY ${apy}%")
+                        topLeftTagLabel.setAmount("${stakingState.yieldType} ${apy}%")
                         topLeftTagLabel.background =
                             HighlightGradientBackgroundDrawable(
                                 hasStakingAmount,
-                                4f.dp
+                                8f.dp
                             )
                     }
                 }

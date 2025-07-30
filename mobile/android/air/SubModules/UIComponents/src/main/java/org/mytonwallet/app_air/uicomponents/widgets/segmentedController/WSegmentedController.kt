@@ -65,6 +65,7 @@ class WSegmentedController(
         WRecyclerViewAdapter(WeakReference(this), arrayOf(PAGE_CELL))
 
     private var isAnimatingChangeTab = false
+    private var lastFullyVisible: Int = 0
     private val viewPager: ViewPager2 by lazy {
         val vp = ViewPager2(context)
         vp.id = generateViewId()
@@ -78,6 +79,13 @@ class WSegmentedController(
             ) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
                 currentOffset = position + positionOffset
+                if (currentOffset == position.toFloat() && lastFullyVisible != position) {
+                    (currentItem as? WSegmentedControllerItemVC)?.onFullyVisible()
+                    lastFullyVisible = position
+                } else {
+                    if (lastFullyVisible != null)
+                        (items[lastFullyVisible!!].viewController as? WSegmentedControllerItemVC)?.onPartiallyVisible()
+                }
                 onOffsetChange?.invoke(position, currentOffset)
                 clearSegmentedControl.updateThumbPosition(
                     position,
@@ -345,7 +353,10 @@ class WSegmentedController(
         cellHolder: WCell.Holder,
         indexPath: IndexPath
     ) {
-        (cellHolder.cell as WSegmentedControllerPageCell).configure(items[indexPath.row].viewController)
+        (cellHolder.cell as WSegmentedControllerPageCell).configure(
+            items[indexPath.row].viewController,
+            indexPath.row == lastFullyVisible
+        )
     }
 
     override fun onIndexChanged(to: Int, animated: Boolean) {

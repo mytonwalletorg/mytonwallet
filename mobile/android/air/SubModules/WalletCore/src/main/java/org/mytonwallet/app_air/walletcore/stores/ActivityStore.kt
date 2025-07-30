@@ -3,17 +3,19 @@ package org.mytonwallet.app_air.walletcore.stores
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.globalStorage.IGlobalStorageProvider
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.AudioHelpers
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.utils.add
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.fetchAllActivitySlice
 import org.mytonwallet.app_air.walletcore.api.fetchTokenActivitySlice
 import org.mytonwallet.app_air.walletcore.helpers.ActivityHelpers
+import org.mytonwallet.app_air.walletcore.helpers.ActivityHelpers.Companion.isSuitableToGetTimestamp
 import org.mytonwallet.app_air.walletcore.helpers.PoisoningCacheHelper
 import org.mytonwallet.app_air.walletcore.moshi.MApiTransaction
 import java.util.concurrent.ConcurrentHashMap
@@ -67,7 +69,7 @@ object ActivityStore {
         context: Context,
         accountId: String,
         tokenSlug: String?,
-        beforeId: String?,
+        before: MApiTransaction?,
         callback: (FetchResult) -> Unit,
     ) {
         backgroundQueue.execute {
@@ -75,12 +77,12 @@ object ActivityStore {
             val stopLazyLoad = fetchTransactionsFromCache(
                 accountId = accountId,
                 tokenSlug = tokenSlug,
-                beforeId = beforeId,
+                beforeId = before?.id,
                 callback = callback
             )
             if (stopLazyLoad)
                 return@execute
-            if (!AccountStore.isAccountInitialized && beforeId == null)
+            if (!AccountStore.isAccountInitialized && before == null)
                 return@execute // Wait for the initialization, it will contain the 1st page data, no need to call APIs now.
 
             // Call the API and update cache
@@ -88,7 +90,7 @@ object ActivityStore {
                 context = context,
                 accountId = accountId,
                 tokenSlug = tokenSlug,
-                beforeId = beforeId,
+                before = before,
                 callback = callback,
             )
         }
@@ -156,11 +158,9 @@ object ActivityStore {
             WGlobalStorage.setActivityIds(accountId, slug, limitedIds)
 
             loadedAll?.let {
-                Log.d(
-                    "ActivityStore",
-                    "Storing transactions for $accountId - slug: $slug - ids: ${ids.size} - ${
-                        existingDict.keys().asSequence().toList().size
-                    } - set loadedAll: ${loadedAll == true && limitedIds.size == ids.size}"
+                Logger.d(
+                    Logger.LogTag.ACTIVITY_STORE,
+                    "Storing transactions for $accountId - slug: $slug - set loadedAll: ${loadedAll == true && limitedIds.size == ids.size}"
                 )
                 WGlobalStorage.setIsHistoryEndReached(
                     accountId,
@@ -198,7 +198,8 @@ object ActivityStore {
                     insertBeforeExistingItems = activities.size < 10,
                     overrideLoadedAll = activities.isEmpty()
                 )
-                newestActivitiesBySlug[slug] = activities.firstOrNull()?.toDictionary()
+                newestActivitiesBySlug[slug] =
+                    activities.firstOrNull(::isSuitableToGetTimestamp)?.toDictionary()
             }
             setListTransactions(
                 accountId = accountId,
@@ -229,6 +230,30 @@ object ActivityStore {
             isUpdateEvent = true,
             loadedAll = null
         )
+        storeActivities(accountId, newActivities)
+    }
+
+    fun receivedLocalTransaction(
+        accountId: String,
+        newLocalTransaction: MApiTransaction
+    ) {
+        addAccountLocalTransactions(accountId, newLocalTransaction)
+        // Store swap transfers
+        if (!newLocalTransaction.isLocal()) {
+            storeActivities(accountId, listOf(newLocalTransaction))
+        }
+        backgroundQueue.execute {
+            val walletEvent = WalletEvent.ReceivedNewActivities(
+                accountId = accountId,
+                newActivities = listOf(newLocalTransaction),
+                isUpdateEvent = true,
+                loadedAll = null
+            )
+            WalletCore.notifyEvent(walletEvent)
+        }
+    }
+
+    private fun storeActivities(accountId: String, newActivities: List<MApiTransaction>) {
         beginTransaction()
         backgroundQueue.execute {
             val newestActivitiesBySlug = mutableMapOf<String, JSONObject?>()
@@ -254,22 +279,6 @@ object ActivityStore {
             )
         }
         endTransaction()
-    }
-
-    fun receivedLocalTransaction(
-        accountId: String,
-        newLocalTransaction: MApiTransaction
-    ) {
-        addAccountLocalTransactions(accountId, newLocalTransaction)
-        backgroundQueue.execute {
-            val event = WalletCore.Event.ReceivedNewActivities(
-                accountId = accountId,
-                newActivities = listOf(newLocalTransaction),
-                isUpdateEvent = true,
-                loadedAll = null
-            )
-            WalletCore.notifyEvent(event)
-        }
     }
 
     // Read a list from cache
@@ -324,7 +333,7 @@ object ActivityStore {
         context: Context,
         accountId: String,
         tokenSlug: String?,
-        beforeId: String?,
+        before: MApiTransaction?,
         callback: (FetchResult) -> Unit,
     ) {
         // Retry logic
@@ -334,26 +343,22 @@ object ActivityStore {
                     context,
                     accountId,
                     tokenSlug,
-                    beforeId,
+                    before,
                     callback,
                 )
             }, 3000)
         }
 
-        val cachedTransactions = getCachedTransactions()[accountId]
-        val before = beforeId?.let { cachedTransactions?.get(it)?.timestamp }
-        if (beforeId != null && before == null) return // Should not happen normally
-
         Handler(Looper.getMainLooper()).post {
             if (tokenSlug == null) {
                 val lastTxIds = if (before == null) emptyMap<String, Any>() else lastTxIds(
                     accountId,
-                    after = before
+                    after = before.timestamp
                 )
                 WalletCore.fetchAllActivitySlice(
                     accountId = accountId,
                     limit = DEFAULT_LIMIT,
-                    toTimestamp = before,
+                    toTimestamp = before?.timestamp,
                     tronTokenSlugs = lastTxIds.keys.filter { it.startsWith("tron-") }
                         .toTypedArray()
                 ) { fetchedTransactions, err ->
@@ -362,6 +367,7 @@ object ActivityStore {
                         return@fetchAllActivitySlice
                     }
 
+                    val cachedTransactions = getCachedTransactions()[accountId]
                     if (before == null && fetchedTransactions.isNotEmpty()) {
                         val lastTxId = fetchedTransactions.last().id
                         if (cachedTransactions?.get(lastTxId) == null) {
@@ -371,8 +377,9 @@ object ActivityStore {
                                 emptyList(),
                                 false
                             )
-                            val event = WalletCore.Event.InvalidateCache(accountId, tokenSlug)
-                            WalletCore.notifyEvent(event)
+                            val walletEvent =
+                                WalletEvent.InvalidateCache(accountId, tokenSlug)
+                            WalletCore.notifyEvent(walletEvent)
                             WGlobalStorage.setIsHistoryEndReached(
                                 accountId,
                                 null,
@@ -403,7 +410,7 @@ object ActivityStore {
                     accountId = accountId,
                     chain = TokenStore.getToken(tokenSlug)?.chain ?: "",
                     slug = tokenSlug,
-                    fromTimestamp = before,
+                    fromTimestamp = before?.timestamp,
                     limit = DEFAULT_LIMIT
                 ) { fetchedTransactions, err, _ ->
                     if (fetchedTransactions == null || err != null) {
@@ -411,6 +418,7 @@ object ActivityStore {
                         return@fetchTokenActivitySlice
                     }
 
+                    val cachedTransactions = getCachedTransactions()[accountId]
                     if (before == null && fetchedTransactions.isNotEmpty()) {
                         val lastTxId = fetchedTransactions.last().id
                         if (cachedTransactions?.get(lastTxId) == null) {
@@ -420,8 +428,9 @@ object ActivityStore {
                                 emptyList(),
                                 false
                             )
-                            val event = WalletCore.Event.InvalidateCache(accountId, tokenSlug)
-                            WalletCore.notifyEvent(event)
+                            val walletEvent =
+                                WalletEvent.InvalidateCache(accountId, tokenSlug)
+                            WalletCore.notifyEvent(walletEvent)
                             WGlobalStorage.setIsHistoryEndReached(
                                 accountId,
                                 null,
@@ -642,13 +651,13 @@ object ActivityStore {
         if (isUpdateEvent) {
             // Make sure all inner processes are already done
             backgroundQueue.execute {
-                val event = WalletCore.Event.ReceivedNewActivities(
+                val walletEvent = WalletEvent.ReceivedNewActivities(
                     accountId,
                     newActivities,
                     isUpdateEvent,
                     loadedAll
                 )
-                WalletCore.notifyEvent(event)
+                WalletCore.notifyEvent(walletEvent)
             }
         }
 

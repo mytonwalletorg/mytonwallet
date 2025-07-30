@@ -53,6 +53,7 @@ import org.mytonwallet.app_air.uistake.confirm.ConfirmStakingHeaderView
 import org.mytonwallet.app_air.uistake.earn.cells.EarnItemCell
 import org.mytonwallet.app_air.uistake.earn.cells.EarnSpaceCell
 import org.mytonwallet.app_air.uistake.earn.views.EarnHeaderView
+import org.mytonwallet.app_air.uistake.helpers.StakingMessageHelpers
 import org.mytonwallet.app_air.uistake.staking.StakingVC
 import org.mytonwallet.app_air.uistake.staking.StakingViewModel
 import org.mytonwallet.app_air.uistake.util.getTonStakingFees
@@ -79,6 +80,7 @@ class EarnVC(
 ) : WViewControllerWithModelStore(context), WRecyclerViewDataSource {
 
     override val shouldDisplayTopBar = false
+    override val shouldDisplayBottomBar = true
 
     companion object {
         val HEADER_CELL = WCell.Type(1)
@@ -186,6 +188,12 @@ class EarnVC(
         rv.setLayoutManager(LinearLayoutManager(context))
         rv.setItemAnimator(null)
         rv.alpha = 0f
+        rv.setPadding(
+            ViewConstants.HORIZONTAL_PADDINGS.dp,
+            0,
+            ViewConstants.HORIZONTAL_PADDINGS.dp,
+            0
+        )
         rv
     }
 
@@ -735,17 +743,17 @@ class EarnVC(
     }
 
     private fun onNoItemButtonClicked() {
-        showAlert(
+        window?.topViewController?.showAlert(
             title = LocaleController.getString(
-                org.mytonwallet.app_air.walletcontext.R.string.Stake_WhyStakingIsSafe_Title
+                org.mytonwallet.app_air.walletcontext.R.string.Stake_HowItWorks
             ),
-            text = LocaleController.getString(
-                org.mytonwallet.app_air.walletcontext.R.string.Stake_WhyStakingIsSafe_Desc
-            ),
+            text = StakingMessageHelpers.whyStakingIsSafeDescription(earnViewModel.tokenSlug)
+                ?: return,
             button = LocaleController.getString(
                 org.mytonwallet.app_air.walletcontext.R.string.Alert_OK
             ),
-            preferPrimary = false
+            preferPrimary = false,
+            allowLinkInText = true
         )
     }
 

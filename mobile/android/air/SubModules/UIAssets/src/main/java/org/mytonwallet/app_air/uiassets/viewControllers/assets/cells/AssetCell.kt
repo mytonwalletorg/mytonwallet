@@ -131,5 +131,13 @@ class AssetCell(
         }
         updateTheme()
     }
+    
+    fun pauseAnimation() {
+        animationView.pauseAnimation()
+    }
+
+    fun resumeAnimation() {
+        animationView.resumeAnimation()
+    }
 
 }

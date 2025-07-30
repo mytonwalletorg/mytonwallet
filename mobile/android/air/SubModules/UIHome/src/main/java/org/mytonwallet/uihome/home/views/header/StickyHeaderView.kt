@@ -3,11 +3,11 @@ package org.mytonwallet.uihome.home.views.header
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.commonViews.HeaderActionsView
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.widgets.WImageButton
@@ -76,9 +76,11 @@ class StickyHeaderView(
     }
 
     private fun setupViews() {
-        addView(updateStatusView, LayoutParams(WRAP_CONTENT, MATCH_PARENT).apply {
-            gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
-        })
+        addView(
+            updateStatusView,
+            LayoutParams(WRAP_CONTENT, WNavigationBar.DEFAULT_HEIGHT.dp).apply {
+                gravity = Gravity.CENTER or Gravity.TOP
+            })
         addView(scanButton, LayoutParams(40.dp, 40.dp).apply {
             gravity = Gravity.START or Gravity.CENTER_VERTICAL
             leftMargin = 8.dp

@@ -1,4 +1,5 @@
 plugins {
+    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
     id("com.android.library")
     alias(libs.plugins.jetbrains.kotlin.android)
 }
@@ -35,6 +36,7 @@ android {
 val airSubModulePath = project.property("airSubModulePath")
 
 dependencies {
+    ksp(libs.moshi.codegen)
     implementation(libs.moshi.core)
     implementation(libs.moshi.kotlin)
     implementation(libs.moshi.adapters)

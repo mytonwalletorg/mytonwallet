@@ -8,7 +8,7 @@ android {
     applicationId "org.mytonwallet.app.air"
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
-    versionCode 7
+    versionCode 28
     versionName "4.0-alpha"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     aaptOptions {
@@ -19,7 +19,7 @@ android {
   }
   buildTypes {
     release {
-      minifyEnabled false
+      minifyEnabled true
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
       signingConfig signingConfigs.debug
     }

@@ -4,7 +4,6 @@ import WNavigationController
 import org.mytonwallet.app_air.uicomponents.base.WWindow
 import org.mytonwallet.app_air.uitonconnect.screen.TonConnectRequestConnectVC
 import org.mytonwallet.app_air.uitonconnect.screen.TonConnectRequestSendVC
-import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.helpers.TonConnectHelper
 import org.mytonwallet.app_air.walletcore.models.MAccount
@@ -31,26 +30,20 @@ class TonConnectController(private val window: WWindow) : WalletCore.UpdatesObse
         when (update) {
 
             is ApiUpdate.ApiUpdateDappSendTransactions -> {
-                // TODO:: Remove lock screen condition when we made sure nothing presents over lock screen
-                if (AccountStore.activeAccount?.isHardware == true || WalletContextManager.delegate?.isAppUnlocked() == true) {
-                    val navVC = WNavigationController(window)
-                    navVC.setRoot(TonConnectRequestSendVC(window, update))
-                    window.present(navVC)
-                }
+                val navVC = WNavigationController(window)
+                navVC.setRoot(TonConnectRequestSendVC(window, update))
+                window.presentOnWalletReady(navVC)
             }
 
             is ApiUpdate.ApiUpdateDappConnect -> {
-                // TODO:: Remove lock screen condition when we made sure nothing presents over lock screen
-                if (AccountStore.activeAccount?.isHardware == true || WalletContextManager.delegate?.isAppUnlocked() == true) {
-                    val navVC = WNavigationController(
-                        window, WNavigationController.PresentationConfig(
-                            overFullScreen = false,
-                            isBottomSheet = true
-                        )
+                val navVC = WNavigationController(
+                    window, WNavigationController.PresentationConfig(
+                        overFullScreen = false,
+                        isBottomSheet = true
                     )
-                    navVC.setRoot(TonConnectRequestConnectVC(window, update))
-                    window.present(navVC)
-                }
+                )
+                navVC.setRoot(TonConnectRequestConnectVC(window, update))
+                window.presentOnWalletReady(navVC)
             }
 
             else -> {}

@@ -7,6 +7,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import org.mytonwallet.app_air.uicomponents.commonViews.IconView
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.extensions.updateDotsTypeface
+import org.mytonwallet.app_air.uicomponents.helpers.MultiTapDetector
 import org.mytonwallet.app_air.uicomponents.helpers.WFont
 import org.mytonwallet.app_air.uicomponents.widgets.WLabel
 import org.mytonwallet.app_air.uicomponents.widgets.WProtectedView
@@ -52,16 +53,20 @@ class SettingsHeaderView(
     private val px66 = 66.dp
     private val px74 = 74.dp
 
-    private var taps = 0
+
+    private val multiTapDetector = MultiTapDetector(
+        requiredTaps = 5,
+        timeoutMs = 1000L
+    ) {
+        WalletCore.switchingToLegacy()
+        WalletContextManager.delegate?.switchToLegacy()
+    }
+
     private val walletIcon: IconView by lazy {
         val iconView = IconView(context)
         iconView.setSize(80.dp)
         iconView.setOnClickListener {
-            taps++
-            if (taps == 5) {
-                WalletCore.switchingToLegacy()
-                WalletContextManager.delegate?.switchToLegacy()
-            }
+            multiTapDetector.registerTap()
         }
         iconView
     }

@@ -29,7 +29,7 @@ data class ActivityExtra(
     // TODO Move other extra fields here (externalMsgHash, ...)
 )
 
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 enum class ApiSwapStatus {
     @Json(name = "pending")
     PENDING,
@@ -239,12 +239,21 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
             }
     }
 
-    enum class UIStatus(val value: String) {
-        HOLD("hold"),
-        PENDING("pending"),
-        EXPIRED("expired"),
-        FAILED("failed"),
-        COMPLETED("completed");
+    enum class UIStatus {
+        @Json(name = "hold")
+        HOLD,
+
+        @Json(name = "pending")
+        PENDING,
+
+        @Json(name = "expired")
+        EXPIRED,
+
+        @Json(name = "failed")
+        FAILED,
+
+        @Json(name = "completed")
+        COMPLETED;
     }
 
     companion object {
@@ -491,6 +500,7 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
         }
 }
 
+@JsonClass(generateAdapter = false)
 enum class ApiTransactionType {
     @Json(name = "stake")
     STAKE,

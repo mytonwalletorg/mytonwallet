@@ -106,6 +106,10 @@
         <item quantity="one">%d second</item>
         <item quantity="other">%d seconds</item>
     </plurals>
+    <string name="ScreenRecord_Title">Screen Recording Detected</string>
+    <string name="ScreenRecord_Detected">You\'re currently recording your screen.\nThis screen may contain sensitive or private information.\nPlease make sure you\'re aware of what will be shared.</string>
+    <string name="ScreenRecord_Proceed">I Understand, Proceed</string>
+    <string name="ScreenRecord_GoBack">Back</string>
     <string name="Tabs_Home">Home</string>
     <string name="Tabs_Assets">Assets</string>
     <string name="Tabs_Browser">Explore</string>
@@ -185,6 +189,7 @@
     <string name="Home_BuyWithCard">Buy With Card</string>
     <string name="Home_BuyWithCrypto">Buy With Crypto</string>
     <string name="Home_ReceiveQR">Receive With QR or Invoice</string>
+    <string name="Home_UnsupportedQR">Unsupported QR Code</string>
     <string name="Home_Cancel">Cancel</string>
     <string name="Home_EnterWalletName">Enter wallet name:</string>
     <string name="Home_NoCollectibles">No Collectibles</string>
@@ -276,6 +281,9 @@
     <string name="SendAmount_InsufficientBalance">Insufficient %1$@ Balance</string>
     <string name="SendAmount_Warning">Warning!</string>
     <string name="SendAmount_SendingImportantToken">You are about to transfer an important service token required to withdraw your deposit or complete service operations. Please ensure this is the action you intend to take.</string>
+    <string name="SendAmount_ScamWallet">**Warning!** You have recently imported a wallet that does not have enough funds to cover the fees for token withdrawal.\n\nThis resembles a common scam where you\'re encouraged to deposit your own funds to cover fees.\n\n**Do not deposit your own funds, as you may lose them!** Learn more about this and other scams in our Help Center.</string>
+    <string name="SendAmount_ScamWallet_GotIt">Got it</string>
+    <string name="SendAmount_ScamWalletHelpCenter">Help Center</string>
     <string name="SendAmount_Balance">%1$@ Balance</string>
     <string name="SendConfirm_Title">Send</string>
     <string name="SendConfirm_Message">Message</string>
@@ -313,6 +321,7 @@
     <string name="Asset_ResetPalette">Reset Palette</string>
     <string name="Asset_Hide">Hide</string>
     <string name="Asset_Show">Show</string>
+    <string name="Asset_Renew">Renew</string>
     <string name="Asset_Burn">Burn</string>
     <string name="Asset_ShowAll">Show All</string>
     <string name="Asset_Collapse">Collapse</string>
@@ -323,8 +332,14 @@
     <string name="HiddenNFTs_Hide">Hide</string>
     <string name="HiddenNFTs_Show">Show</string>
     <string name="HiddenNFTs_Standalone">Standalone NFT</string>
-    <string name="Tokens_Title">Coins</string>
-    <string name="Tokens_ShowAll">Show All Coins</string>
+    <string name="Renew_Title">Renew Domain</string>
+    <string name="Renew_Until">Until</string>
+    <string name="Renew_Fee">Fee</string>
+    <string name="Renew_Renew">Renew</string>
+    <string name="Renew_Confirm">Confirm Renewing</string>
+    <string name="Renew_InsufficientBalance">Insufficient Balance</string>
+    <string name="Tokens_Title">Assets</string>
+    <string name="Tokens_ShowAll">Show All Assets</string>
     <string name="Token_Max">Max:</string>
     <string name="Token_OpenInExplorer">Open in Explorer</string>
     <string name="Token_Price">Price</string>
@@ -452,7 +467,9 @@
     <string name="Stake_MovingToStaking">Moving to staking balance</string>
     <string name="Stake_RequestForUnstaking">Request for unstaking</string>
     <string name="Stake_WhyStakingIsSafe_Title">Why Staking Is Safe</string>
-    <string name="Stake_WhyStakingIsSafe_Desc">1. Staking is fully decentralized and operated by the official TON Liquid Staking smart contracts.\n\n2. The deposited stake will be used for the TON network validation as part of its proof-of-stake essence.\n\n3. You can withdraw your stake at any time and it will be deposited back to your account within two days.\n</string>
+    <string name="Stake_WhyStakingIsSafe_Desc">1. Staking is **fully decentralized** and operated by the **official TON Liquid Staking** smart contracts.\n\n2. The deposited stake will be used for the TON network validation as part of its **proof-of-stake** essence.\n\n3. You can withdraw your stake at **any time** and it will be deposited back to your account within **two days**.</string>
+    <string name="Stake_WhyStakingIsSafeJetton_Desc">1. Token staking is **fully decentralized** and operated by the **open-source** smart contracts developed by JVault and passed **security audits**.\n\n2. You can withdraw your stake at **any time** and it will be deposited back to your account **instantly**.</string>
+    <string name="Stake_WhyStakingIsSafeEthena_Desc">1. Staking is fully decentralized and operated by **Ethena’s official** audited liquid staking **smart contracts**.\n\n2. The deposited USDe stake is used in Ethena’s **trading and investment strategies** to yield rewards automatically and transparently.\n\n3. You can **withdraw** your stake with rewards at any time, and it will be returned to your account **in 7 days**, according to Ethena’s standard withdrawal period.</string>
     <string name="Stake_NotSupportedOnTestnet">Staking is not supported in Testnet.</string>
     <string name="Stake_AccumulatedRewards">Accumulated Rewards</string>
     <string name="Stake_Claim">Claim</string>

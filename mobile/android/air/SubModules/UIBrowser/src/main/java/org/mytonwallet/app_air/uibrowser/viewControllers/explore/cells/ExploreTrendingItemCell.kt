@@ -4,19 +4,22 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
+import android.view.Gravity
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+import org.mytonwallet.app_air.uicomponents.drawable.WRippleDrawable
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.helpers.WFont
 import org.mytonwallet.app_air.uicomponents.image.Content
 import org.mytonwallet.app_air.uicomponents.image.WCustomImageView
-import org.mytonwallet.app_air.uicomponents.widgets.AlphaGradientLayout
+import org.mytonwallet.app_air.uicomponents.widgets.WBlurryBackgroundView
 import org.mytonwallet.app_air.uicomponents.widgets.WLabel
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.WView
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
+import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
@@ -48,36 +51,80 @@ class ExploreTrendingItemCell(
         )
     }
 
+    private val thumbImageView = WCustomImageView(context).apply {
+        defaultRounding = Content.Rounding.Radius(16f.dp)
+        site.icon?.let {
+            set(Content.ofUrl(it))
+        }
+    }
+
     private val titleLabel = WLabel(context).apply {
         setStyle(15f, WFont.SemiBold)
         text = site.name
-        maxLines = 1
+        setSingleLine()
+        ellipsize = TextUtils.TruncateAt.MARQUEE
+        isHorizontalFadingEdgeEnabled = true
+        isSelected = true
     }
 
     private val subtitleLabel = WLabel(context).apply {
         setStyle(12f, WFont.Medium)
         text = site.description
-        maxLines = 2
+        setSingleLine()
+        ellipsize = TextUtils.TruncateAt.MARQUEE
+        isHorizontalFadingEdgeEnabled = true
+        isSelected = true
+    }
+
+    private val bottomBlurView = WBlurryBackgroundView(
+        context,
+        fadeSide = null,
+        overrideBlurRadius = 30f
+    ).apply {
+        setupWith(this@ExploreTrendingItemCell)
+        setOverlayColor(WColor.Black, 130)
+    }
+
+    private val openButtonRipple = WRippleDrawable.create(16f.dp)
+    private val openButton = WLabel(context).apply {
+        setStyle(16f, WFont.SemiBold)
+        text =
+            LocaleController.getString(org.mytonwallet.app_air.walletcontext.R.string.Explore_Open)
+        gravity = Gravity.CENTER
+        background = openButtonRipple
+        setOnClickListener {
+            onSiteTap(site)
+        }
     }
 
     private val bottomView = WView(context).apply {
-        setBackgroundColor(Color.BLACK, 0f, 16f.dp, true)
-
+        setBackgroundColor(Color.TRANSPARENT, 0f, 16f.dp, true)
+        addView(bottomBlurView, ViewGroup.LayoutParams(0, 0))
+        if (site.extendedIcon.isNotBlank()) {
+            addView(thumbImageView, ViewGroup.LayoutParams(48.dp, 48.dp))
+            addView(openButton, ViewGroup.LayoutParams(65.dp, 32.dp))
+        }
         addView(titleLabel, ViewGroup.LayoutParams(0, WRAP_CONTENT))
         addView(subtitleLabel, ViewGroup.LayoutParams(0, WRAP_CONTENT))
 
         setConstraints {
-            toTop(titleLabel, 16f)
-            toCenterX(titleLabel, 12f)
-            bottomToTop(titleLabel, subtitleLabel, 5f)
-            toCenterX(subtitleLabel, 12f)
+            allEdges(bottomBlurView)
+            toStart(thumbImageView, 20f)
+            toCenterY(thumbImageView)
+            toTop(titleLabel, 11f)
+            toStart(titleLabel, if (site.extendedIcon.isNotBlank()) 78f else 8f)
+            startToStart(subtitleLabel, titleLabel)
             toBottom(subtitleLabel, 12f)
+            if (site.extendedIcon.isNotBlank()) {
+                toEnd(openButton, 20f)
+                toCenterY(openButton)
+                endToStart(titleLabel, openButton, 4f)
+                endToStart(subtitleLabel, openButton, 4f)
+            } else {
+                toEnd(titleLabel, 8f)
+                toEnd(subtitleLabel, 8f)
+            }
         }
-    }
-
-    private val bottomContainer = AlphaGradientLayout(context, 24.dp).apply {
-        id = generateViewId()
-        addView(bottomView, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
     }
 
     private val badgeLabel: WLabel by lazy {
@@ -90,12 +137,12 @@ class ExploreTrendingItemCell(
 
     private val contentView = WView(context).apply {
         addView(imageView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-        addView(bottomContainer, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_CONSTRAINT))
+        addView(bottomView, ViewGroup.LayoutParams(MATCH_PARENT, 60.dp))
 
         setConstraints {
             allEdges(imageView)
-            toCenterX(bottomContainer)
-            toBottom(bottomContainer)
+            toCenterX(bottomView)
+            toBottom(bottomView)
         }
     }
 
@@ -130,6 +177,11 @@ class ExploreTrendingItemCell(
     override fun updateTheme() {
         titleLabel.setTextColor(Color.WHITE)
         subtitleLabel.setTextColor(Color.WHITE.colorWithAlpha(153))
+        openButton.setTextColor(WColor.White)
+        openButtonRipple.apply {
+            backgroundColor = Color.WHITE.colorWithAlpha(25)
+            rippleColor = Color.WHITE.colorWithAlpha(50)
+        }
         if (site.withBorder) {
             val border = GradientDrawable()
             border.setColor(WColor.Tint.color)

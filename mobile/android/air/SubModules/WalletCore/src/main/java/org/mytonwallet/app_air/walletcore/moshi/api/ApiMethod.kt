@@ -413,6 +413,39 @@ sealed class ApiMethod<T> {
         }
     }
 
+    /* Domains */
+    object Domains {
+        class CheckDnsRenewalDraft(accountId: String, nfts: List<ApiNft>) :
+            ApiMethod<CheckDnsRenewalDraft.Result>() {
+
+            @JsonClass(generateAdapter = true)
+            data class Result(val realFee: BigInteger)
+
+            override val name: String = "checkDnsRenewalDraft"
+            override val type: Type = Result::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(accountId)
+                .jsArray(nfts, ApiNft::class.java)
+                .build()
+        }
+
+        class SubmitDnsRenewal(
+            accountId: String,
+            password: String,
+            nfts: List<ApiNft>,
+            realFee: BigInteger
+        ) : ApiMethod<Any>() {
+            override val name: String = "submitDnsRenewal"
+            override val type: Type = Any::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(accountId)
+                .string(password)
+                .jsArray(nfts, ApiNft::class.java)
+                .bigInt(realFee)
+                .build()
+        }
+    }
+
     /* Nft */
     object Nft {
         class CheckNftTransferDraft(

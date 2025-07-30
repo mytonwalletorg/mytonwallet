@@ -38,7 +38,7 @@ import org.mytonwallet.app_air.uicomponents.widgets.segmentedController.WSegment
 import org.mytonwallet.app_air.uicomponents.widgets.segmentedController.WSegmentedControllerItem
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.uiinappbrowser.InAppBrowserVC
-import org.mytonwallet.app_air.uiswap.screens.main.SwapMainVC
+import org.mytonwallet.app_air.uiswap.screens.main.SwapVC
 import org.mytonwallet.app_air.walletcontext.helpers.AddressHelpers
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.helpers.ShareHelpers
@@ -317,7 +317,7 @@ class ReceiveVC(
                         }
                     }
                     if (sendingToken != null) {
-                        val swapVC = SwapMainVC(
+                        val swapVC = SwapVC(
                             context,
                             defaultSendingToken = MApiSwapAsset.from(sendingToken),
                             defaultReceivingToken = MApiSwapAsset.from(it)

@@ -362,6 +362,7 @@ fun View.showKeyboard() {
 fun View.hideKeyboard() {
     val imm = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.hideSoftInputFromWindow(windowToken, 0)
+    clearFocus()
 }
 
 fun View.shakeView() {

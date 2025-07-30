@@ -48,9 +48,9 @@ class SettingsAccountCell(context: Context) : WCell(context), ISettingsItemCell,
 
     private val badgeLabel: WLabel by lazy {
         WLabel(context).apply {
-            setStyle(12f, WFont.Medium)
+            setStyle(11f, WFont.Medium)
             setTextColor(WColor.SecondaryText.color)
-            setPadding(4.dp, 0, 4.dp, 0)
+            setPadding(4.5f.dp.roundToInt(), 0, 4.5f.dp.roundToInt(), 0)
         }
     }
 
@@ -211,7 +211,7 @@ class SettingsAccountCell(context: Context) : WCell(context), ISettingsItemCell,
             if (isLast) ViewConstants.BIG_RADIUS.dp else 0f.dp
         )
         titleLabel.setTextColor(WColor.PrimaryText.color)
-        badgeLabel.setBackgroundColor(WColor.SecondaryBackground.color, 4f.dp)
+        badgeLabel.setBackgroundColor(WColor.SecondaryBackground.color, 8f.dp)
         badgeLabel.setTextColor(WColor.SecondaryText.color)
         subtitleLabel.setTextColor(WColor.SecondaryText.color)
         valueLabel.contentView.setTextColor(WColor.SecondaryText.color)

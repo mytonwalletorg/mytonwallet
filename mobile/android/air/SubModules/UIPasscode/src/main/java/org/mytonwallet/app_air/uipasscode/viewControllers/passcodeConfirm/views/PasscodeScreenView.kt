@@ -115,7 +115,8 @@ class PasscodeScreenView(
     private val passcodeKeyboardView = PasscodeKeyboardView(
         context,
         light = (passcodeViewState is PasscodeViewState.Default && passcodeViewState.light) || ThemeManager.isDark,
-        ignoreBiometry
+        showMotionBackgroundDrawable = passcodeViewState is PasscodeViewState.Default && passcodeViewState.showMotionBackgroundDrawable,
+        ignoreBiometry = ignoreBiometry
     ).apply {
         setPadding(
             0,
@@ -463,6 +464,7 @@ class PasscodeScreenView(
             null,
             LocaleController.getString(R.string.Unlock_UsingPin),
             onSuccess = {
+                passcodeInputView.passcode = "----" // To fill passcode input view
                 checkPasscode(WSecureStorage.getBiometricPasscode(containerVC.window!!) ?: "")
             },
             onCanceled = {
@@ -499,8 +501,8 @@ class PasscodeScreenView(
         }
     }
 
-    fun showIndicator() {
-        passcodeInputView.showIndicator()
+    fun showIndicator(animateToGreen: Boolean = true) {
+        passcodeInputView.showIndicator(animateToGreen)
     }
 
     fun clearPasscode() {

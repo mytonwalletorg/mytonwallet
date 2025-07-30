@@ -44,6 +44,7 @@ import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
+import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.models.InAppBrowserConfig
 import org.mytonwallet.app_air.walletcore.models.MExploreCategory
 import org.mytonwallet.app_air.walletcore.models.MExploreSite
@@ -196,7 +197,9 @@ class ExploreVC(context: Context) : WViewController(context),
     }
 
     init {
-        exploreVM.delegateIsReady()
+        WalletCore.doOnBridgeReady {
+            exploreVM.delegateIsReady()
+        }
     }
 
     override fun setupViews() {
@@ -204,7 +207,7 @@ class ExploreVC(context: Context) : WViewController(context),
 
         setNavTitle(LocaleController.getString(org.mytonwallet.app_air.walletcontext.R.string.Explore_Title))
         setupNavBar(true)
-        navigationBar?.titleLabel?.setStyle(20f, WFont.Medium)
+        navigationBar?.titleLabel?.setStyle(20f, WFont.Regular)
         navigationBar?.setTitleGravity(Gravity.CENTER)
 
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))

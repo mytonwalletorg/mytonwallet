@@ -2,11 +2,16 @@ package org.mytonwallet.app_air.walletcore.helpers
 
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
+import org.mytonwallet.app_air.walletcore.moshi.ApiTransactionType
 import org.mytonwallet.app_air.walletcore.moshi.MApiTransaction
 import java.math.BigInteger
 
 class ActivityHelpers {
     companion object {
+        fun isSuitableToGetTimestamp(activity: MApiTransaction): Boolean {
+            return !activity.isLocal() && !activity.isBackendSwapId()
+        }
+
         fun activityBelongsToSlug(activity: MApiTransaction, slug: String?): Boolean {
             return slug == null || slug == activity.getTxSlug() ||
                 (activity is MApiTransaction.Swap &&
@@ -27,7 +32,8 @@ class ActivityHelpers {
                         Let's filter out contract call transactions on TRON chain
                      */
                     (it !is MApiTransaction.Transaction ||
-                        it.type == null ||
+                        (it.type != ApiTransactionType.CONTRACT_DEPLOY &&
+                            it.type != ApiTransactionType.CALL_CONTRACT) ||
                         it.amount != BigInteger.ZERO ||
                         it.token?.chain == TONCOIN_SLUG)
             }

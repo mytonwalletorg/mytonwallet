@@ -22,11 +22,13 @@ import org.mytonwallet.app_air.uicomponents.helpers.Rate
 import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.utils.CoinUtils
+import org.mytonwallet.app_air.walletcontext.utils.max
 import org.mytonwallet.app_air.walletcontext.utils.smartDecimalsCount
 import org.mytonwallet.app_air.walletcontext.utils.toBigInteger
 import org.mytonwallet.app_air.walletcontext.utils.toString
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.checkTransactionDraft
 import org.mytonwallet.app_air.walletcore.api.submitTransfer
 import org.mytonwallet.app_air.walletcore.api.swapBuildTransfer
@@ -284,7 +286,8 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
     }
 
     private fun calcSwapMaxBalance(
-        lastEstimateSwapResponse: EstimateSwapResponse?
+        lastEstimateSwapResponse: EstimateSwapResponse?,
+        fallbackToMax: Boolean = false
     ): BigInteger {
         val tokenToSend = _inputStateFlow.value.tokenToSend ?: return BigInteger.ZERO
         val tokenToReceive = _inputStateFlow.value.tokenToReceive
@@ -320,8 +323,9 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
             }
         }
 
-        if (balance < BigInteger.ZERO) {
-            return BigInteger.ZERO
+        if (balance <= BigInteger.ZERO) {
+            return if (fallbackToMax) _walletStateFlow.value?.balances?.get(tokenToSend.slug)
+                ?: BigInteger.ZERO else BigInteger.ZERO
         }
 
         return balance
@@ -336,7 +340,7 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
         cancelScheduledSelectorOpen()
 
         val token = _inputStateFlow.value.tokenToSend ?: return
-        val available = calcSwapMaxBalance(_simulatedSwapFlow.value)
+        val available = calcSwapMaxBalance(_simulatedSwapFlow.value, fallbackToMax = true)
         _inputStateFlow.value = _inputStateFlow.value.copy(
             tokenToSendMaxAmount = available.toString(
                 decimals = token.decimals,
@@ -556,9 +560,19 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
         val toAmount = CoinUtils.fromDecimal(toAmountDec, request.tokenToReceive.decimals)
 
         val fromAmountDecimalStr =
-            fromAmount?.let { CoinUtils.toDecimalString(it, request.tokenToSend.decimals) }
+            fromAmount?.let {
+                CoinUtils.toDecimalString(
+                    max(BigInteger.ZERO, it),
+                    request.tokenToSend.decimals
+                )
+            }
         val toAmountDecimalStr =
-            toAmount?.let { CoinUtils.toDecimalString(it, request.tokenToReceive.decimals) }
+            toAmount?.let {
+                CoinUtils.toDecimalString(
+                    max(BigInteger.ZERO, it),
+                    request.tokenToReceive.decimals
+                )
+            }
 
         private val toAmountMin =
             CoinUtils.fromDecimal(dex?.toMinAmount ?: toAmountDec, request.tokenToReceive.decimals)
@@ -695,7 +709,7 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
                         )
 
                         val response = callEstimate(request)
-                        val available = calcSwapMaxBalance(response)
+                        val available = calcSwapMaxBalance(response, fallbackToMax = true)
                         _inputStateFlow.value = _inputStateFlow.value.copy(
                             tokenToSendMaxAmount = available.toString(
                                 decimals = request.tokenToSend.decimals,
@@ -1237,15 +1251,16 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
         }
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.AccountChanged,
-            WalletCore.Event.BalanceChanged -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.AccountChanged,
+            WalletEvent.BalanceChanged -> {
                 _walletStateFlow.value = createWalletState()
             }
 
-            WalletCore.Event.NetworkConnected,
-            WalletCore.Event.NetworkDisconnected -> {
+            WalletEvent.NetworkConnected,
+
+            WalletEvent.NetworkDisconnected -> {
                 val correctVal = _inputStateFlow.value
                 _inputStateFlow.value = InputState()
                 _inputStateFlow.value = correctVal

@@ -44,7 +44,8 @@ fun WalletCore.createWallet(
                     ),
                     "",
                     MAccount.AccountType.MNEMONIC,
-                    ledger = null
+                    ledger = null,
+                    importedAt = null
                 ), null
             )
         }
@@ -78,7 +79,8 @@ fun WalletCore.importWallet(
                     ),
                     name = "",
                     accountType = MAccount.AccountType.MNEMONIC,
-                    ledger = null
+                    ledger = null,
+                    importedAt = System.currentTimeMillis()
                 ), null
             )
         }
@@ -112,7 +114,8 @@ fun WalletCore.importNewWalletVersion(
                     ),
                     name = "$prevName $version",
                     accountType = prevAccount.accountType,
-                    ledger = if (ledgerObj != null) MAccount.Ledger(ledgerObj) else null
+                    ledger = if (ledgerObj != null) MAccount.Ledger(ledgerObj) else null,
+                    importedAt = System.currentTimeMillis()
                 ), null
             )
         }
@@ -167,6 +170,12 @@ fun WalletCore.activateAccount(
                 isMultichain = account.isMultichain
                 notifyAccountChanged(account)
                 callback(account, null)
+                WCacheStorage.setInitialScreen(
+                    if (AccountStore.activeAccount?.isPasscodeProtected == true)
+                        WCacheStorage.InitialScreen.LOCK
+                    else
+                        WCacheStorage.InitialScreen.HOME
+                )
             }
         }
     }
@@ -226,6 +235,7 @@ fun WalletCore.resetAccounts(
             NftStore.clean()
             StakingStore.clean()
             WCacheStorage.clean(accountIds)
+            WCacheStorage.setInitialScreen(WCacheStorage.InitialScreen.INTRO)
             callback(true, null)
         }
     }
@@ -257,7 +267,7 @@ fun WalletCore.verifyPassword(
     callback: (Boolean?, MBridgeError?) -> Unit
 ) {
     val quotedPassword = JSONObject.quote(password)
-    
+
     bridge?.callApi(
         "verifyPassword",
         "[$quotedPassword]"

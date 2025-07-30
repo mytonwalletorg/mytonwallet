@@ -49,6 +49,7 @@ import org.mytonwallet.app_air.walletcontext.cacheStorage.WCacheStorage
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.BiometricHelpers
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.secureStorage.WSecureStorage
 import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
@@ -56,6 +57,7 @@ import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.activateAccount
 import org.mytonwallet.app_air.walletcore.api.removeAccount
 import org.mytonwallet.app_air.walletcore.api.resetAccounts
@@ -63,6 +65,7 @@ import org.mytonwallet.app_air.walletcore.models.InAppBrowserConfig
 import org.mytonwallet.app_air.walletcore.moshi.api.ApiUpdate
 import org.mytonwallet.app_air.walletcore.pushNotifications.AirPushNotifications
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
+import org.mytonwallet.app_air.walletcore.stores.BalanceStore
 import org.mytonwallet.app_air.walletcore.stores.StakingStore
 import java.lang.ref.WeakReference
 
@@ -196,10 +199,6 @@ class SettingsVC(context: Context) : WViewController(context),
             navigationController?.getSystemBars()?.bottom ?: 0
         )
 
-        settingsVM.fillOtherAccounts()
-        settingsVM.updateWalletConfigSection()
-        settingsVM.updateWalletDataSection()
-
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         view.addView(
             headerView,
@@ -230,6 +229,13 @@ class SettingsVC(context: Context) : WViewController(context),
         }
 
         updateTheme()
+
+        WalletCore.doOnBridgeReady {
+            settingsVM.fillOtherAccounts()
+            settingsVM.updateWalletConfigSection()
+            settingsVM.updateWalletDataSection()
+            rvAdapter.reloadData()
+        }
     }
 
     override fun viewDidAppear() {
@@ -356,8 +362,10 @@ class SettingsVC(context: Context) : WViewController(context),
             val nextAccountId = accountIds.find { it !== AccountStore.activeAccountId }!!
             WalletCore.removeAccount(removingAccountId, nextAccountId) { done, error ->
                 if (done == true) {
+                    Logger.d(Logger.LogTag.ACCOUNT, "Remove account: $removingAccountId")
                     WGlobalStorage.removeAccount(removingAccountId)
                     StakingStore.setStakingState(removingAccountId, null)
+                    BalanceStore.removeBalances(removingAccountId)
                     WCacheStorage.clean(removingAccountId)
                     AirPushNotifications.unsubscribe(removingAccount) {}
                     WalletCore.activateAccount(
@@ -368,7 +376,7 @@ class SettingsVC(context: Context) : WViewController(context),
                             removeAllWallets()
                             return@activateAccount
                         }
-                        WalletCore.notifyEvent(WalletCore.Event.AccountChangedInApp)
+                        WalletCore.notifyEvent(WalletEvent.AccountChangedInApp)
                     }
                 } else {
                     showError(error)
@@ -387,6 +395,7 @@ class SettingsVC(context: Context) : WViewController(context),
                 view.unlockView()
                 showError(err)
             }
+            Logger.d(Logger.LogTag.ACCOUNT, "Reset accounts from settings")
             WGlobalStorage.setActiveAccountId(null)
             WGlobalStorage.deleteAllWallets()
             WSecureStorage.deleteAllWalletValues()
@@ -422,7 +431,7 @@ class SettingsVC(context: Context) : WViewController(context),
                                 newWalletName
                             )
                             AirPushNotifications.accountNameChanged(AccountStore.activeAccount!!)
-                            WalletCore.notifyEvent(WalletCore.Event.AccountNameChanged)
+                            WalletCore.notifyEvent(WalletEvent.AccountNameChanged)
                         }
                     }
                 )
@@ -449,7 +458,7 @@ class SettingsVC(context: Context) : WViewController(context),
                     if (res == null || err != null) {
                         // Should not happen!
                     } else {
-                        WalletCore.notifyEvent(WalletCore.Event.AccountChangedInApp)
+                        WalletCore.notifyEvent(WalletEvent.AccountChangedInApp)
                     }
                 }
             }
@@ -635,47 +644,47 @@ class SettingsVC(context: Context) : WViewController(context),
         return super.recyclerViewCellItemId(rv, indexPath)
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.AccountChanged -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.AccountChanged -> {
                 headerView.configure()
                 settingsVM.fillOtherAccounts()
                 settingsVM.updateWalletDataSection()
                 rvAdapter.reloadData()
             }
 
-            WalletCore.Event.AccountNameChanged -> {
+            WalletEvent.AccountNameChanged -> {
                 headerView.configure()
             }
 
-            WalletCore.Event.BalanceChanged -> {
+            WalletEvent.BalanceChanged -> {
                 headerView.configureDescriptionLabel()
             }
 
-            WalletCore.Event.NotActiveAccountBalanceChanged -> {
+            WalletEvent.NotActiveAccountBalanceChanged -> {
                 settingsVM.fillOtherAccounts()
                 rvAdapter.reloadData()
             }
 
-            WalletCore.Event.BaseCurrencyChanged -> {
-                headerView.configureDescriptionLabel()
-                settingsVM.fillOtherAccounts()
-                rvAdapter.reloadData()
-            }
-
-            WalletCore.Event.TokensChanged -> {
+            WalletEvent.BaseCurrencyChanged -> {
                 headerView.configureDescriptionLabel()
                 settingsVM.fillOtherAccounts()
                 rvAdapter.reloadData()
             }
 
-            WalletCore.Event.StakingDataUpdated -> {
+            WalletEvent.TokensChanged -> {
                 headerView.configureDescriptionLabel()
                 settingsVM.fillOtherAccounts()
                 rvAdapter.reloadData()
             }
 
-            WalletCore.Event.DappsCountUpdated -> {
+            WalletEvent.StakingDataUpdated -> {
+                headerView.configureDescriptionLabel()
+                settingsVM.fillOtherAccounts()
+                rvAdapter.reloadData()
+            }
+
+            WalletEvent.DappsCountUpdated -> {
                 settingsVM.updateWalletConfigSection()
                 rvAdapter.reloadData()
             }

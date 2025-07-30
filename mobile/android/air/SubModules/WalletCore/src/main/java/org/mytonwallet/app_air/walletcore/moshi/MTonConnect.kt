@@ -76,6 +76,7 @@ data class ApiTonConnectProof(
     val payload: String
 )
 
+@JsonClass(generateAdapter = false)
 enum class ApiConnectionType {
     @Json(name = "connect")
     CONNECT,

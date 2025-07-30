@@ -14,6 +14,8 @@ import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.WView
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
+import org.mytonwallet.app_air.walletcontext.theme.WColor
+import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
 
 @SuppressLint("ViewConstructor")
@@ -22,6 +24,7 @@ class PasscodeNumberView(
     val row: Int,
     val column: Int,
     val light: Boolean,
+    val showMotionBackgroundDrawable: Boolean
 ) : WView(context), WThemedView {
 
     val num = getNum(row, column)
@@ -104,14 +107,22 @@ class PasscodeNumberView(
 
     override fun updateTheme() {
         val color = if (light) Color.WHITE else Color.BLACK
+        titleLabel.setTextColor(color)
+        subtitleLabel.setTextColor(color.colorWithAlpha(169))
+        updateBackground()
+    }
+
+    fun updateBackground() {
+        val color = if (showMotionBackgroundDrawable)
+            (if (light) Color.WHITE else Color.BLACK).colorWithAlpha(20)
+        else WColor.BackgroundRipple.color
+        val radius = if (measuredWidth == measuredHeight) 40f.dp else 16f.dp
         if (num != null) {
-            setBackgroundColor(0, 40f.dp)
+            setBackgroundColor(0, radius)
         } else {
             updateImage(false)
         }
-        addRippleEffect(color.colorWithAlpha(20), 40f.dp)
-        titleLabel.setTextColor(color)
-        subtitleLabel.setTextColor(color.colorWithAlpha(169))
+        addRippleEffect(color, radius)
     }
 
     fun updateImage(animated: Boolean) {

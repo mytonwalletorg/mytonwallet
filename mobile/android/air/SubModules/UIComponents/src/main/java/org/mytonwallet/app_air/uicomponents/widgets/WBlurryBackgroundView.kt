@@ -21,6 +21,7 @@ import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
 class WBlurryBackgroundView(
     context: Context,
     val fadeSide: Side?,
+    val overrideBlurRadius: Float? = null
 ) : BlurView(context), WThemedView {
 
     enum class Side {
@@ -42,7 +43,7 @@ class WBlurryBackgroundView(
     }
 
     fun setupViews() {
-        setBlurRadius(if (ThemeManager.isDark) 10f else 20f)
+        setBlurRadius(overrideBlurRadius ?: if (ThemeManager.isDark) 10f else 20f)
         updateTheme()
     }
 
@@ -52,13 +53,17 @@ class WBlurryBackgroundView(
             solidBackgroundColor = value?.color
                 ?: (if (ThemeManager.uiMode.hasRoundedCorners) WColor.SecondaryBackground.color else WColor.Background.color)
         }
+
+    private var overlayAlpha: Int? = null
+
     private var solidBackgroundColor =
         overrideOverlayColor?.color
             ?: (if (ThemeManager.uiMode.hasRoundedCorners) WColor.SecondaryBackground.color else WColor.Background.color)
 
-    fun setOverlayColor(overlayColor: WColor): BlurViewFacade {
+    fun setOverlayColor(overlayColor: WColor, alpha: Int? = null): BlurViewFacade {
         overrideOverlayColor = overlayColor
-        val alpha = if (ThemeManager.isDark) 230 else 180
+        overlayAlpha = alpha
+        val alpha = alpha ?: if (ThemeManager.isDark) 230 else 180
         return super.setOverlayColor(overrideOverlayColor!!.color.colorWithAlpha(alpha))
     }
 
@@ -69,7 +74,7 @@ class WBlurryBackgroundView(
             overrideOverlayColor?.color
                 ?: (if (ThemeManager.uiMode.hasRoundedCorners) WColor.SecondaryBackground.color else WColor.Background.color)
 
-        val alpha = if (ThemeManager.isDark) 230 else 180
+        val alpha = overlayAlpha ?: if (ThemeManager.isDark) 230 else 180
         val color = solidBackgroundColor.colorWithAlpha(alpha)
         setOverlayColor(color)
         updateLinearGradient()

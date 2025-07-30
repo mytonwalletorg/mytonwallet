@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.PopupWindow
 import org.mytonwallet.app_air.uicomponents.extensions.dp
+import org.mytonwallet.app_air.uicomponents.helpers.PopupHelpers
 import org.mytonwallet.app_air.uicomponents.widgets.lockView
 import org.mytonwallet.app_air.uicomponents.widgets.menu.WMenuPopup.Item.Config.Icon
 import org.mytonwallet.app_air.uicomponents.widgets.unlockView
@@ -14,7 +15,6 @@ import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
-import org.mytonwallet.app_air.walletcore.WalletCore
 
 class WMenuPopup {
 
@@ -220,7 +220,7 @@ class WMenuPopup {
 
             popupView.present(initialHeight = 0)
 
-            WalletCore.popupShown(popupWindow)
+            PopupHelpers.popupShown(popupWindow)
 
             return popupWindow
         }

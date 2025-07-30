@@ -204,7 +204,7 @@ sealed class ApiParsedPayload {
         }
 }
 
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 enum class DnsCategory {
     @Json(name = "dns_next_resolver")
     DNS_NEXT_RESOLVER,

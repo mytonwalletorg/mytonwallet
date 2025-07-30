@@ -11,6 +11,8 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.webkit.URLUtil
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -42,16 +44,17 @@ import org.mytonwallet.app_air.uicomponents.widgets.fadeIn
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.uireceive.ReceiveVC
-import org.mytonwallet.app_air.uisend.send.SendStartInputVC
+import org.mytonwallet.app_air.uisend.send.SendVC
 import org.mytonwallet.app_air.uistake.earn.EarnRootVC
 import org.mytonwallet.app_air.uistake.earn.EarnViewModel
 import org.mytonwallet.app_air.uistake.earn.EarnViewModelFactory
 import org.mytonwallet.app_air.uiswap.screens.cex.SwapSendAddressOutputVC
-import org.mytonwallet.app_air.uiswap.screens.main.SwapMainVC
+import org.mytonwallet.app_air.uiswap.screens.main.SwapVC
 import org.mytonwallet.app_air.uitonconnect.controller.TonConnectController
 import org.mytonwallet.app_air.uitransaction.viewControllers.TransactionVC
 import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
+import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
@@ -61,7 +64,9 @@ import org.mytonwallet.app_air.walletcontext.utils.isSameDayAs
 import org.mytonwallet.app_air.walletcontext.utils.toBigInteger
 import org.mytonwallet.app_air.walletcore.MYCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
+import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.models.MAccount
+import org.mytonwallet.app_air.walletcore.models.MBlockchain
 import org.mytonwallet.app_air.walletcore.models.SwapType
 import org.mytonwallet.app_air.walletcore.moshi.ApiSwapStatus
 import org.mytonwallet.app_air.walletcore.moshi.MApiTransaction
@@ -171,8 +176,13 @@ class HomeVC(context: Context) : WViewControllerWithModelStore(context),
             updateScroll(computedOffset)
         }
 
+        private var prevState = RecyclerView.SCROLL_STATE_IDLE
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING && prevState == RecyclerView.SCROLL_STATE_SETTLING) {
+                // Scrolling again, without going to idle => end previous scroll
+                scrollEnded()
+            }
             if (newState == RecyclerView.SCROLL_STATE_SETTLING || newState == RecyclerView.SCROLL_STATE_IDLE) {
                 this@HomeVC.recyclerView.setBounceBackSkipValue(0)
                 headerView.isExpandAllowed = false
@@ -204,6 +214,7 @@ class HomeVC(context: Context) : WViewControllerWithModelStore(context),
                         heavyAnimationDone()
                 }
             }
+            prevState = newState
         }
     }
     val rvLayoutManager = object : LinearLayoutManagerAccurateOffset(context) {
@@ -216,7 +227,6 @@ class HomeVC(context: Context) : WViewControllerWithModelStore(context),
     private val recyclerView: WRecyclerView by lazy {
         val rv = WRecyclerView(this)
         rv.adapter = rvAdapter
-        rvLayoutManager
         rv.setLayoutManager(rvLayoutManager)
         rv.addOnScrollListener(scrollListener)
         rv.setOnOverScrollListener { isTouchActive, newState, suggestedOffset, velocity ->
@@ -337,7 +347,7 @@ class HomeVC(context: Context) : WViewControllerWithModelStore(context),
                             headerView.expandedContentHeight.toInt()
                         else
                             headerView.collapsedHeight) +
-                        (if (AccountStore.activeAccount?.accountType == MAccount.AccountType.VIEW) 0 else 80.dp) +
+                        (if (AccountStore.activeAccount?.accountType == MAccount.AccountType.VIEW) 0 else 86.dp) +
                         (if (ThemeManager.uiMode.hasRoundedCorners) 0 else ViewConstants.GAP.dp)
                 }
                 return
@@ -431,21 +441,44 @@ class HomeVC(context: Context) : WViewControllerWithModelStore(context),
 
             HeaderActionsView.Identifier.SEND -> {
                 val navVC = WNavigationController(window!!)
-                navVC.setRoot(SendStartInputVC(context))
+                navVC.setRoot(SendVC(context))
                 window?.present(navVC)
             }
 
             HeaderActionsView.Identifier.SWAP -> {
                 val navVC = WNavigationController(window!!)
-                navVC.setRoot(SwapMainVC(context))
+                navVC.setRoot(SwapVC(context))
                 window?.present(navVC)
             }
 
             HeaderActionsView.Identifier.SCAN_QR -> {
                 QrScannerDialog.build(context) { qr ->
+                    for (blockchain in MBlockchain.supportedChains) {
+                        if (blockchain.isValidAddress(qr)) {
+                            val navVC = WNavigationController(window!!)
+                            navVC.setRoot(
+                                SendVC(
+                                    context, blockchain.nativeSlug, SendVC.InitialValues(
+                                        address = qr
+                                    )
+                                )
+                            )
+                            window?.present(navVC)
+                            return@build
+                        }
+                    }
                     val validDeeplink = WalletContextManager.delegate?.handleDeeplink(qr)
-                    if (validDeeplink != true)
+                    if (validDeeplink == true)
+                        return@build
+                    if (URLUtil.isValidUrl(qr)) {
                         tonConnectController.connectStart(qr)
+                        return@build
+                    }
+                    Toast.makeText(
+                        context,
+                        LocaleController.getString(org.mytonwallet.app_air.walletcontext.R.string.Home_UnsupportedQR),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }.show()
             }
 
@@ -510,8 +543,10 @@ class HomeVC(context: Context) : WViewControllerWithModelStore(context),
             recyclerView.setMaxOverscrollOffset(headerView.diffPx)
         }
 
-        homeVM.delegateIsReady()
-        homeVM.initWalletInfo()
+        WalletCore.doOnBridgeReady {
+            homeVM.delegateIsReady()
+            homeVM.initWalletInfo()
+        }
 
         tonConnectController.onCreate()
 

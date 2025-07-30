@@ -123,7 +123,7 @@ class AssetsAndActivitiesTokenCell(
         tokenNameLabel.text = token.name
         amountLabel.setMaskCols(4 + abs(token.slug.hashCode() % 8))
         amountLabel.contentView.setAmount(
-            MTokenBalance.fromParameters(token, balance).toBaseCurrency,
+            MTokenBalance.fromParameters(token, balance)!!.toBaseCurrency,
             token.decimals,
             WalletCore.baseCurrency?.sign ?: "",
             WalletCore.baseCurrency?.decimalsCount ?: 2,

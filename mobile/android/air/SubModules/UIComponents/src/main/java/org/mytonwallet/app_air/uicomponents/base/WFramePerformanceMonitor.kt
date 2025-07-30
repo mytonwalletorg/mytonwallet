@@ -4,15 +4,15 @@ import android.app.Activity
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Choreographer
 import android.view.FrameMetrics
 import android.view.Window
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 
 class WFramePerformanceMonitor(
     private val activity: Activity,
     private val isEnabled: Boolean = true,
-    private val logTag: String = "FramePerformance"
+    private val logTag: Logger.LogTag = Logger.LogTag.FPS_PERFORMANCE
 ) {
 
     interface PerformanceCallback {
@@ -43,7 +43,7 @@ class WFramePerformanceMonitor(
         frameDropDetector = FrameDropDetector { frameDuration, droppedFrames ->
             val context = contextProvider?.invoke()
 
-            Log.w(
+            Logger.w(
                 logTag,
                 "Frame drop: ${frameDuration / 1_000_000}ms, " +
                     "dropped: $droppedFrames${context?.let { ", $it" } ?: ""}"
@@ -75,7 +75,7 @@ class WFramePerformanceMonitor(
         val sessionInfo = contextProvider?.invoke() ?: "Session ended"
 
         if (dropRate > 0) {
-            Log.i(logTag, "Session summary: ${dropRate}% frame drop rate, $sessionInfo")
+            Logger.i(logTag, "Session summary: ${dropRate}% frame drop rate, $sessionInfo")
             callback?.onPerformanceSummary(dropRate, sessionInfo)
         }
 
@@ -147,7 +147,7 @@ class WFramePerformanceMonitor(
         val criticalThreshold = 16_000_000L
 
         if (droppedFrames > 2 || totalFrameTime > frameThreshold) {
-            Log.w(logTag, buildString {
+            Logger.w(logTag, buildString {
                 append("=== FRAME PERFORMANCE ANALYSIS ===\n")
 
                 // Overall frame info

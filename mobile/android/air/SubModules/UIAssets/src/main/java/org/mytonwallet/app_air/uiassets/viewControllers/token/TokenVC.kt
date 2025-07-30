@@ -41,9 +41,9 @@ import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.uireceive.ReceiveVC
-import org.mytonwallet.app_air.uisend.send.SendStartInputVC
+import org.mytonwallet.app_air.uisend.send.SendVC
 import org.mytonwallet.app_air.uistake.earn.EarnRootVC
-import org.mytonwallet.app_air.uiswap.screens.main.SwapMainVC
+import org.mytonwallet.app_air.uiswap.screens.main.SwapVC
 import org.mytonwallet.app_air.uitransaction.viewControllers.TransactionVC
 import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
@@ -402,7 +402,7 @@ class TokenVC(context: Context, var token: MToken) : WViewController(context),
 
             HeaderActionsView.Identifier.SEND -> {
                 val navVC = WNavigationController(window!!)
-                navVC.setRoot(SendStartInputVC(context, token.slug))
+                navVC.setRoot(SendVC(context, token.slug))
                 window?.present(navVC)
             }
 
@@ -415,7 +415,7 @@ class TokenVC(context: Context, var token: MToken) : WViewController(context),
             HeaderActionsView.Identifier.SWAP -> {
                 val navVC = WNavigationController(window!!)
                 navVC.setRoot(
-                    SwapMainVC(
+                    SwapVC(
                         context,
                         defaultSendingToken = MApiSwapAsset.from(token),
                         defaultReceivingToken =

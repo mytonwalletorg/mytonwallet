@@ -117,6 +117,7 @@ class ActivityCell(val recyclerView: RecyclerView, val withoutTagAndComment: Boo
         }
 
         setConstraints {
+            constrainedWidth(tagView.id, true)
             setVerticalBias(tagView.id, 0f)
             setHorizontalBias(tagView.id, 0f)
             topToTop(tagView, mainContentView, 60f)

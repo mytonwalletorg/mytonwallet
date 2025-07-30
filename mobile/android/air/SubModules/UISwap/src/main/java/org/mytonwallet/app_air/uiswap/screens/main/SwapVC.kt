@@ -52,7 +52,7 @@ import org.mytonwallet.app_air.walletcore.moshi.MApiSwapAsset
 import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
-class SwapMainVC(
+class SwapVC(
     context: Context,
     defaultSendingToken: MApiSwapAsset? = null,
     defaultReceivingToken: MApiSwapAsset? = null,
@@ -287,7 +287,7 @@ class SwapMainVC(
             val editView = if (it.reverse) receiveAmount else sendAmount
 
             ignoreTextChanges = true
-            editView.amountEditText.setTextIfDiffer(it.amountInput)
+            editView.amountEditText.setTextIfDiffer(it.amountInput, selectionToEnd = false)
             ignoreTextChanges = false
         }
 
@@ -298,13 +298,22 @@ class SwapMainVC(
                 if (!estimate.request.reverse) {
                     if (estimate.request.isFromAmountMax) {
                         if (estimate.fromAmountDecimalStr != null) {
-                            sendAmount.amountEditText.setTextIfDiffer(estimate.fromAmountDecimalStr)
+                            sendAmount.amountEditText.setTextIfDiffer(
+                                estimate.fromAmountDecimalStr,
+                                selectionToEnd = false
+                            )
                             sendAmount.setBalance(swapViewModel.tokenToSendMaxAmount)
                         }
                     }
-                    receiveAmount.amountEditText.setTextIfDiffer(estimate.toAmountDecimalStr)
+                    receiveAmount.amountEditText.setTextIfDiffer(
+                        estimate.toAmountDecimalStr,
+                        selectionToEnd = false
+                    )
                 } else {
-                    sendAmount.amountEditText.setTextIfDiffer(estimate.fromAmountDecimalStr)
+                    sendAmount.amountEditText.setTextIfDiffer(
+                        estimate.fromAmountDecimalStr,
+                        selectionToEnd = false
+                    )
                 }
             } ?: run {
                 if (!swapViewModel.isReverse()) {

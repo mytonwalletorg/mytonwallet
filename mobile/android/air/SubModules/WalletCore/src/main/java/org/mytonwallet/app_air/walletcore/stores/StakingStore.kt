@@ -4,10 +4,9 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Types
 import org.mytonwallet.app_air.walletcontext.cacheStorage.WCacheStorage
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
-import org.mytonwallet.app_air.walletcore.WalletCore
-import org.mytonwallet.app_air.walletcore.WalletCore.Event
 import org.mytonwallet.app_air.walletcore.WalletCore.moshi
 import org.mytonwallet.app_air.walletcore.WalletCore.notifyEvent
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.moshi.MUpdateStaking
 import java.util.concurrent.ConcurrentHashMap
 
@@ -33,7 +32,7 @@ object StakingStore {
                 }
             }
         }
-        notifyEvent(Event.StakingDataUpdated)
+        notifyEvent(WalletEvent.StakingDataUpdated)
     }
 
     private fun setStakingState(stakingData: List<MUpdateStaking>) {
@@ -49,7 +48,7 @@ object StakingStore {
             stakingData.remove(accountId)
 
         val jsonAdapter: JsonAdapter<List<MUpdateStaking>> =
-            WalletCore.moshi.adapter(
+            moshi.adapter(
                 Types.newParameterizedType(
                     List::class.java,
                     MUpdateStaking::class.java

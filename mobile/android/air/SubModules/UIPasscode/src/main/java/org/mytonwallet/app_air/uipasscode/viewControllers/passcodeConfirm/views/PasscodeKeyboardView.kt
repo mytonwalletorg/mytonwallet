@@ -24,6 +24,7 @@ import kotlin.math.min
 class PasscodeKeyboardView(
     context: Context,
     val light: Boolean,
+    showMotionBackgroundDrawable: Boolean,
     ignoreBiometry: Boolean
 ) : FrameLayout(context) {
     companion object {
@@ -46,38 +47,46 @@ class PasscodeKeyboardView(
     init {
         id = generateViewId()
         for (a in 0..11) {
-            addView(PasscodeNumberView(context, 1 + a / 3, 1 + a % 3, light).apply {
-                when (a) {
-                    11 -> { // backspace
-                        deleteButton = this
-                        setOnClickListener {
-                            hapticFeedbackHelper.provideHapticFeedback()
-                            listener?.onNumberDelete()
+            addView(
+                PasscodeNumberView(
+                    context,
+                    1 + a / 3,
+                    1 + a % 3,
+                    light,
+                    showMotionBackgroundDrawable
+                ).apply {
+                    when (a) {
+                        11 -> { // backspace
+                            deleteButton = this
+                            setOnClickListener {
+                                hapticFeedbackHelper.provideHapticFeedback()
+                                listener?.onNumberDelete()
+                            }
                         }
-                    }
 
-                    9 -> { // biometric
-                        customDrawable = ContextCompat.getDrawable(
-                            context,
-                            R.drawable.ic_biometric
-                        )
-                        setOnClickListener {
-                            hapticFeedbackHelper.provideHapticFeedback()
-                            listener?.onBiometricsCheck()
+                        9 -> { // biometric
+                            customDrawable = ContextCompat.getDrawable(
+                                context,
+                                R.drawable.ic_biometric
+                            )
+                            setOnClickListener {
+                                hapticFeedbackHelper.provideHapticFeedback()
+                                listener?.onBiometricsCheck()
+                            }
+                            isGone =
+                                ignoreBiometry || !WGlobalStorage.isBiometricActivated() ||
+                                    !BiometricHelpers.canAuthenticate(context)
                         }
-                        isGone =
-                            ignoreBiometry || !WGlobalStorage.isBiometricActivated() ||
-                                !BiometricHelpers.canAuthenticate(context)
-                    }
 
-                    else -> {
-                        setOnClickListener {
-                            hapticFeedbackHelper.provideHapticFeedback()
-                            num?.let { listener?.onNumberInput(it) }
+                        else -> {
+                            setOnClickListener {
+                                hapticFeedbackHelper.provideHapticFeedback()
+                                num?.let { listener?.onNumberInput(it) }
+                            }
                         }
                     }
-                }
-            }, LayoutParams(80.dp, 80.dp))
+                }, LayoutParams(80.dp, 80.dp)
+            )
         }
     }
 
@@ -89,20 +98,20 @@ class PasscodeKeyboardView(
         val height = MeasureSpec.getSize(heightMeasureSpec)
 
         val maxButtonWidth =
-            min((width - paddingLeft - paddingRight - GAP.dp * 2) / 3, MAX_BUTTON_WIDTH.dp)
+            min((width - paddingLeft - paddingRight - GAP.dp * 4) / 3, MAX_BUTTON_WIDTH.dp)
 
         val totalGapHeight = GAP.dp * 3
         val availableHeight = height - paddingTop - paddingBottom - totalGapHeight
         val maxButtonHeight = availableHeight / 4
 
-        buttonWidth = min(maxButtonWidth, maxButtonHeight)
-        buttonSize = min(HEIGHT.dp, buttonWidth)
+        buttonWidth = maxButtonWidth
+        buttonSize = min(HEIGHT.dp, min(maxButtonWidth, maxButtonHeight))
 
         val measuredHeight = paddingTop + buttonSize * 4 + GAP.dp * 3 + paddingBottom
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            val childWidthSpec = MeasureSpec.makeMeasureSpec(buttonSize, MeasureSpec.EXACTLY)
+            val childWidthSpec = MeasureSpec.makeMeasureSpec(buttonWidth, MeasureSpec.EXACTLY)
             val childHeightSpec = MeasureSpec.makeMeasureSpec(buttonSize, MeasureSpec.EXACTLY)
             child.measure(childWidthSpec, childHeightSpec)
         }
@@ -118,12 +127,14 @@ class PasscodeKeyboardView(
             val bx = i % 3
             val by = i / 3
 
-            val left =
-                paddingLeft + bx * buttonWidth + GAP.dp * bx + (buttonWidth - buttonSize) / 2 + o
+            val left = paddingLeft + bx * (buttonWidth + GAP.dp) + o
             val top = paddingTop + by * buttonSize + GAP.dp * by
 
-            child.layout(left, top, left + buttonSize, top + buttonSize)
-            (child as? PasscodeNumberView)?.updateConstraintsForSize(buttonSize)
+            child.layout(left, top, left + buttonWidth, top + buttonSize)
+            (child as? PasscodeNumberView)?.apply {
+                updateConstraintsForSize(buttonSize)
+                updateBackground()
+            }
         }
     }
 

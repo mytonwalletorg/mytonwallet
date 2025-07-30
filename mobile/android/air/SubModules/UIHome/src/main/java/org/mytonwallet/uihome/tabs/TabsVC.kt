@@ -53,6 +53,7 @@ import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.InAppBrowserConfig
 import org.mytonwallet.uihome.R
 import org.mytonwallet.uihome.home.HomeVC
@@ -464,15 +465,15 @@ class TabsVC(context: Context) : WViewController(context), WThemedView, WProtect
             return stackNavigationControllers[bottomNavigationView.selectedItemId]
         }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.AccountChangedInApp, WalletCore.Event.AddNewWalletCompletion -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.AccountChangedInApp, WalletEvent.AddNewWalletCompletion -> {
                 bottomNavigationView.selectedItemId = ID_HOME
                 dismissMinimized(false)
             }
 
-            is WalletCore.Event.OpenUrl -> {
-                event.url.let { url ->
+            is WalletEvent.OpenUrl -> {
+                walletEvent.url.let { url ->
                     val browserVC =
                         InAppBrowserVC(
                             context,

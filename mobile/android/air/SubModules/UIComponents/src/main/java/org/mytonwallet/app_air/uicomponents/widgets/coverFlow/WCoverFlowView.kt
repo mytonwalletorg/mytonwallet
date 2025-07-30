@@ -50,7 +50,7 @@ class WCoverFlowView @JvmOverloads constructor(
     private val COVER_HEIGHT = 144f.dp
     private val MAX_ROTATION = 30f
     private val SCALE_FACTOR = 0.9f
-    private val DEFAULT_PLACEHOLDER = WColor.SecondaryBackground
+    private val DEFAULT_PLACEHOLDER = WColor.Background
 
     // Data and state
     private var covers = mutableListOf<CoverItem>()

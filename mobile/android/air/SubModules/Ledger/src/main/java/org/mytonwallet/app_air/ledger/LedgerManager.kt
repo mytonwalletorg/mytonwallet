@@ -8,6 +8,7 @@ import org.mytonwallet.app_air.ledger.connectionManagers.LedgerBleManager
 import org.mytonwallet.app_air.ledger.connectionManagers.LedgerUsbManager
 import org.mytonwallet.app_air.walletcore.MAIN_NETWORK
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.LedgerAppInfo
 import org.mytonwallet.app_air.walletcore.moshi.MApiTonWallet
 import org.mytonwallet.app_air.walletcore.moshi.MApiTonWalletVersion
@@ -114,26 +115,26 @@ object LedgerManager : WalletCore.EventObserver {
         return activeManager?.appInfo()
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.LedgerWriteRequest -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.LedgerWriteRequest -> {
                 try {
-                    activeManager?.write(event.apdu, onSuccess = {
-                        event.onResponse(it)
+                    activeManager?.write(walletEvent.apdu, onSuccess = {
+                        walletEvent.onResponse(it)
                     }, onError = {
-                        event.onResponse("")
+                        walletEvent.onResponse("")
                     })
                 } catch (_: Throwable) {
-                    event.onResponse("")
+                    walletEvent.onResponse("")
                 }
             }
 
-            is WalletCore.Event.LedgerIsJettonIdSupported -> {
-                event.onResponse(activeManager?.appInfo()?.isJettonIdSupported ?: false)
+            is WalletEvent.LedgerIsJettonIdSupported -> {
+                walletEvent.onResponse(activeManager?.appInfo()?.isJettonIdSupported ?: false)
             }
 
-            is WalletCore.Event.LedgerIsUnsafeSupported -> {
-                event.onResponse(activeManager?.appInfo()?.isUnsafeSupported ?: false)
+            is WalletEvent.LedgerIsUnsafeSupported -> {
+                walletEvent.onResponse(activeManager?.appInfo()?.isUnsafeSupported ?: false)
             }
 
             else -> {}

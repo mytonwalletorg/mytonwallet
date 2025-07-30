@@ -76,8 +76,10 @@ class StakeDetailView(
         setLineHeight(24f)
         setTextColor(WColor.SecondaryText.color)
         setPadding(0, 0, 0, 1.dp)
-        maxLines = 1
-        ellipsize = TextUtils.TruncateAt.END
+        setSingleLine()
+        ellipsize = TextUtils.TruncateAt.MARQUEE
+        isSelected = true
+        isHorizontalFadingEdgeEnabled = true
     }
 
     private val earningEndLabel = WCounterLabel(context).apply {
@@ -149,7 +151,7 @@ class StakeDetailView(
         earningRow.setConstraints {
             toTop(earningStartLabel, 16f)
             toStart(earningStartLabel, 20f)
-            endToStart(earningStartLabel, earningEndLabel, 20f)
+            endToStart(earningStartLabel, earningEndLabel, 8f)
             toBottom(earningStartLabel, 16f)
 
             toTop(earningEndLabel, 16f)

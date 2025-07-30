@@ -6,12 +6,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcontext.cacheStorage.WCacheStorage
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
-import org.mytonwallet.app_air.walletcore.MYCOIN_SLUG
-import org.mytonwallet.app_air.walletcore.STAKED_MYCOIN_SLUG
-import org.mytonwallet.app_air.walletcore.STAKED_USDE_SLUG
-import org.mytonwallet.app_air.walletcore.STAKE_SLUG
-import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
-import org.mytonwallet.app_air.walletcore.USDE_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.api.fetchPriceHistory
 import org.mytonwallet.app_air.walletcore.models.MBaseCurrency
@@ -44,7 +38,6 @@ object TokenStore {
                 val token = MToken(tokensJsonArray.get(item) as JSONObject)
                 setToken(token.slug, token)
             }
-            fixTokenNameAndPrices()
             swapAssets2 = tokens.values.map { MApiSwapAsset.from(it) }
         }
         WCacheStorage.getSwapAssets()?.let { swapAssetsString ->
@@ -148,28 +141,6 @@ object TokenStore {
             WGlobalStorage.setPriceHistory(slug, period.value, res)
             callback(res, false, null)
         }
-    }
-
-    private fun replacePrices(token: MToken?, priceRef: MToken?) {
-        if (token == null || priceRef == null)
-            return
-        token.price = priceRef.price
-        token.priceUsd = priceRef.priceUsd
-        token.percentChange24h = priceRef.percentChange24h
-        token.percentChange24hReal = priceRef.percentChange24hReal
-    }
-
-    private fun replaceName(token: MToken?, name: String) {
-        token?.name = name
-    }
-
-    fun fixTokenNameAndPrices() {
-        replacePrices(getToken(STAKE_SLUG), getToken(TONCOIN_SLUG))
-        replacePrices(getToken(STAKED_MYCOIN_SLUG), getToken(MYCOIN_SLUG))
-        replacePrices(getToken(STAKED_USDE_SLUG), getToken(USDE_SLUG))
-        replaceName(getToken(STAKE_SLUG), "Toncoin Staking")
-        replaceName(getToken(STAKED_MYCOIN_SLUG), "MyTonWallet Staking")
-        replaceName(getToken(STAKED_USDE_SLUG), "Ethena Staking")
     }
 
     fun getTokenInfo(): JSONObject {

@@ -97,7 +97,6 @@ data class MSwapDiesel(
         get() = amount?.stars
 }
 
-@JsonClass(generateAdapter = true)
 interface IDiesel {
     val status: MDieselStatus?
     val shouldPrefer: Boolean?
@@ -155,7 +154,7 @@ sealed class MApiSubmitTransferResult {
     ) : MApiSubmitTransferResult()
 }
 
-
+@JsonClass(generateAdapter = false)
 enum class MDieselStatus {
     @Json(name = "not-available")
     NOT_AVAILABLE,
@@ -173,7 +172,7 @@ enum class MDieselStatus {
     STARS_FEE
 }
 
-
+@JsonClass(generateAdapter = false)
 enum class MApiAnyDisplayError {
     @Json(name = "Unexpected")
     UNEXPECTED,

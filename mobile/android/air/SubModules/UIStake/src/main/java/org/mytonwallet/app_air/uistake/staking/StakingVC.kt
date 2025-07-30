@@ -26,6 +26,7 @@ import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState
 import org.mytonwallet.app_air.uistake.confirm.ConfirmStakingHeaderView
+import org.mytonwallet.app_air.uistake.helpers.StakingMessageHelpers
 import org.mytonwallet.app_air.uistake.staking.views.StakeDetailView
 import org.mytonwallet.app_air.uistake.staking.views.StakeInputView
 import org.mytonwallet.app_air.walletcontext.R
@@ -362,9 +363,11 @@ class StakingVC(
     private fun showWhySafeAlert() {
         showAlert(
             title = LocaleController.getString(R.string.Stake_WhyStakingIsSafe_Title),
-            text = LocaleController.getString(R.string.Stake_WhyStakingIsSafe_Desc),
+            text = StakingMessageHelpers.whyStakingIsSafeDescription(stakingViewModel.tokenSlug)
+                ?: return,
             button = LocaleController.getString(R.string.Alert_OK),
-            preferPrimary = false
+            preferPrimary = false,
+            allowLinkInText = true
         )
     }
 

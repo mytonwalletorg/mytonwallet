@@ -71,6 +71,7 @@ class IconView(
     }
 
     fun updateTheme() {
+        clearCache()
     }
 
     fun config(account: MAccount, padding: Int = 10.dp) {
@@ -263,6 +264,10 @@ class IconView(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        clearCache()
+    }
+
+    private fun clearCache() {
         gradientDrawableCache.clear()
         transactionGradientCache.clear()
         swapGradientCache.clear()

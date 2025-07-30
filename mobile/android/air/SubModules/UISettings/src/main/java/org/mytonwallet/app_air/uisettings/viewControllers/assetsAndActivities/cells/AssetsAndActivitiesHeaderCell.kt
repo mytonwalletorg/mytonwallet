@@ -28,6 +28,7 @@ import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 
@@ -91,7 +92,7 @@ class AssetsAndActivitiesHeaderCell(
         switchView.isChecked = WGlobalStorage.getAreTinyTransfersHidden()
         switchView.setOnCheckedChangeListener { _, isChecked ->
             WGlobalStorage.setAreTinyTransfersHidden(isChecked)
-            WalletCore.notifyEvent(WalletCore.Event.HideTinyTransfersChanged)
+            WalletCore.notifyEvent(WalletEvent.HideTinyTransfersChanged)
         }
         switchView
     }

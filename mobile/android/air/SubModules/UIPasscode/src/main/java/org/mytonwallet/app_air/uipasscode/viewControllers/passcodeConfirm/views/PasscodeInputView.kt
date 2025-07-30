@@ -203,18 +203,25 @@ class PasscodeInputView(
     }
 
     var isShowingIndicator = false
-    fun showIndicator() {
+    fun showIndicator(animateToGreen: Boolean = true) {
+        if (isShowingIndicator)
+            return
+        if (!animateToGreen) {
+            roundDrawable.color = if (forceLightScreen) Color.WHITE else WColor.Tint.color
+        }
         isShowingIndicator = true
         circleViews.forEach {
-            if (it.currentBackgroundColor != WColor.Tint.color) {
-                it.setBackgroundColor(WColor.Green.color, 8f.dp)
+            if (animateToGreen) {
+                if (it.currentBackgroundColor != WColor.Tint.color) {
+                    it.setBackgroundColor(WColor.Green.color, 8f.dp)
+                }
             }
             it.pulseView()
         }
         Handler(Looper.getMainLooper()).postDelayed({
             if (!isShowingIndicator)
                 return@postDelayed
-            animateCirclesToCenter {
+            animateCirclesToCenter(animateToGreen) {
                 if (!isShowingIndicator)
                     return@animateCirclesToCenter
                 addView(
@@ -250,7 +257,7 @@ class PasscodeInputView(
         }
     }
 
-    private fun animateCirclesToCenter(onComplete: () -> Unit) {
+    private fun animateCirclesToCenter(animateToGreen: Boolean, onComplete: () -> Unit) {
         val centerX = width / 2
 
         circleViews.forEachIndexed { index, view ->
@@ -275,7 +282,8 @@ class PasscodeInputView(
                     }
                 }
 
-            view.animateBackgroundColor(WColor.Green.color, 8f.dp)
+            if (animateToGreen)
+                view.animateBackgroundColor(WColor.Green.color, 8f.dp)
         }
     }
 }

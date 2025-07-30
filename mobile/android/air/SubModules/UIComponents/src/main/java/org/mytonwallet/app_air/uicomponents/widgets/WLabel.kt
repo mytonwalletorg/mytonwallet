@@ -79,6 +79,12 @@ open class WLabel(context: Context) : AppCompatTextView(context), WThemedView {
         )
     }
 
+    fun setTextIfChanged(newText: String?) {
+        if (text == newText)
+            return
+        text = newText
+    }
+
     fun setUserFriendlyDate(dt: Date) {
         val now = Date()
         if (now.isSameDayAs(dt)) {

@@ -73,7 +73,7 @@ class HiddenNFTsItemCell(
     private val hideButton: WButton by lazy {
         val btn = WButton(context, WButton.Type.SECONDARY)
         btn.setOnClickListener {
-            setNftVisibility(NftStore.blacklistedNftAddresses.contains(nft.address))
+            setNftVisibility(NftStore.nftData?.blacklistedNftAddresses?.contains(nft.address) == true)
             updateHideButtonText()
         }
         btn
@@ -184,7 +184,7 @@ class HiddenNFTsItemCell(
     private fun updateHideButtonText() {
         hideButton.setText(
             LocaleController.getString(
-                if (NftStore.blacklistedNftAddresses.contains(nft.address))
+                if (NftStore.nftData?.blacklistedNftAddresses?.contains(nft.address) == true)
                     R.string.HiddenNFTs_Show
                 else
                     R.string.HiddenNFTs_Hide

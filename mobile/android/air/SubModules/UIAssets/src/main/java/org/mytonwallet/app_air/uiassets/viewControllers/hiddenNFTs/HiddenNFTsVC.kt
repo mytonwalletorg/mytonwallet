@@ -30,10 +30,10 @@ class HiddenNFTsVC(context: Context) : WViewController(context),
 
     override val shouldDisplayBottomBar = true
 
-    val blacklistedNFTs = NftStore.blacklistedNftAddresses.mapNotNull { blacklistItem ->
-        NftStore.cachedNfts?.find { it.address == blacklistItem }
-    }
-    val hiddenNFTs = NftStore.cachedNfts?.filter { it.isHidden == true } ?: emptyList()
+    val blacklistedNFTs = NftStore.nftData?.blacklistedNftAddresses?.mapNotNull { blacklistItem ->
+        NftStore.nftData?.cachedNfts?.find { it.address == blacklistItem }
+    } ?: emptyList()
+    val hiddenNFTs = NftStore.nftData?.cachedNfts?.filter { it.isHidden == true } ?: emptyList()
 
     private val rvAdapter =
         WRecyclerViewAdapter(WeakReference(this), arrayOf(HEADER_CELL, NFT_CELL))

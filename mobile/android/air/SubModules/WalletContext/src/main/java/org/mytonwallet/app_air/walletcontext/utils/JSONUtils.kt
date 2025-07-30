@@ -17,3 +17,19 @@ fun JSONObject.add(json: JSONObject) {
         put(key, json.get(key))
     }
 }
+
+fun JSONObject.toHashMapLong(): HashMap<String, Long> {
+    val map = HashMap<String, Long>()
+    for (key in keys()) {
+        map[key] = optLong(key)
+    }
+    return map
+}
+
+fun JSONObject.toHashMapString(): HashMap<String, String> {
+    val map = HashMap<String, String>()
+    for (key in keys()) {
+        map[key] = optString(key)
+    }
+    return map
+}

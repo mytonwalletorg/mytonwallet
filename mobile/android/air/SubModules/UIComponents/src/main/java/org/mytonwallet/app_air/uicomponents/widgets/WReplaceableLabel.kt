@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.view.isGone
+import org.mytonwallet.app_air.uicomponents.AnimationConstants
 import org.mytonwallet.app_air.uicomponents.drawable.RoundProgressDrawable
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.walletcontext.theme.WColor
@@ -51,6 +53,12 @@ class WReplaceableLabel(
 
     private var animatingTextTo: String? = null
     private var isLoading: Boolean = false
+    private var animatingIsLoadingTo: Boolean? = null
+
+    private fun updateProgressView() {
+        progressView.isGone = !isLoading
+        progressView.alpha = if (isLoading) 1f else 0f
+    }
 
     fun setText(
         text: String,
@@ -59,28 +67,31 @@ class WReplaceableLabel(
         wasHidden: Boolean = false,
         beforeNewTextAppearance: (() -> Unit)? = null
     ) {
-        if (text == label.text || text == animatingTextTo) return
+        if (isLoading == this.isLoading && text == label.text) {
+            beforeNewTextAppearance?.invoke()
+            return
+        }
+        if (isLoading == this.animatingIsLoadingTo && text == animatingTextTo) {
+            return
+        }
 
         if (!animated) {
             animatingTextTo = null
+            animatingIsLoadingTo = null
             translationX = 0f
             scaleX = 1f
             scaleY = 1f
             label.text = text
-            if (isLoading) {
-                progressView.visibility = VISIBLE
-                progressView.alpha = 1f
-            } else {
-                progressView.visibility = GONE
-                progressView.alpha = 0f
-            }
             this.isLoading = isLoading
+            beforeNewTextAppearance?.invoke()
+            updateProgressView()
             return
         }
 
         val isLonger = text.length > (label.text?.length ?: 0)
 
         animatingTextTo = text
+        animatingIsLoadingTo = isLoading
 
         fun setNewText() {
             if (animatingTextTo != text)
@@ -92,6 +103,7 @@ class WReplaceableLabel(
             }
             this.isLoading = isLoading
             animatingTextTo = null
+            animatingIsLoadingTo = null
             label.text = text
             translationX = 0f
             scaleX = 0.8f
@@ -106,9 +118,9 @@ class WReplaceableLabel(
                     .start()
             }
 
-            if (isLonger) {
+            if (isLonger && !wasHidden) {
                 animate()
-                    .setDuration(if (wasHidden) 0 else 200)
+                    .setDuration(200)
                     .withEndAction { fadeInAndGrow() }
                     .start()
             } else {
@@ -127,7 +139,7 @@ class WReplaceableLabel(
             animate()
                 .alpha(0f)
                 .translationX(-20f)
-                .setDuration(300)
+                .setDuration(AnimationConstants.QUICK_ANIMATION)
                 .withEndAction { setNewText() }
                 .start()
         }

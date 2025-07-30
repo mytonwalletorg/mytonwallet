@@ -12,6 +12,7 @@ import org.mytonwallet.app_air.uicomponents.adapter.implementation.CustomListDec
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
+import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import kotlin.math.max
@@ -22,8 +23,6 @@ class TonConnectRequestSendDetailsVC(
     private val items: List<BaseListItem>
 ) : WViewController(context) {
     private val rvAdapter = org.mytonwallet.app_air.uitonconnect.adapter.Adapter()
-
-    override val shouldDisplayTopBar = false
 
     private val recyclerView = RecyclerView(context).apply {
         id = View.generateViewId()
@@ -43,11 +42,11 @@ class TonConnectRequestSendDetailsVC(
         navigationBar?.addCloseButton()
 
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
-        view.setConstraints({
-            toCenterX(recyclerView)
+        view.setConstraints {
+            toCenterX(recyclerView, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
             topToBottom(recyclerView, navigationBar!!)
             toBottom(recyclerView)
-        })
+        }
 
         rvAdapter.submitList(items)
         updateTheme()
@@ -56,7 +55,7 @@ class TonConnectRequestSendDetailsVC(
 
     override fun updateTheme() {
         super.updateTheme()
-        view.setBackgroundColor(WColor.Background.color)
+        view.setBackgroundColor(WColor.SecondaryBackground.color)
     }
 
     override fun insetsUpdated() {

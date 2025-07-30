@@ -7,6 +7,8 @@ import org.mytonwallet.app_air.walletcore.STAKED_USDE_SLUG
 import org.mytonwallet.app_air.walletcore.STAKE_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.USDE_SLUG
+import org.mytonwallet.app_air.walletcore.models.MTokenBalance
+import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import java.math.BigInteger
 
 @JsonClass(generateAdapter = true)
@@ -17,7 +19,7 @@ data class MUpdateStaking(
     val shouldUseNominators: Boolean?,
 ) {
 
-    private val tonStakingState: StakingState? by lazy {
+    val tonStakingState: StakingState? by lazy {
         states.firstOrNull {
             if (shouldUseNominators == true)
                 it is StakingState.Nominators
@@ -25,13 +27,13 @@ data class MUpdateStaking(
         }
     }
 
-    private val mycoinStakingState: StakingState? by lazy {
+    val mycoinStakingState: StakingState? by lazy {
         states.firstOrNull {
             it is StakingState.Jetton && it.tokenSlug == MYCOIN_SLUG
         }
     }
 
-    private val usdeStakingState: StakingState? by lazy {
+    val usdeStakingState: StakingState? by lazy {
         states.firstOrNull {
             it is StakingState.Ethena && it.tokenSlug == USDE_SLUG
         }
@@ -52,7 +54,7 @@ data class MUpdateStaking(
             return usdeStakingState?.balance
         }
 
-    fun stakingState(tokenSlug: String): StakingState? {
+    fun stakingState(tokenSlug: String?): StakingState? {
         return when (tokenSlug) {
             TONCOIN_SLUG, STAKE_SLUG -> {
                 tonStakingState
@@ -70,5 +72,26 @@ data class MUpdateStaking(
                 null
             }
         }
+    }
+
+    private fun balanceInBaseCurrency(
+        slug: String,
+        balance: BigInteger?,
+        selector: MTokenBalance.() -> Double?
+    ): Double {
+        return MTokenBalance.fromParameters(TokenStore.getToken(slug), balance)
+            ?.let(selector) ?: 0.0
+    }
+
+    fun totalBalanceInBaseCurrency(): Double {
+        return balanceInBaseCurrency(TONCOIN_SLUG, tonBalance) { toBaseCurrency } +
+            balanceInBaseCurrency(MYCOIN_SLUG, mycoinBalance) { toBaseCurrency } +
+            balanceInBaseCurrency(USDE_SLUG, usdeBalance) { toBaseCurrency }
+    }
+
+    fun totalBalanceInBaseCurrency24h(): Double {
+        return balanceInBaseCurrency(TONCOIN_SLUG, tonBalance) { toBaseCurrency24h } +
+            balanceInBaseCurrency(MYCOIN_SLUG, mycoinBalance) { toBaseCurrency24h } +
+            balanceInBaseCurrency(USDE_SLUG, usdeBalance) { toBaseCurrency24h }
     }
 }

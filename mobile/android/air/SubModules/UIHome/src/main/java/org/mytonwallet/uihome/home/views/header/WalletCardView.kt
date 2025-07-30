@@ -51,6 +51,7 @@ import org.mytonwallet.app_air.walletcontext.utils.VerticalImageSpan
 import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
 import org.mytonwallet.app_air.walletcontext.utils.formatStartEndAddress
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.setBaseCurrency
 import org.mytonwallet.app_air.walletcore.models.MBaseCurrency
 import org.mytonwallet.app_air.walletcore.models.MBlockchain
@@ -221,7 +222,7 @@ class WalletCardView(
         setOnClickListener {
             val url =
                 "https://getgems.io/collection/EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM"
-            WalletCore.notifyEvent(WalletCore.Event.OpenUrl(url))
+            WalletCore.notifyEvent(WalletEvent.OpenUrl(url))
         }
     }
 
@@ -275,7 +276,9 @@ class WalletCardView(
             allEdges(contentView)
         }
 
-        updateAccountData()
+        WalletCore.doOnBridgeReady {
+            updateAccountData()
+        }
 
         addressLabelContainer.setOnClickListener {
             if (!WalletCore.isMultichain) {
@@ -329,11 +332,11 @@ class WalletCardView(
                                 init {
                                     updateTheme()
                                     setOnClickListener {
-                                        val event =
-                                            WalletCore.Event.OpenUrl(
+                                        val walletEvent =
+                                            WalletEvent.OpenUrl(
                                                 chain.explorerUrl(fullAddress)
                                             )
-                                        WalletCore.notifyEvent(event)
+                                        WalletCore.notifyEvent(walletEvent)
                                         popupWindow.dismiss()
                                     }
                                 }
@@ -396,7 +399,7 @@ class WalletCardView(
             if (AccountStore.activeAccount?.isMultichain == true) LocaleController.getString(org.mytonwallet.app_air.walletcontext.R.string.Home_Multichain) else AccountStore.activeAccount?.firstAddress?.formatStartEndAddress(
                 6,
                 6
-            )
+            ) ?: ""
         val ss = SpannableStringBuilder(txt)
         if (AccountStore.activeAccount?.isMultichain != true)
             ss.updateDotsTypeface()
@@ -417,8 +420,10 @@ class WalletCardView(
 
     fun updateCardImage() {
         cardNft =
-            WGlobalStorage.getCardBackgroundNft(AccountStore.activeAccountId!!)
-                ?.let { ApiNft.fromJson(it) }
+            AccountStore.activeAccountId?.let { activeAccountId ->
+                WGlobalStorage.getCardBackgroundNft(activeAccountId)
+                    ?.let { ApiNft.fromJson(it) }
+            }
         updateTheme()
 
         if (cardNft == null) {

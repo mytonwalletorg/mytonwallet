@@ -4,6 +4,10 @@ import java.math.BigInteger
 
 const val decimalSeparator = '.'
 
+fun max(a: BigInteger, b: BigInteger): BigInteger {
+    return if (a > b) a else b
+}
+
 fun BigInteger.doubleAbsRepresentation(decimals: Int? = null): Double {
     val absValue = this.abs()
     var str = absValue.toString()

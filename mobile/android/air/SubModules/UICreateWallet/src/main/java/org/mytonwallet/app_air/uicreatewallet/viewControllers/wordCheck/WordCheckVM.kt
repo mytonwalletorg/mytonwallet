@@ -2,6 +2,8 @@ package org.mytonwallet.app_air.uicreatewallet.viewControllers.wordCheck
 
 import android.app.Activity
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.LogMessage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.secureStorage.WSecureStorage
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.api.createWallet
@@ -34,11 +36,28 @@ class WordCheckVM(delegate: Delegate) {
                 }
             } else {
                 val createdAccountId = account.accountId
+                Logger.d(
+                    Logger.LogTag.ACCOUNT,
+                    LogMessage.Builder()
+                        .append(
+                            createdAccountId,
+                            LogMessage.MessagePartPrivacy.PUBLIC
+                        )
+                        .append(
+                            "Created",
+                            LogMessage.MessagePartPrivacy.PUBLIC
+                        )
+                        .append(
+                            "Address: ${account.tonAddress}",
+                            LogMessage.MessagePartPrivacy.REDACTED
+                        ).build()
+                )
                 WGlobalStorage.addAccount(
                     accountId = createdAccountId,
                     accountType = MAccount.AccountType.MNEMONIC.value,
                     address = account.tonAddress,
-                    tronAddress = account.addressByChain["tron"]
+                    tronAddress = account.addressByChain["tron"],
+                    importedAt = account.importedAt
                 )
                 if (biometricsActivated != null) {
                     if (biometricsActivated) {

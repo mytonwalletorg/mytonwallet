@@ -216,7 +216,12 @@ class SendNftVC(
                 context,
                 (view.height * PasscodeScreenView.TOP_HEADER_MAX_HEIGHT_RATIO).roundToInt()
             ).apply {
-                config(Content.ofUrl(nft.image ?: ""), nft.name ?: "", addressAttr)
+                config(
+                    Content.ofUrl(nft.image ?: ""),
+                    nft.name ?: "",
+                    addressAttr,
+                    Content.Rounding.Radius(12f.dp)
+                )
             }
             if (AccountStore.activeAccount?.isHardware == true) {
                 val account = AccountStore.activeAccount!!

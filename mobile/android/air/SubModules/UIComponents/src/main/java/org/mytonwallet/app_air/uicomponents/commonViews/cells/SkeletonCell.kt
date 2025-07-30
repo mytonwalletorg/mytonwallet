@@ -57,11 +57,11 @@ class SkeletonCell(
         addView(subtitleSkeleton)
         setConstraints {
             toTop(circleSkeleton, 8f)
-            toStart(circleSkeleton, 16f)
+            toStart(circleSkeleton, 13f)
             toTop(titleSkeleton, 14f)
-            toStart(titleSkeleton, 76f)
+            toStart(titleSkeleton, 72f)
             toTop(subtitleSkeleton, 36f)
-            toStart(subtitleSkeleton, 76f)
+            toStart(subtitleSkeleton, 72f)
         }
 
         background = backgroundDrawable

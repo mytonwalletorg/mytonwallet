@@ -2,31 +2,24 @@ package org.mytonwallet.app_air.walletcore.models
 
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcontext.utils.doubleAbsRepresentation
-import org.mytonwallet.app_air.walletcore.STAKED_MYCOIN_SLUG
-import org.mytonwallet.app_air.walletcore.STAKED_USDE_SLUG
-import org.mytonwallet.app_air.walletcore.STAKE_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.TON_USDT_SLUG
 import org.mytonwallet.app_air.walletcore.TRON_SLUG
 import org.mytonwallet.app_air.walletcore.TRON_USDT_SLUG
 import java.math.BigInteger
 
-class MTokenBalance private constructor(
+data class MTokenBalance(
     val token: String?,
     val amountValue: BigInteger,
     var toBaseCurrency: Double?,
     var toBaseCurrency24h: Double?,
     val toUsdBaseCurrency: Double?,
+    val isVirtualStakingRow: Boolean = false,
 ) {
 
     val priority: Int
         get() {
-            return when (token) {
-                STAKE_SLUG -> 3
-                STAKED_MYCOIN_SLUG -> 2
-                STAKED_USDE_SLUG -> 1
-                else -> 0
-            }
+            return 0
         }
 
     val priorityOnSameBalance: Int
@@ -50,7 +43,9 @@ class MTokenBalance private constructor(
         }
 
         // Factory method to create an instance from separate parameters
-        fun fromParameters(token: MToken, amount: BigInteger): MTokenBalance {
+        fun fromParameters(token: MToken?, amount: BigInteger?): MTokenBalance? {
+            if (token == null || amount == null)
+                return null
             val toBaseCurrency =
                 token.price?.let { amount.doubleAbsRepresentation(token.decimals) * it }
             val priceYesterday =
@@ -65,6 +60,12 @@ class MTokenBalance private constructor(
                 toBaseCurrency,
                 toBaseCurrency24h,
                 toUsdBaseCurrency
+            )
+        }
+
+        fun fromVirtualStakingData(baseToken: MToken, amount: BigInteger): MTokenBalance {
+            return fromParameters(baseToken, amount)!!.copy(
+                isVirtualStakingRow = true
             )
         }
     }

@@ -35,6 +35,7 @@ sealed class ApiUpdate {
         val permissions: Permissions,
         val proof: ApiTonConnectProof? = null
     ) : ApiUpdate() {
+        @JsonClass(generateAdapter = true)
         data class Permissions(
             val address: Boolean,
             val proof: Boolean
@@ -97,6 +98,7 @@ sealed class ApiUpdate {
         val currentVersion: String,
         val versions: List<Version>
     ) : ApiUpdate() {
+        @JsonClass(generateAdapter = true)
         data class Version(
             val address: String,
             val balance: BigInteger,

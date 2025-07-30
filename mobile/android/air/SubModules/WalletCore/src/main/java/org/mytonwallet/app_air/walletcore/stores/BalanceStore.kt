@@ -7,6 +7,7 @@ import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcore.STAKED_MYCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.STAKED_USDE_SLUG
 import org.mytonwallet.app_air.walletcore.STAKE_SLUG
+import org.mytonwallet.app_air.walletcore.STAKING_SLUGS
 import org.mytonwallet.app_air.walletcore.models.MTokenBalance
 import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
@@ -38,6 +39,10 @@ object BalanceStore {
                 }
             }
         }
+    }
+
+    fun removeBalances(accountId: String) {
+        balances.remove(accountId)
     }
 
     fun clean() {
@@ -106,15 +111,19 @@ object BalanceStore {
 
     fun totalBalanceInBaseCurrency(accountId: String): Double? {
         val accountBalances = balances[accountId]
-        val walletTokens = accountBalances?.mapNotNull { (tokenSlug, balance) ->
-            val token =
-                TokenStore.getToken(if (tokenSlug == STAKE_SLUG) "toncoin" else tokenSlug)
-            if (token != null)
-                MTokenBalance.fromParameters(token, balance)
-            else
-                null
-        } ?: return null
+        val walletTokens = accountBalances?.filter { !STAKING_SLUGS.contains(it.key) }
+            ?.mapNotNull { (tokenSlug, balance) ->
+                val token =
+                    TokenStore.getToken(if (tokenSlug == STAKE_SLUG) "toncoin" else tokenSlug)
+                if (token != null)
+                    MTokenBalance.fromParameters(token, balance)
+                else
+                    null
+            } ?: return null
+        val stakingBalance =
+            StakingStore.getStakingState(accountId)?.totalBalanceInBaseCurrency() ?: 0.0
 
-        return walletTokens.sumOf { it.toBaseCurrency ?: 0.0 }
+        return walletTokens.sumOf { it.toBaseCurrency ?: 0.0 } + stakingBalance
     }
+
 }

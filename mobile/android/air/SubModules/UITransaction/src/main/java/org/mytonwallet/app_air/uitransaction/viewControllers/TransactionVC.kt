@@ -44,11 +44,11 @@ import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.uiinappbrowser.InAppBrowserVC
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState
-import org.mytonwallet.app_air.uisend.send.SendStartInputVC
+import org.mytonwallet.app_air.uisend.send.SendVC
 import org.mytonwallet.app_air.uistake.earn.EarnRootVC
 import org.mytonwallet.app_air.uistake.staking.StakingVC
 import org.mytonwallet.app_air.uistake.staking.StakingViewModel
-import org.mytonwallet.app_air.uiswap.screens.main.SwapMainVC
+import org.mytonwallet.app_air.uiswap.screens.main.SwapVC
 import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.BiometricHelpers
@@ -68,6 +68,7 @@ import org.mytonwallet.app_air.walletcontext.utils.toBigInteger
 import org.mytonwallet.app_air.walletcontext.utils.toString
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.InAppBrowserConfig
 import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.MFee
@@ -253,6 +254,7 @@ class TransactionVC(context: Context, val transaction: MApiTransaction) : WViewC
         }
         v.minimumHeight = 36.dp
         v.setConstraints {
+            constrainedWidth(commentLabel.id, true)
             toTop(commentLabel)
             toStart(commentLabel)
             toBottom(commentLabel)
@@ -421,7 +423,11 @@ class TransactionVC(context: Context, val transaction: MApiTransaction) : WViewC
                                 setStyle(16f)
                                 setTextColor(WColor.Tint)
                                 setOnClickListener {
-                                    WalletCore.notifyEvent(WalletCore.Event.OpenUrl(transaction.nft!!.collectionUrl))
+                                    WalletCore.notifyEvent(
+                                        WalletEvent.OpenUrl(
+                                            transaction.nft!!.collectionUrl
+                                        )
+                                    )
                                 }
                                 text =
                                     if (transaction.nft!!.isStandalone()) LocaleController.getString(
@@ -947,9 +953,9 @@ class TransactionVC(context: Context, val transaction: MApiTransaction) : WViewC
                     )
                 } else {
                     navVC.setRoot(
-                        SendStartInputVC(
+                        SendVC(
                             context, transaction.slug,
-                            SendStartInputVC.InitialValues(
+                            SendVC.InitialValues(
                                 transaction.toAddress,
                                 CoinUtils.toBigDecimal(
                                     transaction.amount.abs(),
@@ -966,7 +972,7 @@ class TransactionVC(context: Context, val transaction: MApiTransaction) : WViewC
                 val fromToken = transaction.fromToken ?: return
                 val toToken = transaction.toToken ?: return
                 navVC.setRoot(
-                    SwapMainVC(
+                    SwapVC(
                         context,
                         MApiSwapAsset.from(fromToken),
                         MApiSwapAsset.from(toToken),

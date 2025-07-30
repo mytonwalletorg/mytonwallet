@@ -24,6 +24,7 @@ import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.EquatableChange
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MToken
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.BalanceStore
@@ -201,19 +202,19 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
         }
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.BaseCurrencyChanged -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.BaseCurrencyChanged -> {
                 rvAdapter.reloadData()
             }
 
-            WalletCore.Event.BalanceChanged,
-            WalletCore.Event.TokensChanged -> {
+            WalletEvent.BalanceChanged,
+            WalletEvent.TokensChanged -> {
                 reloadTokens()
                 rvAdapter.reloadData()
             }
 
-            WalletCore.Event.AssetsAndActivityDataUpdated -> {
+            WalletEvent.AssetsAndActivityDataUpdated -> {
                 val allTokensCount = allTokens.size
                 reloadTokens()
                 if (allTokensCount != allTokens.size)

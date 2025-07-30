@@ -3,6 +3,7 @@ package org.mytonwallet.app_air.uibrowser.viewControllers.explore
 import android.os.Handler
 import android.os.Looper
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.loadExploreSites
 import org.mytonwallet.app_air.walletcore.models.MExploreCategory
 import org.mytonwallet.app_air.walletcore.models.MExploreSite
@@ -67,23 +68,23 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
         delegate.get()?.sitesUpdated()
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.NetworkConnected -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.NetworkConnected -> {
                 refresh()
             }
 
-            WalletCore.Event.NetworkDisconnected -> {
+            WalletEvent.NetworkDisconnected -> {
                 waitingForNetwork = true
             }
 
-            WalletCore.Event.DappsCountUpdated -> {
+            WalletEvent.DappsCountUpdated -> {
                 connectedSites = DappsStore.dApps[AccountStore.activeAccountId]?.toTypedArray()
                 delegate.get()?.updateEmptyView()
                 delegate.get()?.sitesUpdated()
             }
 
-            WalletCore.Event.ConfigReceived -> {
+            WalletEvent.ConfigReceived -> {
                 delegate.get()?.updateEmptyView()
                 delegate.get()?.sitesUpdated()
             }

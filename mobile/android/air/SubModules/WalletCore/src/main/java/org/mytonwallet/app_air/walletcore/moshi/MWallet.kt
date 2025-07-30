@@ -1,5 +1,6 @@
 package org.mytonwallet.app_air.walletcore.moshi
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import java.math.BigInteger
 
@@ -50,9 +51,12 @@ data class MApiTonAccount(
 )
 
 // Enum for ApiLedgerDriver
-@JsonClass(generateAdapter = true)
+@JsonClass(generateAdapter = false)
 enum class MApiLedgerDriver {
+    @Json(name = "hid")
     HID,
+
+    @Json(name = "usb")
     USB
 }
 

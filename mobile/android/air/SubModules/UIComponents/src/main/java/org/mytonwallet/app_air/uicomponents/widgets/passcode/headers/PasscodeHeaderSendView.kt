@@ -180,7 +180,15 @@ class PasscodeHeaderSendView(
         config(Content.of(token), amount, address)
     }
 
-    fun config(content: Content, title: CharSequence, subtitle: CharSequence) {
+    fun config(
+        content: Content,
+        title: CharSequence,
+        subtitle: CharSequence,
+        rounding: Content.Rounding? = null
+    ) {
+        rounding.let {
+            tokenToSendIconView.defaultRounding = Content.Rounding.Radius(12f.dp)
+        }
         tokenToSendIconView.set(content)
         tokenToSendTextView.text = title
         sendingTextView.text = subtitle

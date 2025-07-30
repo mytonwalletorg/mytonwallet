@@ -3,10 +3,12 @@ package org.mytonwallet.uihome.home
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
+import org.mytonwallet.app_air.walletcore.STAKING_SLUGS
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.TRON_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.fetchAccount
 import org.mytonwallet.app_air.walletcore.api.requestDAppList
 import org.mytonwallet.app_air.walletcore.api.swapGetAssets
@@ -18,6 +20,7 @@ import org.mytonwallet.app_air.walletcore.stores.BalanceStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import org.mytonwallet.uihome.home.views.UpdateStatusView
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
 
 class HomeVM(val context: Context, delegate: Delegate) : WalletCore.EventObserver,
     IActivityLoader.Delegate {
@@ -130,13 +133,13 @@ class HomeVM(val context: Context, delegate: Delegate) : WalletCore.EventObserve
     private fun dataUpdated() {
         // make sure balances are loaded
         if (!balancesLoaded) {
-            Log.i("HomeVM", "Balances not loaded yet")
+            Logger.i(Logger.LogTag.HomeVM, "Balances not loaded yet")
             return
         }
 
         // make sure tokens are loaded
         if (!TokenStore.loadedAllTokens) {
-            Log.i("HomeVM", "tokens not loaded yet")
+            Logger.i(Logger.LogTag.HomeVM, "tokens not loaded yet")
             /*
              to prevent over-requesting for prices, we wait for the initial request and response of the js logic;
              to track tokens load, wait for for 5 seconds, if not loaded yet, it might be an issue initializing it in js, let's manually reload it.
@@ -156,13 +159,13 @@ class HomeVM(val context: Context, delegate: Delegate) : WalletCore.EventObserve
             balances?.get(TONCOIN_SLUG) == null ||
             (AccountStore.activeAccount?.isMultichain == true && balances.get(TRON_SLUG) == null)
         ) {
-            Log.i("HomeVM", "balancesEventCalledOnce not loaded yet")
+            Logger.i(Logger.LogTag.HomeVM, "balancesEventCalledOnce not loaded yet")
             return
         }
 
         // make sure assets are loaded
         if (TokenStore.swapAssets == null) {
-            Log.i("HomeVM", "swap assets are not loaded yet")
+            Logger.i(Logger.LogTag.HomeVM, "swap assets are not loaded yet")
             Handler(Looper.getMainLooper()).postDelayed({
                 if (TokenStore.swapAssets == null) {
                     WalletCore.swapGetAssets(true) { assets, err ->
@@ -186,17 +189,26 @@ class HomeVM(val context: Context, delegate: Delegate) : WalletCore.EventObserve
         }
 
         // update balance view
-        val walletTokens = AccountStore.assetsAndActivityData.getAllTokens().toMutableList()
+        Executors.newSingleThreadExecutor().execute {
+            val walletTokens = AccountStore.assetsAndActivityData.getAllTokens()
+                .filter { !STAKING_SLUGS.contains(it.token) }.toMutableList()
 
-        val totalBalance = walletTokens.sumOf { it.toBaseCurrency ?: 0.0 }
-        val totalBalanceYesterday = walletTokens.sumOf { it.toBaseCurrency24h ?: 0.0 }
+            val stakingData = AccountStore.stakingData
+            val totalBalance =
+                walletTokens.sumOf { it.toBaseCurrency ?: 0.0 } +
+                    (stakingData?.totalBalanceInBaseCurrency() ?: 0.0)
+            val totalBalanceYesterday = walletTokens.sumOf { it.toBaseCurrency24h ?: 0.0 } +
+                (stakingData?.totalBalanceInBaseCurrency24h() ?: 0.0)
 
-        // reload balance
-        delegate.get()?.updateBalance(
-            balance = totalBalance,
-            balance24h = totalBalanceYesterday,
-            accountChanged
-        )
+            Handler(Looper.getMainLooper()).post {
+                // reload balance
+                delegate.get()?.updateBalance(
+                    balance = totalBalance,
+                    balance24h = totalBalanceYesterday,
+                    accountChanged
+                )
+            }
+        }
     }
 
     private fun baseCurrencyChanged() {
@@ -249,34 +261,34 @@ class HomeVM(val context: Context, delegate: Delegate) : WalletCore.EventObserve
         dataUpdated()
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            WalletCore.Event.BalanceChanged, WalletCore.Event.TokensChanged -> {
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            WalletEvent.BalanceChanged, WalletEvent.TokensChanged -> {
                 dataUpdated()
             }
 
-            WalletCore.Event.BaseCurrencyChanged -> {
+            WalletEvent.BaseCurrencyChanged -> {
                 baseCurrencyChanged()
             }
 
-            is WalletCore.Event.AccountChanged -> {
+            is WalletEvent.AccountChanged -> {
                 accountChanged()
             }
 
-            WalletCore.Event.AccountNameChanged -> {
+            WalletEvent.AccountNameChanged -> {
                 delegate.get()?.accountNameChanged()
                 dataUpdated()
             }
 
-            WalletCore.Event.StakingDataUpdated -> {
+            WalletEvent.StakingDataUpdated -> {
                 delegate.get()?.stakingDataUpdated()
             }
 
-            WalletCore.Event.AssetsAndActivityDataUpdated -> {
+            WalletEvent.AssetsAndActivityDataUpdated -> {
                 dataUpdated()
             }
 
-            WalletCore.Event.NetworkConnected -> {
+            WalletEvent.NetworkConnected -> {
                 if (waitingForNetwork) {
                     waitingForNetwork = false
                     refreshTransactions()
@@ -286,23 +298,23 @@ class HomeVM(val context: Context, delegate: Delegate) : WalletCore.EventObserve
                 }
             }
 
-            WalletCore.Event.NetworkDisconnected -> {
+            WalletEvent.NetworkDisconnected -> {
                 connectionLost()
             }
 
-            WalletCore.Event.NftCardUpdated -> {
+            WalletEvent.NftCardUpdated -> {
                 delegate.get()?.reloadCard()
             }
 
-            WalletCore.Event.NftsUpdated, WalletCore.Event.HomeNftCollectionsUpdated -> {
+            WalletEvent.NftsUpdated, WalletEvent.HomeNftCollectionsUpdated -> {
                 delegate.get()?.reloadTabs(false)
             }
 
-            WalletCore.Event.UpdatingStatusChanged -> {
+            WalletEvent.UpdatingStatusChanged -> {
                 startUpdatingTimer()
             }
 
-            WalletCore.Event.AccountConfigReceived -> {
+            WalletEvent.AccountConfigReceived -> {
                 delegate.get()?.accountConfigChanged()
             }
 

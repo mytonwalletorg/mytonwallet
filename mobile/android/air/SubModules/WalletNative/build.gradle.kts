@@ -9,11 +9,11 @@ android {
 
     defaultConfig {
         minSdk = 21
-        ndkVersion = "21.4.7075529"
+        ndkVersion = "27.3.13750724"
         consumerProguardFiles("consumer-rules.pro")
         externalNativeBuild {
             cmake {
-                cppFlags("")
+                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
             }
         }
     }

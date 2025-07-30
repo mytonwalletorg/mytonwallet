@@ -42,6 +42,7 @@ class WDialog(private val customView: ViewGroup, private val config: Config) {
     private val overlayView = View(customView.context).apply {
         id = View.generateViewId()
         alpha = 0f
+        z = Float.MAX_VALUE - 2
         setBackgroundColor(Color.BLACK.colorWithAlpha(76))
         setOnClickListener {
             dismiss()
@@ -90,6 +91,7 @@ class WDialog(private val customView: ViewGroup, private val config: Config) {
     }.apply {
         id = View.generateViewId()
         alpha = 0f
+        z = Float.MAX_VALUE - 1
         updateTheme()
         titleLabel?.let { titleLabel ->
             addView(titleLabel, FrameLayout.LayoutParams(MATCH_PARENT, 44.dp).apply {

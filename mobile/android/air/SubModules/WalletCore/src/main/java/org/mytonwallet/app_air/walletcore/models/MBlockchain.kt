@@ -1,11 +1,13 @@
 package org.mytonwallet.app_air.walletcore.models
 
 import android.graphics.Color
+import com.squareup.moshi.JsonClass
 import org.mytonwallet.app_air.icons.R
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.helpers.ExplorerHelpers
 import java.math.BigDecimal
 
+@JsonClass(generateAdapter = false)
 enum class MBlockchain(
     val icon: Int,
     val nativeSlug: String
@@ -91,6 +93,11 @@ enum class MBlockchain(
             }
         }
 
+    val isCommentSupported: Boolean
+        get() {
+            return this == ton
+        }
+
     fun explorerUrl(address: String): String {
         val str: String
         when (this) {
@@ -109,5 +116,18 @@ enum class MBlockchain(
             }
         }
         return str
+    }
+
+    fun isValidAddress(address: String): Boolean {
+        return when (this) {
+            ton -> Regex("""^([-\w_]{48}|0:[\da-fA-F]{64})$""").matches(address)
+            tron -> Regex("""^T[1-9A-HJ-NP-Za-km-z]{33}$""").matches(address)
+
+            else -> false
+        }
+    }
+
+    companion object {
+        val supportedChains = listOf(ton, tron)
     }
 }

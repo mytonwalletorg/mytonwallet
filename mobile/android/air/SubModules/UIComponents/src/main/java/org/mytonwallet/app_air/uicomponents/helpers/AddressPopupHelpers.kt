@@ -19,6 +19,7 @@ import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.VerticalImageSpan
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MBlockchain
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 
@@ -102,8 +103,9 @@ class AddressPopupHelpers {
                         org.mytonwallet.app_air.icons.R.drawable.ic_world,
                         LocaleController.getString(R.string.Token_OpenInExplorer),
                     ) {
-                        val event = WalletCore.Event.OpenUrl(blockchain.explorerUrl(address))
-                        WalletCore.notifyEvent(event)
+                        val walletEvent =
+                            WalletEvent.OpenUrl(blockchain.explorerUrl(address))
+                        WalletCore.notifyEvent(walletEvent)
                     }),
                 popupWidth = 196.dp,
                 offset = xOffset,

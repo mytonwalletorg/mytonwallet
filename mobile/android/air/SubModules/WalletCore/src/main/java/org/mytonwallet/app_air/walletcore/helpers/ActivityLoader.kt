@@ -3,8 +3,10 @@ package org.mytonwallet.app_air.walletcore.helpers
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
+import org.mytonwallet.app_air.walletcore.helpers.ActivityHelpers.Companion.isSuitableToGetTimestamp
 import org.mytonwallet.app_air.walletcore.moshi.MApiTransaction
 import org.mytonwallet.app_air.walletcore.stores.ActivityStore
 import java.lang.ref.WeakReference
@@ -67,14 +69,14 @@ class ActivityLoader(
     private var paginationActivity: MApiTransaction? = null
 
     override fun askForActivities() {
-        Log.d("ActivityLoader $selectedSlug", "$this Request to load first page")
+        Logger.d(Logger.LogTag.ACTIVITY_LOADER, "$selectedSlug $this Request to load first page")
         ActivityStore.fetchTransactions(context, accountId, selectedSlug, null, { res ->
             val isFromCache = res.isFromCache
             val transactions = res.transactions
             val loadedAll = res.loadedAll
-            Log.d(
-                "ActivityLoader $selectedSlug",
-                "First page - isFromCache: $isFromCache - transactionsCount: ${transactions.size} - loadedAll: $loadedAll"
+            Logger.d(
+                Logger.LogTag.ACTIVITY_LOADER,
+                "$selectedSlug First page - isFromCache: $isFromCache - transactionsCount: ${transactions.size} - loadedAll: $loadedAll"
             )
             // Check if cache not found to notify ui layer
             if (transactions.isEmpty() && isFromCache && !loadedAll) {
@@ -90,7 +92,7 @@ class ActivityLoader(
             received(transactions.toList(), false, isFromCache, loadedAll)
             if (!loadedAll) {
                 processorQueue.execute {
-                    Log.d("ActivityLoader $selectedSlug", "Loaded first page")
+                    Logger.d(Logger.LogTag.ACTIVITY_LOADER, "$selectedSlug Loaded first page")
                     prepareBudgetActivities()
                 }
             }
@@ -103,7 +105,7 @@ class ActivityLoader(
             return
         }
 
-        Log.d("ActivityLoader $selectedSlug", "$this Use budget transactions")
+        Logger.d(Logger.LogTag.ACTIVITY_LOADER, "$selectedSlug $this Use budget transactions")
         processorQueue.execute {
             isWaitingForBudget = false
             if (budgetTransactions.isNotEmpty()) {
@@ -137,15 +139,15 @@ class ActivityLoader(
         if (loadedAll) return
         isPreparingBudget = true
 
-        Log.d(
-            "ActivityLoader $selectedSlug",
-            "Prepare budget / Budget now: $budgetLen / Loading before: ${paginationActivity?.dt ?: lastActivity.dt}"
+        Logger.d(
+            Logger.LogTag.ACTIVITY_LOADER,
+            "$selectedSlug / Prepare budget / Budget now: $budgetLen / Loading before: ${paginationActivity?.dt ?: lastActivity.dt}"
         )
         ActivityStore.fetchTransactions(
             context,
             accountId,
             selectedSlug,
-            paginationActivity?.id ?: lastActivity.id
+            paginationActivity ?: lastActivity
         ) { res ->
             val transactions = res.transactions
             val loadedAll = res.loadedAll
@@ -159,9 +161,9 @@ class ActivityLoader(
                     prepareBudgetActivities()
                     return@execute
                 }
-                Log.d(
-                    "ActivityLoader $selectedSlug",
-                    "$this Loaded budget: ${transactions.size} / LoadedAll: ${res.loadedAll}"
+                Logger.d(
+                    Logger.LogTag.ACTIVITY_LOADER,
+                    "$selectedSlug $this Loaded budget: ${transactions.size} / LoadedAll: ${res.loadedAll}"
                 )
                 transactions.lastOrNull()?.let {
                     paginationActivity = it
@@ -174,7 +176,10 @@ class ActivityLoader(
                     }
                 }
                 if (!res.isFromCache) {
-                    Log.d("ActivityLoader $selectedSlug", "Store list after prepare budget")
+                    Logger.d(
+                        Logger.LogTag.ACTIVITY_LOADER,
+                        "$selectedSlug Store list after prepare budget"
+                    )
                     storeListActivityIds()
                 }
                 val fetchMore =
@@ -220,7 +225,7 @@ class ActivityLoader(
 
             allTransactions = currentAllTransactions.sortedWith(::sorter)
             if (loadedAll == true && !this.loadedAll) {
-                Log.d("ActivityLoader $selectedSlug", "received / loadedAll: true")
+                Logger.d(Logger.LogTag.ACTIVITY_LOADER, "$selectedSlug received / loadedAll: true")
                 Handler(Looper.getMainLooper()).post {
                     delegate?.get()?.activityLoaderLoadedAll()
                 }
@@ -228,7 +233,10 @@ class ActivityLoader(
             }
 
             if (!isFromCache && !isUpdateEvent) {
-                Log.d("ActivityLoader $selectedSlug", "Store list after load from network")
+                Logger.d(
+                    Logger.LogTag.ACTIVITY_LOADER,
+                    "$selectedSlug - Store list after load from network"
+                )
                 storeListActivityIds()
             }
             sortAndUpdateShowingTransactions(isUpdateEvent)
@@ -255,12 +263,6 @@ class ActivityLoader(
         }
     }
 
-    private fun getLastDt(transactions: List<MApiTransaction>?): Long {
-        return transactions?.lastOrNull {
-            it.getTxSlug() == selectedSlug
-        }?.timestamp ?: 0L
-    }
-
     private fun sorter(t1: MApiTransaction, t2: MApiTransaction): Int {
         return when {
             t1.timestamp != t2.timestamp -> t2.timestamp.compareTo(t1.timestamp)
@@ -268,29 +270,25 @@ class ActivityLoader(
         }
     }
 
-    private fun isSuitableToGetTimestamp(activity: MApiTransaction): Boolean {
-        return !activity.isLocal() && !activity.isBackendSwapId()
-    }
-
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.ReceivedNewActivities -> {
-                if (event.accountId == accountId) {
-                    Log.d(
-                        "ActivityLoader $selectedSlug",
-                        "$this ReceivedNewActivities: ${event.newActivities?.size}"
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.ReceivedNewActivities -> {
+                if (walletEvent.accountId == accountId) {
+                    Logger.d(
+                        Logger.LogTag.ACTIVITY_LOADER,
+                        "$selectedSlug $this ReceivedNewActivities: ${walletEvent.newActivities?.size}"
                     )
                     received(
-                        event.newActivities?.toList() ?: emptyList(),
-                        isUpdateEvent = event.isUpdateEvent == true,
+                        walletEvent.newActivities?.toList() ?: emptyList(),
+                        isUpdateEvent = walletEvent.isUpdateEvent == true,
                         isFromCache = false,
-                        loadedAll = event.loadedAll
+                        loadedAll = walletEvent.loadedAll
                     )
                 }
             }
 
-            is WalletCore.Event.InvalidateCache -> {
-                if (event.accountId == accountId && event.tokenSlug == selectedSlug) {
+            is WalletEvent.InvalidateCache -> {
+                if (walletEvent.accountId == accountId && walletEvent.tokenSlug == selectedSlug) {
                     processorQueue.execute {
                         allTransactions = emptyList()
                         budgetTransactions.clear()
@@ -300,7 +298,7 @@ class ActivityLoader(
                 }
             }
 
-            WalletCore.Event.HideTinyTransfersChanged -> {
+            WalletEvent.HideTinyTransfersChanged -> {
                 processorQueue.execute {
                     sortAndUpdateShowingTransactions(false)
                 }

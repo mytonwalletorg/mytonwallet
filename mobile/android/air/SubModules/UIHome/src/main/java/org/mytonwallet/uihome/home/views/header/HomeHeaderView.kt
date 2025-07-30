@@ -3,6 +3,8 @@ package org.mytonwallet.uihome.home.views.header
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -31,10 +33,12 @@ import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
+import org.mytonwallet.app_air.walletcontext.utils.AnimUtils.Companion.lerp
 import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
 import org.mytonwallet.app_air.walletcontext.utils.toBigInteger
 import org.mytonwallet.app_air.walletcontext.utils.toString
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.uihome.home.views.UpdateStatusView
 import kotlin.math.abs
@@ -155,8 +159,6 @@ class HomeHeaderView(
         })
         addView(walletNameLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
             gravity = Gravity.CENTER_HORIZONTAL
-            marginStart = 20.dp
-            marginEnd = 20.dp
         })
         addView(cardView)
         /*if (!ThemeManager.uiMode.hasRoundedCorners) {
@@ -314,9 +316,9 @@ class HomeHeaderView(
                 walletNameLabel.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
             else
                 walletNameLabel.alpha = 1f
-            walletNameLabel.text = AccountStore.activeAccount?.name
+            walletNameLabel.setTextIfChanged(AccountStore.activeAccount?.name)
         } else if (balance == null && accountChanged) {
-            walletNameLabel.text = ""
+            walletNameLabel.setTextIfChanged("")
         }
         val isBalanceLoaded = balance != null
         // Updating balance change
@@ -411,11 +413,32 @@ class HomeHeaderView(
         }
     }
 
+    val walletNameLabelSelectionHandler = Handler(Looper.getMainLooper())
+    val walletNameLabelSelectionTask = Runnable {
+        walletNameLabel.isSelected = true
+    }
+
+    fun updateWalletNameMargin(balanceExpandProgress: Float) {
+        val walletNameLayoutParams = walletNameLabel.layoutParams as? MarginLayoutParams ?: return
+        val maxLabelMargin =
+            if (AccountStore.activeAccount?.accountType == MAccount.AccountType.MNEMONIC) 96.dp else 56.dp
+        val labelMargin = lerp(maxLabelMargin.toFloat(), 20f.dp, balanceExpandProgress).roundToInt()
+        if (walletNameLayoutParams.marginStart == labelMargin)
+            return
+        walletNameLabel.layoutParams = walletNameLayoutParams.apply {
+            marginStart = labelMargin
+            marginEnd = labelMargin
+        }
+        walletNameLabel.isSelected = false
+        walletNameLabelSelectionHandler.removeCallbacks(walletNameLabelSelectionTask)
+        walletNameLabelSelectionHandler.postDelayed(walletNameLabelSelectionTask, 1000)
+    }
+
     fun updateAccountName() {
         if (prevBalance != null) {
-            walletNameLabel.text = AccountStore.activeAccount?.name
+            walletNameLabel.setTextIfChanged(AccountStore.activeAccount?.name)
         } else {
-            walletNameLabel.text = ""
+            walletNameLabel.setTextIfChanged("")
         }
     }
 
@@ -560,6 +583,7 @@ class HomeHeaderView(
         walletNameLabel.x = (width - walletNameLabel.width) / 2f
         walletNameLabel.y =
             balanceLabel.y + balanceLabel.height - 8 + (11 * balanceExpandProgress).dp
+        updateWalletNameMargin(balanceExpandProgress)
 
         updateStatusView.alpha = balanceExpandProgress
         updateStatusView.isGone = balanceExpandProgress == 0f

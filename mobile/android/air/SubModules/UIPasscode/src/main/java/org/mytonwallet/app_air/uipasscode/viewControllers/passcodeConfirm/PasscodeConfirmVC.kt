@@ -17,6 +17,7 @@ import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.secureStorage.WSecureStorage
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
@@ -24,7 +25,6 @@ import org.mytonwallet.app_air.walletcontext.theme.color
 import org.mytonwallet.app_air.walletcontext.utils.boldSubstring
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.api.resetAccounts
-import org.mytonwallet.app_air.walletcore.api.verifyPassword
 import org.mytonwallet.app_air.walletcore.stores.AuthCooldownError
 import org.mytonwallet.app_air.walletcore.stores.AuthStore
 
@@ -36,6 +36,8 @@ class PasscodeConfirmVC(
     private val allowedToCancel: Boolean = true,
     private val ignoreBiometry: Boolean = false,
 ) : WViewController(context), PasscodeScreenView.Delegate {
+
+    override val protectFromScreenRecord = true
 
     private var isDoingTask = false
 
@@ -149,8 +151,8 @@ class PasscodeConfirmVC(
             } else {
                 passcodeScreenView.tryBiometrics()
             }
-            passcodeScreenView.setupCooldown(AuthStore.getCooldownDate())
         }
+        passcodeScreenView.setupCooldown(AuthStore.getCooldownDate())
     }
 
     override fun onDestroy() {
@@ -171,6 +173,7 @@ class PasscodeConfirmVC(
         fun onPasscodeVerified() {
             view.lockView()
             isDoingTask = true
+            Logger.i(Logger.LogTag.PASSCODE_CONFIRM, "Running the task")
             task(passcode)
             if (isTaskAsync && passcodeViewState !is PasscodeViewState.Default) {
                 navigationBar?.fadeOutActions()
@@ -187,10 +190,15 @@ class PasscodeConfirmVC(
             }
         } else {
             if ((passcodeViewState as? PasscodeViewState.Default)?.isUnlockScreen == true) {
+                if (!WalletCore.isBridgeReady) {
+                    passcodeScreenView.showIndicator(animateToGreen = false)
+                }
+            }
+            WalletCore.doOnBridgeReady {
                 try {
                     AuthStore.verifyPassword(passcode) { success, cooldownDate ->
-                        callback(success == true, cooldownDate)
-                        if (success == true) {
+                        callback(success, cooldownDate)
+                        if (success) {
                             onPasscodeVerified()
                         } else {
                             onWrongInput?.invoke()
@@ -198,15 +206,6 @@ class PasscodeConfirmVC(
                     }
                 } catch (e: AuthCooldownError) {
                     callback(false, e.cooldownDate)
-                }
-            } else {
-                WalletCore.verifyPassword(passcode) { success, _ ->
-                    callback(success == true, null)
-                    if (success == true) {
-                        onPasscodeVerified()
-                    } else {
-                        onWrongInput?.invoke()
-                    }
                 }
             }
         }
@@ -226,6 +225,7 @@ class PasscodeConfirmVC(
                         view.unlockView()
                         showError(err)
                     }
+                    Logger.d(Logger.LogTag.ACCOUNT, "Reset accounts from lock screen")
                     WGlobalStorage.deleteAllWallets()
                     WSecureStorage.deleteAllWalletValues()
                     WalletContextManager.delegate?.restartApp()

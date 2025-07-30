@@ -179,11 +179,6 @@ class MToken(json: JSONObject) : IApiToken {
             return slug == TONCOIN_SLUG || slug == MYCOIN_SLUG || slug == USDE_SLUG
         }
 
-    val isStakingToken: Boolean
-        get() {
-            return slug == STAKE_SLUG || slug == STAKED_MYCOIN_SLUG || slug == STAKED_USDE_SLUG
-        }
-
     val stakingSlug: String?
         get() {
             return when (slug) {

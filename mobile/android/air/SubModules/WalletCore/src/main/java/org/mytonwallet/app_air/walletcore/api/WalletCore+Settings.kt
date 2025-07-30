@@ -3,6 +3,7 @@ package org.mytonwallet.app_air.walletcore.api
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MBaseCurrency
 import org.mytonwallet.app_air.walletcore.models.MBridgeError
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
@@ -23,7 +24,7 @@ fun WalletCore.setBaseCurrency(
             baseCurrency = MBaseCurrency.valueOf(newBaseCurrency)
             WGlobalStorage.setBaseCurrency(newBaseCurrency)
             WalletCore.tryUpdatePrices()
-            notifyEvent(WalletCore.Event.BaseCurrencyChanged)
+            notifyEvent(WalletEvent.BaseCurrencyChanged)
             callback(true, null)
         }
     }

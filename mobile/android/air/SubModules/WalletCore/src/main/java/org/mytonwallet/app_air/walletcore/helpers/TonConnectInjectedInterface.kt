@@ -2,7 +2,6 @@ package org.mytonwallet.app_air.walletcore.helpers
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -48,7 +47,6 @@ class TonConnectInjectedInterface(
     private fun sendInvokeResponse(res: DAppInject.FunctionInvokeInvokeResult) {
         val adapter = WalletCore.moshi.adapter(DAppInject.FunctionInvokeInvokeResult::class.java)
         val json = adapter.toJson(res)
-        Log.i("WTH_DEBUG", "response $json")
         webView.post {
             webView.evaluateJavascript(
                 """
@@ -65,7 +63,6 @@ class TonConnectInjectedInterface(
 
     @JavascriptInterface
     fun invokeFunc(json: String) {
-        Log.i("WTH_DEBUG", "invoke $json")
         val adapter = WalletCore.moshi.adapter(DAppInject.FunctionInvoke::class.java)
         try {
             val parsed = adapter.fromJson(json) ?: return

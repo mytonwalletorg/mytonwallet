@@ -12,6 +12,7 @@ import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.constants.TelegramGiftAddresses
 import org.mytonwallet.app_air.walletcore.models.NftCollection
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
@@ -50,7 +51,7 @@ object CollectionsMenuHelpers {
                         AccountStore.activeAccountId!!,
                         homeNftCollections
                     )
-                    WalletCore.notifyEvent(WalletCore.Event.HomeNftCollectionsUpdated)
+                    WalletCore.notifyEvent(WalletEvent.HomeNftCollectionsUpdated)
                 }
             ),
             popupWidth = 120.dp,
@@ -61,11 +62,11 @@ object CollectionsMenuHelpers {
 
     fun presentCollectionsMenuOn(view: View, navigationController: WNavigationController) {
         val hiddenNFTsExist =
-            NftStore.cachedNfts?.firstOrNull { it.isHidden == true } != null ||
-                NftStore.blacklistedNftAddresses.isNotEmpty()
+            NftStore.nftData?.cachedNfts?.firstOrNull { it.isHidden == true } != null ||
+                NftStore.nftData?.blacklistedNftAddresses?.isNotEmpty() == true
         val collections = NftStore.getCollections()
         // Extract telegram gifts
-        val telegramGifts = NftStore.cachedNfts?.filter {
+        val telegramGifts = NftStore.nftData?.cachedNfts?.filter {
             TelegramGiftAddresses.all.contains(it.collectionAddress)
         }
         val telegramGiftItem = if ((telegramGifts?.size ?: 0) < 2)

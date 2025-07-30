@@ -17,6 +17,7 @@ import org.mytonwallet.app_air.walletcore.MYCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.USDE_SLUG
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.BalanceStore
 import kotlin.math.max
@@ -25,7 +26,6 @@ class EarnRootVC(context: Context, private val tokenSlug: String = TONCOIN_SLUG)
     WViewController(context), WalletCore.EventObserver {
 
     override val shouldDisplayTopBar = false
-    override val shouldDisplayBottomBar: Boolean = true
 
     private val tonVC = EarnVC(context, TONCOIN_SLUG, onScroll = { recyclerView ->
         updateBlurViews(recyclerView)
@@ -97,10 +97,10 @@ class EarnRootVC(context: Context, private val tokenSlug: String = TONCOIN_SLUG)
         titleLabel.setTextColor(WColor.PrimaryText.color)
     }
 
-    override fun onWalletEvent(event: WalletCore.Event) {
-        when (event) {
-            is WalletCore.Event.AccountChanged -> {}
-            is WalletCore.Event.StakingDataUpdated -> {}
+    override fun onWalletEvent(walletEvent: WalletEvent) {
+        when (walletEvent) {
+            is WalletEvent.AccountChanged -> {}
+            is WalletEvent.StakingDataUpdated -> {}
             else -> {}
         }
     }

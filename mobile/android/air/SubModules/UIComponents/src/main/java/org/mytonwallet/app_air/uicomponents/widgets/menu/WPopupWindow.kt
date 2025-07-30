@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.PopupWindow
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
 import org.mytonwallet.app_air.uicomponents.extensions.dp
+import org.mytonwallet.app_air.uicomponents.helpers.PopupHelpers
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.lockView
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
@@ -19,7 +20,6 @@ import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.WInterpolator
 import org.mytonwallet.app_air.walletcontext.theme.WColor
 import org.mytonwallet.app_air.walletcontext.theme.color
-import org.mytonwallet.app_air.walletcore.WalletCore
 
 class WPopupWindow(
     initialPopupView: WMenuPopupView,
@@ -166,7 +166,7 @@ class WPopupWindow(
             }
             lockView()
             dismiss()
-            WalletCore.popupDismissed(this@WPopupWindow)
+            PopupHelpers.popupDismissed(this@WPopupWindow)
         }
     }
 

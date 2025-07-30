@@ -1,8 +1,7 @@
 [versions]
-agp = "8.7.3"
 googleServices = "4.4.2"
-gradle = "8.5.2"
-kotlin = "2.0.0"
+gradle = "8.11.1"
+kotlin = "2.2.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -16,8 +15,7 @@ biometric = "1.1.0"
 lottie = "6.6.6"
 fresco = "3.6.0"
 zxing = "3.5.3"
-moshi = "1.14.0"
-coreKtxVersion = "1.16.0"
+moshi = "1.15.2"
 cameraCore = "1.4.1"
 cameraView = "1.4.1"
 cameraLifecycle = "1.4.1"
@@ -27,10 +25,8 @@ mpcharts = "3.1.0"
 paletteKtx = "1.0.0"
 webkit = "1.13.0"
 blurview = "version-2.0.6"
-kotlinGradlePlugin = "1.9.24"
 timber = "5.0.1"
 firebaseMessaging = "24.1.0" # Sync with capacitor app
-#flexbox = "3.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,15 +59,11 @@ charts = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = 
 moshi-core = { group = "com.squareup.moshi", name = "moshi", version.ref = "moshi" }
 moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
 moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", version.ref = "moshi" }
-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
+moshi-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
 androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "paletteKtx" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
-#flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
-
 [plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

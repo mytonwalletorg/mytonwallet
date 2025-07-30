@@ -3,9 +3,13 @@ package org.mytonwallet.app_air.walletcore.models
 import org.json.JSONArray
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
+import org.mytonwallet.app_air.walletcore.MYCOIN_SLUG
+import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
 import org.mytonwallet.app_air.walletcore.TON_USDT_SLUG
+import org.mytonwallet.app_air.walletcore.USDE_SLUG
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.BalanceStore
+import org.mytonwallet.app_air.walletcore.stores.StakingStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
 import java.math.BigInteger
 
@@ -46,6 +50,7 @@ data class MAssetsAndActivityData(
     fun getAllTokens(
         shouldSort: Boolean = true,
         ignorePriorities: Boolean = false,
+        addVirtualStakingTokens: Boolean = false,
     ): Array<MTokenBalance> {
         val tokensArray =
             ArrayList(
@@ -74,12 +79,12 @@ data class MAssetsAndActivityData(
                 amount = BalanceStore.getBalances(AccountStore.activeAccountId)
                     ?.get(token.slug)
                     ?: BigInteger.valueOf(0)
-            )
+            )!!
         }
 
         if (!shouldSort)
             return tokenBalances.toTypedArray()
-        return tokenBalances.sortedWith { lhs, rhs ->
+        val result = tokenBalances.sortedWith { lhs, rhs ->
             if (!ignorePriorities) {
                 if (lhs.priority != rhs.priority)
                     return@sortedWith if (lhs.amountValue > BigInteger.ZERO && lhs.priority > rhs.priority) -1 else 1
@@ -95,6 +100,28 @@ data class MAssetsAndActivityData(
             else if (lhs.priorityOnSameBalance < rhs.priorityOnSameBalance)
                 1
             else (lhs.token ?: "").compareTo(rhs.token ?: "")
-        }.toTypedArray()
+        }.toMutableList()
+
+        if (addVirtualStakingTokens) {
+            val stakingState = StakingStore.getStakingState(AccountStore.activeAccountId.orEmpty())
+            stakingState?.let { state ->
+                listOf(
+                    USDE_SLUG to state.usdeBalance,
+                    MYCOIN_SLUG to state.mycoinBalance,
+                    TONCOIN_SLUG to state.tonBalance
+                ).forEach { (slug, balance) ->
+                    balance?.takeIf { it > BigInteger.ZERO }?.let { nonZeroBalance ->
+                        TokenStore.getToken(slug)?.let { token ->
+                            result.add(
+                                0,
+                                MTokenBalance.fromVirtualStakingData(token, nonZeroBalance)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        return result.toTypedArray()
     }
 }

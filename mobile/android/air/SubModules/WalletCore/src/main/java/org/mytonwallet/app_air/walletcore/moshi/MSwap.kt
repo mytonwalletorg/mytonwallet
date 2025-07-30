@@ -203,6 +203,7 @@ data class MSwapCexValidateAddressResult(
     val message: String? = null
 )
 
+@JsonClass(generateAdapter = false)
 enum class MApiSwapHistoryItemStatus {
     @Json(name = "pending")
     PENDING,
@@ -217,6 +218,7 @@ enum class MApiSwapHistoryItemStatus {
     EXPIRED
 }
 
+@JsonClass(generateAdapter = false)
 enum class MApiSwapDexLabel {
     @Json(name = "dedust")
     DEDUST,
@@ -241,6 +243,7 @@ enum class MApiSwapDexLabel {
         }
 }
 
+@JsonClass(generateAdapter = false)
 enum class MApiTonWalletVersion {
     @Json(name = "simpleR1")
     SIMPLE_R1,
@@ -270,6 +273,7 @@ enum class MApiTonWalletVersion {
     W5
 }
 
+@JsonClass(generateAdapter = false)
 enum class MApiSwapCexTransactionStatus {
     @Json(name = "new")
     NEW,

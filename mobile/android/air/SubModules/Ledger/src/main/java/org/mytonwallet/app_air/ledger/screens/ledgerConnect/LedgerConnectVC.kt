@@ -49,6 +49,8 @@ import org.mytonwallet.app_air.walletcontext.R
 import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcontext.helpers.LocaleController
+import org.mytonwallet.app_air.walletcontext.helpers.logger.LogMessage
+import org.mytonwallet.app_air.walletcontext.helpers.logger.Logger
 import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletcontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletcontext.theme.WColor
@@ -57,6 +59,7 @@ import org.mytonwallet.app_air.walletcontext.utils.VerticalImageSpan
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.MAIN_NETWORK
 import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.api.activateAccount
 import org.mytonwallet.app_air.walletcore.api.submitStake
 import org.mytonwallet.app_air.walletcore.api.submitUnstake
@@ -130,6 +133,12 @@ class LedgerConnectVC(
         data class ClaimRewards(
             val accountId: String,
             val stakingState: StakingState,
+            val realFee: BigInteger
+        ) : SignData()
+
+        data class RenewNfts(
+            val accountId: String,
+            val nfts: List<ApiNft>,
             val realFee: BigInteger
         ) : SignData()
     }
@@ -547,6 +556,22 @@ class LedgerConnectVC(
                                 MAIN_NETWORK, walletsInfo[newWallet.address]!!
                             )
                         )
+                        Logger.d(
+                            Logger.LogTag.ACCOUNT,
+                            LogMessage.Builder()
+                                .append(
+                                    result.accountId,
+                                    LogMessage.MessagePartPrivacy.PUBLIC
+                                )
+                                .append(
+                                    "Connected",
+                                    LogMessage.MessagePartPrivacy.PUBLIC
+                                )
+                                .append(
+                                    "Address: ${result.address}",
+                                    LogMessage.MessagePartPrivacy.REDACTED
+                                ).build()
+                        )
                         WGlobalStorage.addAccount(
                             accountId = result.accountId,
                             accountType = MAccount.AccountType.HARDWARE.value,
@@ -555,7 +580,9 @@ class LedgerConnectVC(
                             JSONObject().apply {
                                 put("driver", result.walletInfo.driver)
                                 put("index", result.walletInfo.index)
-                            })
+                            },
+                            importedAt = null
+                        )
                         finalizedWallets.add(result.accountId)
                     } catch (_: Throwable) {
                     }
@@ -581,7 +608,7 @@ class LedgerConnectVC(
                                 navigationController.setRoot(WalletContextManager.delegate?.getTabsVC() as WViewController)
                                 window!!.replace(navigationController, true)
                             } else {
-                                WalletCore.notifyEvent(WalletCore.Event.AddNewWalletCompletion)
+                                WalletCore.notifyEvent(WalletEvent.AddNewWalletCompletion)
                                 window!!.dismissLastNav()
                             }
                         }
@@ -738,6 +765,26 @@ class LedgerConnectVC(
                                     accountId = AccountStore.activeAccountId!!,
                                     password = "",
                                     state = signData.stakingState,
+                                    realFee = signData.realFee
+                                )
+                            )
+                            Handler(Looper.getMainLooper()).post {
+                                mode.onDone()
+                            }
+                        } catch (e: Throwable) {
+                            Handler(Looper.getMainLooper()).post {
+                                signFailed(e as? JSWebViewBridge.ApiError)
+                            }
+                        }
+                    }
+
+                    is SignData.RenewNfts -> {
+                        try {
+                            WalletCore.call(
+                                ApiMethod.Domains.SubmitDnsRenewal(
+                                    accountId = AccountStore.activeAccountId!!,
+                                    password = "",
+                                    nfts = signData.nfts,
                                     realFee = signData.realFee
                                 )
                             )

@@ -57,11 +57,19 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
         id = generateViewId()
         hint = "0"
         layoutParams = LayoutParams(0, 48.dp)
-        isSingleLine = true
         gravity = Gravity.LEFT or Gravity.CENTER_VERTICAL
         inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
         keyListener = DigitsKeyListener.getInstance("0123456789.,")
+        isHorizontalFadingEdgeEnabled = true
+        setSingleLine()
+        setHorizontallyScrolling(true)
         setPaddingDp(0, 0, 20, 0)
+        setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                setSelection(0)
+                scrollTo(0, 0)
+            }
+        }
     }
 
     private val separatorBackgroundDrawable: SeparatorBackgroundDrawable by lazy {

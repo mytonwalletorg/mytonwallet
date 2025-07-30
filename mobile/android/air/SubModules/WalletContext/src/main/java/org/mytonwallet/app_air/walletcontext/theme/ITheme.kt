@@ -44,6 +44,7 @@ internal val THEME_LIGHT_PRESET
             WColor.SearchFieldBackground to 0xFFFFFFFF.toInt(),
             WColor.Transparent to 0x00000000.toInt(),
             WColor.White to 0xFFFFFFFF.toInt(),
+            WColor.Black to 0xFF000000.toInt(),
         )
     )
 
@@ -57,7 +58,7 @@ internal val THEME_DARK_PRESET
             WColor.SecondaryText to 0xFF8E8E93.toInt(),
             WColor.SubtitleText to 0xFF8E8E93.toInt(),
             WColor.Decimals to 0xFF8E8E93.toInt(),
-            WColor.Tint to 0xFF309FE3.toInt(),
+            WColor.Tint to 0xFF3C90D5.toInt(),
             WColor.TextOnTint to 0xFFFFFFFF.toInt(),
             WColor.Separator to 0xFF2E2E30.toInt(),
             WColor.SecondaryBackground to 0xFF181818.toInt(),
@@ -74,10 +75,11 @@ internal val THEME_DARK_PRESET
             WColor.EarnGradientRight to 0xFF0098EB.toInt(),
             WColor.TintRipple to 0x20007AFF,
             WColor.BackgroundRipple to 0x10FFFFFF,
-            WColor.IncomingComment to 0xFF68D06E.toInt(),
-            WColor.OutgoingComment to 0xFF31A4F2.toInt(),
+            WColor.IncomingComment to 0xFF55A35A.toInt(),
+            WColor.OutgoingComment to 0xFF2C82BD.toInt(),
             WColor.SearchFieldBackground to 0x8038383B.toInt(),
             WColor.Transparent to 0x00000000.toInt(),
             WColor.White to 0xFFFFFFFF.toInt(),
+            WColor.Black to 0xFF000000.toInt(),
         )
     )

@@ -3,6 +3,8 @@ package org.mytonwallet.app_air.uicomponents.extensions
 import android.graphics.drawable.GradientDrawable
 import androidx.core.graphics.toColorInt
 import org.mytonwallet.app_air.uicomponents.image.Content
+import org.mytonwallet.app_air.walletcontext.theme.ThemeManager
+import org.mytonwallet.app_air.walletcontext.utils.colorWithAlpha
 
 fun GradientDrawable.setRounding(rounding: Content.Rounding) {
     when (rounding) {
@@ -32,23 +34,53 @@ object GradientDrawables {
 
     val greenDrawable: GradientDrawable
         get() {
-            return gradientDrawable(intArrayOf("#A0DE7E".toColorInt(), "#54CB68".toColorInt()))
+            val alpha = if (ThemeManager.isDark) 230 else 255
+            return gradientDrawable(
+                intArrayOf(
+                    "#A0DE7E".toColorInt().colorWithAlpha(alpha),
+                    "#54CB68".toColorInt().colorWithAlpha(alpha)
+                )
+            )
         }
     val blueDrawable: GradientDrawable
         get() {
-            return gradientDrawable(intArrayOf("#72D5FD".toColorInt(), "#2A9EF1".toColorInt()))
+            val alpha = if (ThemeManager.isDark) 230 else 255
+            return gradientDrawable(
+                intArrayOf(
+                    "#72D5FD".toColorInt().colorWithAlpha(alpha),
+                    "#2A9EF1".toColorInt().colorWithAlpha(alpha)
+                )
+            )
         }
     val purpleDrawable: GradientDrawable
         get() {
-            return gradientDrawable(intArrayOf("#82B1FF".toColorInt(), "#665FFF".toColorInt()))
+            val alpha = if (ThemeManager.isDark) 230 else 255
+            return gradientDrawable(
+                intArrayOf(
+                    "#82B1FF".toColorInt().colorWithAlpha(alpha),
+                    "#665FFF".toColorInt().colorWithAlpha(alpha)
+                )
+            )
         }
     val grayDrawable: GradientDrawable
         get() {
-            return gradientDrawable(intArrayOf("#AEB3BF".toColorInt(), "#848890".toColorInt()))
+            val alpha = if (ThemeManager.isDark) 230 else 255
+            return gradientDrawable(
+                intArrayOf(
+                    "#AEB3BF".toColorInt().colorWithAlpha(alpha),
+                    "#848890".toColorInt().colorWithAlpha(alpha)
+                )
+            )
         }
     val redDrawable: GradientDrawable
         get() {
-            return gradientDrawable(intArrayOf("#FF885E".toColorInt(), "#FF516A".toColorInt()))
+            val alpha = if (ThemeManager.isDark) 230 else 255
+            return gradientDrawable(
+                intArrayOf(
+                    "#FF885E".toColorInt().colorWithAlpha(alpha),
+                    "#FF516A".toColorInt().colorWithAlpha(alpha)
+                )
+            )
         }
 
 }
