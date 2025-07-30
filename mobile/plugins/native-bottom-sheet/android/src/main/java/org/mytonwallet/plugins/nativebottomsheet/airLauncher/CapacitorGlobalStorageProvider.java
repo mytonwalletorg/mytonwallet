@@ -92,10 +92,10 @@ public class CapacitorGlobalStorageProvider implements IGlobalStorageProvider {
         "}})();";
 
       new Handler(Looper.getMainLooper()).post(() -> executeJS(script, result -> {
-        //Log.d("---", "PERSISTING");
+        //Log.d("CapacitorGlobalStorageProvider", "PERSISTING");
         try {
           if ("true".equals(result)) {
-            Log.d("---", "PERSISTED");
+            Log.d("CapacitorGlobalStorageProvider", "PERSISTED");
             isPersisting = false;
             lastPersist = System.currentTimeMillis();
             new Handler(Looper.getMainLooper()).postDelayed(() -> {

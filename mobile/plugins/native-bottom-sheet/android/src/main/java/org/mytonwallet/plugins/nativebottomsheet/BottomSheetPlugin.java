@@ -28,10 +28,12 @@ public class BottomSheetPlugin extends Plugin {
 
   @PluginMethod
   public void switchToAir(PluginCall call) {
-    if (airLauncher == null)
-      airLauncher = new AirLauncher(getActivity());
-    AirLauncher.setInstance(airLauncher);
-    new Handler(Looper.getMainLooper()).post(() -> airLauncher.soarIntoAir(true));
+    new Handler(Looper.getMainLooper()).post(() -> {
+      if (airLauncher == null)
+        airLauncher = new AirLauncher(getActivity());
+      AirLauncher.setInstance(airLauncher);
+      airLauncher.soarIntoAir(true);
+    });
     call.resolve();
   }
 }
