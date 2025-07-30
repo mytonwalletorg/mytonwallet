@@ -216,6 +216,11 @@ public class WButton: WBaseButton, WThemedView {
             }
         }
     }
+    
+    public func apply(config: WButtonConfig) {
+        self.setTitle(config.title, for: .normal)
+        self.isEnabled = config.isEnabled
+    }
 }
 
 

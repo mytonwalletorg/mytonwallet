@@ -10,6 +10,7 @@ import UIKit
 import UIComponents
 import WalletCore
 import WalletContext
+import Capacitor
 
 private let log = Log("SceneDelegate")
 
@@ -38,6 +39,17 @@ final class SceneDelegate: UIResponder, UISceneDelegate {
     func sceneWillResignActive(_ scene: UIScene) {
         log.info("sceneWillResignActive")
         AirLauncher.willResignActive()
+    }
+    
+    func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) {
+        if let url = urlContexts.first?.url {
+            if isOnTheAir {
+                log.info("open url=\(url)")
+                AirLauncher.handle(url: url)
+            }
+
+            _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url)
+        }
     }
     
     func sceneDidEnterBackground(_ scene: UIScene) {

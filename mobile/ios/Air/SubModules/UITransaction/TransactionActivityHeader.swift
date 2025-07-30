@@ -121,7 +121,7 @@ struct ActivtyIconView: View {
     
     var body: some View {
         
-        let colors = activity.iconColors.map { Color(cgColor: $0) }
+        let colors = activity.iconColors.map { Color($0) }
         let content = activity.avatarContent
         
         if case .image(let image) = content {

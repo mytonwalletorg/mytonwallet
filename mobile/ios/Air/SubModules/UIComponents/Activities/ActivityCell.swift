@@ -381,7 +381,7 @@ public class ActivityCell: WHighlightCell {
         case .transaction(let transaction):
             if displayMode != .hide, let token = TokenStore.tokens[transaction.slug] {
                 let amount = TokenAmount(transaction.amount, token)
-                let color = transaction.type == .stake ? UIColor.systemPurple : transaction.isIncoming ? WTheme.positiveAmount : WTheme.primaryLabel
+                let color: UIColor = transaction.type == .stake ? .air.textPurple : transaction.isIncoming ? WTheme.positiveAmount : WTheme.primaryLabel
                 let amountString = amount.formatAttributed(
                     format: .init(
                         maxDecimals: amount.defaultDisplayDecimals,

@@ -104,7 +104,7 @@ private let log = Log("BalanceHeaderView+update")
                 let balanceChangeValueString = formatBigIntText(doubleToBigInt(balance - balance24h,
                                                                              decimals: TokenStore.baseCurrency?.decimalsCount ?? 2),
                                                                currency: TokenStore.baseCurrency?.sign,
-                                                               tokenDecimals: TokenStore.baseCurrency?.decimalsCount,
+                                                               tokenDecimals: TokenStore.baseCurrency?.decimalsCount ?? 9,
                                                                decimalsCount: TokenStore.baseCurrency?.decimalsCount)
                 let balanceChangePercentString = balance24h == 0 ? "" : "\(balance - balance24h >= 0 ? "+" : "")\(((balance - balance24h) / balance24h * 10000).rounded() / 100)% · "
                 walletCardView.set(balanceChangeText: "\(balanceChangePercentString)\(balanceChangeValueString)", animated: !isShowingSkeleton || isShowingSkeletonCompletely)

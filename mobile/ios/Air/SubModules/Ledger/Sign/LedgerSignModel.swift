@@ -123,12 +123,12 @@ public final class LedgerSignModel: LedgerBaseModel, @unchecked Sendable {
                 throw error
             }
             
-        case .staking(isStaking: let isStaking, accountId: let accountId, amount: let amount, stakingState: let stakingState):
+        case .staking(isStaking: let isStaking, accountId: let accountId, amount: let amount, stakingState: let stakingState, realFee: let realFee):
             do {
                 let txId = if isStaking {
-                    try await Api.submitStake(accountId: accountId, password: "", amount: amount, state: stakingState, realFee: nil)
+                    try await Api.submitStake(accountId: accountId, password: "", amount: amount, state: stakingState, realFee: realFee)
                 } else {
-                    try await Api.submitUnstake(accountId: accountId, password: "", amount: amount, state: stakingState, realFee: nil)
+                    try await Api.submitUnstake(accountId: accountId, password: "", amount: amount, state: stakingState, realFee: realFee)
                 }
                 log.info("\(txId)")
             } catch {

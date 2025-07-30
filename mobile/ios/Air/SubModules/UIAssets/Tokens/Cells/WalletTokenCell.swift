@@ -208,8 +208,9 @@ public class WalletTokenCell: WHighlightCell {
         let amountInt64 = walletToken.tokenSlug == STAKED_TON_SLUG ? BalanceStore.currentAccountStakingData?.tonState?.balance ?? walletToken.balance : walletToken.balance
         amountLabel.text = formatBigIntText(amountInt64,
                                            currency: token?.slug == STAKED_TON_SLUG ? "TON" : token?.symbol ?? "",
-                                           tokenDecimals: token?.decimals,
-                                           decimalsCount: 2)
+                                           tokenDecimals: token?.decimals ?? 9,
+                                           decimalsCount: 2,
+                                           roundUp: false)
 
         // amount in base currency
         var amount = walletToken.toBaseCurrency

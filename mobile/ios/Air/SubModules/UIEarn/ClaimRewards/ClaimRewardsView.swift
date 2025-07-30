@@ -89,7 +89,7 @@ struct ClaimRewardsButtonContent: View {
     var icon: some View {
         ZStack {
             LinearGradient(
-                colors: WColors.greenGradient.map(Color.init(cgColor:)),
+                colors: WColors.greenGradient.map(Color.init),
                 startPoint: .top,
                 endPoint: .bottom
             )

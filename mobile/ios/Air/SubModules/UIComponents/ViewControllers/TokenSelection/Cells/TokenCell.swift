@@ -92,7 +92,7 @@ class TokenCell: UITableViewCell, WThemedView {
         if isAvailable {
             amountLabel.text = formatBigIntText(walletToken.balance,
                                                  currency: token?.symbol,
-                                                 tokenDecimals: token?.decimals,
+                                                 tokenDecimals: token?.decimals ?? 9,
                                                  decimalsCount: token?.decimals)
         } else {
             amountLabel.text = WStrings.Swap_Unavailable.localized

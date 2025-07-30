@@ -101,7 +101,7 @@ class CurrencyCell: UITableViewCell, WThemedView {
         nameLabel.text = token?.name
         amountLabel.text = formatBigIntText(walletToken.balance,
                                              currency: token?.symbol,
-                                             tokenDecimals: token?.decimals,
+                                             tokenDecimals: token?.decimals ?? 9,
                                              decimalsCount: token?.decimals)
         selectedIcon.isHidden = walletToken.tokenSlug != currentTokenSlug
     }

@@ -177,16 +177,16 @@ class EarnHeaderCell: UITableViewCell, WThemedView {
             )
             unstakeButton.isHidden = stakingBalance == 0
             self.unstakingAt = config.unstakeTime
-//            if unstakingAt != nil {
-//                if timer == nil {
-//                    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-//                        self?.updateUnstakingInfo()
-//                    }
-//                }
-//            } else {
+            if let amount = config.stakingState?.unstakeRequestAmount, amount > 0, unstakingAt != nil {
+                if timer == nil {
+                    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                        self?.updateUnstakingInfo()
+                    }
+                }
+            } else {
                 timer?.invalidate()
                 yourBalanceHintLabel.text = WStrings.Earn_YourStakingBalance.localized + "\n"
-//            }
+            }
             self.earnVC = delegate
             if stackView.alpha == 0 {
                 UIView.animate(withDuration: 0.5) { [weak self] in
@@ -205,10 +205,10 @@ class EarnHeaderCell: UITableViewCell, WThemedView {
     }
     
     @objc func addStakePressed() {
-        earnVC?.stakeUnstakePressed(mode: .stake)
+        earnVC?.stakeUnstakePressed(isStake: true)
     }
     
     @objc func unstakePressed() {
-        earnVC?.stakeUnstakePressed(mode: .unstake)
+        earnVC?.stakeUnstakePressed(isStake: false)
     }
 }

@@ -152,9 +152,9 @@ fileprivate func generateTheme() -> _WThemeType {
         border: .separator,
         highlight: WColors.highlight,
         menuBackground: WColors.modularBackground,
-        positiveAmount: .systemGreen,
-        negativeAmount: .systemRed,
-        error: .systemRed
+        positiveAmount: .airBundle("TextGreen"),
+        negativeAmount: .airBundle("TextRed"),
+        error: .airBundle("TextRed")
     )
 }
 

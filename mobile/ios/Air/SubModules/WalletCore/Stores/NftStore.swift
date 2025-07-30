@@ -42,6 +42,12 @@ public final class _NftStore: Sendable {
             displayNft.isUnhiddenByUser == true || displayNft.shouldHide == true
         }
     }
+    public var currentAccountHiddenNftsCount: Int {
+        guard let currentAccountNfts else { return 0 }
+        return currentAccountNfts.count { _, displayNft in
+            displayNft.isUnhiddenByUser == true || displayNft.shouldHide == true
+        }
+    }
     
     private let cacheUrl = URL.cachesDirectory.appending(components: "air", "nfts", "nfts.json")
     

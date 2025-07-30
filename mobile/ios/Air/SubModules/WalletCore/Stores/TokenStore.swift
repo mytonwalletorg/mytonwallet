@@ -138,14 +138,14 @@ public class _TokenStore {
     }
     
     private func _applyFixups(tokens: inout [String: ApiToken]) {
-        // Set prices for staked tokens
-        tokens[STAKED_TON_SLUG]!.price = tokens[TONCOIN_SLUG]!.price
-        tokens[STAKED_TON_SLUG]!.priceUsd = tokens[TONCOIN_SLUG]!.priceUsd
-        tokens[STAKED_TON_SLUG]!.percentChange24h = tokens[TONCOIN_SLUG]!.percentChange24h
-        
-        tokens[STAKED_MYCOIN_SLUG]!.price = tokens[MYCOIN_SLUG]!.price
-        tokens[STAKED_MYCOIN_SLUG]!.priceUsd = tokens[MYCOIN_SLUG]!.priceUsd
-        tokens[STAKED_MYCOIN_SLUG]!.percentChange24h = tokens[MYCOIN_SLUG]!.percentChange24h
+//        // Set prices for staked tokens
+//        tokens[STAKED_TON_SLUG]!.price = tokens[TONCOIN_SLUG]!.price
+//        tokens[STAKED_TON_SLUG]!.priceUsd = tokens[TONCOIN_SLUG]!.priceUsd
+//        tokens[STAKED_TON_SLUG]!.percentChange24h = tokens[TONCOIN_SLUG]!.percentChange24h
+//        
+//        tokens[STAKED_MYCOIN_SLUG]!.price = tokens[MYCOIN_SLUG]!.price
+//        tokens[STAKED_MYCOIN_SLUG]!.priceUsd = tokens[MYCOIN_SLUG]!.priceUsd
+//        tokens[STAKED_MYCOIN_SLUG]!.percentChange24h = tokens[MYCOIN_SLUG]!.percentChange24h
         
         // Set potentially missing images
         if tokens[STAKED_MYCOIN_SLUG]?.image?.nilIfEmpty == nil {

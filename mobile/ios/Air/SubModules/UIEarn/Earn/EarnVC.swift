@@ -137,7 +137,7 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
         dataSource?.defaultRowAnimation = .fade
         dataSource?.apply(makeSnapshot(), animatingDifferences: false)
         
-        emptyView = EmptyEarnView()
+        emptyView = EmptyEarnView(config: config)
         emptyView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(emptyView)
         let emptyViewTopConstraint = emptyView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 370)
@@ -226,18 +226,12 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
         }
     }
     
-    func stakeUnstakePressed(mode: StakeUnstakeVC.Mode) {
+    func stakeUnstakePressed(isStake: Bool) {
         if let stakingState = earnVM.stakingState {
-            let vc = switch mode {
-            case .stake:
+            let vc = if isStake {
                 AddStakeVC(config: config, stakingState: stakingState)
-            case .unstake:
-                StakeUnstakeVC(
-                    stakingStateProvider: { self.earnVM.stakingState ?? stakingState },
-                    baseToken: TokenStore.tokens[earnVM.tokenSlug]!,
-                    stakedToken: TokenStore.tokens[earnVM.stakedTokenSlug]!,
-                    mode: mode
-                )
+            } else {
+                UnstakeVC(config: config, stakingState: stakingState)
             }
             navigationController?.pushViewController(vc, animated: true)
         }

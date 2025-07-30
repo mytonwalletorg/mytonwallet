@@ -58,7 +58,7 @@ public struct AnyDecimalBackingType: DecimalBackingType {
 
 extension DecimalAmount where Backing == AnyDecimalBackingType {
     public init(_ amount: BigInt, decimals: Int, symbol: String?, forceCurrencyToRight: Bool = false) {
-        self.amount = amount
+        self.optionalAmount = amount
         self.type = AnyDecimalBackingType(decimals: decimals, displaySymbol: symbol, forceCurrencyToRight: forceCurrencyToRight)
     }
 }

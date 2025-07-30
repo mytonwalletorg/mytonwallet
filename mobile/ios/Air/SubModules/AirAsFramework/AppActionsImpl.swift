@@ -15,6 +15,7 @@ import UIReceive
 import UIEarn
 import UIToken
 import UIInAppBrowser
+import UniformTypeIdentifiers
 
 @MainActor func configureAppActions() {
     AppActions = AppActionsImpl.self
@@ -23,7 +24,14 @@ import UIInAppBrowser
 private class AppActionsImpl: AppActionsProtocol {
     static func copyString(_ string: String?, toastMessage: String) {
         if let string {
-            UIPasteboard.general.string = string
+            UIPasteboard.general.setItems([[
+                    UTType.plainText.identifier: string
+                ]],
+                options: [
+                    .localOnly: true,
+                    .expirationDate: Date(timeIntervalSinceNow: 180.0),
+                ]
+            )
             topWViewController()?.showToast(animationName: "Copy", message: toastMessage)
             UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         }
@@ -167,8 +175,10 @@ private class AppActionsImpl: AppActionsProtocol {
     static func showHiddenNfts() {
         let hiddenVC = HiddenNftsVC()
         let topVC = topViewController()
-        if let nc = topVC as? WNavigationController, (nc.visibleViewController is AssetsTabVC || nc.visibleViewController is NftDetailsVC) {
+        if let nc = topVC as? WNavigationController, (nc.visibleViewController is AssetsTabVC || nc.visibleViewController is NftDetailsVC || nc.visibleViewController is AssetsAndActivityVC) {
             nc.pushViewController(hiddenVC, animated: true)
+        } else if let vc = topWViewController() as? AssetsAndActivityVC {
+            vc.navigationController?.pushViewController(hiddenVC, animated: true)
         } else {
             let assetsVC = AssetsTabVC(defaultTabIndex: 1)
             let nc = WNavigationController()

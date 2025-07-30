@@ -144,14 +144,14 @@ public extension ApiActivity {
         return .image(icon)
     }
     
-    private var green: [CGColor] { WColors.greenGradient }
-    private var red: [CGColor] { WColors.redGradient }
-    private var gray: [CGColor] { WColors.grayGradient }
-    private var blue: [CGColor] { WColors.blueGradient }
-    private var indigo: [CGColor] { WColors.indigoGradient }
+    private var green: [UIColor] { WColors.greenGradient }
+    private var red: [UIColor] { WColors.redGradient }
+    private var gray: [UIColor] { WColors.grayGradient }
+    private var blue: [UIColor] { WColors.blueGradient }
+    private var indigo: [UIColor] { WColors.indigoGradient }
     
-    var iconColors: [CGColor] {
-        let colors: [CGColor] = switch self.type {
+    var iconColors: [UIColor] {
+        let colors: [UIColor] = switch self.type {
         case .stake:
             indigo
         case .unstake:

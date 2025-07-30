@@ -408,7 +408,7 @@
 "QRScan.NoValidQRDetected" = "This QR Code is not supported";
 
 // Tokens
-"Tokens.Title" = "Coins";
+"Tokens.Title" = "Assets";
 
 // Token
 "Token.Price" = "Price";

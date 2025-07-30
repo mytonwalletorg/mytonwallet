@@ -149,7 +149,7 @@ final class AddStakeModel: ObservableObject, WalletCoreData.EventsObserver {
     
     func updateBaseCurrencyAmount(_ amount: BigInt?) {
         guard let amount else { return }
-        let price = TokenStore.tokens[baseToken.slug]?.price ?? 0
+        let price = config.baseToken.price ?? 0
         self.amountInBaseCurrency = if let baseCurrency = TokenStore.baseCurrency {
             convertAmount(amount, price: price, tokenDecimals: baseToken.decimals, baseCurrencyDecimals: baseCurrency.decimalsCount)
         } else {
@@ -159,7 +159,7 @@ final class AddStakeModel: ObservableObject, WalletCoreData.EventsObserver {
     }
     
     func updateAmountFromBaseCurrency(_ baseCurrency: BigInt) {
-        let price = TokenStore.tokens[baseToken.slug]?.price ?? 0
+        let price = config.baseToken.price ?? 0
         let baseCurrencyDecimals = TokenStore.baseCurrency?.decimalsCount ?? 2
         if price > 0 {
             self.amount = convertAmountReverse(baseCurrency, price: price, tokenDecimals: baseToken.decimals, baseCurrencyDecimals: baseCurrencyDecimals)

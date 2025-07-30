@@ -73,7 +73,7 @@ private let log = Log("Home-WalletAssets")
                     id: "tokens",
                     content: AnyView(
                         TokensItem(menuContext: menuContext) {
-                            Text("Coins")
+                            Text(WStrings.Tokens_Title.localized)
                         }
                     )
                 )

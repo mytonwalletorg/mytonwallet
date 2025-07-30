@@ -5,9 +5,9 @@ import UIComponents
 import WalletCore
 import WalletContext
 
-struct StakeUnstakeView: View {
+struct UnstakeView: View {
     
-    @ObservedObject var model: StakeUnstakeModel
+    @ObservedObject var model: UnstakeModel
     var navigationBarInset: CGFloat
     var onScrollPositionChange: (CGFloat) -> ()
     
@@ -24,14 +24,8 @@ struct StakeUnstakeView: View {
                     }
                 }
 
-            switch model.mode {
-            case .stake:
-                StakeInfoSection(model: model)
-                    .padding(.top, -8)
-            case .unstake:
-                UnstakeInfoSection(model: model)
-                    .padding(.top, -8)
-            }
+            UnstakeInfoSection(model: model)
+                .padding(.top, -8)
         }
         .padding(.top, -8)
         .coordinateSpace(name: ns)
@@ -59,13 +53,13 @@ struct StakeUnstakeView: View {
 
 fileprivate struct AmountSection: View {
     
-    @ObservedObject var model: StakeUnstakeModel
+    @ObservedObject var model: UnstakeModel
     
     var body: some View {
         TokenAmountEntrySection(
             amount: $model.amount,
             token: displayToken,
-            balance: model.accountBalance,
+            balance: model.maxAmount,
             insufficientFunds: model.insufficientFunds,
             amountInBaseCurrency: $model.amountInBaseCurrency,
             switchedToBaseCurrencyInput: $model.switchedToBaseCurrencyInput,
@@ -79,88 +73,10 @@ fileprivate struct AmountSection: View {
     
     /// even when withdrawing "staked", show normal token
     var displayToken: ApiToken {
-        if model.token.slug == STAKED_TON_SLUG {
-            TokenStore.tokens["toncoin"]!
-        } else if model.token.slug == STAKED_MYCOIN_SLUG {
-            TokenStore.tokens[MYCOIN_SLUG]!
+        if model.stakedTokenSlug == STAKED_TON_SLUG || model.stakedTokenSlug == STAKED_MYCOIN_SLUG  {
+            model.baseToken
         } else {
-            model.token
-        }
-    }
-}
-
-
-fileprivate struct StakeInfoSection: View {
-    
-    @ObservedObject var model: StakeUnstakeModel
-    
-    var body: some View {
-        InsetSection {
-            InsetCell {
-                HStack {
-                    Text(WStrings.StakeUnstake_CurrentAPY.localized)
-                        .font17h22()
-                    Spacer()
-                    apyBadge
-                }
-                .padding(.top, -1)
-                .padding(.bottom, -1)
-            }
-            InsetCell {
-                HStack {
-                    Text(WStrings.StakeUnstake_EstimatedEarningPerYear.localized)
-                        .font17h22()
-                    Spacer()
-                    estEarning
-                }
-                .padding(.top, -1)
-            }
-            InsetButtonCell(action: { model.onWhyIsSafe?() }) {
-                Text(getStakingTitle(stakingType: model.stakingState.type))
-                    .font17h22()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .tint(Color(WTheme.tint))
-                    .padding(.top, -1)
-            }
-        } header: {
-            Text(WStrings.StakeUnstake_StakingDetails.localized)
-        } footer: {}
-    }
-    
-    @ViewBuilder
-    var apyBadge: some View {
-        let v = formatAmountText(amount: model.apy)
-        Text("\(v)%")
-            .fontWeight(.medium)
-            .font(.callout)
-            .lineSpacing(3)
-            .padding(.top, 2.66)
-            .padding(.bottom, 2.66)
-            .padding(.horizontal, 6)
-            .foregroundStyle(Color(WTheme.background))
-            .background {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(earnGradient)
-            }
-    }
-    
-    @ViewBuilder
-    var estEarning: some View {
-        estEarningText
-            .fontWeight(.medium)
-            .font17h22()
-            .foregroundStyle(earnGradient)
-    }
-    
-    var estEarningText: Text {
-        if model.switchedToBaseCurrencyInput {
-            let cur = model.amountInBaseCurrency ?? 0
-            let income = cur * BigInt(model.apy * 1000) / 1000 / 100
-            return Text(amount: DecimalAmount.baseCurrency(income)!, format: .init(showPlus: true))
-        } else {
-            let amnt = (model.amount ?? 0)
-            let income = amnt * BigInt(model.apy * 1000) / 1000 / 100
-            return Text(amount: TokenAmount(income, model.token), format: .init(showPlus: true))
+            model.stakedToken
         }
     }
 }
@@ -168,7 +84,7 @@ fileprivate struct StakeInfoSection: View {
 
 fileprivate struct UnstakeInfoSection: View {
     
-    @ObservedObject var model: StakeUnstakeModel
+    @ObservedObject var model: UnstakeModel
     
     var body: some View {
         InsetSection {
@@ -181,14 +97,15 @@ fileprivate struct UnstakeInfoSection: View {
                     receivingBadge
                 }
             }
-            if model.stakingState.type == .liquid {
+            if case .liquid(let liquid) = model.stakingState {
+                let amnt = TokenAmount(liquid.instantAvailable, TokenStore.tokens[TONCOIN_SLUG]!)
                 InsetCell {
                     HStack {
                         Text(WStrings.StakeUnstake_InstantWithdrawalLabel.localized)
                             .font17h22()
                             .foregroundStyle(Color(WTheme.secondaryLabel))
                         Spacer()
-                        Text(WStrings.StakeUnstake_InstantWithdrawalInfo.localized)
+                        Text("up to \(amnt.formatted(maxDecimals: 0))")
                     }
                     .padding(.top, -1)
                 }
@@ -232,7 +149,7 @@ fileprivate struct UnstakeInfoSection: View {
 
     func formatTimeToWait(_ remaining: TimeInterval) -> String {
         return Duration.seconds(remaining).formatted(.units(
-            allowed: [.hours, .minutes],
+            allowed: [.days, .hours, .minutes],
             width: .wide,
             maximumUnitCount: 2,
             fractionalPart: .hide

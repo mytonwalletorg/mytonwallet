@@ -12,7 +12,10 @@ import WalletContext
 
 public class EmptyEarnView: WTouchPassStackView, WThemedView {
     
-    public init() {
+    let config: StakingConfig
+    
+    public init(config: StakingConfig) {
+        self.config = config
         super.init(frame: .zero)
         setupViews()
     }
@@ -46,7 +49,7 @@ public class EmptyEarnView: WTouchPassStackView, WThemedView {
     
     private lazy var whyThisIsSafeButton = {
         let button = WButton(style: .clearBackground)
-        button.setTitle(WStrings.Earn_WhyThisIsSafe.localized, for: .normal)
+        button.setTitle(config.explainTitle, for: .normal)
         button.addTarget(self, action: #selector(self.whyThisIsSafePressed), for: .touchUpInside)
         return button
     }()
@@ -67,32 +70,7 @@ public class EmptyEarnView: WTouchPassStackView, WThemedView {
     }
     
     @objc func whyThisIsSafePressed() {
-        showWhyIsSafe()
+        showWhyIsSafe(config: config)
     }
     
-}
-
-
-@MainActor func showWhyIsSafe() {
-    
-    if let vc = topWViewController() {
-        
-        let lines = WStrings.Earn_WhyStakingIsSafeDesc.localized.split(separator: "|").map { String($0) }
-        
-        vc.showTip(title: WStrings.Earn_WhyStakingIsSafe.localized) {
-            
-            if #available(iOS 16.0, *) {
-                Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 4, verticalSpacing: 12) {
-                    ForEach(Array(lines.indices), id: \.self) { i in
-                        GridRow {
-                            Text("\(i + 1).")
-                            Text(LocalizedStringKey(lines[i]))
-                        }
-                    }
-                }
-            } else {
-                Text(lines.joined(separator: "\n\n"))
-            }
-        }
-    }
 }

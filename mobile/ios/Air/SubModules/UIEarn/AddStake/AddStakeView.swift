@@ -104,7 +104,7 @@ fileprivate struct StakeInfoSection: View {
                 .padding(.top, -1)
             }
             InsetButtonCell(action: { model.onWhyIsSafe?() }) {
-                Text(getStakingTitle(stakingType: model.stakingState.type))
+                Text(model.config.explainTitle)
                     .font17h22()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .tint(Color(WTheme.tint))

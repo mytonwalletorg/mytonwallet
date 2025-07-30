@@ -77,6 +77,8 @@ public struct _WColorsType {
     let pickerBackground: UIColor = .airBundle("PickerBackgroundColor")
     public let blurBackground: UIColor = .airBundle("BlurBackgroundColor")
     public let blurDim: UIColor = .airBundle("BlurDimColor")
+    public let textPurple: UIColor = .airBundle("TextPurple")
+    public let activityNftFill: UIColor = .airBundle("ActivityNftFill")
     
     public let gradients = [
         [#colorLiteral(red: 1, green: 0.5333333611, blue: 0.3686274588, alpha: 1).cgColor, #colorLiteral(red: 1, green: 0.3176470697, blue: 0.4156863093, alpha: 1).cgColor],
@@ -88,21 +90,26 @@ public struct _WColorsType {
         [#colorLiteral(red: 0.8784313798, green: 0.6352941394, blue: 0.9529411793, alpha: 1).cgColor, #colorLiteral(red: 0.8392156959, green: 0.4117647111, blue: 0.9294117689, alpha: 1).cgColor]
     ]
     
-    public var redGradient: [CGColor] { gradients[0] }
-    public var greenGradient: [CGColor] { gradients[2] }
-    public var blueGradient: [CGColor] { gradients[4] }
-    public var grayGradient: [CGColor] {
-        [
-            UIColor(hex: "AEB3BF").cgColor,
-            UIColor(hex: "848890").cgColor,
-        ]
-    }
-    public var indigoGradient: [CGColor] {
-        [
-            UIColor(hex: "82B1FF").cgColor,
-            UIColor(hex: "665FFF").cgColor,
-        ]
-    }
+    public var redGradient: [UIColor] = [
+        UIColor.airBundle("RedGradient0"),
+        UIColor.airBundle("RedGradient1"),
+    ]
+    public var greenGradient: [UIColor] = [
+        UIColor.airBundle("GreenGradient0"),
+        UIColor.airBundle("GreenGradient1"),
+    ]
+    public var blueGradient: [UIColor] = [
+        UIColor.airBundle("BlueGradient0"),
+        UIColor.airBundle("BlueGradient1"),
+    ]
+    public var grayGradient: [UIColor] = [
+        UIColor.airBundle("GrayGradient0"),
+        UIColor.airBundle("GrayGradient1"),
+    ]
+    public var indigoGradient: [UIColor] = [
+        UIColor.airBundle("PurpleGradient0"),
+        UIColor.airBundle("PurpleGradient1"),
+    ]
     
     init(primary: UIColor) {
         self.primary = primary
@@ -112,7 +119,7 @@ public struct _WColorsType {
 public var WColors: _WColorsType! = _WColorsType(primary: .airBundle("TC1_PrimaryColor"))
 
 public extension UIColor {
-    var air: _WColorsType { WColors }
+    static var air: _WColorsType { WColors }
 }
 
 

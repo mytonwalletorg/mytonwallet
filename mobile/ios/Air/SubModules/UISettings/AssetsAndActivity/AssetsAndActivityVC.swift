@@ -18,11 +18,13 @@ public class AssetsAndActivityVC: WViewController {
     
     enum Section {
         case baseCurrency
+        case hiddenNfts
         case hideNoCost
         case tokens
     }
     enum Item: Equatable, Hashable {
         case baseCurrency
+        case hiddenNfts
         case hideNoCost
         case addToken
         case token(String)
@@ -100,7 +102,7 @@ public class AssetsAndActivityVC: WViewController {
         tableView.separatorColor = WTheme.separator
         tableView.register(AssetsAndActivityBaseCurrencyCell.self, forCellReuseIdentifier: "baseCurrencyCell")
         tableView.register(AssetsAndActivityHideNoCostCell.self, forCellReuseIdentifier: "hideNoCostTokensCell")
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "addTokenCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.register(AssetsAndActivityTokenCell.self, forCellReuseIdentifier: "tokenCell")
         tableView.delegate = self
         
@@ -146,6 +148,32 @@ public class AssetsAndActivityVC: WViewController {
                 })
                 return cell
                 
+            case .hiddenNfts:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+                cell.configurationUpdateHandler = { cell, state in
+                    cell.contentConfiguration = UIHostingConfiguration {
+                        HStack(spacing: 0) {
+                            Text("Hidden NFTs")
+                            Spacer()
+                            Text("\(NftStore.currentAccountHiddenNftsCount)")
+                                .padding(.horizontal, 8)
+                                .foregroundStyle(Color(WTheme.secondaryLabel))
+                            Image.airBundle("RightArrowIcon")
+                                .renderingMode(.template)
+                                .foregroundStyle(Color(WTheme.secondaryLabel))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .background {
+                        ZStack {
+                            Color(WTheme.groupedItem)
+                            Color.clear
+                                .highlightBackground(state.isHighlighted)
+                        }
+                    }
+                }
+                return cell
+                
             case .hideNoCost:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "hideNoCostTokensCell",
                                                          for: indexPath) as! AssetsAndActivityHideNoCostCell
@@ -159,7 +187,7 @@ public class AssetsAndActivityVC: WViewController {
                 return cell
                 
             case .addToken:
-                let cell = tableView.dequeueReusableCell(withIdentifier: "addTokenCell", for: indexPath)
+                let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
                 cell.configurationUpdateHandler = { cell, state in
                     cell.contentConfiguration = UIHostingConfiguration {
                         HStack(spacing: 0) {
@@ -214,6 +242,10 @@ public class AssetsAndActivityVC: WViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.baseCurrency])
         snapshot.appendItems([.baseCurrency])
+        if NftStore.currentAccountHasHiddenNfts {
+            snapshot.appendSections([.hiddenNfts])
+            snapshot.appendItems([.hiddenNfts])
+        }
         snapshot.appendSections([.hideNoCost])
         snapshot.appendItems([.hideNoCost])
         snapshot.appendSections([.tokens])
@@ -341,28 +373,40 @@ extension AssetsAndActivityVC: UITableViewDelegate {
         }
     }
     public func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        switch section {
-        case 0:
+        let id = dataSource.sectionIdentifier(for: section)
+        switch id {
+        case .baseCurrency:
             return 16
-        case 1:
+        case .hiddenNfts:
+            return 16
+        case .hideNoCost:
             return 0
-        case 2:
-            return 44
-        default:
+        case .tokens:
+            return 16
+        case nil:
             fatalError()
         }
     }
     
     public func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-        if case .addToken = dataSource.itemIdentifier(for: indexPath) {
+        switch dataSource.itemIdentifier(for: indexPath) {
+        case .addToken, .hiddenNfts:
             return indexPath
+        case .baseCurrency, .hideNoCost, .token, nil:
+            return nil
         }
-        return nil
     }
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if case .addToken = dataSource.itemIdentifier(for: indexPath) {
-            addTokenPressed()
+        if let identifier = dataSource.itemIdentifier(for: indexPath) {
+            switch identifier {
+            case .baseCurrency, .hideNoCost, .token:
+                break
+            case .hiddenNfts:
+                AppActions.showHiddenNfts()
+            case .addToken:
+                addTokenPressed()
+            }
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -405,6 +449,10 @@ extension AssetsAndActivityVC: WalletCoreData.EventsObserver {
                 var snapshot = dataSource.snapshot()
                 snapshot.reconfigureItems(snapshot.itemIdentifiers)
                 applySnapshot(snapshot, animated: true)
+            }
+        case .nftsChanged(let accountId):
+            if accountId == AccountStore.accountId {
+                applySnapshot(makeSnapshot(), animated: true)
             }
         default:
             break

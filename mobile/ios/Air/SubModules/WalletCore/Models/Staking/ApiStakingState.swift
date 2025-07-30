@@ -161,10 +161,18 @@ public extension ApiStakingState {
     var apy: Double { self.annualYield.value }
     
     var unstakeRequestAmount: BigInt? {
-        if case .liquid(let v) = self {
-            return v.unstakeRequestAmount
+        switch self {
+        case .liquid(let v):
+            v.unstakeRequestAmount
+        case .nominators(let v):
+            v.isUnstakeRequested == true ? v.balance : nil
+        case .jetton(let v):
+            nil
+        case .ethena(let v):
+            v.unstakeRequestAmount
+        case .unknown(let string):
+            nil
         }
-        return nil
     }
     
     var instantAvailable: BigInt {

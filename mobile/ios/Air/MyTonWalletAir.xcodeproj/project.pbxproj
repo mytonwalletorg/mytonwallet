@@ -93,6 +93,7 @@
 		587C28462DE32F2400503E94 /* Popovers in Frameworks */ = {isa = PBXBuildFile; productRef = 587C28452DE32F2400503E94 /* Popovers */; };
 		587EB31E2D82DAF6009F0CE2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 587EB31D2D82DAF6009F0CE2 /* Kingfisher */; };
 		5881C6E52E1738F3004FF258 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 5881C6E42E1738F3004FF258 /* GRDB */; };
+		58A1CF812E2FCACE00E1CE2C /* Ledger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58CC83242DA443DA00EB7DEB /* Ledger.framework */; };
 		58AA03BB2DDBA87B00C970F4 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = 58AA03BA2DDBA87B00C970F4 /* SwiftUIIntrospect */; };
 		58B913232DDC53910048FC65 /* Popovers in Frameworks */ = {isa = PBXBuildFile; productRef = 58B913222DDC53910048FC65 /* Popovers */; };
 		58BE2C722D33D8D000A71816 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 58BE2C712D33D8D000A71816 /* OrderedCollections */; };
@@ -1246,6 +1247,13 @@
 			remoteGlobalIDString = 2770D0012BD16F43005F0BA3;
 			remoteInfo = UISend;
 		};
+		58A1CF832E2FCACE00E1CE2C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 27DCA77B2BA5725C004F83C8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 58CC831C2DA443DA00EB7DEB;
+			remoteInfo = Ledger;
+		};
 		58D9622D2DAA766E0018DA53 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 27DCA77B2BA5725C004F83C8 /* Project object */;
@@ -1367,6 +1375,7 @@
 				BigIntLib/Sources/Multiplication.swift,
 				"BigIntLib/Sources/Prime Test.swift",
 				BigIntLib/Sources/Random.swift,
+				BigIntLib/Sources/Rounded.swift,
 				BigIntLib/Sources/Shifts.swift,
 				"BigIntLib/Sources/Square Root.swift",
 				BigIntLib/Sources/Strideable.swift,
@@ -1741,18 +1750,26 @@
 		27ABF47D2CD2A1B6009DAFE6 /* Exceptions for "SubModules" folder in "UIEarn" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				UIEarn/AddStake/AddStakeModel.swift,
+				UIEarn/AddStake/AddStakeVC.swift,
+				UIEarn/AddStake/AddStakeView.swift,
+				UIEarn/ClaimRewards/ClaimRewardsModel.swift,
+				UIEarn/ClaimRewards/ClaimRewardsView.swift,
+				UIEarn/ConfirmHeader/StakingConfirmHeaderView.swift,
 				UIEarn/Earn/Cells/EarnHistoryCell.swift,
 				UIEarn/Earn/EarnRootVC.swift,
 				UIEarn/Earn/EarnVC.swift,
 				UIEarn/Earn/EarnVM.swift,
 				UIEarn/Earn/Views/EarnHeaderCell.swift,
 				UIEarn/Earn/Views/EmptyEarnView.swift,
-				UIEarn/StakeUnstake/StakeUnstakeModel.swift,
-				UIEarn/StakeUnstake/StakeUnstakeVC.swift,
-				UIEarn/StakeUnstake/StakeUnstakeView.swift,
-				UIEarn/StakeUnstakeConfirm/StakingConfirmHeaderView.swift,
+				UIEarn/SharedUI/StakingContinueButtonConfig.swift,
 				UIEarn/StakingConfig.swift,
 				UIEarn/StakingHelpers.swift,
+				UIEarn/TonOperationFees.swift,
+				UIEarn/Unstake/UnstakeModel.swift,
+				UIEarn/Unstake/UnstakeVC.swift,
+				UIEarn/Unstake/UnstakeView.swift,
+				UIEarn/WhyIsSafe.swift,
 			);
 			target = 27FC97AC2BF2057000F8F57D /* UIEarn */;
 		};
@@ -1793,6 +1810,7 @@
 				UIPasscode/ViewControllers/ChangePasscodeVC/ChangePasscodeVC.swift,
 				UIPasscode/ViewControllers/ConfirmPasscodeVC/ConfirmPasscodeVC.swift,
 				UIPasscode/ViewControllers/SetPasscodeVC/SetPasscodeVC.swift,
+				UIPasscode/ViewControllers/Unlock/PasswordOrLedger.swift,
 				UIPasscode/ViewControllers/Unlock/UnlockVC.swift,
 			);
 			target = 27DCAA5B2BA5C252004F83C8 /* UIPasscode */;
@@ -1831,8 +1849,11 @@
 				UIComponents/AnimatedSticker/Sources/GenerateImage.swift,
 				UIComponents/AnimatedSticker/Sources/SoftwareAnimationRenderer.swift,
 				UIComponents/AnimatedSticker/WAnimatedSticker.swift,
+				UIComponents/Buttons/EarnGradient.swift,
+				UIComponents/Buttons/OpenButtonStyle.swift,
 				UIComponents/Buttons/WBaseButton.swift,
 				UIComponents/Buttons/WButton.swift,
+				UIComponents/Buttons/WButtonConfig.swift,
 				UIComponents/Buttons/WScalableButton.swift,
 				"UIComponents/CASpringAnimation+AnimationUtils.h",
 				"UIComponents/CASpringAnimation+AnimationUtils.m",
@@ -2562,6 +2583,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				580C425D2DF484CC00934F5A /* GRDBSQLite in Frameworks */,
+				58A1CF812E2FCACE00E1CE2C /* Ledger.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3330,6 +3352,7 @@
 			dependencies = (
 				27DCAA932BA5C94B004F83C8 /* PBXTargetDependency */,
 				27DCAA982BA5C957004F83C8 /* PBXTargetDependency */,
+				58A1CF842E2FCACE00E1CE2C /* PBXTargetDependency */,
 			);
 			name = UIPasscode;
 			productName = UIPasscode;
@@ -5053,6 +5076,11 @@
 			target = 2770D0012BD16F43005F0BA3 /* UISend */;
 			targetProxy = 5894AF342D06FB7C005E90F8 /* PBXContainerItemProxy */;
 		};
+		58A1CF842E2FCACE00E1CE2C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 58CC831C2DA443DA00EB7DEB /* Ledger */;
+			targetProxy = 58A1CF832E2FCACE00E1CE2C /* PBXContainerItemProxy */;
+		};
 		58D9622E2DAA766E0018DA53 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 27DCAAE12BA5DDA7004F83C8 /* WalletCore */;
@@ -5101,7 +5129,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -5133,7 +5161,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";

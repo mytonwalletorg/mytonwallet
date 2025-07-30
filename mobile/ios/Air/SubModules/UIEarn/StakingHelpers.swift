@@ -38,10 +38,6 @@ func getUnstakeTime(state: ApiStakingState?) -> Date? {
     }
 }
 
-func getStakingTitle(stakingType: ApiStakingType?) -> String {
-    return stakingType == .ethena ? "How does it work?" : "Why this is safe"
-}
-
 enum StakingStateStatus: String {
     case inactive
     case active

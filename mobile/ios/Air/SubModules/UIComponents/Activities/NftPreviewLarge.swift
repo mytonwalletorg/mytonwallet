@@ -85,8 +85,8 @@ public final class NftPreviewLarge: UIView {
     }
     
     func updateTheme() {
-        backgroundColor = WTheme.secondaryFill // WTheme.groupedBackground
-        imageView.backgroundColor = WTheme.groupedBackground // kWTheme.secondaryFill
+        backgroundColor = .air.activityNftFill
+        imageView.backgroundColor = WTheme.secondaryFill
         nameLabel.textColor = WTheme.primaryLabel
         collectionLabel.textColor = WTheme.secondaryLabel
     }

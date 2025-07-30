@@ -30,7 +30,8 @@ public enum SignData: @unchecked Sendable {
         isStaking: Bool,
         accountId: String,
         amount: BigInt,
-        stakingState: ApiStakingState
+        stakingState: ApiStakingState,
+        realFee: BigInt?
     )
     
     case submitStakingClaimOrUnlock(

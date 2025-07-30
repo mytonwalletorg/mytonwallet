@@ -129,7 +129,7 @@ extension WalletVersionsVC: UITableViewDelegate, UITableViewDataSource {
             let cell = tableView.dequeueReusableCell(withIdentifier: "VersionCell", for: indexPath) as! TitleSubtitleSelectableCell
             let version = walletVersionsData!.versions[indexPath.row - 1]
             let value: String
-            if let balance = MTokenBalance(tokenSlug: "toncoin", balance: version.balance).toBaseCurrency {
+            if let balance = MTokenBalance(tokenSlug: "toncoin", balance: version.balance, isStaking: false).toBaseCurrency {
                 value = formatAmountText(amount: balance, currency: TokenStore.baseCurrency?.sign, decimalsCount: TokenStore.baseCurrency?.decimalsCount)
             } else {
                 value = ""

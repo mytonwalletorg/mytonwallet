@@ -183,53 +183,27 @@ public func formatBigIntText(_ value: BigInt,
                             currency: String? = nil,
                             negativeSign: Bool = false,
                             positiveSign: Bool = false,
-                            tokenDecimals: Int? = 9,
+                            tokenDecimals: Int,
                             decimalsCount: Int? = nil,
                             forceCurrencyToRight: Bool = false,
                             roundUp: Bool = true) -> String {
-    var balanceText = "\(abs(value))"
-    while balanceText.count < (tokenDecimals ?? 9) + 1 {
-        balanceText.insert("0", at: balanceText.startIndex)
+    let rounded: BigInt = if let decimalsCount {
+        value.rounded(digitsToRound: tokenDecimals - decimalsCount, roundUp: roundUp)
+    } else {
+        value
     }
-    balanceText.insert(contentsOf: decimalSeparator, at: balanceText.index(balanceText.endIndex, offsetBy: -(tokenDecimals ?? 9)))
-    let amountString = insertGroupingSeparator(in: balanceText)
-    let parts = amountString.components(separatedBy: decimalSeparator)
-    let integerPart = parts[0]
-    var result = ""
-    result = "\(integerPart)\(result)"
-    if parts.count > 1 {
-        let decimalsPart = parts[1]
-        var afterDecimals = decimalsCount != nil ? String(decimalsPart.prefix(decimalsCount!)) : decimalsPart
-        // halfUp rounding if required
-        let nextDecimalIndex = (decimalsCount != nil && decimalsCount! < decimalsPart.count) ? decimalsCount! : nil
-        if roundUp, nextDecimalIndex != nil, Int(decimalsPart[nextDecimalIndex!]) ?? 0 >= 5 {
-            var decimalsToBigInt = BigInt(afterDecimals)!
-            decimalsToBigInt += 1
-            if ("\(decimalsToBigInt)".count > afterDecimals.count) {
-                // If rounding causes overflow, adjust integer part
-                decimalsToBigInt = 0
-                result = "\(BigInt(parts[0])! + 1)"
-            }
-            afterDecimals = String(repeating: "0", count: afterDecimals.leadingZeros) + "\(decimalsToBigInt)"
-        }
-        result = "\(result)\(decimalSeparator)\(afterDecimals)"
+    var result = "\(abs(rounded))"
+    while result.count < tokenDecimals + 1 {
+        result.insert("0", at: result.startIndex)
     }
-    while true {
-        if result.hasSuffix("0") {
-            if result.hasSuffix("\(decimalSeparator)0") {
-                result.removeLast()
-                result.removeLast()
-                break
-            } else {
-                result.removeLast()
-            }
-        } else {
-            break
-        }
+    result.insert(contentsOf: decimalSeparator, at: result.index(result.endIndex, offsetBy: -tokenDecimals))
+    while result.hasSuffix("0") {
+        result.removeLast()
     }
     if result.hasSuffix(decimalSeparator) {
         result.removeLast()
     }
+    result = insertGroupingSeparator(in: result)
 
     if let currency, currency.count > 0 {
         if currency.count > 1 || forceCurrencyToRight || currency == "₽" {

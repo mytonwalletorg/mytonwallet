@@ -11,7 +11,6 @@ public struct MAccountBalanceData {
     public let totalBalanceYesterday: Double
 }
 
-
 extension MAccountBalanceData: CustomStringConvertible {
     public var description: String {
         let first = walletTokens.prefix(5).map { $0.tokenSlug }.joined(separator: ",")

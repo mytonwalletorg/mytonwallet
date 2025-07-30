@@ -14,9 +14,6 @@ import WalletCore
 import WalletContext
 import UIPasscode
 
-fileprivate let MINIMUM_REQUIRED_AMOUNT_TON = BigInt(3 * ONE_TON + (ONE_TON / 10))
-fileprivate let MAX_INSTANT = 200 * ONE_TON
-
 
 public class AddStakeVC: WViewController, WalletCoreData.EventsObserver {
 
@@ -39,7 +36,7 @@ public class AddStakeVC: WViewController, WalletCoreData.EventsObserver {
         }
         model.onWhyIsSafe = { [weak self] in
             self?.view.endEditing(true)
-            showWhyIsSafe()
+            showWhyIsSafe(config: config)
         }
     }
     
@@ -201,7 +198,8 @@ public class AddStakeVC: WViewController, WalletCoreData.EventsObserver {
                     isStaking: true,
                     accountId: account.id,
                     amount: amount,
-                    stakingState: self.model.stakingState
+                    stakingState: self.model.stakingState,
+                    realFee: realFee
                 )
             )
             navigationController?.popToRootViewController(animated: true)

@@ -18,6 +18,7 @@ public struct MTokenBalance: WEquatable, Sendable {
     
     public let tokenSlug: String
     public let balance: BigInt
+    public let isStaking: Bool
     
     public var token: ApiToken? { TokenStore.tokens[tokenSlug] }
 
@@ -29,12 +30,11 @@ public struct MTokenBalance: WEquatable, Sendable {
     
     fileprivate let priority: Int
     
-    public init(tokenSlug: String, balance: BigInt) {
+    public init(tokenSlug: String, balance: BigInt, isStaking: Bool) {
         self.tokenSlug = tokenSlug
         self.balance = balance
-        if let token = TokenStore.tokens[tokenSlug == STAKED_TON_SLUG ? "toncoin" : tokenSlug] ?? TokenStore.swapAssets?.first(where: { swapAsset in
-            swapAsset.slug == tokenSlug
-        }), let price = token.price, let priceUsd = token.priceUsd {
+        self.isStaking = isStaking
+        if let token = TokenStore.getToken(slug: tokenSlug == STAKED_TON_SLUG ? "toncoin" : tokenSlug), let price = token.price, let priceUsd = token.priceUsd {
             self.tokenPrice = price
             self.tokenPriceChange = token.percentChange24h
             let amountDouble = balance.doubleAbsRepresentation(decimals: token.decimals)
@@ -54,6 +54,7 @@ public struct MTokenBalance: WEquatable, Sendable {
     
     init(dictionary: [String: Any]) {
         tokenSlug = (dictionary["token"] as? [String: Any])?["slug"] as? String ?? ""
+        isStaking = dictionary["isStaking"] as? Bool ?? false
         if let amountValue = (dictionary["balance"] as? String)?.components(separatedBy: "bigint:")[1] {
             self.balance = BigInt(amountValue) ?? 0
         } else {

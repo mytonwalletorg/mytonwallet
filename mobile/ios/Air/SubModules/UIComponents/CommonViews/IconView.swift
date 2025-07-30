@@ -38,6 +38,8 @@ public class IconView: UIView, WThemedView {
     public var chainBorderWidth: CGFloat = 1
     public var chainBorderColor: UIColor?
     
+    private var resolveGradientColors: (() -> [CGColor]?)?
+    
     public init(size: CGFloat, borderWidth: CGFloat? = nil, borderColor: UIColor? = nil) {
         super.init(frame: CGRect.zero)
         setupView()
@@ -160,6 +162,7 @@ public class IconView: UIView, WThemedView {
     
     public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         borderLayer?.backgroundColor = borderColor?.cgColor
+        gradientLayer.colors = resolveGradientColors?()
         super.traitCollectionDidChange(previousTraitCollection)
     }
     
@@ -172,7 +175,7 @@ public class IconView: UIView, WThemedView {
     public func config(with activity: ApiActivity) {
         imageView.contentMode = .scaleAspectFill
         imageView.kf.cancelDownloadTask()
-        gradientLayer.colors = activity.iconColors
+        self.resolveGradientColors = { activity.iconColors.map(\.cgColor) }
         let content = activity.avatarContent
         if case .image(let image) = content {
             largeLabel.text = nil
@@ -247,7 +250,8 @@ public class IconView: UIView, WThemedView {
     
     public func config(with recentAddress: MRecentAddress) {
         imageView.contentMode = .center
-        gradientLayer.colors = (recentAddress.addressAlias ?? recentAddress.address).gradientColors
+        resolveGradientColors = { (recentAddress.addressAlias ?? recentAddress.address).gradientColors }
+        gradientLayer.colors = resolveGradientColors?()
         imageView.image = UIImage(named: "AddressIcon", in: AirBundle, compatibleWith: nil)
         largeLabel.text = nil
         chainImageViewContainer.isHidden = true
@@ -257,7 +261,8 @@ public class IconView: UIView, WThemedView {
         imageView.contentMode = .center
         chainImageViewContainer.isHidden = true
         guard let account else {
-            gradientLayer.colors = nil
+            resolveGradientColors = nil
+            gradientLayer.colors = resolveGradientColors?()
             imageView.image = UIImage(named: "AddAccountIcon", in: AirBundle, compatibleWith: nil)?.withRenderingMode(.alwaysTemplate)
             imageView.tintColor = WTheme.backgroundReverse
             return
@@ -279,7 +284,8 @@ public class IconView: UIView, WThemedView {
         @unknown default:
             break
         }
-        gradientLayer.colors = account.firstAddress?.gradientColors
+        resolveGradientColors = { account.firstAddress?.gradientColors }
+        gradientLayer.colors = resolveGradientColors?()
         gradientLayer.isHidden = false
         imageView.image = nil
     }

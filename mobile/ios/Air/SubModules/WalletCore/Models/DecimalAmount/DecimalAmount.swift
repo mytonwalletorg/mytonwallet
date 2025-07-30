@@ -11,7 +11,7 @@ public protocol DecimalBackingType: Equatable, Hashable {
 
 public struct DecimalAmount<Backing: DecimalBackingType>: Equatable, Hashable {
     
-    public var amount: BigInt
+    public var optionalAmount: BigInt?
     
     public var type: Backing
     
@@ -22,7 +22,7 @@ public struct DecimalAmount<Backing: DecimalBackingType>: Equatable, Hashable {
     public var forceCurrencyToRight: Bool { type.forceCurrencyToRight }
     
     public init(_ amount: BigInt, _ type: Backing) {
-        self.amount = amount
+        self.optionalAmount = amount
         self.type = type
     }
 }
@@ -84,5 +84,10 @@ extension DecimalAmount {
     public func switchKeepingDecimalValue<T: DecimalBackingType>(newType: T) -> DecimalAmount<T> {
         let newAmount = convertDecimalsKeepingDoubleValue(amount, fromDecimals: decimals, toDecimals: newType.decimals)
         return DecimalAmount<T>(newAmount, newType)
+    }
+    
+    public var amount: BigInt {
+        get { optionalAmount ?? 0 }
+        set { optionalAmount = newValue }
     }
 }

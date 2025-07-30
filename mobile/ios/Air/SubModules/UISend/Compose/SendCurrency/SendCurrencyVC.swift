@@ -163,7 +163,7 @@ extension SendCurrencyVC: UITableViewDelegate, UITableViewDataSource {
 
     public func balanceChanged() {
         walletTokens = BalanceStore.currentAccountBalances.map({ (key: String, value: BigInt) in
-            MTokenBalance(tokenSlug: key, balance: value)
+            MTokenBalance(tokenSlug: key, balance: value, isStaking: false)
         })
         filterWalletTokens()
     }
