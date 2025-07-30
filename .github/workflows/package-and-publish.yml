@@ -105,8 +105,7 @@ jobs:
     needs: electron-release
     runs-on: windows-latest
     timeout-minutes: 10
-    # if: vars.PUBLISH_REPO != ''
-    if: false
+    if: vars.PUBLISH_REPO != ''
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
@@ -311,8 +310,7 @@ jobs:
     env:
       HASH_FILENAME: checksum.sha256
     needs:
-      # - electron-sign-for-windows
-      - electron-release
+      - electron-sign-for-windows
       - extensions-package
       - android-release
     runs-on: ubuntu-latest
@@ -491,8 +489,7 @@ jobs:
     timeout-minutes: 30
     needs:
       - android-release
-      # - electron-sign-for-windows
-      - electron-release
+      - electron-sign-for-windows
     if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master' && vars.PUBLISH_REPO != ''
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -504,7 +501,6 @@ jobs:
           echo "ANDROID_FILE_NAME=${{ env.APP_NAME }}.apk" >> "$GITHUB_ENV"
 
       - name: Download Windows package
-        if: false
         id: download-windows
         uses: actions/download-artifact@v4
         with:
@@ -523,7 +519,6 @@ jobs:
           echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
 
       - name: Delete existing asset
-        if: false
         env:
           RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
         run: |
@@ -532,7 +527,6 @@ jobs:
           curl -X DELETE -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/assets/$ASSET_ID"
 
       - name: Push new Windows asset
-        if: false
         env:
           FILE_PATH: ${{ steps.download-windows.outputs.download-path }}
           RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
