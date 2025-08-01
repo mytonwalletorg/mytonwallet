@@ -15,7 +15,7 @@ export function buildCollectionByKey<T extends AnyLiteral>(collection: readonly 
   }, {});
 }
 
-export function groupBy<T extends AnyLiteral>(collection: T[], key: keyof T): GroupedByKey<T> {
+export function groupBy<T extends AnyLiteral>(collection: readonly T[], key: keyof T): GroupedByKey<T> {
   return collection.reduce((byKey: GroupedByKey<T>, member: T) => {
     const groupKey = member[key];
 
@@ -233,6 +233,17 @@ export function intersection<T>(x: Set<T>, y: Set<T>): Set<T> {
     if (x.has(elem)) {
       result.add(elem);
     }
+  }
+  return result;
+}
+
+export function swapKeysAndValues<
+  K extends string | number,
+  V extends keyof any,
+>(object: Record<K, V>): Record<V, `${K}`> {
+  const result = {} as any;
+  for (const [key, value] of Object.entries(object)) {
+    result[value as any] = key;
   }
   return result;
 }

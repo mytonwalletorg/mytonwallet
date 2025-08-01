@@ -68,9 +68,10 @@ export function setCurrentTransferAddress(global: GlobalState, toAddress: string
 }
 
 /** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
-export function replaceCurrentTransferId(global: GlobalState, replaceMap: Map<string, string>) {
-  const newTxId = global.currentTransfer.txId && replaceMap.get(global.currentTransfer.txId);
-  if (newTxId !== undefined) {
+export function replaceCurrentTransferId(global: GlobalState, replaceMap: Record<string, string>) {
+  const oldTxId = global.currentTransfer.txId;
+  const newTxId = oldTxId && replaceMap[oldTxId];
+  if (newTxId !== oldTxId) {
     global = updateCurrentTransfer(global, { txId: newTxId });
   }
   return global;

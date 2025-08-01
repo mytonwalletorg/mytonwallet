@@ -23,7 +23,7 @@ import {
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { openDeeplinkOrUrl, parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
-import { vibrateOnSuccess } from '../../../util/haptics';
+import { vibrate, vibrateOnSuccess } from '../../../util/haptics';
 import { omit } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
@@ -739,14 +739,20 @@ addActionHandler('closeExplore', (global) => {
 
 addActionHandler('openFullscreen', (global) => {
   setGlobal({ ...global, isFullscreen: true });
+
+  void vibrate();
 });
 
 addActionHandler('closeFullscreen', (global) => {
   setGlobal({ ...global, isFullscreen: undefined });
+
+  void vibrate();
 });
 
 addActionHandler('setIsSensitiveDataHidden', (global, actions, { isHidden }) => {
   setGlobal(updateSettings(global, { isSensitiveDataHidden: isHidden ? true : undefined }));
+
+  void vibrate();
 });
 
 addActionHandler('setIsAppLockActive', (global, actions, { isActive }) => {
@@ -755,6 +761,8 @@ addActionHandler('setIsAppLockActive', (global, actions, { isActive }) => {
   }
 
   setGlobal({ ...global, isAppLockActive: isActive || undefined });
+
+  void vibrate();
 });
 
 addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => {

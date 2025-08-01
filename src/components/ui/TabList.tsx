@@ -9,6 +9,7 @@ import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import useLang from '../../hooks/useLang';
+import useWindowSize from '../../hooks/useWindowSize';
 
 import Tab from './Tab';
 
@@ -29,6 +30,7 @@ type OwnProps = {
   className?: string;
   overlayClassName?: string;
   onSwitchTab: (index: number) => void;
+  onActiveTabClick?: NoneToVoidFunction;
 };
 
 const TAB_SCROLL_THRESHOLD_PX = 16;
@@ -37,10 +39,11 @@ const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
 const CLIP_PATH_CONTAINER_CLASS_NAME = 'clip-path-container';
 
 function TabList({
-  tabs, activeTab, className, overlayClassName, onSwitchTab,
+  tabs, activeTab, className, overlayClassName, onSwitchTab, onActiveTabClick,
 }: OwnProps) {
   const lang = useLang();
   const containerRef = useRef<HTMLDivElement>();
+  const { width: appWidth } = useWindowSize();
 
   const fullClassName = buildClassName(
     styles.container,
@@ -66,7 +69,7 @@ function TabList({
       });
     }
     // When the following dependencies change, `clipPath` must be updated
-  }, [activeTab, tabs, lang.code, containerRef]);
+  }, [activeTab, tabs, lang, containerRef, appWidth]);
 
   return (
     <div ref={containerRef} className={fullClassName}>
@@ -78,6 +81,7 @@ function TabList({
           className={tab?.className}
           menuItems={tab?.menuItems}
           onMenuItemClick={tab?.onMenuItemClick}
+          onActiveClick={onActiveTabClick}
           onClick={onSwitchTab}
           clickArg={tab.id}
           icon={tab.icon}
@@ -95,6 +99,7 @@ function TabList({
             isActive={i === activeTab}
             className={buildClassName(tab?.className, i === activeTab && 'current-tab')}
             menuItems={tab?.menuItems}
+            onActiveClick={onActiveTabClick}
             onMenuItemClick={tab?.onMenuItemClick}
             onClick={onSwitchTab}
             clickArg={tab.id}

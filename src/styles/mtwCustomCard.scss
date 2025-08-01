@@ -3,6 +3,8 @@
   --second-text: #00000099;
   --action-color: #00000099;
   --action-color-hover: #000;
+  --color-card-change-text: #00000099;
+  --color-card-button: rgba(211, 211, 211, 0.35);
 
   .glare-text {
     --glare-main: #000;
@@ -50,7 +52,7 @@
 .MtwCard__platinum,
 .MtwCard__gold,
 .MtwCard__silver,
-.MtwCard__standard {
+.MtwCard__standard:not(.MtwCard__darkText) {
   --color-card-button: #FFFFFF59;
 }
 

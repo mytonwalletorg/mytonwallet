@@ -32,17 +32,26 @@ import {
   selectIsMultichainAccount,
   selectIsNewWallet,
 } from '../../../../global/selectors';
+import { getActivityIdReplacements } from '../../../../util/activities';
 import buildClassName from '../../../../util/buildClassName';
 import { formatHumanDay, getDayStartAt, SECOND } from '../../../../util/dateFormat';
+import generateUniqueId from '../../../../util/generateUniqueId';
+import { compact, swapKeysAndValues } from '../../../../util/iteratees';
 import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
 import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+import {
+  getScrollableContainer,
+  getScrollContainerClosestSelector,
+} from '../../helpers/scrollableContainer';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
 import { getIsPortrait, useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useLayoutEffectWithPrevDeps from '../../../../hooks/useLayoutEffectWithPrevDeps';
+import useSyncEffectWithPrevDeps from '../../../../hooks/useSyncEffectWithPrevDeps';
 import useThrottledCallback from '../../../../hooks/useThrottledCallback';
 import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
@@ -99,14 +108,16 @@ const THROTTLE_TIME = SECOND;
 
 const LIST_TOP_PADDING = 0.5; // rem
 const DATE_HEADER_HEIGHT = 2.125; // rem
-const FIRST_ACTIVITY_HEADER_HEIGHT = LIST_TOP_PADDING + DATE_HEADER_HEIGHT; // rem
 
 // After this threshold, the animations of adding new activities (controlled by `useActivityOrderDiff`) won't be visible
 // to the user, so the animation is disabled to improve the performance. An important part that makes the additions
 // invisible is the `usePreventScrolledListShift` hook.
-const SCROLL_THRESHOLD = FIRST_ACTIVITY_HEADER_HEIGHT * REM;
+const SCROLL_THRESHOLD = (LIST_TOP_PADDING + DATE_HEADER_HEIGHT) * REM;
 
 const DATE_ID_PREFIX = 'date:';
+
+const EMPTY_ARRAY = Object.freeze([]);
+const EMPTY_DICTIONARY = Object.freeze({});
 
 function Activities({
   isActive,
@@ -138,7 +149,7 @@ function Activities({
   } = getActions();
 
   const lang = useLang();
-  const { isLandscape } = useDeviceScreen();
+  const { isLandscape, isPortrait } = useDeviceScreen();
 
   const containerRef = useRef<HTMLDivElement>();
   const isUpdating = useUpdateIndicator('activitiesUpdateStartedAt');
@@ -153,7 +164,7 @@ function Activities({
 
     if (byId) {
       if (slug) {
-        idList = bySlug[slug] ?? [];
+        idList = bySlug[slug] ?? EMPTY_ARRAY;
       } else {
         idList = idsMain;
       }
@@ -199,6 +210,8 @@ function Activities({
     throttledLoadMore, listItemIds, undefined, FURTHER_SLICE, slug, isActive,
   );
 
+  const getListItemKey = useListItemKeys(viewportIds ?? EMPTY_ARRAY, byId ?? EMPTY_DICTIONARY);
+
   const shouldUseAnimations = Boolean(isActive && !hasUserScrolledRef.current);
 
   const isActivitiesEmpty = !listItemIds.length;
@@ -232,10 +245,9 @@ function Activities({
   );
 
   usePreventScrolledListShift(
-    isActive,
-    listItemIds,
+    viewportIds ?? EMPTY_ARRAY,
     itemPositionById,
-    isLandscape,
+    isPortrait,
     containerRef,
     hasUserScrolledRef,
   );
@@ -343,7 +355,7 @@ function Activities({
       }
 
       return (
-        <ActivityListItem key={itemId} topOffset={topOffset} withAnimation={shouldUseAnimations}>
+        <ActivityListItem key={getListItemKey(itemId)} topOffset={topOffset} withAnimation={shouldUseAnimations}>
           {itemContent}
         </ActivityListItem>
       );
@@ -391,7 +403,7 @@ function Activities({
     <InfiniteScroll
       ref={containerRef}
       className={buildClassName('custom-scroll', styles.listGroup)}
-      scrollContainerClosest={!isLandscape && isActive ? '.app-slide-content' : undefined}
+      scrollContainerClosest={getScrollContainerClosestSelector(isActive, isPortrait)}
       items={viewportIds}
       preloadBackwards={FURTHER_SLICE}
       withAbsolutePositioning
@@ -468,7 +480,7 @@ function filterActivityIds(
   alwaysShownSlugs?: string[],
 ) {
   if (!allActivityIds || !byId) {
-    return [];
+    return EMPTY_ARRAY;
   }
 
   return allActivityIds.filter((id) => {
@@ -493,7 +505,7 @@ function filterActivityIds(
   });
 }
 
-function addDatesToActivityIds(activityIds: string[], byId: Record<string, ApiActivity> = {}) {
+function addDatesToActivityIds(activityIds: readonly string[], byId: Record<string, ApiActivity> = {}) {
   let lastActivityDayStart = Infinity;
   const listItemIds: string[] = [];
 
@@ -517,43 +529,64 @@ function addDatesToActivityIds(activityIds: string[], byId: Record<string, ApiAc
 }
 
 /**
+ * Pending activity ids may change. If the ids are used as the list keys, excessive blinking animations occur.
+ * This hook creates stable keys for the list items, which prevents the excessive animations.
+ */
+function useListItemKeys(viewportIds: readonly string[], activityById: Record<string, ApiActivity>) {
+  const keyByIdRef = useRef<Record<string, string>>();
+  keyByIdRef.current ??= {};
+
+  useSyncEffectWithPrevDeps(([oldViewportIds = [], oldActivityById = {}]) => {
+    const keyById = keyByIdRef.current!;
+    const oldActivities = compact(oldViewportIds.map((id) => oldActivityById[id]));
+    const newActivities = compact(viewportIds.map((id) => activityById[id]));
+
+    // Transfer the keys from the old activities to the new activities. Besides the obvious goal, `swapKeysAndValues`
+    // ensures that the `idReplacements` values are unique, which results into unique output keys.
+    const idReplacements = swapKeysAndValues(getActivityIdReplacements(oldActivities, newActivities));
+    for (const { id: newActivityId } of newActivities) {
+      const oldActivityId = idReplacements[newActivityId];
+      keyById[newActivityId] = (oldActivityId && keyById[oldActivityId]) ?? generateUniqueId();
+    }
+
+    // Clean the memory
+    const newActivityIds = new Set(viewportIds);
+    for (const itemId of Object.keys(keyById)) {
+      if (!newActivityIds.has(itemId)) {
+        delete keyById[itemId];
+      }
+    }
+  }, [viewportIds, activityById]);
+
+  return useLastCallback((itemId: string) => keyByIdRef.current?.[itemId] ?? itemId);
+}
+
+/**
  * In order to make the list look stationary after it has been scrolled, this hook compensates the scroll position when
  * new items are added and user scrolled content.
  */
 function usePreventScrolledListShift(
-  isActive: boolean | undefined,
-  listItemIds: string[],
+  viewportIds: readonly string[],
   itemPositionById: Record<string, ItemPosition>,
-  isLandscape: boolean,
+  isPortrait: boolean,
   containerRef: React.RefObject<HTMLDivElement | undefined>,
   hasUserScrolledRef: React.RefObject<boolean>,
 ) {
-  const prevActivityIdsRef = useRef<string[] | undefined>(listItemIds);
-  useEffect(() => {
-    prevActivityIdsRef.current = listItemIds;
-  }, [listItemIds]);
+  useLayoutEffectWithPrevDeps(([prevItemPositionById]) => {
+    const container = getScrollableContainer(containerRef.current, isPortrait);
+    if (!hasUserScrolledRef.current || !container || !prevItemPositionById || !viewportIds.length) return;
 
-  useLayoutEffect(() => {
-    const container = isLandscape ? containerRef.current : containerRef.current?.closest('.app-slide-content');
-    const prevIds = prevActivityIdsRef.current;
-    if (!hasUserScrolledRef.current || !container || !prevIds || !listItemIds.length) return;
+    const anchorId = viewportIds[Math.floor(viewportIds.length / 2)];
+    const prevTop = prevItemPositionById[anchorId]?.top;
+    const nextTop = itemPositionById[anchorId]?.top;
 
-    // Check if new items were added at the beginning
-    const newItemsCount = listItemIds.length - prevIds.length;
-    if (newItemsCount <= 0) return;
-
-    let addedHeight = 0;
-    for (let i = 0; i < newItemsCount; i++) {
-      // The first item is the date which is always on the top, so 1 is added to `i` to skip the date item
-      const info = itemPositionById[listItemIds[i + 1]];
-      addedHeight += info?.height || 0;
-    }
+    if (prevTop === undefined || nextTop === undefined || prevTop === nextTop) return;
 
     forceMeasure(() => {
       container.scrollBy({
-        top: addedHeight * REM,
+        top: (nextTop - prevTop) * REM,
         behavior: 'instant',
       });
     });
-  }, [listItemIds, itemPositionById, containerRef, hasUserScrolledRef, isActive, isLandscape]);
+  }, [itemPositionById, viewportIds, containerRef, hasUserScrolledRef, isPortrait]);
 }

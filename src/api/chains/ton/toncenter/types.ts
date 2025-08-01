@@ -62,7 +62,9 @@ type BaseAction = {
    * Presented in /api/v3/actions only when `include_accounts=true` is set in the request.
    */
   accounts?: string[];
+  /** May change during the lifetime of pending actions */
   start_lt: string;
+  /** May change during the lifetime of pending actions */
   end_lt: string;
   start_utime: number;
   end_utime: number;

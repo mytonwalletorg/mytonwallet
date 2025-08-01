@@ -10,6 +10,7 @@ import { getCountDaysToDate } from '../../../util/dateFormat';
 import { getTonDnsExpirationDate } from '../../../util/dns';
 import { stopEvent } from '../../../util/domEvents';
 import { disableSwipeToClose, enableSwipeToClose } from '../../../util/modalSwipeManager';
+import { IS_ELECTRON, IS_MAC_OS } from '../../../util/windowEnvironment';
 
 import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
@@ -120,7 +121,11 @@ function NftAttributesModal({ nft, dnsExpiration }: StateProps) {
         onClick={() => closeNftAttributesModal()}
       >
         <i
-          className={buildClassName(styles.icon, styles.actionIcon, isPortrait ? 'icon-chevron-left' : 'icon-close')}
+          className={buildClassName(
+            styles.icon,
+            styles.actionIcon,
+            isPortrait && !(IS_ELECTRON && IS_MAC_OS) ? 'icon-chevron-left' : 'icon-close',
+          )}
           aria-hidden
         />
       </button>

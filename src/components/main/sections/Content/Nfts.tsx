@@ -19,6 +19,7 @@ import { stopEvent } from '../../../../util/domEvents';
 import { openUrl } from '../../../../util/openUrl';
 import { getHostnameFromUrl } from '../../../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+import { getScrollContainerClosestSelector } from '../../helpers/scrollableContainer';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import { useIntersectionObserver } from '../../../../hooks/useIntersectionObserver';
@@ -71,7 +72,7 @@ function Nfts({
   const { isPortrait, isLandscape } = useDeviceScreen();
   const hasSelection = Boolean(selectedAddresses?.length);
   const [isScrolled, setIsScrolled] = useState(false);
-  const scrollContainerClosest = isPortrait ? '.app-slide-content' : '.nfts-container';
+  const scrollContainerClosest = getScrollContainerClosestSelector(true, isPortrait) || '.nfts-container';
 
   useEffect(clearNftsSelection, [clearNftsSelection, isActive, currentCollectionAddress]);
   useEffect(() => (hasSelection ? captureEscKeyListener(clearNftsSelection) : undefined), [hasSelection]);

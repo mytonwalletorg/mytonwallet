@@ -5,6 +5,8 @@
 .header {
   z-index: var(--z-header);
 
+  @include mixins.transition(background-color 300ms ease-out);
+
   @include mixins.respond-below(xs) {
     position: fixed;
     top: 0;

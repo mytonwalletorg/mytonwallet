@@ -12,10 +12,10 @@ import type {
   ApiYieldType,
 } from '../../../../api/types';
 import type { Account, AppTheme, SavedAddress } from '../../../../global/types';
+import type { Color as PendingIndicatorColor } from './ActivityPendingIndicator';
 import { MediaType } from '../../../../global/types';
 
 import {
-  ANIMATED_STICKER_TINY_ICON_PX,
   FRACTION_DIGITS,
   NFT_MARKETPLACE_TITLES,
   SWAP_DEX_LABELS,
@@ -42,15 +42,14 @@ import { formatBaseCurrencyAmount, formatCurrencyExtended } from '../../../../ut
 import { getLocalAddressName } from '../../../../util/getLocalAddressName';
 import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
 import TokenIcon from '../../../common/TokenIcon';
-import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import SensitiveData from '../../../ui/SensitiveData';
+import ActivityPendingIndicator from './ActivityPendingIndicator';
 
 import styles from './Activity.module.scss';
 
@@ -148,19 +147,19 @@ function Transaction({
   const isNoSubheaderLeft = getIsNoSubheaderLeft(transaction, isFuture);
 
   let operationColorClass: string | undefined;
-  let waitingIconName: keyof typeof ANIMATED_STICKERS_PATHS.light.preview = 'iconClockGray';
+  let pendingIndicatorColor: PendingIndicatorColor = 'Gray';
   if (type === 'burn') {
     operationColorClass = styles.colorNegative;
-    waitingIconName = 'iconClockRed';
+    pendingIndicatorColor = 'Red';
   } else if (isIncoming) {
     operationColorClass = styles.colorIn;
-    waitingIconName = 'iconClockGreen';
+    pendingIndicatorColor = 'Green';
   } else if (type === 'stake') {
     operationColorClass = styles.colorStake;
-    waitingIconName = 'iconClockPurpleWhite';
+    pendingIndicatorColor = 'PurpleWhite';
   } else if (OUT_TRANSACTION_TYPES.has(type)) {
     operationColorClass = styles.colorOut;
-    waitingIconName = 'iconClockBlue';
+    pendingIndicatorColor = 'Blue';
   }
 
   const handleNftClick = useLastCallback((event: React.MouseEvent) => {
@@ -239,18 +238,11 @@ function Transaction({
             {dnsIconText}
           </span>
         )}
-        {isPending && (
-          <AnimatedIconWithPreview
-            play
-            size={ANIMATED_STICKER_TINY_ICON_PX}
-            className={styles.iconWaiting}
-            nonInteractive
-            noLoop={false}
-            forceOnHeavyAnimation
-            tgsUrl={ANIMATED_STICKERS_PATHS[appTheme][waitingIconName]}
-            previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview[waitingIconName]}
-          />
-        )}
+        <ActivityPendingIndicator
+          isActive={isPending}
+          color={pendingIndicatorColor}
+          appTheme={appTheme}
+        />
       </i>
     );
   }

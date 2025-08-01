@@ -542,6 +542,8 @@ export type GlobalState = {
     diesel?: ApiFetchEstimateDieselResult;
     withDiesel?: boolean;
     isGaslessWithStars?: boolean;
+    // This field is used to display a scam warning in the UI only because `Dialogs` are not displayed in iOS due to NBS specifics
+    shouldShowScamWarning?: true;
   };
 
   currentSwap: {
@@ -916,6 +918,7 @@ export interface ActionPayloads {
   submitTransferHardware: undefined;
   clearTransferError: undefined;
   cancelTransfer: { shouldReset?: boolean } | undefined;
+  dismissTransferScamWarning: undefined;
   showDialog: DialogType;
   dismissDialog: undefined;
   showError: { error?: ApiAnyDisplayError | string };

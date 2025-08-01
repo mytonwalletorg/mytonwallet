@@ -1,8 +1,7 @@
 @use "../../styles/mixins";
 
 .container ,
-.clipPathContainer,
-.helperContainer {
+.clipPathContainer {
   display: flex;
   flex-shrink: 0;
   flex-wrap: nowrap;
@@ -53,6 +52,8 @@
   contain: layout style paint;
   overflow: hidden;
 
+  width: fit-content;
+
   color: var(--color-accent);
 
   background-color: var(--color-activity-blue-background);
@@ -62,31 +63,4 @@
   @supports (background-color: color-mix(in lab, var(--color-accent) 8%, transparent)) {
     background-color: color-mix(in lab, var(--color-accent) 8%, transparent);
   }
-}
-
-// Helper layer for measuring final tab positions (invisible)
-.helperContainer {
-  pointer-events: none;
-
-  // Hardware acceleration for better performance
-  will-change: transform;
-
-  position: absolute;
-  z-index: -1; // Behind everything
-  right: 0;
-  left: 0;
-  transform: translate3d(0, 0, 0);
-
-  // Optimize for layout stability
-  contain: layout style;
-  overflow: hidden;
-
-  // Make invisible but measurable
-  visibility: hidden;
-
-  transition: none !important;
-}
-
-.helperTab {
-  pointer-events: none !important;
 }

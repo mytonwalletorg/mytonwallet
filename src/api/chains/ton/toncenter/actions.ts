@@ -137,6 +137,8 @@ export async function fetchActions(options: FetchActionsOptions): Promise<ApiAct
     ...(excludeTypes?.length && { exclude_action_type: excludeTypes.join(',') }),
   };
 
+  // The API sorts the actions by trace_end_lt + trace_id + action_end_lt + action_id.
+  // That is, the actions are grouped by the trace, and sorted by the time inside the groups.
   const {
     actions: rawActions,
     address_book: addressBook,
@@ -964,7 +966,8 @@ function safeReadComment(payloadBase64: string) {
 }
 
 function buildActionActivityId(action: AnyAction, type?: 'additional') {
-  // `lt` in activity ID is needed for sorting when timestamps are same
+  // `lt` in activity ID is needed for sorting when timestamps are same.
+  // The sorting is tuned to match the Toncenter API sorting as close as possible.
   const subId = `${action.start_lt}-${action.action_id}`;
   return buildTxId(
     action.trace_id ?? action.trace_external_hash_norm ?? action.trace_external_hash,

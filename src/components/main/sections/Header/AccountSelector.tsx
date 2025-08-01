@@ -189,7 +189,7 @@ function AccountSelector({
               align="center"
               cols={10}
               rows={2}
-              cellSize={9.5}
+              cellSize={8.5}
             >
               <span
                 className={styles.currencySwitcher}

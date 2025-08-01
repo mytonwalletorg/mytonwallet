@@ -8,9 +8,8 @@ import {
   MINT_CARD_REFUND_COMMENT,
   MTW_CARDS_COLLECTION,
 } from '../../../config';
-import { parseTxId } from '../../../util/activities';
+import { doesLocalActivityMatch, getActivityIdReplacements } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
-import { groupBy } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
@@ -106,20 +105,19 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
       const { accountId, activities: newConfirmedActivities, pendingActivities, chain } = update;
 
-      const replacedLocalIds = getLocalActivityIdReplacements(
-        selectLocalActivitiesSlow(global, accountId),
-        newConfirmedActivities,
-        pendingActivities,
+      const replacedIds = getActivityIdReplacements(
+        [
+          ...selectLocalActivitiesSlow(global, accountId),
+          ...(chain ? selectPendingActivitiesSlow(global, accountId, chain) : []),
+        ],
+        [
+          ...(pendingActivities ?? []),
+          ...newConfirmedActivities,
+        ],
       );
-      const replacedPendingIds = getPendingActivityIdReplacements(
-        chain ? selectPendingActivitiesSlow(global, accountId, chain) : [],
-        pendingActivities,
-        newConfirmedActivities,
-      );
-      const replacedIds = new Map([...replacedLocalIds, ...replacedPendingIds]);
 
       // A good TON address for testing: UQD5mxRgCuRNLxKxeOjG6r14iSroLF5FtomPnet-sgP5xI-e
-      global = removeActivities(global, accountId, replacedLocalIds.keys());
+      global = removeActivities(global, accountId, Object.keys(replacedIds));
       if (chain && pendingActivities !== undefined) {
         global = replacePendingActivities(global, accountId, chain, pendingActivities);
       }
@@ -149,96 +147,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
   }
 });
-
-/**
- * Finds the ids of the local activities that match any of the new blockchain activities (those are to be replaced).
- * Also finds the ids of the blockchain activities that have no matching local activities (those are to be notified about).
- */
-function getLocalActivityIdReplacements(
-  localActivities: ApiActivity[],
-  newConfirmedActivities: ApiActivity[],
-  newPendingActivities: readonly ApiActivity[] = [], // Undefined when the pending activities don't change
-) {
-  const idReplaceMap = new Map<string, string>();
-
-  if (!localActivities.length) {
-    return idReplaceMap;
-  }
-
-  const chainActivities = [...newPendingActivities, ...newConfirmedActivities];
-
-  for (const localActivity of localActivities) {
-    const chainActivity = chainActivities.find((chainActivity) => {
-      return doesLocalActivityMatch(localActivity, chainActivity);
-    });
-
-    if (chainActivity) {
-      idReplaceMap.set(localActivity.id, chainActivity.id);
-    }
-  }
-
-  return idReplaceMap;
-}
-
-/** Decides whether the local activity matches the activity from the blockchain */
-function doesLocalActivityMatch(localActivity: ApiActivity, chainActivity: ApiActivity) {
-  if (localActivity.extra?.withW5Gasless) {
-    if (localActivity.kind === 'transaction' && chainActivity.kind === 'transaction') {
-      return !chainActivity.isIncoming && localActivity.normalizedAddress === chainActivity.normalizedAddress
-        && localActivity.amount === chainActivity.amount
-        && localActivity.slug === chainActivity.slug;
-    } else if (localActivity.kind === 'swap' && chainActivity.kind === 'swap') {
-      return localActivity.from === chainActivity.from
-        && localActivity.to === chainActivity.to
-        && localActivity.fromAmount === chainActivity.fromAmount;
-    }
-  }
-
-  if (localActivity.externalMsgHashNorm) {
-    return localActivity.externalMsgHashNorm === chainActivity.externalMsgHashNorm && !chainActivity.shouldHide;
-  }
-
-  return parseTxId(localActivity.id).hash === parseTxId(chainActivity.id).hash;
-}
-
-/** For each old pending activities, finds its new id (pending activity ids may change during their lifetime) */
-function getPendingActivityIdReplacements(
-  oldPendingActivities: ApiActivity[],
-  newPendingActivities: readonly ApiActivity[] = [], // Undefined when the pending activities don't change
-  newConfirmedActivities: ApiActivity[],
-) {
-  const idReplaceMap = new Map<string, string>();
-
-  if (!oldPendingActivities.length) {
-    return idReplaceMap;
-  }
-
-  const newIdsByMessageHash: Record<string, string[]> = {};
-  const oldPendingActivitiesByMessageHash = groupBy(oldPendingActivities, 'externalMsgHashNorm');
-
-  // Building the newIdsByMessageHash map
-  for (const { id, externalMsgHashNorm } of [...newPendingActivities, ...newConfirmedActivities]) {
-    if (externalMsgHashNorm) {
-      newIdsByMessageHash[externalMsgHashNorm] ??= [];
-      newIdsByMessageHash[externalMsgHashNorm].push(id);
-    }
-  }
-
-  // Finding the corresponding new ids for each old pending activity
-  for (const [externalMsgHashNorm, oldActivities] of Object.entries(oldPendingActivitiesByMessageHash)) {
-    const newIds = newIdsByMessageHash[externalMsgHashNorm];
-    if (!newIds?.length) continue;
-
-    for (let i = 0; i < oldActivities.length; i++) {
-      idReplaceMap.set(
-        oldActivities[i].id,
-        newIds[Math.min(i, newIds.length - 1)],
-      );
-    }
-  }
-
-  return idReplaceMap;
-}
 
 function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivity[]) {
   if (!global.settings.canPlaySounds) {

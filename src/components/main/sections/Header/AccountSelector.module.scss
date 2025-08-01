@@ -2,6 +2,9 @@
 
 @use "../../../../styles/scssVariables" as v;
 
+$actionIconSize: 1.5rem;
+$iconGapSize: 1rem;
+
 .root {
   overflow: hidden;
 }
@@ -16,8 +19,8 @@
   padding: 0 0.75rem;
 
   @include mixins.respond-below(xs) {
-    max-width: calc(100% - 10rem);
-    margin: 0 5rem;
+    max-width: calc(100% - (var(--icons-amount, 1) * ($actionIconSize + $iconGapSize)) * 2);
+    margin: 0 calc(var(--icons-amount, 1) * ($actionIconSize + $iconGapSize));
   }
 }
 
@@ -73,6 +76,8 @@
 }
 
 .balance {
+  --border-radius-value: 0.25rem;
+
   font-size: 1rem;
   font-weight: 800;
   color: var(--color-black);

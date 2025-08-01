@@ -3,6 +3,7 @@ import type { ApiActivity } from '../api/types';
 import { getIsActivityPending } from './activities';
 
 export function compareActivities(a: ApiActivity, b: ApiActivity, isAsc = false) {
+  // The activity sorting is tuned to match the Toncenter API sorting as close as possible.
   // Putting the pending activities first, because when they get confirmed, their timestamp gets bigger than any current
   // confirmed activity timestamp. This reduces the movement in the activity list.
   let value = (getIsActivityPending(a) ? 1 : 0) - (getIsActivityPending(b) ? 1 : 0);

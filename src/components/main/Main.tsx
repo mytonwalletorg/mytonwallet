@@ -31,11 +31,11 @@ import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgr
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
+import useElementVisibility from '../../hooks/useElementVisibility';
 import useFlag from '../../hooks/useFlag';
 import useInterval from '../../hooks/useInterval';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePreventPinchZoomGesture from '../../hooks/usePreventPinchZoomGesture';
-import useScrollDetection from '../../hooks/useScrollDetection';
 
 import LinkingDomainModal from '../domain/LinkingDomainModal';
 import RenewDomainModal from '../domain/RenewDomainModal';
@@ -131,17 +131,17 @@ function Main({
   useInterval(updatePendingSwaps, isFocused ? UPDATE_SWAPS_INTERVAL : UPDATE_SWAPS_INTERVAL_NOT_FOCUSED);
 
   // Use scroll detection for portrait mode
-  const { isIntersecting: isPageAtTop } = useScrollDetection({
+  const { isVisible: isPageAtTop } = useElementVisibility({
     isDisabled: !isPortrait || !isActive,
     targetRef: cardRef,
-    rootMargin: `-${HEADER_HEIGHT_REM * REM + safeAreaTop}px 0px 0px`,
+    rootMargin: `-${HEADER_HEIGHT_REM * REM + safeAreaTop}px 0px 0px 0px`,
     threshold: [1],
   });
 
-  const { isIntersecting: shouldHideBalanceInHeader } = useScrollDetection({
+  const { isVisible: shouldHideBalanceInHeader } = useElementVisibility({
     isDisabled: !isPortrait || !isActive,
     targetRef: cardRef,
-    rootMargin: `-${HEADER_HEIGHT_REM * REM}px 0px 0px`,
+    rootMargin: `-${HEADER_HEIGHT_REM * REM}px 0px 0px 0px`,
   });
 
   const handleTokenCardClose = useLastCallback(() => {

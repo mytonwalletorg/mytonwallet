@@ -49,10 +49,11 @@ function Header({
       withBalance && styles.withSeparator,
       isScrolled && styles.isScrolled,
     );
+    const iconsAmount = 1 + (isAppLockEnabled ? 1 : 0) + (IS_TELEGRAM_APP ? 1 : 0) + (canToggleAppLayout ? 1 : 0);
 
     return (
       <div className={fullClassName}>
-        <div className={styles.headerInner}>
+        <div className={styles.headerInner} style={`--icons-amount: ${iconsAmount}`}>
           <QrScannerButton isViewMode={isViewMode} />
           <AccountSelector withBalance={withBalance} withAccountSelector={!IS_CORE_WALLET} />
 

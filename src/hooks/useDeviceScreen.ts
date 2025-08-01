@@ -8,7 +8,7 @@ export function useDeviceScreen() {
   const isSmallHeight = useMediaQuery('(max-height: 43.5rem)');
 
   return {
-    isPortrait,
+    isPortrait: Boolean(isPortrait),
     isSmallHeight,
     isLandscape: !isPortrait,
     screenHeight: window.screen.height,

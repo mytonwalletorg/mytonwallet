@@ -23,6 +23,7 @@ import { toDecimal } from '../../../../util/decimals';
 import { buildCollectionByKey } from '../../../../util/iteratees';
 import { getFullStakingBalance, getIsActiveStakingState, getStakingStateStatus } from '../../../../util/staking';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+import { getScrollContainerClosestSelector } from '../../helpers/scrollableContainer';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
@@ -304,7 +305,7 @@ function Assets({
         styles.wrapper,
         isSeparatePanel && !renderedTokens && styles.wrapperLoading,
       )}
-      scrollContainerClosest={!isLandscape && isActive ? '.app-slide-content' : undefined}
+      scrollContainerClosest={getScrollContainerClosestSelector(isActive, isPortrait)}
       items={viewportSlugs}
       itemSelector=".token-list-item"
       withAbsolutePositioning={withAbsolutePositioning}

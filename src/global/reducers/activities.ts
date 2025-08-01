@@ -275,10 +275,10 @@ function getActivityListTokenSlugs(activityIds: Iterable<string>, byId: Record<s
 }
 
 /** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
-export function replaceCurrentActivityId(global: GlobalState, accountId: string, replaceMap: Map<string, string>) {
+export function replaceCurrentActivityId(global: GlobalState, accountId: string, replaceMap: Record<string, string>) {
   const { currentActivityId } = selectAccountState(global, accountId) || {};
-  const newActivityId = currentActivityId && replaceMap.get(currentActivityId);
-  if (newActivityId) {
+  const newActivityId = currentActivityId && replaceMap[currentActivityId];
+  if (newActivityId !== currentActivityId) {
     global = updateAccountState(global, accountId, { currentActivityId: newActivityId });
   }
   return global;

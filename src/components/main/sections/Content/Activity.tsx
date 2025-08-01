@@ -53,7 +53,6 @@ export default function Activity({
   if (activity.kind === 'swap') {
     return (
       <Swap
-        key={activity.id}
         activity={activity}
         tokensBySlug={swapTokensBySlug}
         isLast={isLast}
@@ -71,7 +70,6 @@ export default function Activity({
 
     return (
       <Transaction
-        key={activity.id}
         currentAccountId={currentAccountId}
         transaction={activity}
         tokensBySlug={tokensBySlug}

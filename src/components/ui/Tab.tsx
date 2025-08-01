@@ -20,6 +20,7 @@ type OwnProps = {
   onClick: (arg: number) => void;
   clickArg: number;
   onMenuItemClick?: (value: string) => void;
+  onActiveClick?: NoneToVoidFunction;
 };
 
 function Tab({
@@ -31,6 +32,7 @@ function Tab({
   onClick,
   clickArg,
   onMenuItemClick,
+  onActiveClick,
 }: OwnProps) {
   const menuRef = useRef<HTMLDivElement>();
   const contentRef = useRef<HTMLDivElement>();
@@ -45,7 +47,10 @@ function Tab({
   const closeMenu = useLastCallback(() => setMenuAnchor(undefined));
 
   const handleClick = useLastCallback(() => {
-    if (isActive && !hasMenu) return;
+    if (isActive && !hasMenu) {
+      onActiveClick?.();
+      return;
+    }
 
     if (!isActive) {
       onClick(clickArg);

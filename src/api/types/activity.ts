@@ -4,7 +4,7 @@ import type { ApiNftMarketplace, ApiTransaction } from './misc';
 type BaseActivity = {
   id: string;
   shouldHide?: boolean;
-  /** Trace external message hash normalized. Only for TON. */
+  /** Trace external message hash normalized. Not unique but doesn't change in pending activities. Only for TON. */
   externalMsgHashNorm?: string;
   /** Whether the activity data should be re-loaded to get the necessary data before showing in the activity list */
   shouldReload?: boolean;

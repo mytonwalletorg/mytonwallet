@@ -149,19 +149,6 @@ $subheaderReleaseHeight: 1.25rem;
   left: 0;
 }
 
-.iconToToken {
-  $borderWidth: 0.0625rem;
-
-  position: absolute;
-  right: -$borderWidth;
-  bottom: -$borderWidth;
-
-  padding: $borderWidth;
-  border-radius: 50%;
-
-  background: var(--color-background-first);
-}
-
 .iconWaiting,
 .iconError {
   position: absolute;
@@ -181,7 +168,6 @@ $subheaderReleaseHeight: 1.25rem;
   color: var(--color-activity-red-text);
 }
 
-.iconToToken,
 .iconWaiting {
   box-shadow: 0 0 0 $iconExtraBorderWidth var(--color-background-first);
 }

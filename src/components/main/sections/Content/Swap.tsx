@@ -4,22 +4,22 @@ import React, { memo, useMemo } from '../../../../lib/teact/teact';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../../api/types';
 import type { Account, AppTheme } from '../../../../global/types';
+import type { Color as PendingIndicatorColor } from './ActivityPendingIndicator';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN, WHOLE_PART_DELIMITER } from '../../../../config';
+import { TONCOIN, WHOLE_PART_DELIMITER } from '../../../../config';
 import { getIsInternalSwap, resolveSwapAsset } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
 import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import getSwapRate from '../../../../util/swap/getSwapRate';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
 
 import TokenIcon from '../../../common/TokenIcon';
-import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import SensitiveData from '../../../ui/SensitiveData';
+import ActivityPendingIndicator from './ActivityPendingIndicator';
 
 import styles from './Activity.module.scss';
 
@@ -94,29 +94,22 @@ function Swap({
 
   function renderIcon() {
     let statusClass: string | undefined = styles.colorSwap;
-    let waitingIconName: keyof typeof ANIMATED_STICKERS_PATHS.light.preview = 'iconClockGreen';
+    let pendingIndicatorColor: PendingIndicatorColor = 'Green';
     if (isError) {
       statusClass = styles.colorNegative;
-      waitingIconName = 'iconClockRed';
+      pendingIndicatorColor = 'Red';
     } else if (isHold) {
       statusClass = undefined;
-      waitingIconName = 'iconClockGray';
+      pendingIndicatorColor = 'Gray';
     }
 
     return (
       <i className={buildClassName('icon-swap', styles.icon, statusClass)} aria-hidden>
-        {isPending && (
-          <AnimatedIconWithPreview
-            play
-            size={ANIMATED_STICKER_TINY_ICON_PX}
-            className={styles.iconWaiting}
-            nonInteractive
-            noLoop={false}
-            forceOnHeavyAnimation
-            tgsUrl={ANIMATED_STICKERS_PATHS[appTheme][waitingIconName]}
-            previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview[waitingIconName]}
-          />
-        )}
+        <ActivityPendingIndicator
+          isActive={isPending}
+          color={pendingIndicatorColor}
+          appTheme={appTheme}
+        />
         {isError && <i className={buildClassName(styles.iconError, 'icon-close-filled')} aria-hidden />}
       </i>
     );

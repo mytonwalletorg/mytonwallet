@@ -23,12 +23,14 @@ import { calculateFullBalance } from './helpers/calculateFullBalance';
 import getSensitiveDataMaskSkinFromCardNft from './helpers/getSensitiveDataMaskSkinFromCardNft';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useFlag from '../../../../hooks/useFlag';
 import useFontScale from '../../../../hooks/useFontScale';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
+import useWindowSize from '../../../../hooks/useWindowSize';
 
 import MintCardButton from '../../../mintCard/MintCardButton';
 import AnimatedCounter from '../../../ui/AnimatedCounter';
@@ -78,8 +80,12 @@ function Card({
   const [customCardClassName, setCustomCardClassName] = useState<string | undefined>(undefined);
   const [withTextGradient, setWithTextGradient] = useState<boolean>(false);
 
+  const { isPortrait } = useDeviceScreen();
+  const { width: screenWidth } = useWindowSize();
   const isUpdating = useUpdateIndicator('balanceUpdateStartedAt');
   const { updateFontScale } = useFontScale(amountRef);
+  // Screen width affects font size only in portrait orientation
+  const screenWidthDep = isPortrait ? screenWidth : 0;
 
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
   const currentToken = useMemo(() => {
@@ -123,7 +129,7 @@ function Card({
     if (primaryValue !== undefined) {
       updateFontScale();
     }
-  }, [primaryFractionPart, primaryValue, primaryWholePart, shortBaseSymbol, updateFontScale]);
+  }, [primaryFractionPart, primaryValue, primaryWholePart, shortBaseSymbol, updateFontScale, screenWidthDep]);
 
   function renderLoader() {
     return (

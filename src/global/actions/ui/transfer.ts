@@ -2,8 +2,8 @@ import { ActiveTab, TransferState } from '../../types';
 
 import { getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
-import { callActionInMain } from '../../../util/multitab';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { resetHardware, setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
 import { selectIsHardwareAccount } from '../../selectors';
@@ -103,4 +103,13 @@ addActionHandler('submitTransferConfirm', async (global, actions) => {
 
 addActionHandler('clearTransferError', (global) => {
   setGlobal(updateCurrentTransfer(global, { error: undefined }));
+});
+
+addActionHandler('dismissTransferScamWarning', (global) => {
+  if (IS_DELEGATING_BOTTOM_SHEET) {
+    callActionInNative('dismissTransferScamWarning');
+  }
+
+  global = updateCurrentTransfer(global, { shouldShowScamWarning: undefined });
+  setGlobal(global);
 });

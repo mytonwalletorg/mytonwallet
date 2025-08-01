@@ -79,6 +79,11 @@
 .closeButton {
   left: 0.75rem;
 
+  :global(html.is-electron.is-macos) & {
+    right: 0.75rem;
+    left: auto;
+  }
+
   @include mixins.respond-above(xs) {
     right: 0.75rem;
     left: auto;
@@ -87,6 +92,10 @@
 
 .menuButton {
   right: 0.75rem;
+
+  :global(html.is-electron.is-macos) & {
+    right: 3.75rem;
+  }
 
   @include mixins.respond-above(xs) {
     right: 3.75rem;

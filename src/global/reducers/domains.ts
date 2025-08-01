@@ -27,18 +27,20 @@ export function updateCurrentDomainLinking(
 }
 
 /** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
-export function replaceCurrentDomainRenewalId(global: GlobalState, replaceMap: Map<string, string>) {
-  const newTxId = global.currentDomainRenewal.txId && replaceMap.get(global.currentDomainRenewal.txId);
-  if (newTxId !== undefined) {
+export function replaceCurrentDomainRenewalId(global: GlobalState, replaceMap: Record<string, string>) {
+  const oldTxId = global.currentDomainRenewal.txId;
+  const newTxId = oldTxId && replaceMap[oldTxId];
+  if (newTxId !== oldTxId) {
     global = updateCurrentDomainRenewal(global, { txId: newTxId });
   }
   return global;
 }
 
 /** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
-export function replaceCurrentDomainLinkingId(global: GlobalState, replaceMap: Map<string, string>) {
-  const newTxId = global.currentDomainLinking.txId && replaceMap.get(global.currentDomainLinking.txId);
-  if (newTxId !== undefined) {
+export function replaceCurrentDomainLinkingId(global: GlobalState, replaceMap: Record<string, string>) {
+  const oldTxId = global.currentDomainLinking.txId;
+  const newTxId = oldTxId && replaceMap[oldTxId];
+  if (newTxId !== oldTxId) {
     global = updateCurrentDomainLinking(global, { txId: newTxId });
   }
   return global;

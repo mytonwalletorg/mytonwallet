@@ -9,7 +9,7 @@ import type { ExplainedTransferFee } from '../../util/fee/transferFee';
 import type { FeePrecision, FeeTerms } from '../../util/fee/types';
 import { TransferState } from '../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, TONCOIN } from '../../config';
+import { DEFAULT_PRICE_CURRENCY, HELP_CENTER_SEED_SCAM_URL, TONCOIN } from '../../config';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokenBalance,
@@ -42,6 +42,7 @@ import AddressInput from '../ui/AddressInput';
 import AmountInputSection from '../ui/AmountInput';
 import Button from '../ui/Button';
 import FeeLine from '../ui/FeeLine';
+import Modal from '../ui/Modal';
 import Transition from '../ui/Transition';
 import CommentSection from './CommentSection';
 import NftChips from './NftChips';
@@ -82,6 +83,7 @@ interface StateProps {
   isDieselAuthorizationStarted?: boolean;
   isMultichainAccount: boolean;
   isSensitiveDataHidden?: true;
+  shouldShowScamWarning?: true;
 }
 
 const COMMENT_MAX_SIZE_BYTES = 5000;
@@ -119,6 +121,7 @@ function TransferInitial({
   isDieselAuthorizationStarted,
   isMultichainAccount,
   isSensitiveDataHidden,
+  shouldShowScamWarning,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -134,6 +137,7 @@ function TransferInitial({
     authorizeDiesel,
     fetchTransferDieselState,
     checkTransferAddress,
+    dismissTransferScamWarning,
   } = getActions();
 
   const isNftTransfer = Boolean(nfts?.length);
@@ -153,6 +157,10 @@ function TransferInitial({
   const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
   const doesSupportComment = chain === 'ton';
   const transitionKey = useTransitionActiveKey(nfts?.length ? nfts : [tokenSlug]);
+  const helpCenterLink = (
+    HELP_CENTER_SEED_SCAM_URL[lang.code as keyof typeof HELP_CENTER_SEED_SCAM_URL]
+    || HELP_CENTER_SEED_SCAM_URL.en
+  );
 
   const handleAddressInput = useLastCallback((newToAddress?: string, isValueReplaced?: boolean) => {
     // If value is replaced, callbacks must be executed immediately, without debounce
@@ -524,6 +532,26 @@ function TransferInitial({
         excessFeePrecision="approximate"
         token={transferToken}
       />
+      <Modal
+        isOpen={shouldShowScamWarning}
+        isCompact
+        title={lang('Warning!')}
+        noBackdropClose
+        onClose={dismissTransferScamWarning}
+      >
+        <div>
+          {lang('$seed_phrase_scam_warning', {
+            help_center_link: (
+              <a href={helpCenterLink} target="_blank" rel="noreferrer">
+                <b>{lang('$help_center_prepositional')}</b>
+              </a>
+            ),
+          })}
+        </div>
+        <div className={modalStyles.footerButtons}>
+          <Button onClick={dismissTransferScamWarning}>{lang('OK')}</Button>
+        </div>
+      </Modal>
     </>
   );
 }
@@ -548,6 +576,7 @@ export default memo(
         isMemoRequired,
         diesel,
         stateInit,
+        shouldShowScamWarning,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
@@ -582,6 +611,7 @@ export default memo(
         isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
         isSensitiveDataHidden,
+        shouldShowScamWarning,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

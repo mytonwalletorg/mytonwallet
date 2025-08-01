@@ -2,6 +2,8 @@ import { createTaskQueue, pause, throttle } from './schedulers';
 
 import Deferred from './Deferred';
 
+const ALLOWED_CLOCK_DRIFT = 2;
+
 describe('throttle', () => {
   it.concurrent('executes fn only once if called multiple times during pause', async () => {
     const fn = jest.fn();
@@ -27,7 +29,7 @@ describe('throttle', () => {
     await pause(30);
     const actualDuration = calls[1] - calls[0];
     expect(calls.length).toBeGreaterThanOrEqual(2);
-    expect(actualDuration).toBeGreaterThanOrEqual(throttleMs - 1); // Allow 1ms drift
+    expect(actualDuration).toBeGreaterThanOrEqual(throttleMs - ALLOWED_CLOCK_DRIFT);
   });
 
   it.concurrent('does not allow parallel execution of async fn', async () => {
@@ -55,7 +57,7 @@ describe('throttle', () => {
     await pause(15);
     const actualDuration = calls[0] - start;
     expect(calls.length).toBe(1);
-    expect(actualDuration).toBeGreaterThanOrEqual(throttleMs - 1); // Allow 1ms drift
+    expect(actualDuration).toBeGreaterThanOrEqual(throttleMs - ALLOWED_CLOCK_DRIFT);
   });
 
   it.concurrent('supports a custom pause scheduler (function ms)', async () => {

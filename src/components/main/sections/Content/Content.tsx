@@ -29,9 +29,11 @@ import { getIsActiveStakingState } from '../../../../util/staking';
 import { getTelegramApp } from '../../../../util/telegram';
 import { IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD } from '../../../../util/windowEnvironment';
 import windowSize from '../../../../util/windowSize';
+import { getScrollableContainer } from '../../helpers/scrollableContainer';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useEffectOnce from '../../../../hooks/useEffectOnce';
+import useElementVisibility from '../../../../hooks/useElementVisibility';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -275,36 +277,36 @@ function Content({
     setActiveContentTab({ tab });
   });
 
+  const handleScrollToTop = useLastCallback(() => {
+    const scrollContainer = getScrollableContainer(transitionRef.current, isPortrait);
+    scrollContainer?.scrollTo(0, 0);
+  });
+
   useHistoryBack({
     isActive: activeTabIndex !== 0,
     onBack: () => handleSwitchTab(ContentTab.Assets),
   });
 
-  useEffect(() => {
-    const stickyElm = tabsRef.current;
-    if (!isPortrait || !stickyElm) return undefined;
+  const safeAreaTop = IS_CAPACITOR
+    ? getStatusBarHeight()
+    : IS_TELEGRAM_APP
+      ? getTelegramApp()!.safeAreaInset.top + getTelegramApp()!.contentSafeAreaInset.top
+      : windowSize.get().safeAreaTop;
+  const rootMarginTop = STICKY_CARD_INTERSECTION_THRESHOLD - safeAreaTop - 1;
 
-    const safeAreaTop = IS_CAPACITOR
-      ? getStatusBarHeight()
-      : IS_TELEGRAM_APP
-        ? getTelegramApp()!.safeAreaInset.top + getTelegramApp()!.contentSafeAreaInset.top
-        : windowSize.get().safeAreaTop;
-    const rootMarginTop = STICKY_CARD_INTERSECTION_THRESHOLD - safeAreaTop - 1;
-
-    const observer = new IntersectionObserver(([e]) => {
-      requestMutation(() => {
-        e.target.classList.toggle(styles.tabsContainerStuck, e.intersectionRatio < 1);
-      });
-    }, {
-      rootMargin: `${rootMarginTop}px 0px 0px 0px`,
-      threshold: [1],
+  const handleTabIntersection = useLastCallback((e: IntersectionObserverEntry) => {
+    requestMutation(() => {
+      e.target.classList.toggle(styles.tabsContainerStuck, e.intersectionRatio < 1);
     });
-    observer.observe(stickyElm);
+  });
 
-    return () => {
-      observer.unobserve(stickyElm);
-    };
-  }, [isPortrait, tabsRef, isFullscreen]);
+  useElementVisibility({
+    isDisabled: !isPortrait,
+    targetRef: tabsRef,
+    rootMargin: `${rootMarginTop}px 0px 0px 0px`,
+    threshold: [1],
+    cb: handleTabIntersection,
+  });
 
   useEffect(() => {
     if (!IS_TOUCH_ENV) {
@@ -370,6 +372,7 @@ function Content({
         tabs={tabs}
         activeTab={activeTabIndex}
         onSwitchTab={handleSwitchTab}
+        onActiveTabClick={handleScrollToTop}
         className={buildClassName(styles.tabs, 'content-tabslist')}
         overlayClassName={styles.tabsOverlay}
       />
