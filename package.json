@@ -236,3 +236,478 @@
     "webextension-polyfill": "0.12.0"
   }
 }
+
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "ultimate-node-professional",
+  "version": "5.0.0",
+  "private": true,
+  "description": "Enterprise-grade Node.js full-stack development toolkit with microservices, serverless, and AI capabilities",
+  "main": "server.js",
+  "type": "module",
+  "packageManager": "pnpm@8.6.12",
+  "scripts": {
+    /* =============== CORE OPERATIONS =============== */
+    "init": "node ./scripts/init.js",
+    "start": "NODE_ENV=production node --trace-warnings --es-module-specifier-resolution=node --env-file=.env.production server.js",
+    "dev": "NODE_ENV=development nodemon --trace-warnings --es-module-specifier-resolution=node --env-file=.env.development server.js",
+    "stage": "NODE_ENV=staging node --env-file=.env.staging server.js",
+    
+    /* =============== BUILD SYSTEM =============== */
+    "build": "npm-run-all build:*",
+    "build:prod": "webpack --config webpack.config.prod.js --profile --json > stats.json",
+    "build:dev": "webpack --config webpack.config.dev.js",
+    "build:server": "swc src -d dist --config-file .swcrc",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:docker": "cross-env-shell docker buildx build --platform linux/amd64,linux/arm64 -t your-registry/{{name}}:{{version}} .",
+    
+    /* =============== DEVELOPMENT TOOLS =============== */
+    "codegen": "graphql-codegen --config codegen.yml",
+    "migrate": "knex migrate:latest && knex seed:run",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "storybook": "storybook dev -p 6006",
+    
+    /* =============== QUALITY & SECURITY =============== */
+    "quality": "npm-run-all lint test security audit",
+    "lint": "npm-run-all lint:*",
+    "lint:js": "eslint . --ext .js,.jsx,.ts,.tsx,.mjs,.cjs --cache --max-warnings 0",
+    "lint:css": "stylelint \"**/*.{css,scss,sass}\"",
+    "lint:md": "markdownlint \"**/*.md\"",
+    "lint:docker": "hadolint Dockerfile",
+    "test": "npm-run-all test:*",
+    "test:unit": "NODE_ENV=test jest --ci --coverage --detectOpenHandles",
+    "test:e2e": "cypress run --config baseUrl=http://localhost:3000",
+    "test:contract": "pact-js verify --publish",
+    "test:load": "artillery run --output load-test.json load-test.yml",
+    "security": "npm-run-all security:*",
+    "security:scan": "snyk test --all-projects",
+    "security:audit": "npm audit --production --audit-level=moderate",
+    "audit": "npm-run-all audit:*",
+    "audit:licenses": "license-checker --production --json --out licenses.json",
+    "audit:size": "cost-of-modules --no-dev",
+    "validate": "npm-run-all check-engines validate:*",
+    "validate:types": "tsc --noEmit",
+    "validate:packages": "pnpm why --recursive",
+    
+    /* =============== DEPLOYMENT & OPS =============== */
+    "deploy": "npm-run-all build test security deploy:*",
+    "deploy:prod": "serverless deploy --stage production",
+    "deploy:stage": "serverless deploy --stage staging",
+    "deploy:canary": "serverless deploy --stage canary --alias",
+    "deploy:docker": "docker-compose --env-file .env.production up -d --build",
+    "deploy:rollback": "serverless deploy --stage production --functionVersion $PREVIOUS_VERSION",
+    "infra:plan": "cdktf diff",
+    "infra:apply": "cdktf deploy --auto-approve",
+    "logs": "pm2 logs",
+    "metrics": "pm2 monit",
+    
+    /* =============== MONITORING & PERFORMANCE =============== */
+    "perf": "npm-run-all perf:*",
+    "perf:bench": "autocannon -c 100 -d 20 http://localhost:3000",
+    "perf:profile": "NODE_ENV=production node --prof server.js",
+    "perf:flame": "0x --visualize-cpu-profile isolate-0x*.cpuprofile",
+    "perf:trace": "clinic flame -- node server.js",
+    "perf:bundle": "source-map-explorer dist/static/js/*.js",
+    
+    /* =============== UTILITIES =============== */
+    "clean": "rimraf dist coverage .cache .next node_modules",
+    "reset": "npm-run-all clean install",
+    "docs": "npm-run-all docs:*",
+    "docs:api": "swagger-cli bundle api/swagger.json -o public/api-spec.json",
+    "docs:jsdoc": "jsdoc -c jsdoc.config.json",
+    "format": "prettier --write . && npm-run-all format:*",
+    "format:css": "stylelint \"**/*.{css,scss,sass}\" --fix",
+    "healthcheck": "node ./scripts/healthcheck.js"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    },
+    "husky": {
+      "hooks": {
+        "pre-commit": "lint-staged",
+        "pre-push": "npm run test:unit",
+        "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      }
+    },
+    "lint-staged": {
+      "*.{js,jsx,ts,tsx}": [
+        "eslint --fix",
+        "prettier --write"
+      ],
+      "*.{css,scss,sass}": [
+        "stylelint --fix",
+        "prettier --write"
+      ],
+      "*.json": [
+        "prettier --write"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0 <21",
+    "npm": ">=9.0.0",
+    "pnpm": ">=8.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "volta": {
+    "node": "18.17.1",
+    "npm": "9.6.7",
+    "yarn": "1.22.19",
+    "pnpm": "8.6.12"
+  },
+  "dependencies": {
+    /* =============== CORE INFRASTRUCTURE =============== */
+    "express": "^4.18.2",
+    "fastify": "^4.23.2",
+    "nestjs": "^10.0.0",
+    "hapi": "^21.3.2",
+    "koa": "^2.15.3",
+    "micro": "^9.3.4",
+    
+    /* =============== API GATEWAY & COMMUNICATION =============== */
+    "graphql": "^16.8.1",
+    "apollo-server": "^3.12.0",
+    "trpc": "^11.0.0",
+    "grpc": "^1.24.11",
+    "ws": "^8.14.2",
+    "socket.io": "^4.7.2",
+    "nats": "^2.16.0",
+    "kafkajs": "^2.2.4",
+    
+    /* =============== DATABASE & ORMS =============== */
+    "mongoose": "^8.0.3",
+    "typeorm": "^0.3.17",
+    "sequelize": "^6.37.0",
+    "prisma": "^5.3.1",
+    "dynamodb-toolkit": "^3.4.1",
+    "redis-om": "^0.4.0",
+    "neogma": "^2.7.0",
+    
+    /* =============== SECURITY =============== */
+    "helmet": "^7.1.0",
+    "csurf": "^1.11.0",
+    "rate-limiter-flexible": "^2.4.1",
+    "express-brute": "^1.0.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "oauth2-server": "^3.1.1",
+    "arktype": "^1.0.24-alpha",
+    
+    /* =============== FRONTEND & SSR =============== */
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "vue": "^3.3.0",
+    "svelte": "^4.2.0",
+    "solid-js": "^1.7.5",
+    "astro": "^3.0.0",
+    "remix": "^2.0.0",
+    "nuxt": "^3.8.0",
+    
+    /* =============== STATE MANAGEMENT =============== */
+    "redux": "^4.2.1",
+    "zustand": "^4.4.0",
+    "mobx": "^6.10.0",
+    "jotai": "^2.0.3",
+    "xstate": "^5.0.0",
+    
+    /* =============== STYLING =============== */
+    "tailwindcss": "^3.3.0",
+    "styled-components": "^6.0.8",
+    "emotion": "^11.11.0",
+    "sass": "^1.69.0",
+    "less": "^4.1.3",
+    "postcss": "^8.4.31",
+    
+    /* =============== UTILITIES =============== */
+    "lodash": "^4.17.21",
+    "ramda": "^0.29.0",
+    "fp-ts": "^2.16.3",
+    "effect": "^2.3.0",
+    "date-fns": "^2.30.0",
+    "luxon": "^3.4.0",
+    "zod": "^3.22.0",
+    "joi": "^17.10.0",
+    "class-validator": "^0.14.0",
+    
+    /* =============== AI & ML =============== */
+    "langchain": "^0.0.208",
+    "huggingface": "^2.5.3",
+    "llama-index": "^0.3.12",
+    "tensorflow": "^4.10.0",
+    "brain.js": "^2.0.0",
+    "onnxruntime-node": "^1.16.0",
+    
+    /* =============== SERVERLESS =============== */
+    "serverless": "^3.35.1",
+    "aws-sdk": "^2.1477.0",
+    "serverless-offline": "^12.0.4",
+    "azure-functions": "^3.7.0",
+    "google-cloud": "^5.8.3",
+    
+    /* =============== DEBUGGING & OBSERVABILITY =============== */
+    "winston": "^3.10.0",
+    "pino": "^8.16.0",
+    "bunyan": "^1.8.15",
+    "opentelemetry": "^1.16.0",
+    "newrelic": "^10.3.0",
+    "sentry": "^7.84.0",
+    "datadog": "^3.27.0",
+    
+    /* =============== PERFORMANCE =============== */
+    "undici": "^5.23.0",
+    "lru-cache": "^10.1.0",
+    "hast-util-from-html": "^2.0.0",
+    "fast-json-stringify": "^5.7.0",
+    "msgpackr": "^1.8.4"
+  },
+  "devDependencies": {
+    /* =============== BUILD TOOLS =============== */
+    "webpack": "^5.89.0",
+    "vite": "^4.4.9",
+    "esbuild": "^0.19.5",
+    "swc": "^1.3.82",
+    "rollup": "^3.29.4",
+    "parcel": "^2.10.0",
+    "babel": "^7.23.0",
+    
+    /* =============== TESTING =============== */
+    "jest": "^29.7.0",
+    "mocha": "^10.2.0",
+    "cypress": "^13.2.0",
+    "playwright": "^1.39.0",
+    "supertest": "^6.3.3",
+    "testcontainers": "^9.6.0",
+    "pact": "^10.3.5",
+    "nock": "^13.3.0",
+    
+    /* =============== CODE QUALITY =============== */
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "stylelint": "^15.10.3",
+    "typescript": "^5.3.2",
+    "ts-node": "^10.9.1",
+    "typedoc": "^0.25.0",
+    "markdownlint": "^0.31.1",
+    "commitlint": "^17.7.1",
+    
+    /* =============== DEPLOYMENT & OPS =============== */
+    "pm2": "^5.3.1",
+    "dockerfilelint": "^1.8.0",
+    "hadolint": "^2.12.0",
+    "cdktf": "^0.19.0",
+    "pulumi": "^3.90.0",
+    "terraform": "^1.6.0",
+    "serverless-compose": "^1.4.0",
+    
+    /* =============== AUTOMATION & DX =============== */
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.2",
+    "npm-run-all": "^4.1.5",
+    "concurrently": "^8.2.1",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.0.2",
+    "tsx": "^4.5.1",
+    
+    /* =============== DOCUMENTATION =============== */
+    "swagger-cli": "^4.0.4",
+    "jsdoc": "^4.0.2",
+    "storybook": "^7.5.3",
+    "docusaurus": "^3.0.0",
+    
+    /* =============== SECURITY TOOLS =============== */
+    "snyk": "^1.1239.0",
+    "license-checker": "^25.0.1",
+    "cost-of-modules": "^0.2.2",
+    "npm-audit-resolver": "^4.0.0"
+  },
+  "bundles": {
+    "microservices": [
+      "nestjs",
+      "kafkajs",
+      "typeorm",
+      "opentelemetry"
+    ],
+    "serverless": [
+      "serverless",
+      "aws-sdk",
+      "serverless-offline",
+      "middy"
+    ],
+    "monolith": [
+      "express",
+      "mongoose",
+      "redis-om",
+      "helmet"
+    ],
+    "frontend": [
+      "next",
+      "react",
+      "tailwindcss",
+      "zustand"
+    ],
+    "ai": [
+      "langchain",
+      "tensorflow",
+      "huggingface",
+      "llama-index"
+    ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
+{
+	"name": "web3.js",
+	"private": true,
+	"description": "Ethereum API wrappers and utilities",
+	"author": "ChainSafe Systems",
+	"license": "LGPL-3.0",
+	"keywords": [
+		"ethereum",
+		"eth",
+		"web3",
+		"web3js",
+		"web3.js",
+		"blockchain"
+	],
+	"homepage": "https://github.com/ChainSafe/web3.js#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ChainSafe/web3.js.git"
+	},
+	"bugs": {
+		"url": "https://github.com/ChainSafe/web3.js/issues"
+	},
+	"engines": {
+		"node": ">=14",
+		"npm": ">=6.12.0"
+	},
+	"workspaces": {
+		"packages": [
+			"packages/*",
+			"tools/*"
+		]
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,css,md}": "prettier --write"
+	},
+	"scripts": {
+		"version": "yarn run bootstrap && yarn build",
+		"bootstrap": "lerna bootstrap",
+		"prebuild": "yarn clean && ts-node scripts/init.ts",
+		"build": "lerna run build --stream",
+		"build:types": "lerna run build:types --stream",
+		"build:cjs": "lerna run build:cjs --stream",
+		"build:esm": "lerna run build:esm --stream",
+		"build:web": "lerna run build:web --stream",
+		"build:web:analyze": "lerna run build:web:analyze --stream",
+		"generate:docs": "node ./scripts/docshelper/generatedoc.js",
+		"build:docs": "yarn generate:docs && cd docs && yarn install && yarn build",
+		"changelog": "ts-node -P scripts/changelog/tsconfig.json scripts/changelog/src/index.ts",
+		"clean": "lerna run clean --stream --parallel",
+		"geth:start": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth.sh start",
+		"geth:start:background": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth.sh start 1",
+		"geth:stop": "./scripts/geth.sh stop",
+		"geth-binary:start": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth_binary.sh start",
+		"geth-binary:start:background": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth_binary.sh start 1",
+		"geth-binary:stop": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth_binary.sh stop",
+		"hardhat:start": "WEB3_SYSTEM_TEST_BACKEND=hardhat && ./scripts/hardhat.sh start",
+		"hardhat:stop": "./scripts/hardhat.sh stop",
+		"geth-manual:start:background": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth_binary.sh manualStart 1",
+		"geth-manual:stop": "WEB3_SYSTEM_TEST_BACKEND=geth && ./scripts/geth_binary.sh stop",
+		"lint": "lerna run lint --stream --parallel",
+		"lint:fix": "lerna run lint:fix --stream --parallel",
+		"format": "lerna run format --stream --parallel && prettier --write ./scripts/**/*.ts",
+		"test": "lerna run test --stream --parallel",
+		"test:coverage:unit": "lerna run test:coverage:unit --stream --parallel",
+		"test:coverage:integration": "lerna run test:coverage:integration --stream --parallel",
+		"test:unit": "lerna run test:unit --stream --parallel && jest --config=./scripts/jest.config.js",
+		"test:integration": "lerna run test:integration --stream",
+		"test:benchmark": "lerna run test:benchmark",
+		"test:integration:stress": "lerna run test:integration:stress --stream",
+		"test:e2e:geth:http": "./scripts/test-runner.sh geth http",
+		"test:e2e:geth:ws": "./scripts/test-runner.sh geth ws",
+		"test:e2e:geth:ipc": "./scripts/test-runner.sh geth ipc",
+		"test:e2e:hardhat:http": "./scripts/test-runner.sh hardhat http",
+		"test:e2e:coverage": "./scripts/test-runner.sh coverage",
+		"test:e2e:mainnet:http": "./scripts/test-runner.sh mainnet http",
+		"test:e2e:mainnet:ws": "./scripts/test-runner.sh mainnet ws",
+		"test:e2e:sepolia:http": "./scripts/test-runner.sh sepolia http",
+		"test:e2e:sepolia:ws": "./scripts/test-runner.sh sepolia ws",
+		"test:stress:geth:ws": "./scripts/test-runner.sh geth-manual ws node manual",
+		"test:stress:geth:ipc": "./scripts/test-runner.sh geth-manual ipc node manual",
+		"test:stress:geth:http": "./scripts/test-runner.sh geth-manual http node manual",
+		"test:e2e:stress:geth:ws:chrome": "./scripts/test-runner.sh geth-manual ws chrome manual",
+		"generate:accounts": "node ./scripts/gen_accounts.js",
+		"pre-blackbox": "yarn config set registry http://localhost:4873 && git init && git config --global user.email \"ci@github.com\" && git config --global user.name \"CI\"",
+		"post-blackbox": "./scripts/verdaccio.sh stop",
+		"post-blackbox:geth": "yarn geth:stop && yarn post-blackbox",
+		"test:blackbox:geth:http": "yarn pre-blackbox && yarn geth:start:background && ./scripts/verdaccio.sh startBackgroundAndPublish && lerna run test:blackbox:geth:http --stream && yarn post-blackbox:geth",
+		"test:blackbox:geth:ws": "yarn pre-blackbox && yarn geth:start:background && ./scripts/verdaccio.sh startBackgroundAndPublish && lerna run test:blackbox:geth:ws --stream && yarn post-blackbox:geth",
+		"test:e2e:geth:ws:electron": "./scripts/test-runner.sh hardhat ws electron",
+		"test:e2e:geth:ws:chrome": "./scripts/test-runner.sh hardhat ws chrome",
+		"test:e2e:geth:ws:firefox": "./scripts/test-runner.sh hardhat ws firefox",
+		"test:e2e:hardhat:ws:electron": "./scripts/test-runner.sh hardhat http electron",
+		"test:e2e:hardhat:ws:chrome": "./scripts/test-runner.sh hardhat http chrome",
+		"test:e2e:hardhat:ws:firefox": "./scripts/test-runner.sh hardhat http firefox",
+		"test:blackbox:infura:http": "yarn pre-blackbox && ./scripts/verdaccio.sh startBackgroundAndPublish && lerna run test:blackbox:infura:http --stream && yarn post-blackbox",
+		"test:blackbox:infura:ws": "yarn pre-blackbox && ./scripts/verdaccio.sh startBackgroundAndPublish && lerna run test:blackbox:infura:ws --stream && yarn post-blackbox",
+		"test:manual:long-connection-ws": "node packages/web3/test/stress/long_ws_tests/nodejs_test/long_connection_ws.js",
+		"test:stress": "yarn test:stress:geth:ws && yarn test:stress:geth:http && yarn test:stress:geth:ipc && yarn test:e2e:stress:geth:ws:chrome",
+		"postinstall": "yarn build",
+		"compile:contracts": "node ./scripts/compile_contracts.js && yarn format && yarn lint:fix",
+		"publish:canary": "lerna publish --canary --dist-tag dev --preid dev.$(git rev-parse --short HEAD) --exact --graph-type all --force-publish \"*\" --no-verify-access --yes",
+		"prepare": "husky install"
+	},
+	"devDependencies": {
+		"@cypress/webpack-preprocessor": "^5.12.0",
+		"@droppedcode/typedoc-plugin-relative-includes": "^1.0.2",
+		"@openzeppelin/contracts": "^4.7.1",
+		"@types/node": "^18.11.9",
+		"@types/webpack": "^5.28.0",
+		"assert": "^2.0.0",
+		"buffer": "^6.0.3",
+		"bufferutil": "^4.0.6",
+		"clean-webpack-plugin": "^4.0.0",
+		"concurrently": "^8.2.0",
+		"cypress-jest-adapter": "^0.1.1",
+		"declaration-bundler-webpack-plugin": "^1.0.3",
+		"eslint": "^8.20.0",
+		"eslint-import-resolver-typescript": "^3.5.5",
+		"eslint-plugin-require-extensions": "^0.1.3",
+		"http-browserify": "^1.7.0",
+		"https-browserify": "^1.0.0",
+		"husky": "^8.0.3",
+		"jest": "^29.7.0",
+		"lerna": "^6.6.2",
+		"lint-staged": "^15.2.9",
+		"npm-auth-to-token": "^1.0.0",
+		"prettier": "^2.7.1",
+		"prettier-plugin-solidity": "^1.0.0-beta.20",
+		"process": "^0.11.10",
+		"solc": "^0.8.15",
+		"ts-jest": "^29.1.1",
+		"ts-loader": "^9.3.1",
+		"ts-node": "^10.9.1",
+		"typedoc": "^0.25.6",
+		"typedoc-monorepo-link-types": "^0.0.4",
+		"typedoc-plugin-extras": "^2.2.5",
+		"typedoc-plugin-markdown": "^3.17.0",
+		"typedoc-plugin-mdn-links": "^2.0.0",
+		"typedoc-plugin-merge-modules": "^5.1.0",
+		"typescript": "^5.5.4",
+		"utf-8-validate": "^5.0.9",
+		"web3-hardhat-plugin": "^1.0.0",
+		"webpack": "^5.73.0",
+		"webpack-cli": "^4.10.0"
+	},
+	"packageManager": "yarn@1.22.15",
+	"dependencies": {
+		"webpack-bundle-analyzer": "^4.7.0"
+	}
+}
