@@ -1,7 +1,7 @@
 import type { ApiChain } from '../../api/types';
 import type { GlobalState } from '../types';
 
-import { getChainConfig, getTrustedUsdtSlugs } from '../../util/chain';
+import { getChainConfig } from '../../util/chain';
 import { CHAIN_ORDER } from '../../util/chain';
 import { getMaxTransferAmount } from '../../util/fee/transferFee';
 import { isValidAddressOrDomain } from '../../util/isValidAddress';
@@ -80,7 +80,6 @@ export function selectTokenMatchingCurrentTransferAddressSlow(global: GlobalStat
 /**
  * Returns the best token to use when switching to a new chain:
  * - If the current token is the native token of its chain, prefers the native token of the new chain.
- * - If the current token is USDT, prefers the USDT token of the new chain.
  * - Otherwise, falls back to the token with the highest USD balance.
  */
 function selectBestChainTokenSlow(global: GlobalState, chain: ApiChain, currentTokenSlug: string) {
@@ -91,14 +90,6 @@ function selectBestChainTokenSlow(global: GlobalState, chain: ApiChain, currentT
     const nativeTokenSlug = getChainConfig(chain).nativeToken.slug;
     const nativeToken = tokens.find((token) => token.slug === nativeTokenSlug);
     if (nativeToken) return nativeToken;
-  }
-
-  if (getTrustedUsdtSlugs().has(currentTokenSlug)) {
-    const { usdtSlug } = getChainConfig(chain);
-    const usdtToken = tokens.find(
-      (token) => token.chain === chain && (token.slug === usdtSlug.mainnet || token.slug === usdtSlug.testnet),
-    );
-    if (usdtToken) return usdtToken;
   }
 
   return selectChainTokenWithMaxBalanceSlow(global, chain);

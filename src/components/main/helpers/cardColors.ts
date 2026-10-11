@@ -2,7 +2,6 @@ import type { UserToken } from '../../../global/types';
 import type { RGBColor } from '../../../util/colors';
 
 import { TOKEN_CUSTOM_STYLES } from '../../../config';
-import { getTrustedUsdtSlugs } from '../../../util/chain';
 import { deltaE, hex2rgb } from '../../../util/colors';
 
 export const TOKEN_CARD_COLORS: Record<string, RGBColor> = {
@@ -23,10 +22,6 @@ export function calculateTokenCardColor(token?: UserToken): string {
   let smallestDistance = Infinity;
 
   if (!token) return closestColor;
-
-  if (getTrustedUsdtSlugs().has(token.slug)) {
-    return 'sea';
-  }
 
   if (TOKEN_CUSTOM_STYLES[token.slug]?.cardColor) {
     return TOKEN_CUSTOM_STYLES[token.slug]!.cardColor!;

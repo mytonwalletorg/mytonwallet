@@ -1,7 +1,7 @@
 import type { ApiTokenWithPrice } from '../../api/types';
 
-import { TON_USDT_MAINNET } from '../../config';
 import { makeMockTransactionActivity } from '../../../tests/mocks';
+import { TON_USDT_MAINNET } from '../../../tests/mocks/tokens';
 import { getIsTinyOrScamTransaction } from '.';
 
 // Six decimals and a price of exactly 1 make the cost of a sub-cent transfer easy to express.

@@ -2,17 +2,14 @@ import type { ApiChain, ApiDerivationSpec, ApiNetwork, ApiToken, ApiTokenWithPri
 
 import {
   BNB,
-  BSC_USDT_MAINNET,
   DEBUG,
   ION_BNB_MAINNET,
-  TON_USDT_MAINNET,
-  TON_USDT_TESTNET,
   TONCOIN,
 } from '../config';
 import { EVM_DERIVATION_PATHS } from '../api/chains/evm/constants';
 import { TON_BIP39_PATH } from '../api/chains/ton/derivationConstants';
 import formatTonTransferUrl from './ton/formatTransferUrl';
-import { buildCollectionByKey, compact } from './iteratees';
+import { buildCollectionByKey } from './iteratees';
 import withCache from './withCache';
 
 // The EVM family is represented by BNB: it is the only EVM chain here, so it is also its own hub.
@@ -96,15 +93,6 @@ export interface ChainConfig {
   doesSupportPushNotifications: boolean;
   /** A random but valid address for checking transfer fees */
   feeCheckAddress: string;
-  /** A swap configuration used to buy the native token in this chain. If absent, the "Buy with Crypto" UI is hidden. */
-  buySwap?: {
-    tokenInSlug: string;
-    /** Amount as perceived by the user */
-    amountIn: string;
-  };
-  /** The slug of the USDT token in this chain, if it has USDT */
-  usdtSlug: Record<ApiNetwork, string | undefined>;
-  usdcSlug?: Record<ApiNetwork, string | undefined>;
   /** The token slugs of this chain added to new accounts by default. */
   defaultEnabledSlugs: Record<ApiNetwork, string[]>;
   /**
@@ -113,8 +101,6 @@ export interface ChainConfig {
    * so an unlisted token never reaches the balances, the token list or the total.
    */
   keptTokenSlugs?: string[];
-  /** The token slugs of this chain supported by the crosschain (CEX) swap mechanism. */
-  crosschainSwapSlugs: string[];
   /**
    * The tokens to fill the token cache until it's loaded from the backend.
    * Should include the tokens from the above lists, and the staking tokens.
@@ -192,24 +178,11 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     shouldShowScamWarningIfNotEnoughGas: false,
     doesSupportPushNotifications: true,
     feeCheckAddress: 'UQBE5NzPPnfb6KAy7Rba2yQiuUnihrfcFw96T-p5JtZjAl_c',
-    buySwap: {
-      tokenInSlug: BSC_USDT_MAINNET.slug,
-      amountIn: '100',
-    },
-    usdtSlug: {
-      mainnet: TON_USDT_MAINNET.slug,
-      testnet: TON_USDT_TESTNET.slug,
-    },
     defaultEnabledSlugs: {
       mainnet: [TONCOIN.slug],
       testnet: [TONCOIN.slug],
     },
-    crosschainSwapSlugs: [TONCOIN.slug, TON_USDT_MAINNET.slug],
-    tokenInfo: [
-      TONCOIN,
-      TON_USDT_MAINNET,
-      TON_USDT_TESTNET,
-    ],
+    tokenInfo: [TONCOIN],
     explorers: [
       {
         id: 'tonscan',
@@ -272,10 +245,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     canImportTokens: false,
     shouldShowScamWarningIfNotEnoughGas: false,
     feeCheckAddress: '0x0000000000000000000000000000000000000000',
-    usdtSlug: {
-      mainnet: BSC_USDT_MAINNET.slug,
-      testnet: BSC_USDT_MAINNET.slug,
-    },
     defaultEnabledSlugs: {
       mainnet: [BNB.slug, ION_BNB_MAINNET.slug],
       testnet: [BNB.slug],
@@ -283,8 +252,7 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     // BNB carries ION and nothing else for now: the chain is here to hold the bridged coin, and
     // an open list means every airdropped token lands in the wallet, priced and counted.
     keptTokenSlugs: [ION_BNB_MAINNET.slug],
-    crosschainSwapSlugs: [BNB.slug],
-    tokenInfo: [BNB, ION_BNB_MAINNET, BSC_USDT_MAINNET],
+    tokenInfo: [BNB, ION_BNB_MAINNET],
     explorers: [{
       id: 'bsctrace',
       name: 'BSCTrace',
@@ -424,17 +392,6 @@ export const getChainsSupportingNft = /* #__PURE__ */ withCache((): ReadonlySet<
   return new Set(
     getSupportedChains()
       .filter((chain) => CHAIN_CONFIG[chain].isNftSupported),
-  );
-});
-
-export const getTrustedUsdtSlugs = /* #__PURE__ */ withCache((): ReadonlySet<string> => {
-  return new Set(
-    Object.values(CHAIN_CONFIG).flatMap(({ usdtSlug }) => {
-      return compact([
-        usdtSlug.mainnet,
-        usdtSlug.testnet,
-      ]);
-    }),
   );
 });
 

@@ -315,7 +315,6 @@ export const TONCOIN = {
   decimals: 9,
   chain: 'ton',
   cmcSlug: 'toncoin',
-  priceUsd: 1.5,
 } as const;
 
 export const BNB = {
@@ -326,44 +325,12 @@ export const BNB = {
   chain: 'bnb',
 } as const;
 
-export const STAKED_TON_SLUG = 'ton-eqcqc6ehrj';
+export const STAKED_TON_SLUG = `ton-${LIQUID_JETTON}`;
 
 // Tokens that do not accept new stakes; existing positions stay fully withdrawable
 export const NEW_STAKE_DISABLED_TOKEN_SLUGS: ReadonlySet<string> = new Set();
 
-export const STON_PTON_ADDRESS = 'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez';
-export const STON_PTON_SLUG = 'ton-eqcm3b12qk';
-
 export const DNS_IMAGE_GEN_URL = 'https://dns-image.wallet.ice.io/img?d=';
-
-export const TON_USDT_MAINNET = {
-  name: 'Tether USD',
-  symbol: 'USD₮',
-  chain: 'ton',
-  slug: 'ton-eqcxe6mutq',
-  decimals: 6,
-  tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
-  image: 'https://imgproxy.wallet.ice.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
-  label: 'ION',
-  priceUsd: 1,
-} as const;
-
-// Where to get this token: https://t.me/testgiver_ton_usdt_bot
-export const TON_USDT_TESTNET = {
-  ...TON_USDT_MAINNET,
-  slug: 'ton-kqd0gkbm8z',
-  tokenAddress: 'kQD0GKBM8ZbryVk2aESmzfU6b9b_8era_IkvBSELujFZPsyy',
-  image: undefined,
-} as const;
-
-/**
- * The display names this fork insists on, whatever the backend answers. The wallet still reads the
- * token list from IONWallet's backend, which calls the native coin Gram; until ION serves its own
- * list, the rebranded names would be overwritten on every poll.
- */
-export const TOKEN_NAME_OVERRIDES: Record<string, { name: string; symbol: string }> = {
-  [TONCOIN.slug]: { name: TONCOIN.name, symbol: TONCOIN.symbol },
-};
 
 // Wrapped ION on BNB Smart Chain: the bridged form of the native coin, verified on-chain
 // (symbol ION, name "Ice Open Network", 9 decimals).
@@ -372,21 +339,9 @@ export const ION_BNB_MAINNET = {
   symbol: 'ION',
   decimals: 9,
   chain: 'bnb',
-  slug: 'bnb-0xe1ab61f7',
-  tokenAddress: '0xe1ab61f7b093435204df32f5b3a405de55445ea8',
+  slug: 'bnb-0xE1ab61f7b093435204dF32F5b3A405de55445Ea8',
+  tokenAddress: '0xE1ab61f7b093435204dF32F5b3A405de55445Ea8',
   label: 'BEP-20',
-} as const;
-
-export const BSC_USDT_MAINNET = {
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 18,
-  chain: 'bnb',
-  slug: 'bnb-0x55d39832',
-  tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
-  label: 'BEP-20',
-  image: 'https://imgproxy.wallet.ice.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
-  priceUsd: 1,
 } as const;
 
 /** The properties not returned by the backend, and therefore not stored in token objects */

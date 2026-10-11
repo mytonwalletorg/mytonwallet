@@ -16,20 +16,16 @@ export function shouldShowSeedPhraseScamWarning(
     return true;
   }
 
-  const {
-    shouldShowScamWarningIfNotEnoughGas,
-    usdtSlug: { mainnet: usdtSlug },
-  } = getChainConfig(transferTokenChain);
+  const { shouldShowScamWarningIfNotEnoughGas } = getChainConfig(transferTokenChain);
 
   // Only show when trying to transfer in some chains
   if (!shouldShowScamWarningIfNotEnoughGas) {
     return false;
   }
 
-  // Check if account has that chain tokens (like USDT)
+  // Check if account has that chain tokens
   return accountTokens.some((token) =>
-    token.slug === usdtSlug
-    || (token.chain === transferTokenChain && token.amount > 0n && !getIsNativeToken(token.slug)),
+    token.chain === transferTokenChain && token.amount > 0n && !getIsNativeToken(token.slug),
   );
 }
 

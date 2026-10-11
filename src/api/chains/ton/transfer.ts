@@ -25,7 +25,6 @@ import type { Signer } from './util/signer';
 import type { TonWallet } from './util/tonCore';
 import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { STON_PTON_ADDRESS } from '../../../config';
 import { raceWithAbortSignal, throwIfAborted } from '../../../util/abortSignal';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
@@ -697,11 +696,7 @@ async function isTokenBalanceInsufficient(
   }
 
   const tokenBalances = await Promise.all(
-    tokenAddresses.map((tokenAddress) =>
-      tokenAddress !== STON_PTON_ADDRESS
-        ? getTokenBalanceWithMintless(network, walletAddress, tokenAddress)
-        : Promise.resolve(0n),
-    ),
+    tokenAddresses.map((tokenAddress) => getTokenBalanceWithMintless(network, walletAddress, tokenAddress)),
   );
 
   // Check if any token has insufficient balance
@@ -709,10 +704,6 @@ async function isTokenBalanceInsufficient(
     const tokenAddress = tokenAddresses[i];
     const requiredAmount = tokenAmountsByAddress[tokenAddress];
     const availableBalance = tokenBalances[i];
-
-    if (tokenAddress === STON_PTON_ADDRESS) {
-      continue;
-    }
 
     if (availableBalance < requiredAmount) {
       return { hasInsufficientTokenBalance: true, parsedPayloads };

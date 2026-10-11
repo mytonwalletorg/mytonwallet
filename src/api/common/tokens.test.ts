@@ -135,3 +135,25 @@ describe('token updates', () => {
     expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('buildTokenSlug', () => {
+  const EVM_ADDRESS = '0xE1ab61f7b093435204dF32F5b3A405de55445Ea8';
+  const TON_ADDRESS = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
+
+  it('keeps the full address so a look-alike token cannot collide', () => {
+    const lookAlike = `${EVM_ADDRESS.slice(0, 10)}00000000000000000000000000000000`;
+    expect(buildTokenSlug('bnb', EVM_ADDRESS)).toBe(`bnb-${EVM_ADDRESS}`);
+    expect(buildTokenSlug('bnb', lookAlike)).not.toBe(buildTokenSlug('bnb', EVM_ADDRESS));
+  });
+
+  it('maps every spelling of an address to one slug', () => {
+    expect(buildTokenSlug('bnb', EVM_ADDRESS.toLowerCase())).toBe(`bnb-${EVM_ADDRESS}`);
+    expect(buildTokenSlug('ton', '0:b113a994b5024a16719f69139328eb759596c38a25f59028b146fecdc3621dfe'))
+      .toBe(`ton-${TON_ADDRESS}`);
+    expect(buildTokenSlug('ton', 'UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p')).toBe(`ton-${TON_ADDRESS}`);
+  });
+
+  it('keeps an invalid address whole', () => {
+    expect(buildTokenSlug('ton', 'not-an-address')).toBe('ton-not-an-address');
+  });
+});

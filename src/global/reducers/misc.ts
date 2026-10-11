@@ -10,7 +10,7 @@ import type {
 } from '../types';
 import { AuthState } from '../types';
 
-import { POPULAR_WALLET_VERSIONS, TOKEN_NAME_OVERRIDES } from '../../config';
+import { POPULAR_WALLET_VERSIONS } from '../../config';
 import { generateAccountTitle } from '../../util/account';
 import { getDefaultEnabledSlugs } from '../../util/chain';
 import { getIsDefaultChainDisplayConfiguration } from '../../util/chainDisplay';
@@ -256,8 +256,6 @@ export function updateTokens(
 ): GlobalState {
   const existingTokens = global.tokenInfo?.bySlug;
 
-  partial = applyTokenNameOverrides(partial);
-
   if (shouldPreservePrices) {
     partial = Object.values(partial).reduce((result, token) => {
       const existingToken = existingTokens?.[token.slug];
@@ -284,22 +282,6 @@ export function updateTokens(
         ...partial,
       },
     },
-  };
-}
-
-function applyTokenNameOverrides(tokens: Record<string, ApiTokenWithPrice>) {
-  const overridden = Object.entries(tokens).filter(([slug]) => slug in TOKEN_NAME_OVERRIDES);
-  if (!overridden.length) return tokens;
-
-  return {
-    ...tokens,
-    // `localizedName` goes with them: it is the backend's own translation of the old name, and it
-    // wins over `name` wherever token names are localized
-    ...Object.fromEntries(overridden.map(([slug, token]) => [slug, {
-      ...token,
-      ...TOKEN_NAME_OVERRIDES[slug],
-      localizedName: undefined,
-    }])),
   };
 }
 

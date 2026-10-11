@@ -1,11 +1,7 @@
 import type { GlobalState } from '../types';
 
-import {
-  BNB,
-  BSC_USDT_MAINNET,
-  TON_USDT_MAINNET,
-  TONCOIN,
-} from '../../config';
+import { BNB, TONCOIN } from '../../config';
+import { BSC_USDT_MAINNET, TON_USDT_MAINNET } from '../../../tests/mocks/tokens';
 import { INITIAL_STATE } from '../initialState';
 import { selectTokenInfoUserTokens } from './tokens';
 

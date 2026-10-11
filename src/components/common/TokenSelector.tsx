@@ -20,13 +20,13 @@ import {
   selectCurrentAccountTokens,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getChainConfig, getDisplayOrderedChains, getTrustedUsdtSlugs } from '../../util/chain';
+import { getChainConfig } from '../../util/chain';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import getChainNetworkName from '../../util/getChainNetworkName';
 import { getChainFromAddress } from '../../util/isValidAddress';
 import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
-import { getChainBySlug, getIsRwaStockToken, getTokenName } from '../../util/tokens';
+import { getIsRwaStockToken, getTokenName } from '../../util/tokens';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useDebouncedValue from '../../hooks/useDebouncedValue';
@@ -52,7 +52,6 @@ type TokenSortFactors = {
   tickerExactMatch: number;
   tickerMatchLength: number;
   nameMatchLength: number;
-  specialOrder: number;
 };
 
 interface OwnProps {
@@ -217,7 +216,6 @@ function TokenSelector({
         tickerExactMatch: 0,
         tickerMatchLength: 0,
         nameMatchLength: 0,
-        specialOrder: 0, // The higher the value, the higher the position
       };
 
       const tokenSymbol = searchResultToken.symbol.toLowerCase();
@@ -233,17 +231,6 @@ function TokenSelector({
 
       if (tokenName.includes(lowerCaseSearchValue)) {
         factors.nameMatchLength = lowerCaseSearchValue.length;
-      }
-
-      if (getTrustedUsdtSlugs().has(searchResultToken.slug)) {
-        const chain = getChainBySlug(searchResultToken.slug);
-        const supportedChains = getDisplayOrderedChains();
-        const chainPriority = supportedChains.indexOf(chain);
-        if (chainPriority !== -1) {
-          // Subtracting, because the lower chain index should have higher priority, and `specialOrder` expects higher
-          // numbers for higher priority.
-          factors.specialOrder = supportedChains.length - chainPriority;
-        }
       }
 
       acc[searchResultToken.slug] = factors;
@@ -617,9 +604,6 @@ function filterAndSortTokens(tokens: TokenType[]) {
 }
 
 function compareTokens(a: TokenSortFactors, b: TokenSortFactors) {
-  if (a.specialOrder !== b.specialOrder) {
-    return b.specialOrder - a.specialOrder;
-  }
   if (a.tickerExactMatch !== b.tickerExactMatch) {
     return b.tickerExactMatch - a.tickerExactMatch;
   }

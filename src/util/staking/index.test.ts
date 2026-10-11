@@ -1,6 +1,7 @@
 import type { ApiStakingState } from '../../api/types';
 
-import { TON_USDT_MAINNET, TONCOIN } from '../../config';
+import { TONCOIN } from '../../config';
+import { TON_USDT_MAINNET } from '../../../tests/mocks/tokens';
 import { getFullStakingBalance, getIsNewStakeAllowed } from '.';
 
 describe('getIsNewStakeAllowed', () => {

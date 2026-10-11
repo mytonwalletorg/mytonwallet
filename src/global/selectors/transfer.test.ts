@@ -1,11 +1,7 @@
 import type { GlobalState } from '../types';
 
-import {
-  BNB,
-  BSC_USDT_MAINNET,
-  TON_USDT_MAINNET,
-  TONCOIN,
-} from '../../config';
+import { BNB, TONCOIN } from '../../config';
+import { BSC_USDT_MAINNET, TON_USDT_MAINNET } from '../../../tests/mocks/tokens';
 import { INITIAL_STATE } from '../initialState';
 import { selectTokenMatchingCurrentTransferAddressSlow } from './transfer';
 
@@ -135,27 +131,6 @@ describe('selectTokenMatchingCurrentTransferAddressSlow', () => {
         [TONCOIN.slug]: 1_000_000_000n,
         [BNB.slug]: 1_000_000_000_000_000_000n,
         [BSC_USDT_MAINNET.slug]: 1_000_000_000_000_000_000_000n,
-      });
-
-      expect(selectTokenMatchingCurrentTransferAddressSlow(global)).toBe(BNB.slug);
-    });
-  });
-
-  describe('USDT cross-chain preference', () => {
-    it('prefers BSC USDT over BNB when TON USDT is current', () => {
-      const global = buildGlobal(TON_USDT_MAINNET.slug, BNB_ADDRESS, {
-        [TON_USDT_MAINNET.slug]: 1_000_000n,
-        [BSC_USDT_MAINNET.slug]: 1_000_000n,
-        [BNB.slug]: 1_000_000_000_000_000_000n,
-      });
-
-      expect(selectTokenMatchingCurrentTransferAddressSlow(global)).toBe(BSC_USDT_MAINNET.slug);
-    });
-
-    it('falls back to the max-balance token when the target chain has no USDT in the account', () => {
-      const global = buildGlobal(TON_USDT_MAINNET.slug, BNB_ADDRESS, {
-        [TON_USDT_MAINNET.slug]: 1_000_000n,
-        [BNB.slug]: 1_000_000_000_000_000_000n,
       });
 
       expect(selectTokenMatchingCurrentTransferAddressSlow(global)).toBe(BNB.slug);

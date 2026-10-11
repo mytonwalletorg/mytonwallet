@@ -1,9 +1,8 @@
 import type { ApiStakingType, ApiToken } from '../../api/types';
 
-import { DEFAULT_FEE, TON_USDT_MAINNET, TON_USDT_TESTNET } from '../../config';
+import { DEFAULT_FEE } from '../../config';
 import {
   CLAIM_MINTLESS_AMOUNT,
-  TINIEST_TOKEN_TRANSFER_REAL_AMOUNT,
   TINY_TOKEN_TRANSFER_AMOUNT,
   TINY_TOKEN_TRANSFER_REAL_AMOUNT,
   TOKEN_TRANSFER_AMOUNT,
@@ -65,10 +64,7 @@ export function getToncoinAmountForTransfer(token: ApiToken, willClaimMintless: 
   let amount = 0n;
   let realAmount = 0n;
 
-  if (token.slug === TON_USDT_MAINNET.slug || token.slug === TON_USDT_TESTNET.slug) {
-    amount += TINY_TOKEN_TRANSFER_AMOUNT;
-    realAmount += TINIEST_TOKEN_TRANSFER_REAL_AMOUNT;
-  } else if (token.isTiny) {
+  if (token.isTiny) {
     amount += TINY_TOKEN_TRANSFER_AMOUNT;
     realAmount += TINY_TOKEN_TRANSFER_REAL_AMOUNT;
   } else {

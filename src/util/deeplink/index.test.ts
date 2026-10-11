@@ -3,13 +3,9 @@ import { getActions, getGlobal } from '../../global';
 import type { GlobalState } from '../../global/types';
 import { ContentTab } from '../../global/types';
 
-import {
-  BNB,
-  BSC_USDT_MAINNET,
-  TON_USDT_MAINNET,
-  TONCOIN,
-} from '../../config';
+import { BNB, TONCOIN } from '../../config';
 import { INITIAL_STATE } from '../../global/initialState';
+import { BSC_USDT_MAINNET, TON_USDT_MAINNET } from '../../../tests/mocks/tokens';
 import { callApi } from '../../api';
 import { getEvmChains } from '../chain';
 import { openUrl } from '../openUrl';

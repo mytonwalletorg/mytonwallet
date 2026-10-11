@@ -154,7 +154,17 @@ export function resumeTokenUpdates() {
   }
 }
 
+// Full canonical address: a truncated one lets a look-alike token collide with a real one
 export function buildTokenSlug(chain: ApiChain, address: string) {
-  const addressPart = address.replace(/[^a-z\d]/gi, '').slice(0, 10);
-  return `${chain}-${addressPart}`.toLowerCase();
+  const trimmedAddress = address.trim();
+  let normalizedAddress = trimmedAddress;
+  try {
+    // Lazy to avoid an import cycle with the chain SDKs
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { chains } = require('../chains') as typeof import('../chains');
+    normalizedAddress = chains[chain].normalizeAddress(trimmedAddress);
+  } catch {
+    // Invalid address: keep it as is
+  }
+  return `${chain}-${normalizedAddress}`;
 }

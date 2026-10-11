@@ -1,4 +1,5 @@
-import { ION_BNB_MAINNET, TON_USDT_MAINNET } from '../config';
+import { ION_BNB_MAINNET } from '../config';
+import { TON_USDT_MAINNET } from '../../tests/mocks/tokens';
 import { getIsSupportedChain, getIsTokenKept } from './chain';
 
 describe('getIsSupportedChain', () => {
