@@ -120,11 +120,11 @@ export const THEME_DEFAULT = 'system';
 export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
-export const TONCENTER_MAINNET_URL = process.env.TONCENTER_MAINNET_URL || 'https://toncenter.wallet.ice.io';
+export const TONCENTER_MAINNET_URL = process.env.TONCENTER_MAINNET_URL || 'https://api.mainnet.ice.io';
 export const TONCENTER_MAINNET_KEY = process.env.TONCENTER_MAINNET_KEY;
 export const ELECTRON_TONCENTER_MAINNET_KEY = process.env.ELECTRON_TONCENTER_MAINNET_KEY;
 
-export const TONCENTER_TESTNET_URL = process.env.TONCENTER_TESTNET_URL || 'https://toncenter-testnet.wallet.ice.io';
+export const TONCENTER_TESTNET_URL = process.env.TONCENTER_TESTNET_URL || 'https://api.testnet.ice.io';
 export const TONCENTER_TESTNET_KEY = process.env.TONCENTER_TESTNET_KEY;
 export const ELECTRON_TONCENTER_TESTNET_KEY = process.env.ELECTRON_TONCENTER_TESTNET_KEY;
 

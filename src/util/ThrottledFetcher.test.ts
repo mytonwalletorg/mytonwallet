@@ -36,7 +36,7 @@ describe('ThrottledFetcher', () => {
         },
       } as unknown as Response);
 
-    const url = 'https://toncenter-testnet.wallet.ice.io/api/v2/jsonRPC';
+    const url = 'https://api.testnet.ice.io/http/v2/jsonRPC';
 
     await fetchWithThrottledProvider(url, { method: 'POST' });
 
@@ -74,7 +74,7 @@ describe('ThrottledFetcher', () => {
         },
       } as unknown as Response);
 
-    const url = 'https://toncenter.wallet.ice.io/api/v3/rates';
+    const url = 'https://api.mainnet.ice.io/indexer/v3/rates';
     // A timeout above the cap: this test is about the pause itself, not about the caller deadline.
     await fetchWithThrottledProvider(url, undefined, 60000);
 
@@ -107,7 +107,7 @@ describe('ThrottledFetcher', () => {
   });
 
   it('should apply the provider retry policy to Toncenter origins', () => {
-    expect(getProviderFetchRetryPolicy('https://toncenter.wallet.ice.io/api/v3/rates')).toEqual({
+    expect(getProviderFetchRetryPolicy('https://api.mainnet.ice.io/indexer/v3/rates')).toEqual({
       retries: 6,
       fallbackRetryAfterMs: 5000,
     });

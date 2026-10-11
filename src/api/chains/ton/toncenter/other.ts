@@ -2,7 +2,6 @@ import type { ApiNetwork, ApiWalletInfo } from '../../../types';
 import type { ApiTonWalletVersion } from '../types';
 import type { AccountState, AddressBook, MetadataMap, WalletState, WalletVersion } from './types';
 
-import { TONCENTER_ACTIONS_VERSION } from '../../../../config';
 import { buildTxId } from '../../../../util/activities';
 import { fetchJson } from '../../../../util/fetch';
 import { buildCollectionByKey, split } from '../../../../util/iteratees';
@@ -128,7 +127,7 @@ export function callToncenterV3<T = any>(
   data?: AnyLiteral,
   signal?: AbortSignal,
 ) {
-  const url = `${NETWORK_CONFIG[network].toncenterUrl}/api/v3${path}`;
+  const url = `${NETWORK_CONFIG[network].toncenterUrl}/indexer/v3${path}`;
 
   // Keep the WebView HTTP cache from storing or replaying toncenter responses.
   // The unique `_` changes the cache key (reliable, as the `cache` directive is
@@ -141,13 +140,8 @@ export function callToncenterV3<T = any>(
   }) as Promise<T>;
 }
 
-export function getToncenterHeaders(network: ApiNetwork) {
-  const { apiHeaders, byNetwork } = getEnvironment();
-  const apiKey = byNetwork[network].toncenterKey;
+export function getToncenterHeaders(network: ApiNetwork): Record<string, string> {
+  const apiKey = getEnvironment().byNetwork[network].toncenterKey;
 
-  return {
-    ...apiHeaders,
-    ...(apiKey && { 'X-Api-Key': apiKey }),
-    'X-Actions-Version': TONCENTER_ACTIONS_VERSION,
-  };
+  return apiKey ? { 'X-Api-Key': apiKey } : {};
 }

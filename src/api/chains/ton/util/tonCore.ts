@@ -71,12 +71,9 @@ export const walletClassMap: Record<ApiTonWalletVersion, TonWalletType> = {
 };
 
 export const getTonClient = withCache((network: ApiNetwork) => {
-  const { apiHeaders, byNetwork } = getEnvironment();
-
   return new TonClient({
-    endpoint: `${NETWORK_CONFIG[network].toncenterUrl}/api/v2/jsonRPC`,
-    apiKey: byNetwork[network].toncenterKey,
-    headers: apiHeaders,
+    endpoint: `${NETWORK_CONFIG[network].toncenterUrl}/http/v2/jsonRPC`,
+    apiKey: getEnvironment().byNetwork[network].toncenterKey,
   });
 });
 
