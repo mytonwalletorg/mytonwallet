@@ -56,7 +56,7 @@ import { MINUTE, SEC } from '../../constants';
 import { ApiServerError, handleServerError } from '../../errors';
 import { checkHasTransaction, fetchHasTransaction } from './activities';
 import { resolveAddress } from './address';
-import { ATTEMPTS, FEE_FACTOR, LEDGER_VESTING_SUBWALLET_ID, TRANSFER_TIMEOUT_SEC } from './constants';
+import { ATTEMPTS, FEE_FACTOR, TRANSFER_TIMEOUT_SEC } from './constants';
 import { emulateTransaction } from './emulation';
 import {
   buildTokenTransfer,
@@ -235,7 +235,6 @@ export async function checkTransactionDraft(
         amount,
         payload,
         forwardAmount,
-        isLedger: account.type === 'ledger',
         ...(signal && { signal }),
       });
       ({ amount: toncoinAmount, toAddress, payload } = tokenTransfer);
@@ -262,9 +261,6 @@ export async function checkTransactionDraft(
         amount: toncoinAmount,
         payload,
         stateInit,
-        hints: {
-          tokenAddress,
-        },
       }],
       seqno,
       signer,
@@ -400,7 +396,6 @@ export async function submitGasfullTransfer(
         amount,
         payload,
         forwardAmount,
-        isLedger: account.type === 'ledger',
       }));
     }
 
@@ -423,9 +418,6 @@ export async function submitGasfullTransfer(
             amount: toncoinAmount,
             payload,
             stateInit,
-            hints: {
-              tokenAddress,
-            },
           }],
           seqno,
           signer,
@@ -822,8 +814,7 @@ async function submitMultiTransferInternal(
 
 // todo: Support submitting multiple transactions (not only multiple messages). The signing already supports that. It will allow to:
 //  1) send multiple NFTs with a single API call,
-//  2) renew multiple domains in a single function call,
-//  3) preserve Ledger transaction constraints
+//  2) renew multiple domains in a single function call
 export async function submitMultiTransfer({
   accountId, signer, messages, expireAt, noFeeCheck,
 }: SubmitMultiTransferOptions): Promise<ApiSubmitMultiTransferResult> {
@@ -837,8 +828,6 @@ export async function signTransfers(
   messages: TonTransferParams[],
   enclaveToken?: string,
   expireAt?: number,
-  /** Used for specific transactions on vesting.ton.org */
-  ledgerVestingAddress?: string,
   isTonConnect?: boolean,
 ): Promise<
   | ApiSignedTransfer<DappProtocolType.TonConnect>[]
@@ -852,17 +841,8 @@ export async function signTransfers(
   // works in most cases.
   await withoutTransferConcurrency(network, account.byChain.ton.address, () => {});
 
-  const seqno = await getWalletSeqno(
-    network,
-    ledgerVestingAddress ?? account.byChain.ton.address,
-  );
-  const signer = getSigner(
-    accountId,
-    account,
-    enclaveToken,
-    false,
-    ledgerVestingAddress ? LEDGER_VESTING_SUBWALLET_ID : undefined,
-  );
+  const seqno = await getWalletSeqno(network, account.byChain.ton.address);
+  const signer = getSigner(accountId, account, enclaveToken);
   const signedTransactions = await signTransactions({
     account, accountId, expireAt, messages, seqno, signer, isTonConnect,
   });
@@ -886,7 +866,7 @@ interface SignTransactionOptions {
   signer: Signer;
   /** Unix seconds */
   expireAt?: number;
-  /** If true, will sign the transaction as an internal message instead of external. Not supported by Ledger. */
+  /** If true, will sign the transaction as an internal message instead of external */
   shouldBeInternal?: boolean;
   isTonConnect?: boolean;
 }
@@ -903,10 +883,6 @@ async function signTransaction(options: SignTransactionOptions) {
  * If the account doesn't support signing all the given messages in a single transaction, will produce multiple signed
  * transactions. If you need exactly 1 signed transaction, use `allowOnlyOneTransaction` or `signTransaction` (the
  * function will throw an error in case of multiple transactions).
- *
- * The reason for signing multiple transactions (not messages) in a single function call is improving the UX. Each
- * transaction requires a manual user action to sign with Ledger. So, all the transactions should be checked before
- * actually signing any of them.
  */
 
 type SignedTransactions = {
@@ -1118,6 +1094,5 @@ function makePreparedTransactionToSign(
       // the wallet balance: https://docs.ton.org/v3/documentation/smart-contracts/message-management/sending-messages#behavior-without-2-flag
       + SendMode.IGNORE_ERRORS,
     timeout: expireAt,
-    hints: messages[0].hints, // Currently hints are used only by Ledger, which has only 1 message per transaction
   };
 }

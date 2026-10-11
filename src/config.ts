@@ -284,11 +284,8 @@ export const NO_WEBSOCKET = process.env.NO_WEBSOCKET === '1';
  * Swap, staking, WalletConnect, the explore catalogue, portfolio history, push notifications, legacy
  * (pre-Enclave) auth, encrypted comments and the receive-screen backgrounds all go — their
  * methods leave the dispatch table and their modules leave the bundle.
- *
- * `NO_LEDGER` stays a separate axis: hardware wallet support is orthogonal to the extras.
  */
 export const NO_EXTRA_FEATURES = process.env.NO_EXTRA_FEATURES === '1';
-export const NO_LEDGER = process.env.NO_LEDGER === '1';
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON

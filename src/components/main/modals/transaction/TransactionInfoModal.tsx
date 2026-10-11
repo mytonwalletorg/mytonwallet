@@ -18,7 +18,6 @@ import {
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
-  selectIsHardwareAccount,
   selectNetworkAccounts,
 } from '../../../../global/selectors';
 import { parseTxId } from '../../../../util/activities';
@@ -65,7 +64,6 @@ interface StateProps {
   isMediaViewerOpen?: boolean;
   isSensitiveDataHidden?: true;
   isTestnet?: boolean;
-  isHardwareAccount: boolean;
   isViewMode: boolean;
 }
 
@@ -92,7 +90,6 @@ function TransactionInfoModal({
   isMediaViewerOpen,
   isSensitiveDataHidden,
   isTestnet,
-  isHardwareAccount,
   isViewMode,
 }: StateProps) {
   const {
@@ -121,7 +118,7 @@ function TransactionInfoModal({
     : undefined;
 
   const encryptedComment = selectedTransactionActivity?.encryptedComment;
-  const canDecryptComment = !isViewMode && !isHardwareAccount && Boolean(encryptedComment);
+  const canDecryptComment = !isViewMode && Boolean(encryptedComment);
 
   const [
     { decryptedComment, passwordError, isPasswordSlideOpen },
@@ -383,7 +380,6 @@ export default memo(withGlobal((global): StateProps => {
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
     isTestnet: global.settings.isTestnet,
-    isHardwareAccount: selectIsHardwareAccount(global),
     isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(TransactionInfoModal));

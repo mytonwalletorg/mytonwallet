@@ -11,7 +11,7 @@ This repository is in active migration. Public endpoints, wallet registries, mob
 - Self-custodial key management
 - Web, browser extension, Electron, and Capacitor mobile applications
 
-Removed product areas include the native Air client, Telegram Mini App integration, Telegram Gifts, gasless/Diesel, MFA, Agent, My Wallet Cards and Giveaway, and legacy networks outside the current scope.
+Removed product areas include the native Air client, Telegram Mini App integration, Telegram Gifts, gasless/Diesel, MFA, Agent, Ledger hardware wallets, My Wallet Cards and Giveaway, and legacy networks outside the current scope.
 
 ## Development
 

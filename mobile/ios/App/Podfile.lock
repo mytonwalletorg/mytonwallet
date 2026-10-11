@@ -7,8 +7,6 @@ PODS:
     - Capacitor
   - CapacitorClipboard (8.0.1):
     - Capacitor
-  - CapacitorCommunityBluetoothLe (8.1.0):
-    - Capacitor
   - CapacitorCordova (8.2.0)
   - CapacitorDialog (8.0.0):
     - Capacitor
@@ -119,8 +117,6 @@ PODS:
     - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
     - MLImage (= 1.0.0-beta7)
     - MLKitCommon (~> 13.0)
-  - MytonwalletCapacitorUsbHid (0.0.1):
-    - Capacitor
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
@@ -134,7 +130,6 @@ DEPENDENCIES:
   - "CapacitorApp (from `../../../node_modules/@capacitor/app`)"
   - "CapacitorAppLauncher (from `../../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
-  - "CapacitorCommunityBluetoothLe (from `../../../node_modules/@capacitor-community/bluetooth-le`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
   - CapacitorDialog (from `../../plugins/native-dialog`)
   - "CapacitorFilesystem (from `../../../node_modules/@capacitor/filesystem`)"
@@ -152,7 +147,6 @@ DEPENDENCIES:
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
   - FirebaseMessaging (= 11.15.0)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
-  - "MytonwalletCapacitorUsbHid (from `../../../node_modules/@mytonwallet/capacitor-usb-hid`)"
 
 SPEC REPOS:
   trunk:
@@ -183,8 +177,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/app-launcher"
   CapacitorClipboard:
     :path: "../../../node_modules/@capacitor/clipboard"
-  CapacitorCommunityBluetoothLe:
-    :path: "../../../node_modules/@capacitor-community/bluetooth-le"
   CapacitorCordova:
     :path: "../../../node_modules/@capacitor/ios"
   CapacitorDialog:
@@ -217,15 +209,12 @@ EXTERNAL SOURCES:
     :path: "../capacitor-cordova-ios-plugins"
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
-  MytonwalletCapacitorUsbHid:
-    :path: "../../../node_modules/@mytonwallet/capacitor-usb-hid"
 
 SPEC CHECKSUMS:
   Capacitor: 49a454e1cdbd520bc106a220adca7913536a4933
   CapacitorApp: 942306cd1acf7774a00e89a3986af3a67c8cad7a
   CapacitorAppLauncher: 43949ccc5aaa5139a1ebe27a98c0a4d76c883fa7
   CapacitorClipboard: c75fdaa6e622111119f35e7914ecfc67b05efecb
-  CapacitorCommunityBluetoothLe: e13e717be92b19f5573141b5d7a32a8ea16c4e69
   CapacitorCordova: a9ac88d84a1f5280f33b349fe50fce1902683ac0
   CapacitorDialog: 0dab3ae5730d3dcdf1bdfe2e067500865c25b85c
   CapacitorFilesystem: 2db285a1ac6e475cc27cae2e1bea999000f9e2be
@@ -256,11 +245,10 @@ SPEC CHECKSUMS:
   MLKitBarcodeScanning: 72c6437f13a900833b400136be53a8a5d86f42fa
   MLKitCommon: 26b779f072a182c1603d4c88a101c350cac837b1
   MLKitVision: fa8dea9012ac59497c79ddbe9ebf32051047ac4c
-  MytonwalletCapacitorUsbHid: d37d8e638a45d54b9c08c90be9478cdad33603ef
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 18c58b49db174f4946f071c1f48ecd1925203ba0
+PODFILE CHECKSUM: e8c6bc3e8c07cdd8e6d91f3de1d622ae4af493fb
 
 COCOAPODS: 1.17.0

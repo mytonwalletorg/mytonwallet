@@ -1,7 +1,7 @@
 import { ACTIVE_TAB_STORAGE_KEY } from '../config';
-import { IS_ELECTRON, IS_LEDGER_EXTENSION_TAB } from './windowEnvironment';
+import { IS_ELECTRON } from './windowEnvironment';
 
-const IS_DISABLED = IS_LEDGER_EXTENSION_TAB || IS_ELECTRON;
+const IS_DISABLED = IS_ELECTRON;
 
 const INTERVAL = 2000;
 

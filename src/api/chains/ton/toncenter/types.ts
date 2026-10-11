@@ -315,7 +315,7 @@ export type ChangeDnsAction = BaseAction & {
 
 /*
   This is the only action combining two outgoing transactions from the wallet.
-  However, a deposit can consist of separate actions from the wallet in case of Ledger:
+  However, a deposit can consist of separate actions from the wallet:
   - STON.fi v2: One without `lp_tokens_minted`, both with `amount_2` equal `null` (one action per deposited token);
   - DeDust: Both actions contain the same deposited amounts, but one of the actions has no `lp_tokens_minted` and no
     `pool`, and the real fee is spread across both actions;

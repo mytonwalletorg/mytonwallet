@@ -56,8 +56,6 @@ import usePrevious2 from '../../hooks/usePrevious2';
 import useScrolledState from '../../hooks/useScrolledState';
 import { useStateRef } from '../../hooks/useStateRef';
 
-import LedgerConnect from '../ledger/LedgerConnect';
-import LedgerSelectWallets from '../ledger/LedgerSelectWallets';
 import LogOutModal from '../main/modals/LogOutModal';
 import Switcher from '../ui/Switcher';
 import Transition from '../ui/Transition';
@@ -305,10 +303,6 @@ function Settings({
   function handleClickInstallOnMobile() {
     void openUrl(`${APP_INSTALL_URL}mobile`, { isExternal: true });
   }
-
-  const handleLedgerConnected = useLastCallback(() => {
-    setSettingsState({ state: SettingsState.LedgerSelectWallets });
-  });
 
   const [isTrayIconEnabled, setIsTrayIconEnabled] = useState(false);
   useEffect(() => {
@@ -739,30 +733,6 @@ function Settings({
             wallets={wallets}
             onBackClick={handleBackClick}
           />
-        );
-      case SettingsState.LedgerConnectHardware:
-        return (
-          <div className={styles.slide}>
-            <LedgerConnect
-              isActive={isActive && isSlideActive}
-              isStatic={!isInsideModal}
-              className={styles.nestedTransition}
-              onBackClick={handleBackClick}
-              onConnected={handleLedgerConnected}
-              onClose={handleBackOrCloseAction}
-            />
-          </div>
-        );
-      case SettingsState.LedgerSelectWallets:
-        return (
-          <div className={styles.slide}>
-            <LedgerSelectWallets
-              isActive={isActive && isSlideActive}
-              isStatic={!isInsideModal}
-              onBackClick={handleBackClick}
-              onClose={handleBackOrCloseAction}
-            />
-          </div>
         );
       case SettingsState.HiddenNfts:
         return (

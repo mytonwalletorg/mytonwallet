@@ -1488,7 +1488,6 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         transactions: transfers,
         emulation,
         validUntil: Math.floor(Date.now() / 1000 + 60 * 5),
-        vestingAddress: undefined,
         shouldHideTransfers: true,
         isLegacyOutput: !message.payload.isFullTxRequested,
       });

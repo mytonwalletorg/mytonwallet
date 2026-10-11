@@ -1,7 +1,7 @@
 import { AppState, AuthState } from '../../types';
 
 import { addActionHandler, setGlobal } from '../../index';
-import { resetAuthToStartScreen, resetHardware, updateAuth } from '../../reducers';
+import { resetAuthToStartScreen, updateAuth } from '../../reducers';
 import { selectCurrentAccountId } from '../../selectors';
 
 addActionHandler('openAbout', (global) => {
@@ -50,14 +50,4 @@ addActionHandler('closeAuthImportWalletModal', (global) => {
 
 addActionHandler('cleanAuthError', (global) => {
   setGlobal(updateAuth(global, { error: undefined }));
-});
-
-addActionHandler('openHardwareWalletModal', (global, actions, { chain }) => {
-  global = resetHardware(global, chain, true);
-
-  return { ...global, isHardwareModalOpen: true };
-});
-
-addActionHandler('closeHardwareWalletModal', (global) => {
-  return { ...global, isHardwareModalOpen: false };
 });

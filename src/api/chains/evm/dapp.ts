@@ -39,7 +39,6 @@ export async function signDappTransfers(
   messages: ApiDappTransfer[],
   options: {
     enclaveToken?: string;
-    vestingAddress?: string;
     /** Unix seconds */
     validUntil?: number;
     // Deal with solana b58/b64 issues based on requested method

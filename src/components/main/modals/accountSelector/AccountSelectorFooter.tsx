@@ -30,9 +30,7 @@ function AccountSelectorFooter({
 }: OwnProps) {
   const lang = useLang();
   const isReorderMode = renderingState === AccountSelectorState.Reorder;
-  const title = tab === AccountTab.Ledger
-    ? 'Add Ledger Wallet'
-    : (tab === AccountTab.View ? 'Add View Wallet' : 'Add Wallet');
+  const title = tab === AccountTab.View ? 'Add View Wallet' : 'Add Wallet';
   const activeKey = useTransitionActiveKey([isReorderMode, title]);
 
   return (

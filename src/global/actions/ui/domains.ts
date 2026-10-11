@@ -4,8 +4,8 @@ import { waitFor } from '../../../util/schedulers';
 import { closeAllOverlays } from '../../helpers/misc';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { INITIAL_STATE } from '../../initialState';
-import { resetHardware, updateCurrentDomainLinking, updateCurrentDomainRenewal } from '../../reducers';
-import { selectCurrentAccountState, selectIsHardwareAccount } from '../../selectors';
+import { updateCurrentDomainLinking, updateCurrentDomainRenewal } from '../../reducers';
+import { selectCurrentAccountState } from '../../selectors';
 import { switchAccount } from '../api/auth';
 
 addActionHandler('openDomainRenewalModal', async (global, actions, { accountId, network, addresses }) => {
@@ -36,14 +36,7 @@ addActionHandler('openDomainRenewalModal', async (global, actions, { accountId, 
 });
 
 addActionHandler('startDomainsRenewal', (global) => {
-  if (selectIsHardwareAccount(global)) {
-    global = resetHardware(global, 'ton');
-    global = updateCurrentDomainRenewal(global, { state: DomainRenewalState.ConnectHardware });
-  } else {
-    global = updateCurrentDomainRenewal(global, { state: DomainRenewalState.Password });
-  }
-
-  return global;
+  return updateCurrentDomainRenewal(global, { state: DomainRenewalState.Password });
 });
 
 addActionHandler('clearDomainsRenewalError', (global) => {
@@ -67,14 +60,7 @@ addActionHandler('openDomainLinkingModal', (global, actions, { address }) => {
 });
 
 addActionHandler('startDomainLinking', (global) => {
-  if (selectIsHardwareAccount(global)) {
-    global = resetHardware(global, 'ton');
-    global = updateCurrentDomainLinking(global, { state: DomainLinkingState.ConnectHardware });
-  } else {
-    global = updateCurrentDomainLinking(global, { state: DomainLinkingState.Password });
-  }
-
-  return global;
+  return updateCurrentDomainLinking(global, { state: DomainLinkingState.Password });
 });
 
 addActionHandler('clearDomainLinkingError', (global) => {

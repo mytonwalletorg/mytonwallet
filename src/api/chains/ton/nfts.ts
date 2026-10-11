@@ -183,8 +183,8 @@ export async function checkNftTransferDraft(options: {
   toAddress = result.resolvedAddress!;
 
   const messages = nfts
-    .slice(0, account.type === 'ledger' ? 1 : NFT_BATCH_SIZE) // We only need to check the first batch of a multi-transaction
-    .map((nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment, account.type === 'ledger'));
+    .slice(0, NFT_BATCH_SIZE) // We only need to check the first batch of a multi-transaction
+    .map((nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment));
 
   logDebug('checkNftTransferDraft', 'Checking NFT transfer draft', {
     accountId,
@@ -242,7 +242,7 @@ export async function submitNftTransfers(options: {
   const { address: fromAddress } = account.byChain.ton;
 
   const messages = nfts.map(
-    (nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment, account.type === 'ledger'),
+    (nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment),
   );
 
   logDebug('submitNftTransfers', 'Submitting NFT transfers', {
@@ -281,9 +281,8 @@ function buildNftTransferMessage(
   fromAddress: string,
   toAddress: string,
   comment?: string,
-  isLedger?: boolean,
 ) {
-  const payload = buildNftTransferPayload({ fromAddress, toAddress, payload: comment, isLedger });
+  const payload = buildNftTransferPayload({ fromAddress, toAddress, payload: comment });
 
   return {
     payload,
@@ -302,8 +301,6 @@ interface NftTransferPayloadParams {
    */
   noInlinePayload?: boolean;
   forwardAmount?: bigint;
-  /** todo: Remove when the Ledger TON App is fixed */
-  isLedger?: boolean;
 }
 
 export function buildNftTransferPayload({
@@ -311,11 +308,9 @@ export function buildNftTransferPayload({
   toAddress,
   payload,
   forwardAmount = NFT_TRANSFER_FORWARD_AMOUNT,
-  isLedger,
   noInlinePayload,
 }: NftTransferPayloadParams) {
-  // In ledger-app-ton v2.7.0 a queryId not equal to 0 is handled incorrectly.
-  const queryId = isLedger ? 0n : generateQueryId();
+  const queryId = generateQueryId();
 
   // Schema definition: https://github.com/ton-blockchain/TEPs/blob/0d7989fba6f2d9cb08811bf47263a9b314dc5296/text/0062-nft-standard.md#1-transfer
   let builder = new Builder()

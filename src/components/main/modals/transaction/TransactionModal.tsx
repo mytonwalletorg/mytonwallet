@@ -27,7 +27,6 @@ import {
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
-  selectIsHardwareAccount,
 } from '../../../../global/selectors';
 import {
   getIsActivityWithHash,
@@ -64,7 +63,6 @@ type StateProps = {
   transaction?: ApiTransactionActivity;
   tokensBySlug?: Record<string, ApiTokenWithPrice>;
   savedAddresses?: SavedAddress[];
-  isHardwareAccount: boolean;
   isTestnet?: boolean;
   isViewMode: boolean;
   stakingStates?: ApiStakingState[];
@@ -90,7 +88,6 @@ function TransactionModal({
   tokensBySlug,
   savedAddresses,
   isTestnet,
-  isHardwareAccount,
   isViewMode,
   stakingStates,
   isLongUnstakeRequested,
@@ -139,7 +136,7 @@ function TransactionModal({
   const token = slug ? tokensBySlug?.[slug] : undefined;
   const address = isIncoming ? renderedTransaction?.fromAddress : renderedTransaction?.toAddress;
   const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
-  const canDecryptComment = !isViewMode && !isHardwareAccount;
+  const canDecryptComment = !isViewMode;
 
   const [
     { decryptedComment, passwordError, isPasswordSlideOpen },
@@ -365,13 +362,11 @@ export default memo(
     const stakingStates = selectAccountStakingStates(global, accountId);
     const { isTestnet, theme, isSensitiveDataHidden } = global.settings;
     const accounts = selectAccounts(global);
-    const isHardwareAccount = selectIsHardwareAccount(global);
 
     return {
       transaction: activity?.kind === 'transaction' ? activity : undefined,
       tokensBySlug: global.tokenInfo?.bySlug,
       savedAddresses,
-      isHardwareAccount,
       isTestnet,
       isViewMode: selectIsCurrentAccountViewMode(global),
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,

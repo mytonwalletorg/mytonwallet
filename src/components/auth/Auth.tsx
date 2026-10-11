@@ -34,7 +34,6 @@ import styles from './Auth.module.scss';
 
 type StateProps = Pick<GlobalState['auth'], (
   'state' | 'error' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading' | 'method'
-  | 'hardwareSelectedIndices'
 )> & { isBiometricAuthEnabled?: boolean };
 
 const RENDER_COUNT = Object.keys(AuthState).length / 2;
@@ -45,7 +44,6 @@ const Auth = ({
   isLoading,
   mnemonic,
   mnemonicCheckIndexes,
-  hardwareSelectedIndices,
   method,
   isBiometricAuthEnabled,
 }: StateProps) => {
@@ -153,11 +151,7 @@ const Auth = ({
         );
       case AuthState.congratulations:
         return (
-          <AuthCongratulations
-            isActive={isActive}
-            hardwareWalletsAmount={hardwareSelectedIndices?.length}
-            isImporting={Boolean(hardwareSelectedIndices?.length)}
-          />
+          <AuthCongratulations isActive={isActive} />
         );
       case AuthState.importCongratulations:
         return <AuthCongratulations isActive={isActive} isImporting />;
@@ -186,7 +180,6 @@ const Auth = ({
 export default memo(withGlobal((global): StateProps => {
   const authProps = pick(global.auth, [
     'state', 'error', 'mnemonic', 'mnemonicCheckIndexes', 'isLoading', 'method',
-    'hardwareSelectedIndices',
   ]);
   const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
   return {

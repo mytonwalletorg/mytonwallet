@@ -15,7 +15,6 @@ import Button from '../../../ui/Button';
 import styles from './PortraitActions.module.scss';
 
 interface OwnProps {
-  isLedger?: boolean;
   stakingStatus: StakingStateStatus;
   isStakingDisabled?: boolean;
   onEarnClick: NoneToVoidFunction;

@@ -16,7 +16,6 @@ import {
   selectCurrentAccountId,
   selectCurrentAccountNftByAddress,
   selectIsCurrentAccountViewMode,
-  selectIsHardwareAccount,
   selectTokenByMinterAddress,
 } from '../../global/selectors';
 import { callApi } from '../../api';
@@ -830,7 +829,6 @@ export async function processSelfDeeplink(deeplink: string, isFromInAppBrowser =
         }
 
         if (settingsState === SettingsState.WalletVersions) {
-          if (selectIsHardwareAccount(global)) return false;
           const versions = global.walletVersions?.byId?.[currentAccountId];
           if (!versions?.length) return false;
         }

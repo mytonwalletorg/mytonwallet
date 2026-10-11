@@ -1,5 +1,3 @@
-import type { TonTransport } from '@ton-community/ton-ledger';
-
 import type { ApiTonWalletVersion, ContractInfo, ContractName } from './types';
 
 import {
@@ -89,19 +87,7 @@ export const WORKCHAIN = Workchain.BaseChain;
 export const TRANSFER_TIMEOUT_SEC = 600; // 10 min.
 
 export const DEFAULT_MAX_MESSAGES = 4;
-export const LEDGER_MAX_MESSAGES = 1;
 export const W5_MAX_MESSAGES = 255;
-
-export const LEDGER_WALLET_VERSIONS = {
-  v3R2: 'v3r2',
-  v4R2: 'v4',
-} as const satisfies Partial<Record<
-  ApiTonWalletVersion,
-  NonNullable<Parameters<TonTransport['getAddress']>[1]>['walletVersion']
->>;
-
-export const LEDGER_DEFAULT_WALLET_VERSION: keyof typeof LEDGER_WALLET_VERSIONS = 'v4R2';
-export const LEDGER_VESTING_SUBWALLET_ID = 0x10C;
 
 export enum OpCode {
   Comment = 0,

@@ -5,7 +5,6 @@ import { unique } from '../../../util/iteratees';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   clearDappConnectRequestError,
-  resetHardware,
   updateCurrentAccountState,
   updateCurrentDappSignData,
   updateCurrentDappTransfer,
@@ -14,7 +13,6 @@ import {
   selectCurrentAccountState,
   selectEnclaveToken,
   selectIsEnclaveSessionValid,
-  selectIsHardwareAccount,
 } from '../../selectors';
 
 addActionHandler('clearDappConnectRequestError', (global) => {
@@ -40,10 +38,7 @@ addActionHandler('setDappTransferScreen', (global, actions, payload) => {
 });
 
 addActionHandler('submitDappTransferConfirm', (global, actions) => {
-  if (selectIsHardwareAccount(global)) {
-    global = resetHardware(global, 'ton');
-    global = updateCurrentDappTransfer(global, { state: TransferState.ConnectHardware });
-  } else if (selectIsEnclaveSessionValid(global)) {
+  if (selectIsEnclaveSessionValid(global)) {
     global = updateCurrentDappTransfer(global, { isLoading: true });
     actions.submitDappTransfer({ enclaveToken: selectEnclaveToken(global) });
   } else {

@@ -15,7 +15,7 @@ import {
 import { DEFAULT_WALLET_VERSION } from '../../../config';
 import * as HDKey from '../../../lib/ed25519-hd-key';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
-import { extractKey, omitUndefined } from '../../../util/iteratees';
+import { omitUndefined } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { getWalletPublicKey, toBase64Address } from './util/tonCore';
 import { fetchStoredAccount } from '../../common/accounts';
@@ -24,7 +24,6 @@ import { bytesToHex, hexToBytes } from '../../common/utils';
 import { ApiServerError } from '../../errors';
 import { resolveAddress } from './address';
 import { TON_BIP39_PATH } from './constants';
-import { getWalletInfos } from './toncenter';
 import {
   getIsTestnetSubwalletId, getWalletInfo, pickBestWallet, pickBestWalletVersion, publicKeyToAddress,
 } from './wallet';
@@ -358,29 +357,4 @@ export async function getWalletFromAddress(
       isInitialized: walletInfo?.isInitialized ?? false,
     }),
   };
-}
-
-export async function getWalletsFromLedgerAndLoadBalance(
-  network: ApiNetwork,
-  accountIndices: number[],
-): Promise<{ wallet: ApiTonWallet; balance: bigint }[] | { error: ApiAnyDisplayError }> {
-  if (process.env.NO_LEDGER === '1') throw new Error('Ledger is disabled');
-
-  const { getLedgerTonWallet } = await import('./ledger');
-  const wallets: ApiTonWallet[] = [];
-
-  // Load the wallets from Ledger
-  for (const accountIndex of accountIndices) {
-    const wallet = await getLedgerTonWallet(network, accountIndex);
-    if ('error' in wallet) return { error: wallet.error };
-    wallets.push(wallet);
-  }
-
-  // Fetch the wallets' balances
-  const walletInfos = await getWalletInfos(network, extractKey(wallets, 'address'));
-
-  return wallets.map((wallet) => ({
-    wallet,
-    balance: walletInfos[wallet.address].balance,
-  }));
 }

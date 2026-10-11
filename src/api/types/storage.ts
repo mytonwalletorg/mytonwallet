@@ -1,5 +1,5 @@
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiChain, ApiDerivation, ApiLedgerDriver } from './misc';
+import type { ApiChain, ApiDerivation } from './misc';
 
 type ApiBaseWallet = {
   address: string;
@@ -39,18 +39,11 @@ export type ApiTonAccount = ApiBaseAccount & {
   type: 'ton';
 };
 
-export type ApiLedgerAccount = ApiBaseAccount & {
-  type: 'ledger';
-  driver: ApiLedgerDriver;
-  deviceId?: string;
-  deviceName?: string;
-};
-
 export type ApiViewAccount = ApiBaseAccount & {
   type: 'view';
 };
 
-export type ApiAccountAny = ApiBip39Account | ApiTonAccount | ApiLedgerAccount | ApiViewAccount;
+export type ApiAccountAny = ApiBip39Account | ApiTonAccount | ApiViewAccount;
 export type ApiAccountWithMnemonic = ApiBip39Account | ApiTonAccount;
 export type ApiAccountWithChain<T extends ApiChain> = ApiAccountAny & { byChain: Record<T, ApiWalletByChain[T]> };
 

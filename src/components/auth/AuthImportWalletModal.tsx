@@ -1,9 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { getChainsSupportingLedger } from '../../util/chain';
-import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
-
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -20,7 +17,6 @@ function AuthImportWalletModal({ isOpen }: StateProps) {
   const {
     startImportingWallet,
     startImportViewAccount,
-    openHardwareWalletModal,
     closeAuthImportWalletModal,
   } = getActions();
 
@@ -29,11 +25,6 @@ function AuthImportWalletModal({ isOpen }: StateProps) {
   const handleSecretWordsClick = useLastCallback(() => {
     closeAuthImportWalletModal();
     startImportingWallet();
-  });
-
-  const handleImportHardwareWalletClick = useLastCallback(() => {
-    closeAuthImportWalletModal();
-    openHardwareWalletModal({ chain: getChainsSupportingLedger()[0] }); // todo: Add a chain selector screen for Ledger auth
   });
 
   const handleImportViewAccountClick = useLastCallback(() => {
@@ -58,14 +49,6 @@ function AuthImportWalletModal({ isOpen }: StateProps) {
           description={lang('Restore wallet from 12 or 24 words')}
           onClick={handleSecretWordsClick}
         />
-        {IS_LEDGER_SUPPORTED && (
-          <ListItem
-            icon="ledger-alt"
-            label={lang('Ledger')}
-            description={lang('Connect your hardware wallet')}
-            onClick={handleImportHardwareWalletClick}
-          />
-        )}
       </div>
 
       <div className={styles.actionsSection}>

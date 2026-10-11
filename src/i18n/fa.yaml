@@ -337,22 +337,10 @@ Hide Tokens With No Cost: پنهان کردن توکن‌های بدون ارز�
 Localized Token Names: نام‌های محلی
 Sort By Cost: مرتب‌سازی بر اساس ارزش
 Update %app_name%: به‌روزرسانی %app_name%
-Connect Ledger: اتصال لجر
-Connecting to your Ledger...: در حال اتصال به لجر شما...
-Failed to connect: اتصال ناموفق بود
-Ledger Connected!: لجر متصل شد!
-Select Ledger Wallets: انتخاب کیف پول‌های لجر
-"%count% Selected": "%count% انتخاب‌شده"
-Add: افزودن
 Try Again: تلاش دوباره
 Driver: درایور
-Unlock it and open the %chain% App: آن را باز کنید و اپلیکیشن %chain% را اجرا کنید
 Maybe you need to check the password or change the driver.: شاید لازم باشد رمز عبور را بررسی یا درایور را تغییر دهید.
-Confirm via Ledger: تأیید از طریق لجر
-$ledger_confirm_progress: "تأیید %current% از %total%"
 Declined: رد شد
-Switch to the newly opened tab to connect Ledger.: برای اتصال لجر به تب تازه باز شده بروید.
-Once connected, switch back to this window to proceed.: پس از اتصال، برای ادامه به این پنجره بازگردید.
 The time on your device is incorrect, sync it and try again.: زمان دستگاه شما نادرست است، آن را همگام‌سازی کنید و دوباره تلاش کنید.
 Name or Address...: نام یا آدرس...
 Such error, many tabs: چنین خطایی، تب‌های زیاد
@@ -402,9 +390,6 @@ $auth_responsibly_description4: |
 Start Wallet: شروع کیف پول
 $auth_backup_warning_notice: |
   اکنون باید به‌صورت دستی از **کلیدهای محرمانه** پشتیبان بگیرید تا در صورت فراموشی رمز عبور یا از دست دادن دسترسی به این دستگاه آماده باشید.
-$ledger_verify_address: همیشه آدرس چسبانده‌شده را با دستگاه لجر خود تأیید کنید.
-$ledger_not_ready: لجر متصل نیست یا اپلیکیشن %chain% باز نیست.
-Verify now: اکنون تأیید کنید
 Invalid address format. Only URL Safe Base64 format is allowed.: قالب آدرس نامعتبر است. تنها قالب URL Safe Base64 مجاز است.
 Swap Placed: مبادله ثبت شد
 Swapping: در حال مبادله
@@ -575,7 +560,6 @@ Unavailable: در دسترس نیست
 $unstake_up_to_information: "بلافاصله – تا ‭%value%"
 $all_balance: "همه: %balance%"
 $unstaking_not_enough_balance: برای ادامه برداشت استیک باید %value% در موجودی اصلی خود داشته باشید.
-$ledger_verify_address_on_device: لطفاً آدرس را روی لجر خود تأیید کنید.
 Wallet Versions: نسخه‌های کیف پول
 $read_more_about_wallet_version: درباره انواع قراردادهای کیف پول در %link% بیشتر بخوانید.
 $current_wallet_version: نسخه فعلی کیف پول شما %version% است.
@@ -594,7 +578,6 @@ $hide_tokens_no_cost_help: "توکن‌های با ارزش کمتر از %value
 No internet connection. Please check your connection and try again.: اتصال اینترنت وجود ندارد. لطفاً اتصال خود را بررسی کنید و دوباره تلاش کنید.
 To use this feature, first enable Face ID in your phone settings.: برای استفاده از این قابلیت، ابتدا Face ID را در تنظیمات تلفن خود فعال کنید.
 To use this feature, first enable biometrics in your phone settings.: برای استفاده از این قابلیت، ابتدا بیومتریک را در تنظیمات تلفن خود فعال کنید.
-Open Settings: باز کردن تنظیمات
 No Price: بدون قیمت
 $dapp_transfer_tokens_burn: سوزاندن %amount%
 $dapp_dns_set_wallet_payload: تغییر کیف پول مرتبط دامنه %domain% به %address%
@@ -630,7 +613,6 @@ NFT is for sale: "\u200FNFT برای فروش گذاشته شده است"
 More actions: اقدامات بیشتر
 Open on %explorer_name%: باز کردن در %explorer_name%
 Swap is not supported in Testnet.: مبادله در تست‌نت پشتیبانی نمی‌شود.
-Swap is not yet supported by Ledger.: مبادله هنوز توسط لجر پشتیبانی نمی‌شود.
 Buying with card is not supported in Testnet.: خرید با کارت در تست‌نت پشتیبانی نمی‌شود.
 Staking is not supported in Testnet.: استیکینگ در تست‌نت پشتیبانی نمی‌شود.
 Get Support: دریافت پشتیبانی
@@ -745,7 +727,6 @@ Confirm Sending: تأیید ارسال
 Confirm Burning: تأیید سوزاندن
 Confirm Passcode: تأیید رمز عبور
 Enter your code: کد خود را وارد کنید
-$hardware_blind_sign_not_enabled: برای ادامه، گزینه "Blind Signing" را در تنظیمات اپلیکیشن %chain% روی لجر فعال کنید.
 Switch to W5: تغییر به W5
 Not Scam: کلاهبرداری نیست
 Untitled: بدون عنوان
@@ -757,9 +738,6 @@ Enter Secret Words: کلمات محرمانه را وارد کنید
 Turn this off so you can manually download updates and verify signatures.: این را خاموش کنید تا بتوانید به‌صورت دستی به‌روزرسانی‌ها را دانلود و امضاها را تأیید کنید.
 InvalidMnemonic: کلمات بازیابی شما نامعتبر هستند
 NFT Menu: منوی NFT
-Connection Type: نوع اتصال
-Ledger is not supported on this device: لجر روی این دستگاه پشتیبانی نمی‌شود
-Connect your Ledger: لجر خود را متصل کنید
 $app_lock_description: وقتی قفل اپلیکیشن فعال باشد، یک آیکون قفل روی کارت در صفحه اصلی ظاهر می‌شود. از آن برای قفل کردن %app_name% استفاده کنید.
 App Lock: قفل اپلیکیشن
 Auto-Lock: قفل خودکار
@@ -983,7 +961,6 @@ Sign Data: امضای داده
 EIP-712 typed data: داده نوع‌دار EIP-712
 Domain: دامنه
 Primary type: نوع اصلی
-Please confirm signature on your Ledger: لطفاً امضا را روی لجر خود تأیید کنید
 Utilities: ابزارها
 Games: بازی‌ها
 Entertainment: سرگرمی
@@ -998,8 +975,6 @@ $in_currency: به %currency%
 Rename Wallet: تغییر نام کیف پول
 You can rename this wallet for easier identification.: می‌توانید این کیف پول را برای شناسایی آسان‌تر تغییر نام دهید.
 Collectibles: کالکتیبل‌ها
-Bluetooth unavailable: بلوتوث در دسترس نیست
-$bluetooth_enable_guide: بلوتوث را در تنظیمات دستگاه روشن کنید و به اپلیکیشن اجازه دسترسی به بلوتوث را بدهید.
 Canceled by the user: لغوشده توسط کاربر
 The proof for signing provided by the app is too large: اثبات ارائه‌شده برای امضا توسط اپلیکیشن بیش از حد بزرگ است
 $domain_like_scam_warning: |
@@ -1047,9 +1022,6 @@ $auth_biometric_info: می‌توانید داده‌های بیومتریک خ�
 Open wallet without checking: باز کردن کیف پول بدون بررسی
 Make sure you have your secret words securely saved.: مطمئن شوید که کلمات محرمانه خود را به‌صورت امن ذخیره کرده‌اید.
 Without it, you won't be able to access your wallet.: بدون آن، قادر به دسترسی به کیف پول خود نخواهید بود.
-$ledger_connection_broken: اتصال لجر قطع شده است. لطفاً دوباره متصل شوید و تلاش کنید.
-$ledger_wrong_device: حساب فعلی با کلمات محرمانه یا عبارت عبور متفاوت لجر راه‌اندازی شده، یا روی دستگاه لجر دیگری ذخیره شده است
-Show More: نمایش بیشتر
 Search app or enter address: جستجوی اپلیکیشن یا وارد کردن آدرس
 Search or Ask: جستجو کنید یا بپرسید
 Connected Apps: اپلیکیشن‌های متصل
@@ -1075,9 +1047,7 @@ All: همه
 $view_accounts: مشاهده
 Add your first one to begin.: برای شروع اولین مورد را اضافه کنید.
 You don’t have any wallets yet: شما هنوز هیچ کیف پولی ندارید
-Add Ledger Wallet: افزودن کیف پول لجر
 Add View Wallet: افزودن کیف پول مشاهده
-No Ledger wallets yet: هنوز کیف پول لجری وجود ندارد
 No view wallets yet: هنوز کیف پول مشاهده‌ای وجود ندارد
 View wallets can receive assets, but you cannot use them to send or sign transactions.: کیف پول‌های مشاهده می‌توانند دارایی دریافت کنند، اما نمی‌توانید از آن‌ها برای ارسال یا امضای تراکنش‌ها استفاده کنید.
 Add the first one to track balances and activity for any address.: اولین مورد را برای پیگیری موجودی و فعالیت هر آدرس اضافه کنید.
@@ -1160,8 +1130,6 @@ Transfer Info: اطلاعات انتقال
 Transfer not found: انتقال یافت نشد
 Failed to fetch transfer: دریافت انتقال ناموفق بود
 Transfer in progress: انتقال در حال انجام
-Please confirm transfer on your Ledger: لطفاً انتقال را روی لجر خود تأیید کنید
-Please confirm action on your Ledger: لطفاً اقدام را روی لجر خود تأیید کنید
 Not all transfers were sent successfully: همه انتقال‌ها با موفقیت ارسال نشدند
 Please confirm transfer using biometrics: لطفاً انتقال را با استفاده از بیومتریک تأیید کنید
 $transfer_inactive_contract_error: |
@@ -1176,7 +1144,6 @@ Confirm action with your password: اقدام را با رمز عبور خود �
 $dapps-description: می‌توانید در اپلیکیشن‌هایی که از %app_name% پشتیبانی می‌کنند وارد شوید. آن‌ها می‌توانند آدرس کیف پول، موجودی را ببینند و درخواست اقدام کنند.
 Please verify the action.: لطفاً اقدام را تأیید کنید.
 $service_token_transfer_warning: شما در حال انتقال یک توکن خدماتی مهم هستید که برای برداشت سپرده یا تکمیل اقدامات خدماتی لازم است. لطفاً مطمئن شوید که این همان اقدامی است که قصد انجام آن را دارید.
-$ledger_outdated: این اقدام توسط نسخه اپلیکیشن لجر %chain% شما پشتیبانی نمی‌شود. لطفاً آن را با استفاده از Ledger Live به‌روزرسانی کنید.
 $hardware_payload_warning: "**یک سرویس شخص ثالث در حال درخواست دسترسی به کیف پول شماست.** این می‌تواند منجر به از دست رفتن دارایی‌ها شود. اگر درباره قابل‌اعتماد بودن این سرویس مطمئن نیستید، اقدام را لغو کنید."
 Pin: سنجاق کردن
 Unpin: حذف سنجاق
@@ -1283,7 +1250,6 @@ New Subwallet: زیرکیف‌پول جدید
 From current secret words: از کلمات محرمانه فعلی
 $secret_words: کلمات محرمانه
 Restore wallet from 12 or 24 words: بازیابی کیف پول از ۱۲ یا ۲۴ کلمه
-Connect your hardware wallet: کیف پول سخت‌افزاری خود را متصل کنید
 Watch wallet in read-only mode: مشاهده کیف پول در حالت فقط‌خواندنی
 More: بیشتر
 at: در
@@ -1291,8 +1257,6 @@ I agree to %term%: من با %term% موافقم
 See Words: مشاهده کلمات
 Wrong Phrase: عبارت اشتباه
 Permission Denied: دسترسی رد شد
-USB: USB
-Bluetooth: بلوتوث
 Locked: قفل‌شده
 Enter passcode or use fingerprint: رمز عبور را وارد کنید یا از اثر انگشت استفاده کنید
 Use PIN: استفاده از پین
@@ -1433,7 +1397,6 @@ Payment Address: آدرس پرداخت
 "Enter your Wallet Passcode": "رمز عبور کیف پول خود را وارد کنید"
 "Import failed": "افزودن ناموفق بود"
 "Install Palette": "نصب پالت"
-Ledger: لجر
 "Moving to staking balance": "در حال انتقال به موجودی استیکینگ"
 My Wallet uses biometric authentication to unlock and authorize transactions: "\u200FION Wallet از احراز هویت بیومتریک برای باز کردن قفل و تأیید تراکنش‌ها استفاده می‌کند"
 "Network error": "خطای شبکه"
@@ -1454,15 +1417,8 @@ Set a passcode: یک رمز عبور تنظیم کنید
 "Show All %name%": "نمایش همه %name%"
 "TON Wallet Versions": "نسخه‌های کیف پول ION"
 "Tap to reveal": "برای نمایش ضربه بزنید"
-"The current version of Ledger only supports English-language comments without special characters.": "نسخه فعلی لجر تنها از نظرات انگلیسی‌زبان بدون کاراکترهای ویژه پشتیبانی می‌کند."
 "There is no activity history for this wallet yet.": "هنوز هیچ تاریخچه فعالیتی برای این کیف پول وجود ندارد."
-"This type of transaction is not yet supported by Ledger.": "این نوع تراکنش هنوز توسط لجر پشتیبانی نمی‌شود."
-"Transaction to this smart contract is not yet supported by Ledger.": "تراکنش به این قرارداد هوشمند هنوز توسط لجر پشتیبانی نمی‌شود."
-"Transferring NFT is not yet supported by Ledger.": "انتقال NFT هنوز توسط لجر پشتیبانی نمی‌شود."
-Connect your Ledger via Bluetooth: لجر خود را از طریق بلوتوث متصل کنید
 Discovering wallets: در حال کشف کیف پول‌ها
-Bluetooth Access Denied: دسترسی بلوتوث رد شد
-Bluetooth access is needed to connect Ledger.: برای اتصال لجر به دسترسی بلوتوث نیاز است.
 Address not resolved: آدرس تشخیص داده نشد
 Sending more than one NFT isn't supported by Ledger: ارسال بیش از یک NFT توسط لجر پشتیبانی نمی‌شود
 "Updating…": "در حال به‌روزرسانی…"

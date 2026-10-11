@@ -19,11 +19,7 @@ interface OwnProps {
 function AccountsEmptyState({ isActive, ref, tab }: OwnProps) {
   const lang = useLang();
 
-  const title = tab === AccountTab.Ledger
-    ? 'No Ledger wallets yet'
-    : (tab === AccountTab.View
-      ? 'No view wallets yet'
-      : 'You don’t have any wallets yet');
+  const title = tab === AccountTab.View ? 'No view wallets yet' : 'You don’t have any wallets yet';
   const description = tab === AccountTab.View
     ? 'Add the first one to track balances and activity for any address.'
     : 'Add your first one to begin.';

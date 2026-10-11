@@ -34,7 +34,6 @@ const EMPTY_CHAINS: ApiChain[] = [];
 interface StateProps {
   accountChains?: Account['byChain'];
   chainDisplay?: ChainDisplay;
-  isLedger?: boolean;
   isViewMode: boolean;
   receiveModalChain?: ApiChain;
 }
@@ -51,7 +50,7 @@ const tabIdByChain = Object.fromEntries(
 const chainByTabId = swapKeysAndValues(tabIdByChain);
 
 function Content({
-  isOpen, accountChains, chainDisplay, receiveModalChain, isLedger, isViewMode, onClose,
+  isOpen, accountChains, chainDisplay, receiveModalChain, isViewMode, onClose,
 }: StateProps & OwnProps) {
   const { setReceiveActiveTab } = getActions();
 
@@ -85,7 +84,6 @@ function Content({
       <Address
         chain={chain}
         isActive={isOpen && isActive}
-        isLedger={isLedger}
         isViewMode={isViewMode}
         address={accountChains?.[chain]?.address ?? ''}
         onClose={onClose}
@@ -130,7 +128,6 @@ export default memo(
     return {
       accountChains: account?.byChain,
       chainDisplay: selectCurrentAccountChainDisplay(global),
-      isLedger: account?.type === 'hardware',
       isViewMode: selectIsCurrentAccountViewMode(global),
       receiveModalChain,
     };

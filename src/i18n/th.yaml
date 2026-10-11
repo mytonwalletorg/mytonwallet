@@ -343,22 +343,10 @@ Hide Tokens With No Cost: ซ่อนโทเคนที่ไม่มีค
 Localized Token Names: ชื่อที่แปลแล้ว
 Sort By Cost: เรียงตามมูลค่า
 Update %app_name%: อัพเดต %app_name%
-Connect Ledger: เชื่อมต่อ Ledger
-Connecting to your Ledger...: กำลังเชื่อมต่อกับ Ledger ของคุณ...
-Failed to connect: เชื่อมต่อไม่สำเร็จ
-Ledger Connected!: เชื่อมต่อ Ledger แล้ว!
-Select Ledger Wallets: เลือก Ledger วอลเล็ต
-"%count% Selected": "%count% ถูกเลือก"
-Add: เพิ่ม
 Try Again: ลองอีกครั้ง
 Driver: ไดรเวอร์
-Unlock it and open the %chain% App: ปิดล็อกและเปิดแอป %chain%
 Maybe you need to check the password or change the driver.: บางทีคุณอาจต้องตรวจสอบรหัสผ่านหรือเปลี่ยนเวอร์ชันของไดรเวอร์.
-Confirm via Ledger: ยืนยันด้วย Ledger
-$ledger_confirm_progress: "ยืนยัน %current% จาก %total%"
 Declined: ปฏิเสธ
-Switch to the newly opened tab to connect Ledger.: สลับไปที่แท็บที่เพิ่งเปิดใหม่เพื่อเชื่อมต่อ Ledger.
-Once connected, switch back to this window to proceed.: หลังจากที่เชื่อมต่อแล้ว, สลับกลับไปยังหน้าต่างนี้เพื่อดำเนินการต่อ.
 The time on your device is incorrect, sync it and try again.: เวลาของเครื่องของคุณไม่ถูกต้อง, โปรดทำการตั้งเวลาและลองใหม่อีกครั้ง
 Name or Address...: ชื่อหรือที่อยู่...
 Such error, many tabs: ข้อผิดพลาดเนื่องจากเปิดหลายแท็บ
@@ -408,9 +396,6 @@ $auth_responsibly_description4: |
 Start Wallet: เริ่มใช้งานวอลเล็ต
 $auth_backup_warning_notice: |
   Now you need to manually **back up secret keys** in case you forget your password or lose access to this device.
-$ledger_verify_address: โปรดยืนยันที่อยู่บัญชีที่วางไว้โดยใช้ Ledger ของคุณ.
-$ledger_not_ready: Ledger ไม่ได้เชื่อมต่อหรือแอป %chain% ยังไม่เปิด.
-Verify now: ยืนยันตอนนี้
 Invalid address format. Only URL Safe Base64 format is allowed.: รูปแบบที่กรอกไม่ถูกต้อง. กรอกเฉพาะ URL Safe Base64 ที่อนุญาตเท่านั้น.
 Swap Placed: สับเปลี่ยนการวางแล้ว
 Swapping: กำลังสับเปลี่ยน
@@ -579,7 +564,6 @@ Clear: ล้าง
 $unstake_up_to_information: ทันที – ถึง %value%
 $all_balance: "ทั้งหมด: %balance%"
 $unstaking_not_enough_balance: คุณจำเป็นต้องมี %value% ในบัญชีหลักของคุณเพื่อดำเนินการการถอน.
-$ledger_verify_address_on_device: ตรวจสอบที่อยู่บัญชีในอุปกรณ์ Ledger ของคุณ.
 Wallet Versions: วอลเล็ตเวอร์ชัน
 $read_more_about_wallet_version: อ่านเพิ่มเติมเกี่ยวกับประเภทของวอลเล็ตได้ที่ %link%.
 $current_wallet_version: เวอร์ชั่นของวอลเล็ตของคุณคือ %version%.
@@ -600,7 +584,6 @@ $hide_tokens_no_cost_help: |
 No internet connection. Please check your connection and try again.: ไม่มีการเชื่อมต่ออินเตอร์เน็ต. โปรดตรวจสอบการเชื่อมต่อของคุณและลองใหม่อีกครั้ง.
 To use this feature, first enable Face ID in your phone settings.: เพื่อที่จะใช้ฟีเจอร์นี้, คุณต้องเปิดใช้งาน Face ID ในการตั้งค่าบนโทรศัพท์ของคุณ.
 To use this feature, first enable biometrics in your phone settings.: เพื่อที่จะใช้ฟีเจอร์นี้, คุณต้องเปิดใช้งาน Biometrics ในการตั้งค่าบนโทรศัพท์ของคุณ.
-Open Settings: เปิดการตั้งค่า
 No Price: ไม่มีราคา
 $dapp_transfer_tokens_burn: กำลังเผาไหม้ %amount%
 $dapp_dns_set_wallet_payload: การเปลี่ยนกระเป๋าเงินที่เชื่อมโยงของโดเมน %domain% เป็น %address%
@@ -634,7 +617,6 @@ NFT is for sale: NFT สำหรับขาย
 More actions: เพิ่มเติม
 Open on %explorer_name%: เปิดบน %explorer_name%
 Swap is not supported in Testnet.: การสับเปลี่ยนยังไม่รองรับบน Testnet.
-Swap is not yet supported by Ledger.: การสับเปลี่ยนยังไม่รองรับบน Ledger.
 Buying with card is not supported in Testnet.: การซื้อด้วยบัตรยังไม่รองรับบน Testnet.
 Staking is not supported in Testnet.: การสเต็กยังไม่รองรับบน Testnet.
 Get Support: ขอความช่วยเหลือ
@@ -743,7 +725,6 @@ Confirm Sending: ยืนยันการส่ง
 Confirm Burning: ยืนยันการเผาไหม้
 Confirm Passcode: ยืนยันรหัสผ่าน
 Enter your code: ใส่รหัสของคุณ
-$hardware_blind_sign_not_enabled: ในการดำเนินการต่อ ให้เปิดใช้งานตัวเลือก "การลงนามแบบบอด" ในการตั้งค่าแอป %chain% บน Ledger
 Switch to W5: เปลี่ยนเป็น W5
 Not Scam: ไม่ใช่การหลอกลวง
 Untitled: ไม่มีชื่อ
@@ -755,9 +736,6 @@ Enter Secret Words: ป้อนคำลับ
 Turn this off so you can manually download updates and verify signatures.: ปิดสิ่งนี้เพื่อให้คุณสามารถดาวน์โหลดการอัปเดตด้วยตนเองและตรวจสอบลายเซ็น
 InvalidMnemonic: คำช่วยจำของคุณไม่ถูกต้อง
 NFT Menu: เมนู NFT
-Connection Type: ประเภทการเชื่อมต่อ
-Ledger is not supported on this device: อุปกรณ์นี้ไม่รองรับ Ledger
-Connect your Ledger: เชื่อมต่อ Ledger ของคุณ
 $app_lock_description: เมื่อเปิดการล็อคแอป ไอคอนล็อคจะปรากฏบนการ์ดในหน้าแรก ใช้เพื่อล็อค %app_name%
 App Lock: ล็อคแอป
 Auto-Lock: ล็อคอัตโนมัติ
@@ -974,7 +952,6 @@ The binary data content is unclear. Sign it only if you trust the service.: เ�
 Cell Schema: โครงสร้างเซลล์
 Cell Data: ข้อมูลเซลล์
 Sign Data: เซ็นชื่อข้อมูล
-Please confirm signature on your Ledger: กรุณายืนยันลายเซ็นบน Ledger ของคุณ
 Utilities: อรรถประโยชน์
 Games: เกม
 Entertainment: ความบันเทิง
@@ -989,8 +966,6 @@ $in_currency: เป็น %currency%
 Rename Wallet: เปลี่ยนชื่อกระเป๋าเงิน
 You can rename this wallet for easier identification.: คุณสามารถเปลี่ยนชื่อกระเป๋าเงินนี้เพื่อให้ระบุได้ง่ายขึ้น
 Collectibles: ของสะสม
-Bluetooth unavailable: บลูทูธไม่พร้อมใช้งาน
-$bluetooth_enable_guide: เปิดบลูทูธในการตั้งค่าอุปกรณ์และอนุญาตให้แอปเข้าถึงบลูทูธ
 Canceled by the user: ยกเลิกโดยผู้ใช้
 The proof for signing provided by the app is too large: หลักฐานสำหรับการลงนามที่แอปให้มามีขนาดใหญ่เกินไป
 $domain_like_scam_warning: |
@@ -1037,9 +1012,6 @@ $auth_biometric_info: คุณสามารถเชื่อมต่อข�
 Open wallet without checking: เปิดกระเป๋าเงินโดยไม่ตรวจสอบ
 Make sure you have your secret words securely saved.: ตรวจสอบให้แน่ใจว่าคุณได้บันทึกคำลับไว้อย่างปลอดภัย
 Without it, you won't be able to access your wallet.: หากไม่มีมัน คุณจะไม่สามารถเข้าถึงกระเป๋าเงินของคุณได้
-$ledger_connection_broken: การเชื่อมต่อ Ledger ถูกตัด กรุณาเชื่อมต่อใหม่และลองอีกครั้ง
-$ledger_wrong_device: บัญชีปัจจุบันถูกตั้งค่าด้วยคำลับหรือรหัสผ่าน Ledger อื่น หรือถูกจัดเก็บไว้ในอุปกรณ์ Ledger อื่น
-Show More: แสดงเพิ่มเติม
 Search app or enter address: ค้นหาแอปหรือป้อนที่อยู่
 Search or Ask: ค้นหาหรือถาม
 Connected Apps: แอปที่เชื่อมต่อ
@@ -1064,9 +1036,7 @@ All: ทั้งหมด
 $view_accounts: ดู
 Add your first one to begin.: เพิ่มวอลเล็ตแรกของคุณเพื่อเริ่มต้น
 You don’t have any wallets yet: คุณยังไม่มีวอลเล็ต
-Add Ledger Wallet: เพิ่มวอลเล็ต Ledger
 Add View Wallet: เพิ่มวอลเล็ตสำหรับดู
-No Ledger wallets yet: ยังไม่มีวอลเล็ต Ledger
 No view wallets yet: ยังไม่มีวอลเล็ตสำหรับดู
 View wallets can receive assets, but you cannot use them to send or sign transactions.: กระเป๋าเงินสำหรับดูสามารถรับสินทรัพย์ได้ แต่ไม่สามารถใช้เพื่อส่งหรือเซ็นธุรกรรมได้
 Add the first one to track balances and activity for any address.: เพิ่มวอลเล็ตแรกเพื่อติดตามยอดเงินและกิจกรรมของที่อยู่ใด ๆ
@@ -1157,8 +1127,6 @@ Transfer Info: ข้อมูลการโอน
 Transfer not found: ไม่พบการโอน
 Failed to fetch transfer: ดึงข้อมูลการโอนล้มเหลว
 Transfer in progress: การโอนกำลังดำเนินการ
-Please confirm transfer on your Ledger: กรุณายืนยันการโอนบน Ledger ของคุณ
-Please confirm action on your Ledger: กรุณายืนยันการดำเนินการบน Ledger ของคุณ
 Not all transfers were sent successfully: การโอนทั้งหมดยังไม่ส่งสำเร็จ
 Please confirm transfer using biometrics: กรุณายืนยันการโอนโดยใช้ไบโอเมทริกส์
 $transfer_inactive_contract_error: |
@@ -1173,7 +1141,6 @@ Confirm action with your password: ยืนยันการดำเนิน
 $dapps-description: คุณสามารถเข้าสู่ระบบบนแอปที่รองรับ %app_name% ได้ พวกเขาสามารถดูที่อยู่วอลเล็ต ยอดเงิน และขอให้ดำเนินการต่างๆ
 Please verify the action.: กรุณายืนยันการดำเนินการ
 $service_token_transfer_warning: คุณกำลังจะโอนโทเค็นบริการสำคัญที่จำเป็นสำหรับการถอนเงินฝากหรือดำเนินการบริการ โปรดตรวจสอบให้แน่ใจว่านี่คือการดำเนินการที่คุณตั้งใจจะทำ
-$ledger_outdated: การดำเนินการนี้ไม่รองรับโดยแอป Ledger %chain% เวอร์ชันของคุณ กรุณาอัปเดตโดยใช้ Ledger Live
 $hardware_payload_warning: "**บริการของบุคคลที่สามกำลังขอเข้าถึงวอลเล็ตของคุณ** สิ่งนี้อาจนำไปสู่การสูญเสียเงินทุน ยกเลิกการดำเนินการหากคุณไม่แน่ใจเกี่ยวกับความน่าเชื่อถือของบริการนี้"
 Pin: ปักหมุด
 Unpin: ถอนหมุด
@@ -1285,7 +1252,6 @@ New Subwallet: วอลเล็ตย่อยใหม่
 From current secret words: จากคำลับปัจจุบัน
 $secret_words: คำลับ
 Restore wallet from 12 or 24 words: กู้คืนวอลเล็ตจาก 12 หรือ 24 คำ
-Connect your hardware wallet: เชื่อมต่อฮาร์ดแวร์วอลเล็ตของคุณ
 Watch wallet in read-only mode: ดูวอลเล็ตในโหมดอ่านอย่างเดียว
 More: เพิ่มเติม
 at: เวลา
@@ -1293,8 +1259,6 @@ I agree to %term%: ฉันยอมรับ %term%
 See Words: ดูคำ
 Wrong Phrase: วลีไม่ถูกต้อง
 Permission Denied: ปฏิเสธการอนุญาต
-USB: USB
-Bluetooth: Bluetooth
 Locked: ล็อกแล้ว
 Enter passcode or use fingerprint: ใส่รหัสปลดล็อกหรือใช้ลายนิ้วมือ
 Use PIN: ใช้รหัส PIN
@@ -1436,7 +1400,6 @@ Payment Address: ที่อยู่ชำระเงิน
 "Enter your Wallet Passcode": ใส่รหัสปลดล็อกกระเป๋า
 "Import failed": นำเข้าไม่สำเร็จ
 "Install Palette": ติดตั้งพาเลต
-Ledger: Ledger
 "Moving to staking balance": กำลังย้ายไปยังยอดสเตก
 My Wallet uses biometric authentication to unlock and authorize transactions: ION Wallet ใช้การยืนยันตัวตนด้วยชีวมิติเพื่อปลดล็อกและอนุมัติธุรกรรม
 "Network error": ข้อผิดพลาดของเครือข่าย
@@ -1457,16 +1420,9 @@ Set a passcode: ตั้งรหัสปลดล็อก
 "Show All %name%": "แสดง %name% ทั้งหมด"
 "TON Wallet Versions": เวอร์ชันกระเป๋า ION
 "Tap to reveal": แตะเพื่อแสดง
-"The current version of Ledger only supports English-language comments without special characters.": Ledger เวอร์ชันปัจจุบันรองรับเฉพาะข้อความภาษาอังกฤษที่ไม่มีอักขระพิเศษ
 "There is no activity history for this wallet yet.": กระเป๋านี้ยังไม่มีประวัติการใช้งาน
 "This is how the TON Blockchain works.": บล็อกเชน TON ทำงานเช่นนี้
-"This type of transaction is not yet supported by Ledger.": Ledger ยังไม่รองรับธุรกรรมประเภทนี้
-"Transaction to this smart contract is not yet supported by Ledger.": Ledger ยังไม่รองรับการทำธุรกรรมกับสมาร์ตคอนแทรกต์นี้
-"Transferring NFT is not yet supported by Ledger.": Ledger ยังไม่รองรับการโอน NFT
-Connect your Ledger via Bluetooth: เชื่อมต่อ Ledger ของคุณผ่าน Bluetooth
 Discovering wallets: กำลังค้นหาวอลเล็ต
-Bluetooth Access Denied: การเข้าถึง Bluetooth ถูกปฏิเสธ
-Bluetooth access is needed to connect Ledger.: ต้องมีสิทธิ์เข้าถึง Bluetooth เพื่อเชื่อมต่อ Ledger
 Address not resolved: ไม่สามารถตรวจสอบที่อยู่ได้
 Sending more than one NFT isn't supported by Ledger: Ledger ยังไม่รองรับการส่ง NFT มากกว่าหนึ่งรายการ
 "Updating…": กำลังอัปเดต...

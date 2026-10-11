@@ -498,7 +498,6 @@ export interface ChainDappSupport<T extends ApiChain = any> {
     options: {
       enclaveToken?: string;
       validUntil?: number;
-      vestingAddress?: string;
       isLegacyOutput?: boolean;
     },
   ): Promise<ApiSignedTransfer<

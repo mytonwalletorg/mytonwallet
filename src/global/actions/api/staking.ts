@@ -19,7 +19,6 @@ import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentStaking,
   clearIsPinAccepted,
-  resetHardware,
   updateAccountStaking,
   updateAccountState,
   updateCurrentStaking,
@@ -30,7 +29,6 @@ import {
   selectAccountStakingStatesBySlug,
   selectAccountState,
   selectCurrentAccountId,
-  selectIsHardwareAccount,
 } from '../../selectors';
 import { switchAccount } from './auth';
 
@@ -206,14 +204,8 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
       if ('error' in result) {
         global = updateCurrentStaking(global, { error: result.error });
       } else {
-        if (selectIsHardwareAccount(global)) {
-          global = resetHardware(global, 'ton');
-          global = updateCurrentStaking(global, { state: StakingState.UnstakeConnectHardware });
-        } else {
-          global = updateCurrentStaking(global, { state: StakingState.UnstakePassword });
-        }
-
         global = updateCurrentStaking(global, {
+          state: StakingState.UnstakePassword,
           fee: result.explainedFee?.fullFee?.nativeSum,
           amount,
           error: undefined,
@@ -235,14 +227,8 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
       if ('error' in result) {
         global = updateCurrentStaking(global, { error: result.error });
       } else {
-        if (selectIsHardwareAccount(global)) {
-          global = resetHardware(global, 'ton');
-          global = updateCurrentStaking(global, { state: StakingState.StakeConnectHardware });
-        } else {
-          global = updateCurrentStaking(global, { state: StakingState.StakePassword });
-        }
-
         global = updateCurrentStaking(global, {
+          state: StakingState.StakePassword,
           fee: result.explainedFee?.fullFee?.nativeSum,
           amount,
           error: undefined,
@@ -259,12 +245,7 @@ addActionHandler('submitStaking', withEnclaveSessionRelease(async (global, actio
   const { amount, tokenAmount } = global.currentStaking;
   const currentAccountId = selectCurrentAccountId(global)!;
 
-  if (!prepareTransfer(
-    isUnstaking ? StakingState.UnstakeConfirmHardware : StakingState.StakeConfirmHardware,
-    updateCurrentStaking,
-  )) {
-    return;
-  }
+  prepareTransfer(updateCurrentStaking);
 
   global = getGlobal();
   const state = selectAccountStakingState(global, currentAccountId);
@@ -391,12 +372,7 @@ addActionHandler('startStakingClaim', (global, actions, payload) => {
     global = getGlobal();
   }
 
-  if (selectIsHardwareAccount(global)) {
-    global = resetHardware(global, 'ton');
-    global = updateCurrentStaking(global, { state: StakingState.ClaimConnectHardware });
-  } else {
-    global = updateCurrentStaking(global, { state: StakingState.ClaimPassword });
-  }
+  global = updateCurrentStaking(global, { state: StakingState.ClaimPassword });
   setGlobal(global);
 });
 
@@ -409,9 +385,7 @@ addActionHandler('submitStakingClaim', withEnclaveSessionRelease(async (global, 
   const { enclaveToken } = payload ?? {};
   const accountId = selectCurrentAccountId(global)!;
 
-  if (!prepareTransfer(StakingState.ClaimConfirmHardware, updateCurrentStaking)) {
-    return;
-  }
+  prepareTransfer(updateCurrentStaking);
 
   global = getGlobal();
 

@@ -85,7 +85,6 @@ function CardAddress({
   const byChain = accountByChain ?? EMPTY_BY_CHAIN;
   const chains = visibleChains ?? EMPTY_CHAINS;
 
-  const isHardwareAccount = accountType === 'hardware';
   const isViewAccount = accountType === 'view';
   const isTinyFormat = isViewAccount && (isLandscape || windowWidth < TINY_WINDOW_SIZE_PX);
   const { menuItems, hiddenMenuItems } = useMemo(() => {
@@ -115,7 +114,6 @@ function CardAddress({
   return (
     <div ref={ref} className={buildClassName(styles.addressContainer, isMinimized && styles.minimized)}>
       {isViewAccount && <ViewModeIcon isTemporary={isTemporary} isMinimized={isMinimized} />}
-      {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
       <AddressMenuButton
         chains={chains}
         byChain={byChain}

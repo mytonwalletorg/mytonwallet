@@ -349,22 +349,10 @@ Hide Tokens With No Cost: Ukryj tokeny bez kosztu
 Localized Token Names: Zlokalizowane nazwy
 Sort By Cost: Sortuj według kosztu
 Update %app_name%: Zaktualizuj %app_name%
-Connect Ledger: Połącz Ledger
-Connecting to your Ledger...: Łączenie z Twoim Ledgerem...
-Failed to connect: Nie udało się połączyć
-Ledger Connected!: Połączono z Ledgerem!
-Select Ledger Wallets: Wybierz portfele Ledgera
-"%count% Selected": "%count% Wybranych"
-Add: Dodaj
 Try Again: Spróbuj ponownie
 Driver: Sterownik
-Unlock it and open the %chain% App: Odblokuj go i otwórz aplikację %chain%
 Maybe you need to check the password or change the driver.: Być może musisz sprawdzić hasło lub zmienić sterownik.
-Confirm via Ledger: Potwierdź za pomocą Ledgera
-$ledger_confirm_progress: "Potwierdź %current% z %total%"
 Declined: Odrzucone
-Switch to the newly opened tab to connect Ledger.: Przełącz się na nowo otwarty kartę, aby połączyć się z Ledgerem.
-Once connected, switch back to this window to proceed.: Po połączeniu, przełącz się z powrotem do tego okna, aby kontynuować.
 The time on your device is incorrect, sync it and try again.: Czas na Twoim urządzeniu jest nieprawidłowy, zsynchronizuj go i spróbuj ponownie
 Name or Address...: Nazwa lub Adres...
 Such error, many tabs: Taki błąd, wiele kart
@@ -414,9 +402,6 @@ $auth_responsibly_description4: |
 Start Wallet: Uruchom portfel
 $auth_backup_warning_notice: |
   Teraz musisz ręcznie zrobić kopię zapasową kluczy prywatnych, aby w razie zapomnienia hasła lub utraty dostępu do tego urządzenia.
-$ledger_verify_address: Zawsze zweryfikuj wklejony adres za pomocą urządzenia Ledger.
-$ledger_not_ready: Ledger nie jest podłączony lub aplikacja %chain% nie jest otwarta.
-Verify now: Zweryfikuj teraz
 Invalid address format. Only URL Safe Base64 format is allowed.: Nieprawidłowy format adresu. Dozwolony jest tylko format URL Safe Base64.
 Swap Placed: Wymiana złożona
 Swapping: Wymienianie
@@ -585,7 +570,6 @@ Clear: Wyczyść
 $unstake_up_to_information: Natychmiastowo – do %value%
 $all_balance: "Wszystko: %balance%"
 $unstaking_not_enough_balance: Aby kontynuować wycofywanie stawki, musisz mieć %value% na głównym saldzie.
-$ledger_verify_address_on_device: Proszę, zweryfikuj adres na swoim urządzeniu Ledger.
 Wallet Versions: Wersje portfela
 $read_more_about_wallet_version: Dowiedz się więcej o typach kontraktów portfela na %link%.
 $current_wallet_version: Twoja obecna wersja portfela to %version%.
@@ -606,7 +590,6 @@ $hide_tokens_no_cost_help: |
 No internet connection. Please check your connection and try again.: Brak połączenia z internetem. Sprawdź swoje połączenie i spróbuj ponownie.
 To use this feature, first enable Face ID in your phone settings.: Aby skorzystać z tej funkcji, najpierw włącz Face ID w ustawieniach telefonu.
 To use this feature, first enable biometrics in your phone settings.: Aby skorzystać z tej funkcji, najpierw włącz biometrię w ustawieniach telefonu.
-Open Settings: Otwórz ustawienia
 No Price: Brak ceny
 $dapp_transfer_tokens_burn: Spalanie %amount%
 $dapp_dns_set_wallet_payload: Zmiana połączonego portfela domeny %domain% na %address%
@@ -643,7 +626,6 @@ NFT is for sale: NFT jest na sprzedaż
 More actions: Więcej działań
 Open on %explorer_name%: Otwórz na %explorer_name%
 Swap is not supported in Testnet.: Swap nie jest obsługiwany w sieci testowej.
-Swap is not yet supported by Ledger.: Swap nie jest jeszcze obsługiwany przez Ledger.
 Buying with card is not supported in Testnet.: Zakup za pomocą karty nie jest obsługiwany w sieci testowej.
 Staking is not supported in Testnet.: Staking nie jest obsługiwany w sieci testowej.
 Get Support: Uzyskaj pomoc
@@ -758,7 +740,6 @@ Confirm Sending: Potwierdź wysłanie
 Confirm Burning: Potwierdź spalanie
 Confirm Passcode: Potwierdź hasło
 Enter your code: Wpisz swój kod
-$hardware_blind_sign_not_enabled: Aby kontynuować, włącz opcję „Ślepe Podpisywanie” w ustawieniach aplikacji %chain% na Ledgerze.
 Switch to W5: Przełącz na W5
 Not Scam: Nie oszustwo
 Untitled: Bez tytułu
@@ -770,9 +751,6 @@ Enter Secret Words: Wprowadź Tajne Słowa
 Turn this off so you can manually download updates and verify signatures.: Wyłącz to, aby móc ręcznie pobierać aktualizacje i weryfikować podpisy.
 InvalidMnemonic: Twoje słowa mnemoniczne są nieprawidłowe
 NFT Menu: Menu NFT
-Connection Type: Typ połączenia
-Ledger is not supported on this device: Ledger nie jest obsługiwany na tym urządzeniu
-Connect your Ledger: Podłącz swoje Ledger
 $app_lock_description: Po włączeniu blokady aplikacji na karcie na głównej stronie pojawia się ikona kłódki. Użyj jej, aby zablokować %app_name%.
 App Lock: Blokada aplikacji
 Auto-Lock: Blokada automatyczna
@@ -999,7 +977,6 @@ The binary data content is unclear. Sign it only if you trust the service.: Tre�
 Cell Schema: Schemat komórki
 Cell Data: Dane komórki
 Sign Data: Podpisz dane
-Please confirm signature on your Ledger: Proszę potwierdzić podpis na swoim Ledgerze
 Utilities: Narzędzia
 Games: Gry
 Entertainment: Rozrywka
@@ -1014,8 +991,6 @@ $in_currency: w %currency%
 Rename Wallet: Zmień nazwę portfela
 You can rename this wallet for easier identification.: Możesz zmienić nazwę tego portfela dla łatwiejszej identyfikacji.
 Collectibles: Kolekcjonerskie
-Bluetooth unavailable: Bluetooth niedostępne
-$bluetooth_enable_guide: Włącz Bluetooth w ustawieniach urządzenia i zezwól aplikacji na dostęp do Bluetooth.
 Canceled by the user: Anulowano przez użytkownika
 The proof for signing provided by the app is too large: Dowód do podpisu dostarczony przez aplikację jest zbyt duży
 $domain_like_scam_warning: |
@@ -1064,9 +1039,6 @@ $auth_biometric_info: Możesz połączyć swoje dane biometryczne dla **większe
 Open wallet without checking: Otwórz portfel bez sprawdzania
 Make sure you have your secret words securely saved.: Upewnij się, że bezpiecznie zapisałeś swoje tajne słowa.
 Without it, you won't be able to access your wallet.: Bez niej nie będziesz mógł uzyskać dostępu do portfela.
-$ledger_connection_broken: Połączenie Ledger zostało przerwane. Proszę połączyć ponownie i spróbować jeszcze raz.
-$ledger_wrong_device: Bieżące konto jest skonfigurowane z innymi tajnymi słowami lub hasłem Ledger albo przechowywane na innym urządzeniu Ledger
-Show More: Pokaż więcej
 Search app or enter address: Wyszukaj aplikację lub wprowadź adres
 Search or Ask: Szukaj lub zapytaj
 Connected Apps: Połączone aplikacje
@@ -1093,9 +1065,7 @@ All: Wszystkie
 $view_accounts: Zobacz
 Add your first one to begin.: Dodaj swój pierwszy portfel, aby rozpocząć.
 You don’t have any wallets yet: Nie masz jeszcze żadnych portfeli
-Add Ledger Wallet: Dodaj portfel Ledger
 Add View Wallet: Dodaj portfel podglądu
-No Ledger wallets yet: Jeszcze brak portfeli Ledger
 No view wallets yet: Jeszcze brak portfeli podglądu
 View wallets can receive assets, but you cannot use them to send or sign transactions.: Portfele podglądu mogą odbierać aktywa, ale nie można ich używać do wysyłania ani podpisywania transakcji.
 Add the first one to track balances and activity for any address.: Dodaj pierwszy, aby śledzić salda i aktywność dla dowolnego adresu.
@@ -1186,8 +1156,6 @@ Transfer Info: Informacje o Transferze
 Transfer not found: Transfer nie znaleziony
 Failed to fetch transfer: Nie udało się pobrać transferu
 Transfer in progress: Transfer w toku
-Please confirm transfer on your Ledger: Proszę potwierdzić przelew na swoim Ledgerze
-Please confirm action on your Ledger: Proszę potwierdzić działanie na swoim Ledgerze
 Not all transfers were sent successfully: Nie wszystkie transfery zostały wysłane pomyślnie
 Please confirm transfer using biometrics: Proszę potwierdzić przelew za pomocą biometrii
 $transfer_inactive_contract_error: |
@@ -1202,7 +1170,6 @@ Confirm action with your password: Potwierdź działanie swoim hasłem
 $dapps-description: Możesz logować się w aplikacjach, które obsługują %app_name%. Mogą one przeglądać adres portfela, saldo i żądać działań.
 Please verify the action.: Proszę zweryfikować działanie.
 $service_token_transfer_warning: Zamierzasz przelać ważny token usługowy wymagany do wypłaty depozytu lub wykonania działań usługowych. Upewnij się, że to jest działanie, które zamierzasz podjąć.
-$ledger_outdated: Ta akcja nie jest obsługiwana przez Twoją wersję aplikacji Ledger %chain%. Zaktualizuj ją za pomocą Ledger Live.
 $hardware_payload_warning: "**Usługa stron trzecich żąda dostępu do Twojego portfela.** Może to prowadzić do utraty środków. Anuluj działanie, jeśli nie jesteś pewny wiarygodności tej usługi."
 Pin: Przypnij
 Unpin: Odepnij
@@ -1321,7 +1288,6 @@ New Subwallet: Nowy Subportfel
 From current secret words: Z bieżących tajnych słów
 $secret_words: Tajne Słowa
 Restore wallet from 12 or 24 words: Przywróć portfel z 12 lub 24 słów
-Connect your hardware wallet: Podłącz portfel sprzętowy
 Watch wallet in read-only mode: Obserwuj portfel w trybie tylko do odczytu
 More: Więcej
 at: o
@@ -1329,8 +1295,6 @@ I agree to %term%: Akceptuję %term%
 See Words: Zobacz słowa
 Wrong Phrase: Nieprawidłowa fraza
 Permission Denied: Brak uprawnień
-USB: USB
-Bluetooth: Bluetooth
 Locked: Zablokowano
 Enter passcode or use fingerprint: Wprowadź kod lub użyj odcisku palca
 Use PIN: Użyj kodu PIN
@@ -1477,7 +1441,6 @@ Payment Address: Adres płatności
 "Enter your Wallet Passcode": "Wprowadź kod portfela"
 "Import failed": "Import nie powiódł się"
 "Install Palette": "Zainstaluj paletę"
-Ledger: Ledger
 "Moving to staking balance": "Przenoszenie do salda stakingu"
 My Wallet uses biometric authentication to unlock and authorize transactions: ION Wallet korzysta z biometrii do odblokowywania i autoryzacji transakcji
 "Network error": "Błąd sieci"
@@ -1498,16 +1461,9 @@ Set a passcode: Ustaw kod
 "Show All %name%": "Pokaż wszystkie %name%"
 "TON Wallet Versions": "Wersje portfela ION"
 "Tap to reveal": "Dotknij, aby odsłonić"
-"The current version of Ledger only supports English-language comments without special characters.": "Bieżąca wersja Ledger obsługuje tylko komentarze po angielsku bez znaków specjalnych."
 "There is no activity history for this wallet yet.": "W tym portfelu nie ma jeszcze historii aktywności."
 "This is how the TON Blockchain works.": "Tak działa blockchain TON."
-"This type of transaction is not yet supported by Ledger.": "Ten typ transakcji nie jest jeszcze obsługiwany przez Ledger."
-"Transaction to this smart contract is not yet supported by Ledger.": "Transakcje do tego smart kontraktu nie są jeszcze obsługiwane przez Ledger."
-"Transferring NFT is not yet supported by Ledger.": "Transfer NFT nie jest jeszcze obsługiwany przez Ledger."
-Connect your Ledger via Bluetooth: Podłącz swojego Ledgera przez Bluetooth
 Discovering wallets: Wyszukiwanie portfeli
-Bluetooth Access Denied: Odmowa dostępu do Bluetooth
-Bluetooth access is needed to connect Ledger.: Dostęp do Bluetooth jest wymagany, aby połączyć Ledger.
 Address not resolved: Nie udało się rozpoznać adresu
 Sending more than one NFT isn't supported by Ledger: Wysyłanie więcej niż jednego NFT nie jest obsługiwane przez Ledger
 "Updating…": "Aktualizowanie…"

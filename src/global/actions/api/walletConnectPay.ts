@@ -20,7 +20,6 @@ import {
   selectCurrentAccountId,
   selectEnclaveToken,
   selectIsEnclaveSessionValid,
-  selectIsHardwareAccount,
 } from '../../selectors';
 import { switchAccount } from './auth';
 
@@ -39,13 +38,6 @@ function beginWalletConnectPayPasswordEntry(actions: {
   submitWalletConnectPaySignTransaction: (payload: { enclaveToken: string }) => void;
 }) {
   let global = getGlobal();
-
-  if (selectIsHardwareAccount(global)) {
-    actions.showError({ error: 'Not supported by Ledger accounts' });
-    actions.cancelWalletConnectPay();
-
-    return;
-  }
 
   const enclaveToken = selectIsEnclaveSessionValid(global) ? selectEnclaveToken(global) : undefined;
 
@@ -245,15 +237,7 @@ addActionHandler('submitWalletConnectPaySignTransaction', withEnclaveSessionRele
     return;
   }
 
-  // FIXME: EVM Pay does not support Ledger, so value is unused for software accounts
-  if (!prepareDappOperation(
-    selectCurrentAccountId(global)!,
-    0 as never,
-    updateCurrentWalletConnectPay,
-    true,
-  )) {
-    return;
-  }
+  prepareDappOperation(updateCurrentWalletConnectPay);
 
   const accountId = selectCurrentAccountId(global)!;
   const account = global.accounts?.byId?.[accountId];
@@ -299,14 +283,7 @@ addActionHandler('submitWalletConnectPaySignData', withEnclaveSessionRelease(asy
     return;
   }
 
-  if (!prepareDappOperation(
-    selectCurrentAccountId(global)!,
-    0 as never,
-    updateCurrentWalletConnectPay,
-    true,
-  )) {
-    return;
-  }
+  prepareDappOperation(updateCurrentWalletConnectPay);
 
   const accountId = selectCurrentAccountId(global)!;
   const account = global.accounts?.byId?.[accountId];

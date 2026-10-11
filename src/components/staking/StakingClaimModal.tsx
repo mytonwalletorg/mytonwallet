@@ -13,7 +13,6 @@ import {
   selectCurrentAccountId,
   selectCurrentAccountTokens,
   selectHasMultipleAccounts,
-  selectIsHardwareAccount,
 } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
@@ -32,8 +31,6 @@ import AccountSwitcherPill from '../common/AccountSwitcherPill';
 import AccountSwitcherSlide from '../common/AccountSwitcherSlide';
 import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
 import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
@@ -53,7 +50,6 @@ interface StateProps {
   address?: string;
   error?: string;
   state?: StakingState;
-  isHardwareAccount?: boolean;
   isSensitiveDataHidden?: true;
   accountId?: string;
   accountTitle?: string;
@@ -62,8 +58,6 @@ interface StateProps {
 
 const IS_OPEN_STATES = new Set([
   StakingState.ClaimPassword,
-  StakingState.ClaimConfirmHardware,
-  StakingState.ClaimConnectHardware,
   StakingState.ClaimComplete,
   StakingState.ClaimSelectAccount,
 ]);
@@ -76,7 +70,6 @@ function StakingClaimModal({
   address,
   error,
   state = StakingState.ClaimPassword,
-  isHardwareAccount,
   isSensitiveDataHidden,
   accountId,
   accountTitle,
@@ -111,11 +104,6 @@ function StakingClaimModal({
   const handleAuthorize = useLastCallback((enclaveToken: string) => {
     if (!isNativeEnough) return;
     submitStakingClaim({ enclaveToken });
-  });
-
-  const handleHardwareSubmit = useLastCallback(() => {
-    if (!isNativeEnough) return;
-    submitStakingClaim();
   });
 
   const handleOpenAccountSelector = useLastCallback(() => {
@@ -165,25 +153,6 @@ function StakingClaimModal({
 
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: StakingState) {
     switch (currentKey) {
-      case StakingState.ClaimConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={handleHardwareSubmit}
-            onClose={cancelStakingClaim}
-          />
-        );
-
-      case StakingState.ClaimConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            text={lang('Please confirm action on your Ledger')}
-            error={error}
-            onClose={cancelStakingClaim}
-            onTryAgain={handleHardwareSubmit}
-          />
-        );
-
       case StakingState.ClaimPassword:
         return (
           <>
@@ -283,7 +252,6 @@ function StakingClaimModal({
 export default memo(withGlobal((global): StateProps => {
   const accountId = selectCurrentAccountId(global);
   const { byChain, title: accountTitle } = selectAccount(global, accountId!) || {};
-  const isHardwareAccount = selectIsHardwareAccount(global);
 
   const {
     state,
@@ -303,7 +271,6 @@ export default memo(withGlobal((global): StateProps => {
     isLoading,
     error,
     address: byChain?.ton?.address,
-    isHardwareAccount,
     isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
     accountId,
     accountTitle,

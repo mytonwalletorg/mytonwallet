@@ -43,7 +43,7 @@
 | Нативные копии web assets | `mobile/android/app/src/main/assets/public`, `mobile/ios/App/App/public` | производные файлы | Не редактировать вручную: обновлять `public/`, затем проверять результат `cap sync`. |
 | TON-партнёрские marks | `public/logo-ton-app.svg`, `public/logo-ton-org.svg` | требует решения | Оставить только при наличии согласованного основания и актуальных brand guidelines; иначе удалить ссылки/файлы. |
 | Старые Cards assets | `src/assets/cards/**`, `src/assets/settings/settings_mw-cards.svg` | удаляется | Удалить вместе с остатками My Wallet Cards; они не являются ресурсами нового бренда. |
-| Product-specific illustrations | `src/assets/lottiePreview/**`, `src/assets/ledger/**`, `src/assets/blockchain/**`, `src/assets/theme/**` | требует дизайна и проверки | Проверить на старый знак, устаревшие сети и удалённые продукты; сохранить только нужное ION/BNB покрытие. |
+| Product-specific illustrations | `src/assets/lottiePreview/**`, `src/assets/blockchain/**`, `src/assets/theme/**` | требует дизайна и проверки | Проверить на старый знак, устаревшие сети и удалённые продукты; сохранить только нужное ION/BNB покрытие. |
 
 ## Повторяемая проверка
 

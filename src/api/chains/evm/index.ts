@@ -64,8 +64,6 @@ class EVMChainSdk<T extends EVMChain> implements ChainSdk<T> {
   getWalletBalance = this.#bindChain(getWalletBalance);
   getWalletAssets = this.#bindChain(fetchAccountBalances);
 
-  getWalletsFromLedgerAndLoadBalance = notSupported;
-
   createSubWalletFromDerivation = this.#bindChain(createSubWalletFromDerivation<T>);
 
   setupActivePolling = this.#bindChain(setupActivePolling);
@@ -77,11 +75,8 @@ class EVMChainSdk<T extends EVMChain> implements ChainSdk<T> {
   checkTransactionDraft = this.#bindChain(checkTransactionDraft);
 
   submitGasfullTransfer = this.#bindChain(submitGasfullTransfer);
-  verifyLedgerWalletAddress = notSupported;
 
   fetchPrivateKeyString = this.#bindChain(fetchPrivateKeyString);
-
-  getIsLedgerAppOpen = notSupported;
 
   fetchTransactionById = this.#bindChain(fetchTransactionById);
 

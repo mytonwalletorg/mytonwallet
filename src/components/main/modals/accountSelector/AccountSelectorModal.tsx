@@ -19,10 +19,9 @@ import {
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
-import { getChainsSupportingLedger } from '../../../../util/chain';
 import { vibrate } from '../../../../util/haptics';
 import { disableSwipeToClose, enableSwipeToClose } from '../../../../util/modalSwipeManager';
-import { IS_LEDGER_SUPPORTED, IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
+import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 import { buildTabs, getCurrentTabIndex } from './helpers/tabsHelper';
 import { AccountTab, DEFAULT_TAB, OPEN_CONTEXT_MENU_CLASS_NAME } from './constants';
 
@@ -37,8 +36,6 @@ import useSyncEffect from '../../../../hooks/useSyncEffect';
 import { useFilteredAccounts } from './hooks/useFilteredAccounts';
 
 import AuthImportViewAccount from '../../../auth/AuthImportViewAccount';
-import LedgerConnect from '../../../ledger/LedgerConnect';
-import LedgerSelectWallets from '../../../ledger/LedgerSelectWallets';
 import Modal from '../../../ui/Modal';
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
@@ -118,7 +115,6 @@ function AccountSelectorModal({
     createSubWallet,
     clearAccountError,
     openSettingsWithState,
-    resetHardwareWalletConnect,
     clearAccountLoading,
     openWalletRenameModal,
   } = getActions();
@@ -142,7 +138,7 @@ function AccountSelectorModal({
     (accountWalletVersions?.filter((v) => v.lastTxId || v.version === 'W5').length ?? 0) > 1
   ), [accountWalletVersions]);
 
-  const tabs = useMemo(() => buildTabs(isTestnet ?? false, lang), [isTestnet, lang]);
+  const tabs = useMemo(() => buildTabs(lang), [lang]);
   const currentTabIndex = useMemo(() => getCurrentTabIndex(tabs, activeTab), [activeTab, tabs]);
   const selectedTab = tabs[currentTabIndex]?.id ?? DEFAULT_TAB;
   const filteredAccounts = useFilteredAccounts(orderedAccounts, selectedTab);
@@ -195,9 +191,7 @@ function AccountSelectorModal({
 
     const state = initialAuthState;
     let targetKey: AccountSelectorState;
-    if (state === AccountSelectorState.AddAccountConnectHardware && IS_LEDGER_SUPPORTED && !isTestnet) {
-      targetKey = AccountSelectorState.AddAccountConnectHardware;
-    } else if (state === AccountSelectorState.AddAccountViewMode
+    if (state === AccountSelectorState.AddAccountViewMode
       || state === AccountSelectorState.AddAccountInitial) {
       targetKey = state;
     } else {
@@ -206,20 +200,15 @@ function AccountSelectorModal({
 
     skipAnimationToKeyRef.current = targetKey;
     setRenderingKey(targetKey);
-  }, [isOpen, forceAddingTonOnlyAccount, initialAuthState, initialRenderingKey, isTestnet]);
+  }, [isOpen, forceAddingTonOnlyAccount, initialAuthState, initialRenderingKey]);
 
   useEffect(() => {
     if (!isOpen) return;
 
     if (forceAddingTonOnlyAccount) {
       handleNewAccountClick();
-      return;
     }
-
-    if (initialAuthState === AccountSelectorState.AddAccountConnectHardware && IS_LEDGER_SUPPORTED && !isTestnet) {
-      handleImportHardwareWalletClick();
-    }
-  }, [isOpen, forceAddingTonOnlyAccount, initialAuthState, isTestnet]);
+  }, [isOpen, forceAddingTonOnlyAccount]);
 
   useEffect(() => {
     if (!IS_TOUCH_ENV || !isOpen) return;
@@ -277,17 +266,12 @@ function AccountSelectorModal({
         break;
 
       case AccountSelectorState.AddAccountViewMode:
-      case AccountSelectorState.AddAccountConnectHardware:
         if (shouldReturnToStartScreen) {
           setRenderingKey(previousViewMode);
           setShouldReturnToStartScreen(false);
         } else {
           setRenderingKey(AccountSelectorState.AddAccountInitial);
         }
-        break;
-
-      case AccountSelectorState.AddAccountSelectHardware:
-        setRenderingKey(AccountSelectorState.AddAccountConnectHardware);
         break;
 
       default:
@@ -331,14 +315,6 @@ function AccountSelectorModal({
     setRenderingKey(AccountSelectorState.AddAccountPassword);
   });
 
-  const handleImportHardwareWalletClick = useLastCallback(() => {
-    resetHardwareWalletConnect({
-      chain: getChainsSupportingLedger()[0],
-      shouldLoadWallets: true,
-    });
-    setRenderingKey(AccountSelectorState.AddAccountConnectHardware);
-  });
-
   const handleViewModeWalletClick = useLastCallback(() => {
     setShouldReturnToStartScreen(false);
     setRenderingKey(AccountSelectorState.AddAccountViewMode);
@@ -352,10 +328,6 @@ function AccountSelectorModal({
     }
 
     addAccount({ method: isNewAccountImporting ? 'importMnemonic' : 'createAccount', enclaveToken });
-  });
-
-  const handleHardwareWalletConnected = useLastCallback(() => {
-    setRenderingKey(AccountSelectorState.AddAccountSelectHardware);
   });
 
   const handleViewModeChange = useLastCallback((state: AccountSelectorState) => {
@@ -380,9 +352,6 @@ function AccountSelectorModal({
     if (selectedTabId === AccountTab.View) {
       setShouldReturnToStartScreen(true);
       setRenderingKey(AccountSelectorState.AddAccountViewMode);
-    } else if (selectedTabId === AccountTab.Ledger) {
-      setShouldReturnToStartScreen(true);
-      handleImportHardwareWalletClick();
     } else {
       setShouldReturnToStartScreen(false);
       setRenderingKey(AccountSelectorState.AddAccountInitial);
@@ -542,7 +511,6 @@ function AccountSelectorModal({
           <AddAccountSelector
             isNewAccountImporting={isNewAccountImporting}
             isLoading={isLoading}
-            isTestnet={isTestnet}
             hasOtherWalletVersions={hasOtherWalletVersions}
             canAddSubwallet={canAddSubwallet}
             shouldHideBackButton={shouldHideAddAccountBackButton}
@@ -550,7 +518,6 @@ function AccountSelectorModal({
             onNewAccountClick={handleNewAccountClick}
             onNewSubwalletClick={handleNewSubwalletClick}
             onImportAccountClick={handleImportAccountClick}
-            onImportHardwareWalletClick={handleImportHardwareWalletClick}
             onViewModeWalletClick={handleViewModeWalletClick}
             onOpenSettingWalletVersion={handleOpenSettingWalletVersion}
             onClose={handleCloseAccountSelectorForced}
@@ -568,29 +535,6 @@ function AccountSelectorModal({
             onBack={handleBackFromAddAccount}
             onClose={handleCloseAccountSelectorForced}
           />
-        );
-
-      case AccountSelectorState.AddAccountConnectHardware:
-        return (
-          <div className={modalStyles.transitionContentWrapper}>
-            <LedgerConnect
-              isActive={isActive}
-              onConnected={handleHardwareWalletConnected}
-              onBackClick={handleBackFromAddAccount}
-              onClose={handleCloseAccountSelectorForced}
-            />
-          </div>
-        );
-
-      case AccountSelectorState.AddAccountSelectHardware:
-        return (
-          <div className={modalStyles.transitionContentWrapper}>
-            <LedgerSelectWallets
-              withCloseButton
-              onBackClick={handleBackFromAddAccount}
-              onClose={handleCloseAccountSelectorForced}
-            />
-          </div>
         );
 
       case AccountSelectorState.AddAccountViewMode:

@@ -6,7 +6,6 @@ import {
   BiometricsState,
   DomainLinkingState,
   DomainRenewalState,
-  HardwareConnectState,
   SettingsState,
   SignDataState,
   StakingState,
@@ -40,11 +39,6 @@ export const INITIAL_STATE: GlobalState = {
 
   biometrics: {
     state: BiometricsState.None,
-  },
-
-  hardware: {
-    hardwareState: HardwareConnectState.Connect,
-    chain: 'ton',
   },
 
   currentTransfer: {

@@ -6,7 +6,7 @@ import type {
   ApiTokensTransferPayload,
 } from '../../api/types';
 
-import { DEFAULT_MAX_MESSAGES, LEDGER_MAX_MESSAGES, W5_MAX_MESSAGES } from '../../api/chains/ton/constants';
+import { DEFAULT_MAX_MESSAGES, W5_MAX_MESSAGES } from '../../api/chains/ton/constants';
 
 export function isNftTransferPayload(payload: ApiParsedPayload | undefined): payload is ApiNftTransferPayload {
   return payload?.type === 'nft:transfer';
@@ -20,11 +20,9 @@ export function isTokenTransferPayload(
 
 /** How many messages can be sent in a single transaction */
 export function getMaxMessagesInTransaction(account: ApiAccountWithChain<'ton'>) {
-  const { type, byChain: { ton: { version } } } = account;
+  const { byChain: { ton: { version } } } = account;
 
-  if (type === 'ledger') {
-    return LEDGER_MAX_MESSAGES;
-  } else if (version === 'W5') {
+  if (version === 'W5') {
     return W5_MAX_MESSAGES;
   } else {
     return DEFAULT_MAX_MESSAGES;

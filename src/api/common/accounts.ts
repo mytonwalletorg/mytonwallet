@@ -42,7 +42,7 @@ export async function getAccountWithMnemonic() {
   const byId = await fetchStoredAccounts();
 
   return Object.entries(byId)
-    .find(([, { type }]) => type !== 'ledger' && type !== 'view') as [string, ApiAccountWithMnemonic] | undefined;
+    .find(([, { type }]) => type !== 'view') as [string, ApiAccountWithMnemonic] | undefined;
 }
 
 export async function getNewAccountId(network: ApiNetwork, preferredId?: number) {
@@ -183,7 +183,6 @@ export function getAccountChains(account: ApiAccountAny): Partial<Record<ApiChai
   return mapValues(account.byChain, (wallet) => ({
     address: wallet.address,
     derivation: wallet.derivation,
-    ledgerIndex: account.type === 'ledger' ? wallet.index : undefined,
   }));
 }
 

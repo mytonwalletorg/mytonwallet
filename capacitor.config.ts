@@ -6,7 +6,6 @@ const APP_ID = 'io.ice.wallet';
 const APP_NAME = 'ION Wallet';
 
 const COMMON_PLUGINS = [
-  '@capacitor-community/bluetooth-le',
   '@capacitor-mlkit/barcode-scanning',
   '@capacitor/app',
   '@capacitor/app-launcher',
@@ -21,7 +20,6 @@ const COMMON_PLUGINS = [
   '@capgo/capacitor-native-biometric',
   '@capgo/native-audio',
   '@mauricewegner/capacitor-navigation-bar',
-  '@mytonwallet/capacitor-usb-hid',
   'capacitor-native-settings',
   'capacitor-plugin-safe-area',
   'capacitor-secure-storage-plugin',

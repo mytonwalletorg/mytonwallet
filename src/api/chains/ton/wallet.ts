@@ -8,7 +8,6 @@ import type { ApiTonPlugin } from '../../types/misc';
 import type { ApiTonWalletVersion, ContractInfo } from './types';
 import type { TonWallet } from './util/tonCore';
 import {
-  type ApiAnyDisplayError,
   type ApiNetwork,
   type ApiTonWallet,
   type ApiWalletInfo,
@@ -17,13 +16,11 @@ import {
 
 import { DEFAULT_WALLET_VERSION, TONCOIN } from '../../../config';
 import { raceWithAbortSignal } from '../../../util/abortSignal';
-import { parseAccountId } from '../../../util/account';
 import { extractKey, findLast } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
 import {
   getTonClient, toBase64Address, walletClassMap,
 } from './util/tonCore';
-import { fetchStoredWallet } from '../../common/accounts';
 import { base64ToBytes, hexToBytes, sha256 } from '../../common/utils';
 import {
   ALL_WALLET_VERSIONS,
@@ -476,15 +473,4 @@ export async function fetchWalletPlugins(
       isInitialized: info?.isInitialized ?? false,
     };
   });
-}
-
-export async function verifyLedgerWalletAddress(accountId: string): Promise<string | { error: ApiAnyDisplayError }> {
-  if (process.env.NO_LEDGER === '1') throw new Error('Ledger is disabled');
-
-  const { network } = parseAccountId(accountId);
-  const [wallet, { verifyLedgerTonAddress }] = await Promise.all([
-    fetchStoredWallet(accountId, 'ton'),
-    import('./ledger'),
-  ]);
-  return verifyLedgerTonAddress(network, wallet);
 }

@@ -1,10 +1,6 @@
-import type { ApiAnyDisplayError, ApiChain, ApiToken, ApiTokenWithPrice } from '../../../api/types';
-import { ApiHardwareError } from '../../../api/types';
+import type { ApiAnyDisplayError, ApiToken, ApiTokenWithPrice } from '../../../api/types';
 
-import { getLedgerAppName } from '../../../util/chain';
 import { unique } from '../../../util/iteratees';
-import { getTranslation } from '../../../util/langProvider';
-import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
 import { buildUserToken } from '../../../util/tokens';
 import { callApi } from '../../../api';
@@ -21,7 +17,6 @@ import {
 } from '../../reducers';
 import { updateTokenInfo } from '../../reducers/tokens';
 import {
-  selectAccount,
   selectAccountState,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
@@ -187,59 +182,6 @@ addActionHandler('resetImportToken', (global) => {
   });
   setGlobal(global);
 });
-
-addActionHandler('verifyHardwareAddress', async (global, actions, { chain }) => {
-  const accountId = selectCurrentAccountId(global)!;
-  const currentAddress = selectAccount(global, accountId)?.byChain[chain]?.address;
-
-  if (!(await connectLedger(chain))) {
-    actions.showError({
-      error: getTranslation('$ledger_not_ready', { chain: getLedgerAppName(chain) }),
-    });
-    return;
-  }
-
-  actions.showDialog({ title: 'Ledger', message: '$ledger_verify_address_on_device' });
-  const ledgerAddress = await callApi('verifyLedgerWalletAddress', accountId, chain);
-
-  if (isErrorTransferResult(ledgerAddress)) {
-    if (ledgerAddress?.error !== ApiHardwareError.RejectedByUser) {
-      actions.showError({ error: ledgerAddress?.error });
-    }
-    return;
-  }
-
-  if (ledgerAddress !== currentAddress) {
-    actions.showError({ error: '$ledger_wrong_device' });
-  }
-});
-
-// A cute mini version of the `initializeHardwareWalletConnection` action
-async function connectLedger(chain: ApiChain, noRetry?: boolean) {
-  const ledgerApi = await import('../../../util/ledger');
-
-  // Step 1: Connect to the Ledger device
-
-  const isLedgerConnected = await ledgerApi.connectLedger();
-  if (!isLedgerConnected) {
-    return false;
-  }
-
-  // Step 2: Ensure that the chain app is open on the Ledger device
-
-  const isChainAppConnected = await callApi('waitForLedgerApp', chain);
-  if (isErrorTransferResult(isChainAppConnected)) {
-    const isLedgerDisconnected = isChainAppConnected?.error === ApiHardwareError.ConnectionBroken;
-    if (isLedgerDisconnected && !noRetry) {
-      return connectLedger(chain, true);
-    }
-
-    logDebugError('wallet / connectLedger', isChainAppConnected?.error);
-    return false;
-  }
-
-  return isChainAppConnected;
-}
 
 addActionHandler('setActiveContentTab', (global, actions, { tab }) => {
   return updateCurrentAccountState(global, {

@@ -22,14 +22,11 @@ export function tonConnectGetDeviceInfo(account?: ApiAccountWithChain<'ton'>): D
       name: 'SendTransaction',
       maxMessages: account ? getMaxMessagesInTransaction(account) : W5_MAX_MESSAGES,
     },
-  ];
-
-  if (!account || account.type !== 'ledger') {
-    features.push({
+    {
       name: 'SignData',
       types: ['text', 'binary', 'cell'],
-    });
-  }
+    },
+  ];
 
   // Redefine for backward compatibility
   return {

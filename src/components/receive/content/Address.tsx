@@ -1,5 +1,4 @@
 import React, { memo } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
 
 import type { ApiChain } from '../../../api/types';
 
@@ -19,7 +18,6 @@ import styles from '../ReceiveModal.module.scss';
 interface OwnProps {
   chain: ApiChain;
   isActive?: boolean;
-  isLedger?: boolean;
   isViewMode?: boolean;
   address: string;
   onClose?: NoneToVoidFunction;
@@ -28,13 +26,10 @@ interface OwnProps {
 function Address({
   chain,
   isActive,
-  isLedger,
   isViewMode,
   address,
   onClose,
 }: OwnProps) {
-  const { verifyHardwareAddress } = getActions();
-
   const lang = useLang();
   const { qrCodeRef } = useQrCode({
     address,
@@ -42,13 +37,6 @@ function Address({
     isActive,
     preferUrl: true,
   });
-
-  const handleVerify = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    verifyHardwareAddress({ chain });
-  };
 
   return (
     <div>
@@ -73,17 +61,7 @@ function Address({
         </WarningMessage>
       )}
 
-      {isLedger && (
-        <div className={buildClassName(styles.contentTitle, styles.contentTitleLedger)}>
-          {renderText(lang('$ledger_verify_address'))}
-          {' '}
-          <a href="#" onClick={handleVerify} className={styles.dottedLink}>
-            {lang('Verify now')}
-          </a>
-        </div>
-      )}
-
-      {!isViewMode && <Actions chain={chain} isLedger={isLedger} onClose={onClose} />}
+      {!isViewMode && <Actions chain={chain} onClose={onClose} />}
     </div>
   );
 }

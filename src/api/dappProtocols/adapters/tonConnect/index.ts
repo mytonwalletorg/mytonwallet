@@ -69,7 +69,6 @@ import { CHAIN } from './types';
 
 import { IS_CAPACITOR, IS_EXTENSION, SSE_BRIDGE_URL, TONCOIN } from '../../../../config';
 import { parseAccountId } from '../../../../util/account';
-import { areDeepEqual } from '../../../../util/areDeepEqual';
 import { bigintDivideToNumber } from '../../../../util/bigint';
 import {
   ION_GATEWAY_PROTOCOL,
@@ -85,8 +84,8 @@ import { getMaxMessagesInTransaction } from '../../../../util/ton/transfer';
 import { tonConnectGetDeviceInfo } from '../../../../util/tonConnectEnvironment';
 import { checkMultiTransactionDraft, sendSignedTransactions } from '../../../chains/ton/transfer';
 import { parsePayloadBase64 } from '../../../chains/ton/util/metadata';
-import { getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress } from '../../../chains/ton/util/tonCore';
-import { getContractInfo, getWalletStateInit } from '../../../chains/ton/wallet';
+import { getIsRawAddress, toBase64Address, toRawAddress } from '../../../chains/ton/util/tonCore';
+import { getWalletStateInit } from '../../../chains/ton/wallet';
 import {
   fetchStoredChainAccount,
   getCurrentAccountId,
@@ -97,7 +96,7 @@ import {
 import { getKnownAddressInfo } from '../../../common/addresses';
 import { createDappPromise } from '../../../common/dappPromises';
 import { isUpdaterAlive } from '../../../common/helpers';
-import { bytesToHex, hexToBytes } from '../../../common/utils';
+import { bytesToHex } from '../../../common/utils';
 import { ApiServerError, ApiUserRejectsError } from '../../../errors';
 import { callHook } from '../../../hooks';
 import {
@@ -460,15 +459,7 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
       const { messages, network: dappNetworkRaw } = txPayload;
 
       const account = await fetchStoredChainAccount(accountId, message.chain);
-      const {
-        type,
-        byChain: {
-          ton: {
-            address,
-            publicKey: publicKeyHex,
-          },
-        },
-      } = account;
+      const { address } = account.byChain.ton;
 
       const maxMessages = getMaxMessagesInTransaction(account);
 
@@ -486,17 +477,8 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
         validUntil = Math.round(validUntil / 1000);
       }
 
-      const isLedger = type === 'ledger';
-
-      let vestingAddress: string | undefined;
-
       if (txPayload.from && toBase64Address(txPayload.from) !== toBase64Address(address)) {
-        const publicKey = hexToBytes(publicKeyHex!);
-        if (isLedger && await checkIsHisVestingWallet(network, publicKey, txPayload.from)) {
-          vestingAddress = txPayload.from;
-        } else {
-          throw new BadRequestError(undefined, ApiTransactionError.WrongAddress);
-        }
+        throw new BadRequestError(undefined, ApiTransactionError.WrongAddress);
       }
 
       if (dappNetwork && network !== dappNetwork) {
@@ -540,7 +522,6 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
           ? undefined
           : pick(checkResult.emulation, ['activities', 'realFee']),
         validUntil,
-        vestingAddress,
       });
 
       const signedTransactions: Parameters<
@@ -574,7 +555,7 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
         // Use rich emulation activities for optimistic UI
         createLocalActivitiesFromEmulation(
           accountId,
-          externalMsgHashNorm, // This is not always correct for Ledger, because in that case the messages are split into individual transactions which have different message hashes. Though, this appears not to cause problems.
+          externalMsgHashNorm,
           checkResult.emulation.activities,
         );
       } else {
@@ -590,7 +571,7 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
             comment,
             fee: networkFee,
             slug: TONCOIN.slug,
-            externalMsgHashNorm, // This is not always correct for Ledger, because in that case the messages are split into individual transactions which have different message hashes. Though, this appears not to cause problems.
+            externalMsgHashNorm,
           };
         }));
       }
@@ -1190,15 +1171,6 @@ function buildTonProofReplyItem(proof: TonConnectProof, signature: string): TonP
       payload,
     },
   };
-}
-
-async function checkIsHisVestingWallet(network: ApiNetwork, ownerPublicKey: Uint8Array, address: string) {
-  const [info, publicKey] = await Promise.all([
-    getContractInfo(network, address),
-    getWalletPublicKey(network, address),
-  ]);
-
-  return info.contractInfo?.name === 'vesting' && areDeepEqual(ownerPublicKey, publicKey);
 }
 
 function sendMessage(

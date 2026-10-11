@@ -25,8 +25,6 @@ import type {
   ApiGroupedWalletVariant,
   ApiHistoryList,
   ApiImportAddressByChain,
-  ApiLedgerDriver,
-  ApiLedgerWalletInfo,
   ApiNetwork,
   ApiNft,
   ApiNftCollection,
@@ -54,7 +52,6 @@ import type {
 import type { AUTOLOCK_OPTIONS_LIST } from '../config';
 import type { CapacitorPlatform } from '../util/capacitor/platform';
 import type { ExplainedTransferFee } from '../util/fee/transferFee';
-import type { LedgerTransport } from '../util/ledger/types';
 
 export type IAnchorPosition = {
   x: number;
@@ -65,7 +62,7 @@ export type AnimationLevel = 0 | 1 | 2;
 export type Theme = 'light' | 'dark' | 'system';
 export type AppTheme = 'dark' | 'light';
 export type AppLayout = 'portrait' | 'landscape';
-export type DialogAction = 'openBluetoothSettings' | 'openReturnUrl';
+export type DialogAction = 'openReturnUrl';
 export type ToastAction = 'openRenameWallet';
 
 export type ToastType = {
@@ -111,7 +108,7 @@ export type LangPack = Record<string, string | LangString>;
 
 export type StakingStatus = 'active' | 'unstakeRequested';
 
-export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWallet';
+export type AuthMethod = 'createAccount' | 'importMnemonic';
 
 interface AuthAccount {
   accountId: string;
@@ -128,7 +125,6 @@ export enum AppState {
   Explore,
   TokenInfo,
   Settings,
-  Ledger,
   Inactive,
   Empty,
 }
@@ -172,8 +168,6 @@ export enum AccountSelectorState {
   Reorder,
   AddAccountInitial,
   AddAccountPassword,
-  AddAccountConnectHardware,
-  AddAccountSelectHardware,
   AddAccountViewMode,
 }
 
@@ -192,8 +186,6 @@ export enum TransferState {
   Initial,
   Confirm,
   Password,
-  ConnectHardware,
-  ConfirmHardware,
   Complete,
   SelectAccount,
 }
@@ -229,8 +221,6 @@ export enum DomainRenewalState {
   None,
   Initial,
   Password,
-  ConnectHardware,
-  ConfirmHardware,
   Complete,
 }
 
@@ -238,8 +228,6 @@ export enum DomainLinkingState {
   None,
   Initial,
   Password,
-  ConnectHardware,
-  ConfirmHardware,
   Complete,
 }
 
@@ -247,17 +235,7 @@ export enum DappConnectState {
   Info,
   SelectAccount,
   Password,
-  ConnectHardware,
-  ConfirmHardware,
   AddAccountPassword,
-}
-
-export enum HardwareConnectState {
-  Connect,
-  Connecting,
-  Failed,
-  Connected,
-  WaitingForRemoteTab,
 }
 
 export enum StakingState {
@@ -265,30 +243,18 @@ export enum StakingState {
 
   StakeInitial,
   StakePassword,
-  StakeConnectHardware,
-  StakeConfirmHardware,
   StakeComplete,
 
   UnstakeInitial,
   UnstakePassword,
-  UnstakeConnectHardware,
-  UnstakeConfirmHardware,
   UnstakeComplete,
 
   ClaimPassword,
-  ClaimConnectHardware,
-  ClaimConfirmHardware,
   ClaimComplete,
 
   StakeSelectAccount,
   UnstakeSelectAccount,
   ClaimSelectAccount,
-}
-
-export enum VestingUnfreezeState {
-  Password,
-  ConnectHardware,
-  ConfirmHardware,
 }
 
 export enum SettingsState {
@@ -304,8 +270,6 @@ export enum SettingsState {
   SelectTokenList,
   WalletVariants, // Wallet Derivations
   WalletVersions, // TON Versions
-  LedgerConnectHardware,
-  LedgerSelectWallets,
   HiddenNfts,
   BackupWallet,
   Permissions,
@@ -359,15 +323,13 @@ export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
-export type AccountType = 'mnemonic' | 'hardware' | 'view';
+export type AccountType = 'mnemonic' | 'view';
 
 export interface AccountChain {
   address: string;
   domain?: string;
   isMultisig?: true;
   derivation?: ApiDerivation;
-  /** Is set only in hardware accounts */
-  ledgerIndex?: number;
 }
 
 export interface Account {
@@ -465,7 +427,6 @@ export interface AccountState {
     isConfirmRequested?: boolean;
     error?: string;
     unfreezeRequestedIds?: { id: number; partId: number }[];
-    unfreezeState?: VestingUnfreezeState;
   };
 
   stakingHistory?: ApiStakingHistory;
@@ -533,7 +494,6 @@ export interface AddressBookItemData {
   address: string;
   chain: ApiChain | undefined;
   domain?: string;
-  isHardware?: boolean;
   isSavedAddress?: boolean;
 }
 
@@ -555,7 +515,6 @@ export type GlobalState = {
     isLoading?: boolean;
     mnemonic?: string[];
     mnemonicCheckIndexes?: number[];
-    hardwareSelectedIndices?: number[];
     error?: string;
     pin?: string;
     isImportModalOpen?: boolean;
@@ -578,24 +537,6 @@ export type GlobalState = {
   biometrics: {
     state: BiometricsState;
     error?: string;
-  };
-
-  hardware: {
-    hardwareState: HardwareConnectState;
-    chain: ApiChain;
-    /**
-     * If true, `hardwareWallets` will be populated before the `hardwareState` switches to `Connected`.
-     * This is slow, so use it only when necessary.
-     */
-    shouldLoadWallets?: true;
-    /** All the wallets belong to `chain` */
-    hardwareWallets?: ApiLedgerWalletInfo[];
-    isLedgerConnected?: boolean;
-    isChainAppConnected?: boolean;
-    availableTransports?: LedgerTransport[];
-    lastUsedTransport?: LedgerTransport;
-    /** Loading flag for paginated wallet fetch (Show More) */
-    isLoading?: boolean;
   };
 
   currentTransfer: {
@@ -658,7 +599,6 @@ export type GlobalState = {
     emulation?: Pick<ApiEmulationResult, 'activities' | 'realFee'>;
     /** Unix seconds */
     validUntil?: number;
-    vestingAddress?: string;
     viewTransactionOnIdx?: number;
     dapp?: StoredDappConnection;
     operationChain?: ApiChain;
@@ -839,7 +779,6 @@ export type GlobalState = {
   accountSelectorActiveTab?: number;
   accountSelectorViewMode?: 'cards' | 'list';
   isBackupWalletModalOpen?: boolean;
-  isHardwareModalOpen?: boolean;
   isStakingInfoModalOpen?: boolean;
   isQrScannerOpen?: boolean;
   areSettingsOpen?: boolean;
@@ -931,7 +870,6 @@ export interface ActionPayloads {
   cancelCheckPassword: undefined;
   startImportingWallet: { enclaveToken?: string } | undefined;
   afterImportMnemonic: { mnemonic: string[] };
-  startImportingHardwareWallet: { driver: ApiLedgerDriver };
   confirmDisclaimer: undefined;
   afterConfirmDisclaimer: undefined;
   cleanAuthError: undefined;
@@ -947,13 +885,7 @@ export interface ActionPayloads {
   openMnemonicPage: undefined;
   openCheckWordsPage: undefined;
   closeCheckWordsPage: { isBackupCreated?: boolean } | undefined;
-  initializeHardwareWalletModal: undefined;
-  initializeHardwareWalletConnection: { transport: LedgerTransport };
-  createHardwareAccounts: undefined;
-  addHardwareAccounts: { accounts: { accountId: string; byChain: Account['byChain'] }[] };
-  loadMoreHardwareWallets: undefined;
   createAccount: { enclaveToken?: string; isPasswordNumeric?: boolean } | undefined;
-  afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
   resetApiSettings: { areAllDisabled?: boolean } | undefined;
   checkAppVersion: undefined;
   importAccountByVersion: { version: ApiTonWalletVersion; isTestnetSubwalletId?: boolean };
@@ -972,9 +904,6 @@ export interface ActionPayloads {
   openBackupWalletModal: undefined;
   closeBackupWalletModal: undefined;
   setIsBackupRequired: { isMnemonicChecked: boolean };
-  openHardwareWalletModal: { chain: ApiChain };
-  closeHardwareWalletModal: undefined;
-  resetHardwareWalletConnect: { chain: ApiChain; shouldLoadWallets?: boolean };
   setTransferScreen: { state: TransferState };
   setTransferAmount: { amount?: bigint };
   setTransferToAddress: { toAddress?: string };
@@ -1029,7 +958,6 @@ export interface ActionPayloads {
   showError: { error?: ApiAnyDisplayError | TeactNode | string };
   showToast: ToastType;
   dismissToast: undefined;
-  initLedgerPage: undefined;
   afterSignIn: undefined;
   signOut: { level: SignOutLevel; accountId?: string };
   cancelCaching: undefined;
@@ -1051,7 +979,6 @@ export interface ActionPayloads {
   clearAccountError: undefined;
   clearAccountLoading: undefined;
   setIsAccountLoading: { isLoading: true | undefined };
-  verifyHardwareAddress: { chain: ApiChain };
   setIsAuthLoading: { isLoading: true | undefined };
 
   fetchPastActivities: { accountId?: string; slug?: string; shouldLoadWithBudget?: boolean };
@@ -1206,7 +1133,6 @@ export interface ActionPayloads {
   setIsManualLockActive: { isActive?: boolean; shouldHideBiometrics?: boolean };
   setIsAutoConfirmEnabled: { isEnabled: boolean };
   setIsAllowSuspiciousActions: { isEnabled: boolean };
-  openSettingsHardwareWallet: undefined;
   apiUpdateWalletVersions: ApiUpdateWalletVersions;
 
   // Account Settings

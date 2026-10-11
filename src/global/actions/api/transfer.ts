@@ -33,7 +33,6 @@ import {
   selectCurrentAccountId,
   selectCurrentAccountTokens,
   selectCurrentNetwork,
-  selectIsHardwareAccount,
   selectToken,
 } from '../../selectors';
 import { switchAccount } from './auth';
@@ -268,9 +267,7 @@ addActionHandler('submitTransfer', withEnclaveSessionRelease(async (global, acti
     isNftBurn,
   } = global.currentTransfer;
 
-  if (!prepareTransfer(TransferState.ConfirmHardware, updateCurrentTransfer)) {
-    return;
-  }
+  prepareTransfer(updateCurrentTransfer);
 
   // This is a part of the legacy dapp transaction mechanism. See `promiseId` in `src/global/types.ts` for more details.
   if (promiseId) {
@@ -289,7 +286,7 @@ addActionHandler('submitTransfer', withEnclaveSessionRelease(async (global, acti
 
   if (nfts?.length) {
     const chain = nfts?.[0]?.chain || DEFAULT_CHAIN;
-    const chunks = split(nfts, selectIsHardwareAccount(global) ? 1 : NFT_BATCH_SIZE);
+    const chunks = split(nfts, NFT_BATCH_SIZE);
 
     for (const chunk of chunks) {
       const batchResult = await callApi(

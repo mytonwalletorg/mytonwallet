@@ -46,8 +46,6 @@ import AccountSwitcherPill from '../common/AccountSwitcherPill';
 import AccountSwitcherSlide from '../common/AccountSwitcherSlide';
 import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import AmountInput from '../ui/AmountInput';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -75,8 +73,6 @@ type StateProps = GlobalState['currentStaking'] & {
 const IS_OPEN_STATES = new Set([
   StakingState.UnstakeInitial,
   StakingState.UnstakePassword,
-  StakingState.UnstakeConnectHardware,
-  StakingState.UnstakeConfirmHardware,
   StakingState.UnstakeComplete,
   StakingState.UnstakeSelectAccount,
 ]);
@@ -194,11 +190,6 @@ function UnstakeModal({
     setSuccessUnstakeAmount(amount);
 
     submitStaking({ enclaveToken, isUnstaking: true });
-  });
-
-  const handleLedgerConnect = useLastCallback(() => {
-    setSuccessUnstakeAmount(amount);
-    submitStaking({ isUnstaking: true });
   });
 
   function renderTransactionBanner() {
@@ -431,25 +422,6 @@ function UnstakeModal({
 
       case StakingState.UnstakePassword:
         return renderPassword(isActive);
-
-      case StakingState.UnstakeConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={handleLedgerConnect}
-            onClose={cancelStaking}
-          />
-        );
-
-      case StakingState.UnstakeConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            text={lang('Please confirm action on your Ledger')}
-            error={error}
-            onClose={cancelStaking}
-            onTryAgain={handleLedgerConnect}
-          />
-        );
 
       case StakingState.UnstakeComplete:
         return renderComplete(isActive);

@@ -135,7 +135,6 @@ export type ApiUpdateDappSendTransactions = {
   emulation?: Pick<ApiEmulationResult, 'activities' | 'realFee'>;
   /** Unix seconds */
   validUntil?: number;
-  vestingAddress?: string;
   // No useful transfers in solana
   shouldHideTransfers?: boolean;
   // Deal with solana b58/b64 issues based on requested method

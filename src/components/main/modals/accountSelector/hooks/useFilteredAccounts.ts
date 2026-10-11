@@ -13,17 +13,14 @@ export function useFilteredAccounts(
 
     switch (activeTab as AccountTab) {
       case AccountTab.My:
-        allowedTypes = ['mnemonic', 'hardware'];
-        break;
-      case AccountTab.Ledger:
-        allowedTypes = ['hardware'];
+        allowedTypes = ['mnemonic'];
         break;
       case AccountTab.View:
         allowedTypes = ['view'];
         break;
       case AccountTab.All:
       default:
-        allowedTypes = ['mnemonic', 'hardware', 'view'];
+        allowedTypes = ['mnemonic', 'view'];
         break;
     }
 

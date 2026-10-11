@@ -15,7 +15,6 @@ import styles from './Actions.module.scss';
 
 interface OwnProps {
   chain: ApiChain;
-  isLedger?: boolean;
   className?: string;
   onClose?: NoneToVoidFunction;
 }
@@ -29,7 +28,6 @@ function Actions({
   chain,
   className,
   isTestnet,
-  isLedger,
   isViewMode,
   onClose,
 }: OwnProps & StateProps) {

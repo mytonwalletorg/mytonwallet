@@ -20,8 +20,6 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import TransactionBanner from '../common/TransactionBanner';
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import NftChips from '../transfer/NftChips';
 import NftInfo from '../transfer/NftInfo';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -90,10 +88,6 @@ function RenewDomainModal({
 
   const handleAuthorize = useLastCallback((enclaveToken: string) => {
     submitDomainsRenewal({ enclaveToken });
-  });
-
-  const handleHardwareSubmit = useLastCallback(() => {
-    submitDomainsRenewal();
   });
 
   const handleInfoClick = useLastCallback(() => {
@@ -230,25 +224,6 @@ function RenewDomainModal({
 
       case DomainRenewalState.Password:
         return renderPasswordForm(isActive);
-
-      case DomainRenewalState.ConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={handleHardwareSubmit}
-            onClose={cancelDomainsRenewal}
-          />
-        );
-
-      case DomainRenewalState.ConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            text={lang('Please confirm action on your Ledger')}
-            error={error}
-            onClose={cancelDomainsRenewal}
-            onTryAgain={handleHardwareSubmit}
-          />
-        );
 
       case DomainRenewalState.Complete:
         return renderComplete(isActive);

@@ -377,13 +377,6 @@ $signSizeDiff: 0.375rem;
 .icon {
   font-size: 1rem;
   vertical-align: -0.1875rem;
-
-  &:global(.icon-ledger) {
-    margin-inline-end: 0.25rem;
-    color: var(--second-text);
-
-    @include mixins.transition($color-transition);
-  }
 }
 
 .menuItem {

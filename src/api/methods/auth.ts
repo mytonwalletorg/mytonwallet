@@ -12,9 +12,6 @@ import type {
   ApiDerivation,
   ApiGroupedWalletVariant,
   ApiImportAddressByChain,
-  ApiLedgerAccount,
-  ApiLedgerAccountInfo,
-  ApiLedgerWalletInfo,
   ApiNetwork,
   ApiTonWallet,
   ApiViewAccount,
@@ -26,7 +23,6 @@ import { ApiCommonError } from '../types';
 import { parseAccountId } from '../../util/account';
 import { getChainConfig, getChainsByStandard, getOrderedAccountChains, getSupportedChains } from '../../util/chain';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
-import { range } from '../../util/iteratees';
 import { logDebug, logDebugError } from '../../util/logs';
 import { createTaskQueue } from '../../util/schedulers';
 import { getChainBySlug } from '../../util/tokens';
@@ -365,49 +361,7 @@ export async function importPrivateKey(
   }));
 }
 
-export async function importLedgerAccount(network: ApiNetwork, accountInfo: ApiLedgerAccountInfo) {
-  const { byChain, driver, deviceId, deviceName } = accountInfo;
-
-  const account: ApiLedgerAccount = {
-    type: 'ledger',
-    byChain,
-    driver,
-    deviceId,
-    deviceName,
-  };
-
-  const accountId = await addAccount(network, account);
-
-  return { accountId, byChain: getAccountChains(account) };
-}
-
-export async function getLedgerWallets(
-  chain: ApiChain,
-  network: ApiNetwork,
-  startWalletIndex: number,
-  count: number,
-): Promise<ApiLedgerWalletInfo[] | { error: ApiAnyDisplayError }> {
-  if (process.env.NO_LEDGER === '1') throw new Error('Ledger is disabled');
-
-  const { getLedgerDeviceInfo } = await import('../common/ledger');
-  const { driver, deviceId, deviceName } = await getLedgerDeviceInfo();
-
-  const walletInfos = await chains[chain].getWalletsFromLedgerAndLoadBalance(
-    network,
-    range(startWalletIndex, startWalletIndex + count),
-  );
-  if ('error' in walletInfos) return walletInfos;
-
-  return walletInfos.map((walletInfo) => ({
-    ...walletInfo,
-    driver,
-    deviceId,
-    deviceName,
-  }));
-}
-
-// When multiple Ledger accounts are imported, they all are created simultaneously. This causes a race condition causing
-// multiple accounts having the same id. `createTaskQueue(1)` forces the accounts to be imported sequentially.
+// Accounts created simultaneously could get the same id, so they are added one by one
 const addAccountMutex = createTaskQueue(1);
 
 async function addAccount(network: ApiNetwork, account: ApiAccountAny, preferredId?: number) {

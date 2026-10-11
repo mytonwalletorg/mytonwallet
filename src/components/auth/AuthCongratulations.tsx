@@ -17,13 +17,11 @@ import styles from './Auth.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
-  hardwareWalletsAmount?: number;
   isImporting?: boolean;
 }
 
 function AuthCongratulations({
   isActive,
-  hardwareWalletsAmount,
   isImporting,
 }: OwnProps) {
   const { afterCongratulations, requestConfetti } = getActions();
@@ -38,7 +36,7 @@ function AuthCongratulations({
   }, [isActive]);
 
   const handleClick = useLastCallback(() => {
-    afterCongratulations({ isImporting: isImporting && !hardwareWalletsAmount });
+    afterCongratulations({ isImporting });
   });
 
   useEffect(() => {
@@ -52,7 +50,7 @@ function AuthCongratulations({
 
   function getInfo() {
     if (isImporting) {
-      return lang('$wallet_import_done', hardwareWalletsAmount ?? 0, 'i');
+      return lang('$wallet_import_done', 1, 'i');
     }
 
     return lang('$wallet_create_done');

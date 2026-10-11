@@ -21,14 +21,12 @@ export type AccountsViewCommonProps = {
 export const enum AccountTab {
   All,
   My,
-  Ledger,
   View,
 }
 
 export const TAB_TITLES = {
   [AccountTab.All]: 'All',
   [AccountTab.My]: 'My',
-  [AccountTab.Ledger]: 'Ledger',
   [AccountTab.View]: '$view_accounts',
 };
 

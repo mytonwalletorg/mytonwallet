@@ -8,7 +8,6 @@ import { ApiCommonError } from '../../types';
 
 import { getSigner } from './util/signer';
 import { fetchStoredChainAccount } from '../../common/accounts';
-import { getTokenBySlug } from '../../common/tokens';
 import { signTransfers } from './transfer';
 
 export async function signConnectionProof(accountId: string, proof: TonConnectProof, enclaveToken?: string) {
@@ -25,11 +24,10 @@ export async function signDappTransfers(
   messages: ApiDappTransfer[],
   options: {
     enclaveToken?: string;
-    vestingAddress?: string;
     /** Unix seconds */
     validUntil?: number;
   } = {}) {
-  const { enclaveToken, validUntil, vestingAddress } = options;
+  const { enclaveToken, validUntil } = options;
 
   const preparedMessages = messages.map(({
     toAddress,
@@ -42,11 +40,6 @@ export async function signDappTransfers(
     amount,
     payload: rawPayload ? Cell.fromBase64(rawPayload) : undefined,
     stateInit: stateInitBase64 ? Cell.fromBase64(stateInitBase64) : undefined,
-    hints: {
-      tokenAddress: payload?.type === 'tokens:transfer'
-        ? getTokenBySlug(payload.slug)?.tokenAddress
-        : undefined,
-    },
   }));
 
   const result = await signTransfers(
@@ -54,7 +47,6 @@ export async function signDappTransfers(
     preparedMessages,
     enclaveToken,
     validUntil,
-    vestingAddress,
     true,
   );
 

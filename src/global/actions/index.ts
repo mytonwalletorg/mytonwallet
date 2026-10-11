@@ -21,7 +21,6 @@ import './ui/misc';
 import './ui/exchange';
 import './ui/dapps';
 import './ui/walletConnectPay';
-import './ui/hardware';
 import './ui/settings';
 import './ui/nfts';
 import './ui/tokens';

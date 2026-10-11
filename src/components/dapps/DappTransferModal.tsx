@@ -15,8 +15,6 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import { getActivityHeight } from '../main/sections/Content/Activity';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -92,10 +90,6 @@ function DappTransferModal({
     submitDappTransfer({ enclaveToken });
   });
 
-  const handleLedgerConnect = useLastCallback(() => {
-    submitDappTransfer();
-  });
-
   const handleResetTransfer = useLastCallback(() => {
     cancelDappTransfer();
     updateNextKey();
@@ -145,25 +139,6 @@ function DappTransferModal({
 
       case TransferState.Password:
         return renderPassword(isActive);
-
-      case TransferState.ConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={handleLedgerConnect}
-            onClose={closeDappTransfer}
-          />
-        );
-
-      case TransferState.ConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            text={lang('Please confirm transfer on your Ledger')}
-            error={error}
-            onTryAgain={handleLedgerConnect}
-            onClose={closeDappTransfer}
-          />
-        );
 
       case TransferState.Complete:
         return (

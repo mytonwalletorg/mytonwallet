@@ -64,17 +64,6 @@ export async function getAddressInfo(chain: ApiChain, network: ApiNetwork, addre
   return await chains[chain].getAddressInfo(network, address);
 }
 
-/**
- * Shows the wallet address on the Ledger screen.
- * Returns the address if the user accepts the verification.
- */
-export function verifyLedgerWalletAddress(
-  accountId: string,
-  chain: ApiChain,
-): Promise<string | { error: ApiAnyDisplayError }> {
-  return chains[chain].verifyLedgerWalletAddress(accountId);
-}
-
 export async function fetchWalletPermissions(accountId: string, chain: ApiChain): Promise<ApiWalletPermission[]> {
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId, chain);

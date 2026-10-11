@@ -339,22 +339,10 @@ Hide Tokens With No Cost: إخفاء الرموز دون أي تكلفة
 Localized Token Names: الأسماء المترجمة
 Sort By Cost: فرز حسب التكلفة
 Update %app_name%: تحديث %app_name%
-Connect Ledger: قم بتوصيل Ledger
-Connecting to your Ledger...: جارٍ الاتصال بـ Ledger...
-Failed to connect: فشل الاتصال
-Ledger Connected!: "\u200FLedger متصل!"
-Select Ledger Wallets: حدد محافظ Ledger
-"%count% Selected": "%count% تم التحديد"
-Add: يضيف
 Try Again: حاول ثانية
 Driver: سائق
-Unlock it and open the %chain% App: افتحه وافتح تطبيق %chain%
 Maybe you need to check the password or change the driver.: ربما تحتاج إلى التحقق من كلمة المرور أو تغيير برنامج التشغيل.
-Confirm via Ledger: قم بالتأكيد عبر Ledger
-$ledger_confirm_progress: قم بتأكيد %current% من %total%
 Declined: انخفض
-Switch to the newly opened tab to connect Ledger.: قم بالتبديل إلى علامة التبويب المفتوحة حديثًا للاتصال Ledger.
-Once connected, switch back to this window to proceed.: بمجرد الاتصال، قم بالتبديل مرة أخرى إلى هذه النافذة للمتابعة.
 The time on your device is incorrect, sync it and try again.: الوقت الموجود على جهازك غير صحيح، قم بمزامنته وحاول مرة أخرى.
 Name or Address...: الاسم أو العنوان...
 Such error, many tabs: مثل هذا الخطأ، العديد من علامات التبويب
@@ -398,9 +386,6 @@ $auth_responsibly_description3: فريق %app_name% **ليس مسؤولاً** ع
 $auth_responsibly_description4: "**لا تخزّن أبدًا** كل أموالك في مكان واحد. **نوّع** واستخدم برامج وأجهزة مختلفة. احرص دائمًا على **إجراء بحثك الخاص** وتعلّم المزيد عن أمان العملات المشفرة."
 Start Wallet: ابدأ المحفظة
 $auth_backup_warning_notice: تحتاج الآن إلى **نسخ المفاتيح السرية احتياطيًا** يدويًا في حال نسيت كلمة المرور أو فقدت الوصول إلى هذا الجهاز.
-$ledger_verify_address: تحقق دائمًا من العنوان الذي تم لصقه باستخدام جهاز Ledger الخاص بك.
-$ledger_not_ready: "\u200FLedger غير متصل أو تطبيق %chain% غير مفتوح."
-Verify now: تحقق الآن
 Invalid address format. Only URL Safe Base64 format is allowed.: تنسيق العنوان غير صالح. يُسمح فقط بتنسيق URL Safe Base64.
 Swap Placed: تم وضع المبادلة
 Swapping: مبادلة
@@ -560,7 +545,6 @@ Unavailable: غير متاح
 $unstake_up_to_information: على الفور – حتى %value%
 $all_balance: "الكل: %balance%"
 $unstaking_not_enough_balance: يجب أن يكون لديك %value% في رصيدك الرئيسي حتى تتمكن من متابعة عملية الإزالة.
-$ledger_verify_address_on_device: يرجى التحقق من العنوان الموجود على Ledger الخاص بك.
 Wallet Versions: إصدارات المحفظة
 $read_more_about_wallet_version: اقرأ المزيد حول أنواع عقود المحفظة على %link%.
 $current_wallet_version: إصدار محفظتك الحالي هو %version%.
@@ -578,7 +562,6 @@ $hide_tokens_no_cost_help: "إخفاء الرموز المميزة التي تق
 No internet connection. Please check your connection and try again.: لا يوجد اتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مرة أخرى.
 To use this feature, first enable Face ID in your phone settings.: لاستخدام هذه الميزة، قم أولاً بتمكين Face ID في إعدادات هاتفك.
 To use this feature, first enable biometrics in your phone settings.: لاستخدام هذه الميزة، قم أولاً بتمكين القياسات الحيوية في إعدادات هاتفك.
-Open Settings: افتح الإعدادات
 No Price: لا يوجد سعر
 $dapp_transfer_tokens_burn: حرق %amount%
 $dapp_dns_set_wallet_payload: تغيير المحفظة المرتبطة للمجال %domain% إلى %address%
@@ -614,7 +597,6 @@ NFT is for sale: "\u200FNFT للبيع"
 More actions: المزيد من الإجراءات
 Open on %explorer_name%: مفتوح على %explorer_name%
 Swap is not supported in Testnet.: المبادلة غير مدعومة في Testnet.
-Swap is not yet supported by Ledger.: المبادلة غير مدعومة حتى الآن بواسطة Ledger.
 Buying with card is not supported in Testnet.: الشراء باستخدام البطاقة غير مدعوم في Testnet.
 Staking is not supported in Testnet.: التوقيع المساحي غير مدعوم في Testnet.
 Get Support: احصل على الدعم
@@ -728,7 +710,6 @@ Confirm Sending: تأكيد الإرسال
 Confirm Burning: تأكيد الحرق
 Confirm Passcode: تأكيد رمز المرور
 Enter your code: أدخل الرمز الخاص بك
-$hardware_blind_sign_not_enabled: للمتابعة، قم بتمكين خيار "Blind Signing" في إعدادات تطبيق %chain% على Ledger.
 Switch to W5: قم بالتبديل إلى W5
 Not Scam: لا احتيال
 Untitled: بدون عنوان
@@ -740,9 +721,6 @@ Enter Secret Words: أدخل عبارات الاسترداد
 Turn this off so you can manually download updates and verify signatures.: قم بإيقاف تشغيل هذا حتى تتمكن من تنزيل التحديثات يدويًا والتحقق من التوقيعات.
 InvalidMnemonic: عبارات الاسترداد غير صالحة
 NFT Menu: قائمة NFT
-Connection Type: نوع الاتصال
-Ledger is not supported on this device: "\u200FLedger غير مدعوم على هذا الجهاز"
-Connect your Ledger: قم بتوصيل Ledger الخاص بك
 $app_lock_description: عند تمكين قفل التطبيق، يظهر رمز القفل على البطاقة في الصفحة الرئيسية. استخدامه لقفل %app_name%.
 App Lock: قفل التطبيق
 Auto-Lock: القفل التلقائي
@@ -964,7 +942,6 @@ Sign Data: بيانات التوقيع
 EIP-712 typed data: "\u200FEIP-712 البيانات المكتوبة"
 Domain: اِختِصاص
 Primary type: النوع الأساسي
-Please confirm signature on your Ledger: يرجى تأكيد التوقيع على Ledger الخاص بك
 Utilities: المرافق
 Games: ألعاب
 Entertainment: ترفيه
@@ -979,8 +956,6 @@ $in_currency: في %currency%
 Rename Wallet: إعادة تسمية المحفظة
 You can rename this wallet for easier identification.: يمكنك إعادة تسمية هذه المحفظة لتسهيل التعرف عليها.
 Collectibles: المقتنيات
-Bluetooth unavailable: البلوتوث غير متوفر
-$bluetooth_enable_guide: قم بتشغيل Bluetooth في إعدادات الجهاز واسمح للتطبيق بالوصول إلى Bluetooth.
 Canceled by the user: تم الإلغاء من قبل المستخدم
 The proof for signing provided by the app is too large: إثبات التوقيع المقدم من التطبيق كبير جدًا
 $domain_like_scam_warning: |-
@@ -1028,9 +1003,6 @@ $auth_biometric_info: يمكنك ربط بياناتك البيومترية **ل
 Open wallet without checking: فتح المحفظة دون التحقق
 Make sure you have your secret words securely saved.: تأكد من حفظ عبارات الاسترداد بأمان.
 Without it, you won't be able to access your wallet.: وبدون ذلك، لن تتمكن من الوصول إلى محفظتك.
-$ledger_connection_broken: لقد انقطع اتصال Ledger. الرجاء إعادة الاتصال والمحاولة مرة أخرى.
-$ledger_wrong_device: تم إعداد الحساب الحالي بعبارات الاسترداد أو عبارة مرور Ledger مختلفة، أو تم تخزينه على جهاز Ledger آخر
-Show More: عرض المزيد
 Search app or enter address: ابحث في التطبيق أو أدخل العنوان
 Search or Ask: ابحث أو اسأل
 Connected Apps: التطبيقات المتصلة
@@ -1056,9 +1028,7 @@ All: الجميع
 $view_accounts: منظر
 Add your first one to begin.: أضف أول واحد للبدء.
 You don’t have any wallets yet: ليس لديك أي محافظ حتى الآن
-Add Ledger Wallet: أضف محفظة Ledger
 Add View Wallet: إضافة عرض المحفظة
-No Ledger wallets yet: لا توجد محافظ Ledger حتى الآن
 No view wallets yet: لم يتم عرض المحافظ حتى الآن
 View wallets can receive assets, but you cannot use them to send or sign transactions.: يمكن أن تتلقى محافظ العرض الأصول، لكن لا يمكنك استخدامها لإرسال المعاملات أو التوقيع عليها.
 Add the first one to track balances and activity for any address.: أضف الأول لتتبع الأرصدة والنشاط لأي عنوان.
@@ -1122,8 +1092,6 @@ Transfer Info: معلومات النقل
 Transfer not found: لم يتم العثور على النقل
 Failed to fetch transfer: فشل جلب النقل
 Transfer in progress: النقل قيد التقدم
-Please confirm transfer on your Ledger: يرجى تأكيد النقل على Ledger الخاص بك
-Please confirm action on your Ledger: يرجى تأكيد الإجراء على Ledger الخاص بك
 Not all transfers were sent successfully: لم يتم إرسال كافة التحويلات بنجاح
 Please confirm transfer using biometrics: يرجى تأكيد النقل باستخدام القياسات الحيوية
 $transfer_inactive_contract_error: |-
@@ -1138,7 +1106,6 @@ Confirm action with your password: قم بتأكيد الإجراء باستخد
 $dapps-description: يمكنك تسجيل الدخول على التطبيقات التي تدعم %app_name%. يمكنهم عرض عنوان المحفظة والرصيد وطلب الإجراءات.
 Please verify the action.: يرجى التحقق من الإجراء.
 $service_token_transfer_warning: أنت على وشك نقل رمز خدمة مهم مطلوب لسحب إيداعك أو إكمال إجراءات الخدمة. يرجى التأكد من أن هذا هو الإجراء الذي تنوي اتخاذه.
-$ledger_outdated: هذا الإجراء غير مدعوم في إصدار تطبيق Ledger %chain%. يرجى تحديثه باستخدام Ledger Live.
 $hardware_payload_warning: "**تطلب خدمة تابعة لجهة خارجية الوصول إلى محفظتك.** قد يؤدي ذلك إلى فقدان الأموال. قم بإلغاء الإجراء إذا لم تكن متأكدًا من موثوقية هذه الخدمة."
 Pin: دبوس
 Unpin: إزالة التثبيت
@@ -1244,7 +1211,6 @@ New Subwallet: المحفظة الفرعية الجديدة
 From current secret words: من عبارات الاسترداد الحالية
 $secret_words: عبارات الاسترداد
 Restore wallet from 12 or 24 words: استعادة المحفظة من 12 أو 24 كلمة
-Connect your hardware wallet: قم بتوصيل محفظة الأجهزة الخاصة بك
 Watch wallet in read-only mode: مشاهدة المحفظة في وضع القراءة فقط
 More: أكثر
 at: في
@@ -1252,8 +1218,6 @@ I agree to %term%: أنا أوافق على %term%
 See Words: انظر الكلمات
 Wrong Phrase: عبارة خاطئة
 Permission Denied: تم رفض الإذن
-USB: USB
-Bluetooth: بلوتوث
 Locked: مغلق
 Enter passcode or use fingerprint: أدخل رمز المرور أو استخدم بصمة الإصبع
 Use PIN: استخدم PIN
@@ -1388,7 +1352,6 @@ Don’t show transactions of less than $0.01. Such small transactions are often 
 Enter your Wallet Passcode: أدخل رمز المرور الخاص بمحفظتك
 Import failed: فشل الاستيراد
 Install Palette: تثبيت لوحة
-Ledger: Ledger
 Moving to staking balance: الانتقال إلى التوازن المساحي
 My Wallet uses biometric authentication to unlock and authorize transactions: يستخدم ION Wallet المصادقة البيومترية لفتح المعاملات والترخيص بها
 Network error: خطأ في الشبكة
@@ -1409,15 +1372,8 @@ Set a passcode: قم بتعيين رمز مرور
 "Show All %name%": إظهار الكل %name%
 TON Wallet Versions: إصدارات المحفظة ION
 Tap to reveal: انقر للكشف
-The current version of Ledger only supports English-language comments without special characters.: الإصدار الحالي من Ledger يدعم فقط التعليقات باللغة الإنجليزية بدون أحرف خاصة.
 There is no activity history for this wallet yet.: لا يوجد سجل نشاط لهذه المحفظة حتى الآن.
-This type of transaction is not yet supported by Ledger.: هذا النوع من المعاملات غير مدعوم حتى الآن بواسطة Ledger.
-Transaction to this smart contract is not yet supported by Ledger.: المعاملة على هذا العقد الذكي غير مدعومة حتى الآن بواسطة Ledger.
-Transferring NFT is not yet supported by Ledger.: نقل NFT غير مدعوم حتى الآن بواسطة Ledger.
-Connect your Ledger via Bluetooth: قم بتوصيل Ledger عبر البلوتوث
 Discovering wallets: اكتشاف المحافظ
-Bluetooth Access Denied: تم رفض الوصول إلى البلوتوث
-Bluetooth access is needed to connect Ledger.: يلزم الوصول إلى البلوتوث لتوصيل Ledger.
 Address not resolved: لم يتم حل العنوان
 Sending more than one NFT isn't supported by Ledger: لا يدعم Ledger إرسال أكثر من NFT
 Updating…: جارٍ التحديث…

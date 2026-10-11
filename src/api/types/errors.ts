@@ -32,16 +32,6 @@ export enum ApiTransactionError {
   ConcurrentTransaction = 'ConcurrentTransaction',
 }
 
-export enum ApiHardwareError {
-  /** Used when the chain's Ledger app needs to be updated to support this transaction */
-  HardwareOutdated = 'HardwareOutdated',
-  BlindSigningNotEnabled = 'BlindSigningNotEnabled',
-  RejectedByUser = 'RejectedByUser',
-  ProofTooLarge = 'ProofTooLarge',
-  ConnectionBroken = 'ConnectionBroken',
-  WrongDevice = 'WrongDevice',
-}
-
 export enum ApiTokenImportError {
   AddressDoesNotExist = 'AddressDoesNotExist',
   NotATokenAddress = 'NotATokenAddress',
@@ -52,5 +42,4 @@ export type ApiAnyDisplayError =
   | ApiAuthError
   | ApiTransactionDraftError
   | ApiTransactionError
-  | ApiHardwareError
   | ApiTokenImportError;

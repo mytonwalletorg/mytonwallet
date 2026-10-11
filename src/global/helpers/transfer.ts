@@ -5,7 +5,6 @@ import { getDoesUsePinPad } from '../../util/biometrics';
 import { vibrateOnError, vibrateOnSuccess } from '../../util/haptics';
 import { getActions, getGlobal, setGlobal } from '../index';
 import { clearIsPinAccepted, setIsPinAccepted } from '../reducers';
-import { selectIsHardwareAccount } from '../selectors';
 import { errorCodeToMessage, isInlineError } from './errors';
 
 export type FormUpdate<State> = {
@@ -18,29 +17,16 @@ export type FormReducer<State> = (global: GlobalState, update: FormUpdate<State>
 
 export type ErrorTransferResult = { error: ApiAnyDisplayError | string } | undefined;
 
-/** Returns `false` if there is a problem preventing the further progress, which has been shown to the user */
-export function prepareTransfer<State>(
-  hardwareConfirmState: State,
-  updateForm: FormReducer<State>,
-) {
+export function prepareTransfer<State>(updateForm: FormReducer<State>) {
   let global = getGlobal();
-  const isHardware = selectIsHardwareAccount(global);
 
-  if (!isHardware) {
-    if (getDoesUsePinPad()) {
-      global = setIsPinAccepted(global);
-    }
-
-    void vibrateOnSuccess();
+  if (getDoesUsePinPad()) {
+    global = setIsPinAccepted(global);
   }
 
-  setGlobal(updateForm(global, {
-    isLoading: true,
-    error: undefined,
-    ...(isHardware && { state: hardwareConfirmState }),
-  }));
+  void vibrateOnSuccess();
 
-  return true;
+  setGlobal(updateForm(global, { isLoading: true, error: undefined }));
 }
 
 /** Returns `false` if the result is unsuccessful and the error has been shown to the user */
@@ -98,29 +84,14 @@ export function reportErrorTransferResult(result: ErrorTransferResult, updateFor
   }
 }
 
-/** Returns `false` if there is a problem preventing the further progress, which has been shown to the user */
-export function prepareDappOperation<State>(
-  accountId: string,
-  hardwareConfirmState: State,
-  updateForm: FormReducer<State>,
-  doesNeedSigning: boolean,
-) {
+export function prepareDappOperation<State>(updateForm: FormReducer<State>) {
   let global = getGlobal();
-  const isHardware = selectIsHardwareAccount(global, accountId);
 
-  if (!isHardware) {
-    if (getDoesUsePinPad()) {
-      global = setIsPinAccepted(global);
-    }
+  if (getDoesUsePinPad()) {
+    global = setIsPinAccepted(global);
   }
 
-  setGlobal(updateForm(global, {
-    isLoading: true,
-    error: undefined,
-    ...(isHardware && { state: hardwareConfirmState }),
-  }));
-
-  return true;
+  setGlobal(updateForm(global, { isLoading: true, error: undefined }));
 }
 
 /** Returns `false` if the result is unsuccessful and the error has been shown to the user */

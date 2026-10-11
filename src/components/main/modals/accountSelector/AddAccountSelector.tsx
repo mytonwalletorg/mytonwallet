@@ -2,7 +2,6 @@ import React, { memo } from '../../../../lib/teact/teact';
 
 import buildClassName from '../../../../util/buildClassName';
 import { toNativeDigits } from '../../../../util/nativeDigits';
-import { IS_LEDGER_SUPPORTED } from '../../../../util/windowEnvironment';
 
 import useLang from '../../../../hooks/useLang';
 
@@ -16,7 +15,6 @@ import styles from './AccountSelectorModal.module.scss';
 type OwnProps = {
   isNewAccountImporting?: boolean;
   isLoading?: boolean;
-  isTestnet?: boolean;
   hasOtherWalletVersions?: boolean;
   canAddSubwallet?: boolean;
   shouldHideBackButton?: boolean;
@@ -24,7 +22,6 @@ type OwnProps = {
   onNewAccountClick: NoneToVoidFunction;
   onNewSubwalletClick: NoneToVoidFunction;
   onImportAccountClick: NoneToVoidFunction;
-  onImportHardwareWalletClick: NoneToVoidFunction;
   onViewModeWalletClick: NoneToVoidFunction;
   onOpenSettingWalletVersion: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
@@ -33,7 +30,6 @@ type OwnProps = {
 function AddAccountSelector({
   isNewAccountImporting,
   isLoading,
-  isTestnet,
   hasOtherWalletVersions,
   canAddSubwallet,
   shouldHideBackButton,
@@ -41,7 +37,6 @@ function AddAccountSelector({
   onNewAccountClick,
   onNewSubwalletClick,
   onImportAccountClick,
-  onImportHardwareWalletClick,
   onViewModeWalletClick,
   onOpenSettingWalletVersion,
   onClose,
@@ -84,14 +79,6 @@ function AddAccountSelector({
           onClick={onImportAccountClick}
           isLoading={isNewAccountImporting && isLoading}
         />
-        {IS_LEDGER_SUPPORTED && !isTestnet && (
-          <ListItem
-            icon="ledger-alt"
-            label={lang('Ledger')}
-            description={lang('Connect your hardware wallet')}
-            onClick={onImportHardwareWalletClick}
-          />
-        )}
       </div>
 
       <div className={styles.actionsSection}>

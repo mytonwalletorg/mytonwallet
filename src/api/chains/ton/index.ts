@@ -12,7 +12,6 @@ import {
   getWalletFromBip39Mnemonic,
   getWalletFromMnemonic,
   getWalletFromPrivateKey,
-  getWalletsFromLedgerAndLoadBalance,
   validateMnemonic,
 } from './auth';
 import { TON_BIP39_PATH } from './constants';
@@ -30,7 +29,6 @@ import {
   streamAllAccountNfts,
   submitNftTransfers,
 } from './nfts';
-import { getIsLedgerAppOpen } from './other';
 import { setupActivePolling, setupInactivePolling } from './polling';
 import { fetchToken, importToken } from './tokens';
 import { fetchTransactionById } from './transactionInfo';
@@ -43,7 +41,6 @@ import {
   fetchBalances,
   fetchWalletPlugins,
   getWalletBalance,
-  verifyLedgerWalletAddress,
 } from './wallet';
 
 const notSupported = () => {
@@ -60,7 +57,6 @@ const tonSdk: ChainSdk<'ton'> = {
   getWalletFromBip39Mnemonic,
   getWalletFromPrivateKey,
   getWalletFromAddress,
-  getWalletsFromLedgerAndLoadBalance,
   setupActivePolling,
   setupInactivePolling,
   fetchToken,
@@ -70,9 +66,7 @@ const tonSdk: ChainSdk<'ton'> = {
   getAddressInfo: checkToAddress,
   getWalletBalance,
   getWalletAssets: fetchBalances,
-  verifyLedgerWalletAddress,
   fetchPrivateKeyString,
-  getIsLedgerAppOpen,
   fetchTransactionById,
   dapp: {
     supportedProtocols: [DappProtocolType.TonConnect],

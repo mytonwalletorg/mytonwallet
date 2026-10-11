@@ -19,7 +19,6 @@ import {
   selectCurrentAccountTokens,
   selectHasMultipleAccounts,
   selectIsAllowSuspiciousActions,
-  selectIsHardwareAccount,
   selectIsMultisigWallet,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -615,7 +614,6 @@ export default memo(
         explainedFee,
       } = global.currentTransfer;
 
-      const isLedger = selectIsHardwareAccount(global);
       const currentAccountId = selectCurrentAccountId(global)!;
       const currentAccount = selectCurrentAccount(global);
       const accountState = selectCurrentAccountState(global);
@@ -636,7 +634,7 @@ export default memo(
         stateInit,
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
-        isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
+        isEncryptedCommentSupported: !nfts?.length && !isMemoRequired,
         isMemoRequired,
         isActive,
         isLoading: isLoading && isActive,

@@ -55,16 +55,14 @@ export function generateAccountTitle(params: {
   const walletCounts = Object.values(accounts).reduce(
     (acc, wallet) => {
       if (wallet.type === 'view') acc.view++;
-      if (wallet.type === 'hardware') acc.hardware++;
       if (wallet.type === 'mnemonic') acc.mnemonic++;
       return acc;
     },
-    { view: 0, hardware: 0, mnemonic: 0 },
+    { view: 0, mnemonic: 0 },
   );
 
   const walletTypeConfig: Record<AccountType, { prefix: string; count: string | number }> = {
     view: { prefix: 'Wallet', count: walletCounts.view + 1 },
-    hardware: { prefix: 'Ledger', count: `#${walletCounts.hardware + 1}` },
     // Other brands fall back to the application name.
     mnemonic: { prefix: APP_NAME, count: walletCounts.mnemonic + 1 },
   };

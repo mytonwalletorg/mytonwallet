@@ -3,7 +3,7 @@ import type { Account, GlobalState } from '../types';
 import { selectHasAuth, selectHasPassword } from './accounts';
 
 const MNEMONIC_ACCOUNT = { title: 'Wallet', type: 'mnemonic', byChain: {} } as unknown as Account;
-const HARDWARE_ACCOUNT = { title: 'Ledger', type: 'hardware', byChain: {} } as unknown as Account;
+const VIEW_ACCOUNT = { title: 'Wallet', type: 'view', byChain: {} } as unknown as Account;
 
 function buildGlobal(accounts: Record<string, Account>, authTypes?: GlobalState['authTypes']): GlobalState {
   return {
@@ -29,8 +29,8 @@ describe('auth-state selectors', () => {
     expect(selectHasPassword(global)).toBe(true);
   });
 
-  it('sees no password in a hardware-only wallet', () => {
-    const global = buildGlobal({ '0-ton-mainnet': HARDWARE_ACCOUNT });
+  it('sees no password in a view-only wallet', () => {
+    const global = buildGlobal({ '0-ton-mainnet': VIEW_ACCOUNT });
 
     expect(selectHasPassword(global)).toBe(false);
   });

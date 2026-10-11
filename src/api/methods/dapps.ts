@@ -214,7 +214,6 @@ export async function signDappTransfers(
   options: {
     enclaveToken?: string;
     validUntil?: number;
-    vestingAddress?: string;
     // Deal with solana b58/b64 issues based on requested method
     isLegacyOutput?: boolean;
   } = {},

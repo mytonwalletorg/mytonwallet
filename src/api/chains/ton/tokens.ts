@@ -213,7 +213,6 @@ export async function buildTokenTransfer(options: {
   payload?: Cell;
   shouldSkipMintless?: boolean;
   forwardAmount?: bigint;
-  isLedger?: boolean;
   signal?: AbortSignal;
 }) {
   const {
@@ -224,7 +223,6 @@ export async function buildTokenTransfer(options: {
     amount,
     shouldSkipMintless,
     forwardAmount = TOKEN_TRANSFER_FORWARD_AMOUNT,
-    isLedger,
     signal,
   } = options;
   let { payload } = options;
@@ -255,9 +253,6 @@ export async function buildTokenTransfer(options: {
     }
   }
 
-  // In ledger-app-ton v2.7.0 a queryId not equal to 0 is handled incorrectly.
-  const queryId = isLedger ? 0n : undefined;
-
   payload = buildTokenTransferBody({
     tokenAmount: amount,
     toAddress,
@@ -265,7 +260,6 @@ export async function buildTokenTransfer(options: {
     forwardPayload: payload,
     responseAddress: fromAddress,
     customPayload: customPayload ? Cell.fromBase64(customPayload) : undefined,
-    queryId,
   });
 
   // eslint-disable-next-line prefer-const

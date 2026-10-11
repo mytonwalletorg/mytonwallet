@@ -1,10 +1,9 @@
 import { TransferState } from '../../types';
 
 import { fromDecimal, toDecimal } from '../../../util/decimals';
-import { getChainBySlug } from '../../../util/tokens';
 import { addActionHandler, setGlobal } from '../../index';
-import { resetHardware, setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
-import { selectEnclaveToken, selectIsEnclaveSessionValid, selectIsHardwareAccount } from '../../selectors';
+import { setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
+import { selectEnclaveToken, selectIsEnclaveSessionValid } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
   const nftTokenSlug = Symbol('nft');
@@ -67,13 +66,7 @@ addActionHandler('setTransferShouldEncrypt', (global, actions, { shouldEncrypt }
 });
 
 addActionHandler('submitTransferConfirm', (global, actions) => {
-  const { tokenSlug } = global.currentTransfer;
-  const chain = getChainBySlug(tokenSlug);
-
-  if (selectIsHardwareAccount(global)) {
-    global = resetHardware(global, chain);
-    global = updateCurrentTransfer(global, { state: TransferState.ConnectHardware });
-  } else if (selectIsEnclaveSessionValid(global)) {
+  if (selectIsEnclaveSessionValid(global)) {
     global = updateCurrentTransfer(global, { isLoading: true });
     actions.submitTransfer({ enclaveToken: selectEnclaveToken(global) });
   } else {

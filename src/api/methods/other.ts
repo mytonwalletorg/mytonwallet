@@ -2,17 +2,15 @@ import nacl from 'tweetnacl';
 
 import type { LangCode } from '../../global/types';
 import type { StorageKey } from '../storages/types';
-import type { ApiAnyDisplayError, ApiChain } from '../types';
+import type { ApiChain } from '../types';
 
 import { APP_ENV, APP_VERSION, IS_ANDROID_DIRECT } from '../../config';
 import { setIsAppFocused } from '../../util/focusAwareDelay';
 import { getLogs, logDebugError } from '../../util/logs';
-import { pause } from '../../util/schedulers';
 import chains from '../chains';
 import { BACKEND_AUTH_SIGN_MESSAGE, buildBackendAuthToken } from '../chains/ton';
 import { fetchStoredAccounts, fetchStoredWallet, updateStoredWallet } from '../common/accounts';
 import { hexToBytes } from '../common/utils';
-import { SEC } from '../constants';
 import { storage } from '../storages';
 
 /**
@@ -108,45 +106,6 @@ export function getLangCode() {
 
 export function setLangCode(langCode: LangCode) {
   return storage.setItem('langCode', langCode);
-}
-
-export function waitForLedgerApp(
-  chain: ApiChain,
-  options: {
-    timeout?: number;
-    attemptPause?: number;
-  } = {},
-): Promise<boolean | { error: ApiAnyDisplayError }> {
-  const { timeout = 1.25 * SEC, attemptPause = 0.125 * SEC } = options;
-
-  let hasTimedOut = false;
-
-  const waitForDeadline = async () => {
-    await pause(timeout);
-    hasTimedOut = true;
-    return false;
-  };
-
-  const checkApp = async () => {
-    while (!hasTimedOut) {
-      try {
-        const result = await chains[chain].getIsLedgerAppOpen();
-        if (typeof result === 'object' && 'error' in result) return result;
-
-        if (result) {
-          return true;
-        }
-      } catch (err) {
-        logDebugError('waitForLedgerApp', chain, err);
-      }
-
-      await pause(attemptPause);
-    }
-
-    return false;
-  };
-
-  return Promise.race([waitForDeadline(), checkApp()]);
 }
 
 export function getEnvironmentVariables() {

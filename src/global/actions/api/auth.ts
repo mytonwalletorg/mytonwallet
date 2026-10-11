@@ -63,7 +63,6 @@ import {
   selectNetworkAccounts,
   selectNetworkAccountsMemoized,
   selectNewestActivityTimestamps,
-  selectSelectedHardwareAccountsSlow,
 } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
@@ -161,7 +160,7 @@ addActionHandler('startCreatingWallet', async (global, actions, payload) => {
     : (
       isFirstAccount
         ? AuthState.createWallet
-        // The app only has hardware wallets accounts, which means we need to create a password
+        // The app only has view accounts, which means we need to create a password
         : getDoesUsePinPad()
           ? AuthState.createPin
           : CAN_AUTHENTICATE_WITH_BIOMETRIC_ONLY
@@ -370,13 +369,6 @@ addActionHandler('createAccount', async (global, actions) => {
 
   setGlobal(updateAuth(global, { isLoading: true }));
 
-  const isHardware = global.auth.method === 'importHardwareWallet';
-  if (isHardware) {
-    actions.createHardwareAccounts();
-
-    return;
-  }
-
   const enclaveToken = selectEnclaveToken(global);
   if (!enclaveToken) throw new Error('Missing authorization');
 
@@ -488,54 +480,6 @@ async function duplicateSecretOrShowError(fromAccountId: string, toAccountId: st
     return false;
   }
 }
-
-addActionHandler('createHardwareAccounts', async (global, actions) => {
-  const network = selectCurrentNetwork(global);
-  const selectedAccounts = selectSelectedHardwareAccountsSlow(global);
-
-  setGlobal(updateAuth(global, { isLoading: true }));
-
-  const importedAccounts = compact(await Promise.all(
-    selectedAccounts.map(
-      (account) => callApi('importLedgerAccount', network, account),
-    ),
-  ));
-
-  actions.addHardwareAccounts({ accounts: importedAccounts });
-});
-
-addActionHandler('addHardwareAccounts', (global, actions, { accounts }) => {
-  const nextActiveAccountId = accounts[0]?.accountId;
-
-  if (nextActiveAccountId) {
-    void callApi('activateAccount', nextActiveAccountId);
-    global = updateCurrentAccountId(global, nextActiveAccountId);
-  }
-
-  global = accounts.reduce((currentGlobal, account) => {
-    return createAccount({
-      ...account,
-      global: currentGlobal,
-      type: 'hardware',
-    });
-  }, global);
-
-  global = updateAuth(global, { isLoading: false });
-  setGlobal(global);
-
-  if (getGlobal().areSettingsOpen) {
-    actions.closeSettings();
-  }
-
-  accounts.forEach((hardwareWallet) => {
-    if (hardwareWallet?.accountId) {
-      actions.tryAddNotificationAccount({ accountId: hardwareWallet?.accountId });
-    }
-  });
-
-  global = updateAuth(getGlobal(), { state: AuthState.congratulations });
-  setGlobal(global);
-});
 
 addActionHandler('afterCheckMnemonic', (global) => {
   global = createAccountsFromGlobal(global);
@@ -731,16 +675,6 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   }
 
   await switchAccount(global, accountId, newNetwork);
-});
-
-addActionHandler('afterSelectHardwareWallets', (global, actions, { hardwareSelectedIndices }) => {
-  setGlobal(updateAuth(global, {
-    method: 'importHardwareWallet',
-    hardwareSelectedIndices,
-    error: undefined,
-  }));
-
-  actions.createAccount();
 });
 
 addActionHandler('enableBiometrics', async (global, actions, { isLoginFlow } = {}) => {

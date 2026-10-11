@@ -75,9 +75,7 @@ addActionHandler('submitDomainsRenewal', withEnclaveSessionRelease(async (global
 
   if (!nfts.length) return;
 
-  if (!prepareTransfer(DomainRenewalState.ConfirmHardware, updateCurrentDomainRenewal)) {
-    return;
-  }
+  prepareTransfer(updateCurrentDomainRenewal);
 
   const result = await callApi('submitDnsRenewal', accountId, enclaveToken, nfts, realFee) ?? [undefined];
 
@@ -123,9 +121,7 @@ addActionHandler('submitDomainLinking', withEnclaveSessionRelease(async (global,
     return;
   }
 
-  if (!prepareTransfer(DomainLinkingState.ConfirmHardware, updateCurrentDomainLinking)) {
-    return;
-  }
+  prepareTransfer(updateCurrentDomainLinking);
 
   const result = await callApi(
     'submitDnsChangeWallet',

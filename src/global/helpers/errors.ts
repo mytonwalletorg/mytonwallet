@@ -1,7 +1,6 @@
 import {
   type ApiAnyDisplayError,
   ApiCommonError,
-  ApiHardwareError,
   ApiTokenImportError,
   ApiTransactionDraftError,
   ApiTransactionError,
@@ -9,20 +8,9 @@ import {
 
 import { getDoesUsePinPad } from '../../util/biometrics';
 
-/**
- * Returns `true` if the error should be shown in the `<PasswordForm />` or `<LedgerConfirmOperation />` screen instead
- * of a dialog.
- *
- * This function implements a lazy solution for a problem — some messages returned by `errorCodeToMessage` need the
- * `%chain%` parameter. These errors relate only to Ledger, and `isInlineError` returns `true` for of them. So, the
- * parameter is provided in `<LedgerConfirmOperation />` in all cases.
- */
+/** Returns `true` if the error should be shown in the `<PasswordForm />` screen instead of a dialog */
 export function isInlineError(error: ApiAnyDisplayError | string | undefined) {
-  const _error = error as ApiAnyDisplayError;
-  return _error === ApiCommonError.InvalidPassword
-    || _error === ApiHardwareError.HardwareOutdated
-    || _error === ApiHardwareError.BlindSigningNotEnabled
-    || _error === ApiHardwareError.RejectedByUser;
+  return error === ApiCommonError.InvalidPassword;
 }
 
 export function errorCodeToMessage(error: ApiAnyDisplayError | string = ApiCommonError.Unexpected): string {
@@ -64,24 +52,6 @@ export function errorCodeToMessage(error: ApiAnyDisplayError | string = ApiCommo
 
     case ApiTransactionDraftError.InactiveContract:
       return '$transfer_inactive_contract_error';
-
-    case ApiHardwareError.HardwareOutdated:
-      return '$ledger_outdated';
-
-    case ApiHardwareError.BlindSigningNotEnabled:
-      return '$hardware_blind_sign_not_enabled';
-
-    case ApiHardwareError.RejectedByUser:
-      return 'Canceled by the user';
-
-    case ApiHardwareError.ProofTooLarge:
-      return 'The proof for signing provided by the Dapp is too large';
-
-    case ApiHardwareError.ConnectionBroken:
-      return '$ledger_connection_broken';
-
-    case ApiHardwareError.WrongDevice:
-      return '$ledger_wrong_device';
 
     case ApiCommonError.ServerError:
       return window.navigator.onLine

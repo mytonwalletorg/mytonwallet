@@ -1,15 +1,13 @@
 import { addCallback } from '../../../lib/teact/teactn';
 
 import type { AuthType, GlobalState } from '../../types';
-import { SettingsState } from '../../types';
 
-import { getChainsSupportingLedger } from '../../../util/chain';
 import { setLanguage } from '../../../util/langProvider';
 import switchTheme from '../../../util/switchTheme';
 import { callApi } from '../../../api';
 import { enclave } from '../../../enclave';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
-import { resetHardware, updateAccountSettings, updateAuth, updateSettings } from '../../reducers';
+import { updateAccountSettings, updateAuth } from '../../reducers';
 import { selectCurrentAccountId, selectEnclaveToken } from '../../selectors';
 import { selectNotificationAddressesSlow } from '../../selectors/notifications';
 
@@ -91,13 +89,6 @@ addActionHandler('setIsAllowSuspiciousActions', (global, actions, { isEnabled })
   return updateAccountSettings(global, accountId, {
     isAllowSuspiciousActions: isEnabled || undefined,
   });
-});
-
-addActionHandler('openSettingsHardwareWallet', (global) => {
-  global = resetHardware(global, getChainsSupportingLedger()[0], true); // todo: Add a chain selector screen for Ledger auth
-  global = updateSettings(global, { state: SettingsState.LedgerConnectHardware });
-
-  setGlobal(global);
 });
 
 addActionHandler('changePasscode', async (global, actions, { passcode, onSuccess }) => {

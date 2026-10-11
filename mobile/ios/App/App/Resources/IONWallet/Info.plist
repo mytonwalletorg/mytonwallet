@@ -47,8 +47,6 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bluetooth access is needed to connect Ledger.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The app enables the scanning of various barcodes.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -76,7 +74,6 @@
 	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>bluetooth-central</string>
 		<string>remote-notification</string>
 		<string>fetch</string>
 	</array>

@@ -6,13 +6,11 @@ import type { TonConnectProof } from '../../../dappProtocols/adapters';
 import type {
   ApiAccountWithChain,
   ApiAnyDisplayError,
-  ApiNetwork,
   ApiTonWallet,
 } from '../../../types';
 import type { PreparedTransactionToSign } from '../types';
 import { ApiCommonError } from '../../../types';
 
-import { parseAccountId } from '../../../../util/account';
 import { randomBytes } from '../../../../util/random';
 import { hexToBytes } from '../../../common/utils';
 import { signDataWithPrivateKey, signTonProofWithPrivateKey } from '../../../dappProtocols/adapters/tonConnect/signing';
@@ -58,15 +56,9 @@ export function getSigner(
   enclaveToken?: string,
   /** Set `true` if you only need to emulate the transaction */
   isMockSigning?: boolean,
-  /** Used for specific transactions on vesting.ton.org */
-  ledgerSubwalletId?: number,
 ): Signer {
   if (isMockSigning || account.type === 'view') {
     return new MockSigner(account.byChain.ton);
-  }
-
-  if (account.type === 'ledger') {
-    return new LedgerSigner(parseAccountId(accountId).network, account.byChain.ton, ledgerSubwalletId);
   }
 
   if (enclaveToken === undefined) throw new Error('Preauthorization ID not provided');
@@ -193,42 +185,6 @@ class MockSigner extends PrivateKeySigner {
 
   public getPrivateKey() {
     return this.privateKey;
-  }
-}
-
-class LedgerSigner implements Signer {
-  public readonly isMock = false;
-
-  constructor(
-    public network: ApiNetwork,
-    public wallet: ApiTonWallet,
-    public subwalletId?: number,
-  ) {}
-
-  async signTonProof(proof: TonConnectProof) {
-    if (process.env.NO_LEDGER === '1') throw new Error('Ledger is disabled');
-
-    const { signTonProofWithLedger } = await import('../ledger');
-    return signTonProofWithLedger(this.network, this.wallet, proof);
-  }
-
-  async signTransactions(transactions: PreparedTransactionToSign[], isTonConnect?: boolean) {
-    if (process.env.NO_LEDGER === '1') throw new Error('Ledger is disabled');
-
-    const { signTonTransactionsWithLedger } = await import('../ledger');
-    return signTonTransactionsWithLedger(this.network, this.wallet, transactions, this.subwalletId, isTonConnect);
-  }
-
-  signData(): never {
-    throw new Error('Ledger does not support SignData');
-  }
-
-  encryptComment(): never {
-    throw new Error('Ledger does not support comment encryption');
-  }
-
-  decryptComment(): never {
-    throw new Error('Ledger does not support comment decryption');
   }
 }
 

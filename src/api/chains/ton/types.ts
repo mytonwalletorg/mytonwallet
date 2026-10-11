@@ -39,23 +39,12 @@ export interface TokenTransferBodyParams {
   customPayload?: Cell;
 }
 
-/**
- * Information about the transfer that is not necessary and doesn't participate in the transaction directly, but can
- * speed up the application by avoiding fetching data that is already available.
- */
-export type TonTransferHints = {
-  /** The transferred token (if it's a jetton transfer) */
-  tokenAddress?: string;
-};
-
 /** Ton transaction data in a simple for constructing form */
 export interface TonTransferParams {
   toAddress: string;
   amount: bigint;
   payload?: Cell;
   stateInit?: Cell;
-  /** Optional, to optimize the signing process */
-  hints?: TonTransferHints;
 }
 
 /** Ton transaction data in the most ready for signing form */
@@ -64,8 +53,6 @@ export type PreparedTransactionToSign = Pick<
   'messages' | 'sendMode' | 'seqno' | 'timeout'
 > & {
   authType?: 'internal' | 'external';
-  /** Optional, to optimize the signing process */
-  hints?: TonTransferHints;
 };
 
 export interface JettonMetadata {

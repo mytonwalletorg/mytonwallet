@@ -156,15 +156,6 @@ export interface ChainSdk<T extends ApiChain> {
     addressOrDomain: string,
   ): MaybePromise<{ title?: string; wallet: ApiWalletByChain[T] } | { error: ApiAnyDisplayError }>;
 
-  /**
-   * Loads wallets with the given indices from the Ledger device and fetches their balances.
-   * Should run the actions in parallel and/or batches to achieve the smallest latency.
-   */
-  getWalletsFromLedgerAndLoadBalance(
-    network: ApiNetwork,
-    accountIndices: number[],
-  ): Promise<{ wallet: ApiWalletByChain[T]; balance: bigint }[] | { error: ApiAnyDisplayError }>;
-
   //
   // Realtime updates
   //
@@ -243,12 +234,6 @@ export interface ChainSdk<T extends ApiChain> {
   ): Promise<ApiBalanceBySlug>;
 
   /**
-   * Opens the verification screen of the chain's app on the Ledger device.
-   * Returns the wallet address if the user accepts the verification.
-   */
-  verifyLedgerWalletAddress(accountId: string): Promise<string | { error: ApiAnyDisplayError }>;
-
-  /**
    * Returns the private key of the given account in the format used by `getWalletFromPrivateKey`, even if it's a
    * mnemonic account. Returns `undefined` if the account doesn't exist.
    */
@@ -257,12 +242,6 @@ export interface ChainSdk<T extends ApiChain> {
   //
   // Other
   //
-
-  /**
-   * Checks once whether this chain's app is open on the Ledger device.
-   * Should return an error if the connection with Ledger is broken.
-   */
-  getIsLedgerAppOpen(): Promise<boolean | { error: ApiAnyDisplayError }>;
 
   /**
    * Fetches transaction/trace info by hash or trace ID for deeplink viewing.

@@ -46,7 +46,6 @@ function AccountInfo({
 }: StateProps & OwnProps) {
   if (!currentAccount) return;
 
-  const isHardware = currentAccount.type === 'hardware';
   const isView = isViewAccount(currentAccount.type);
   const formattedAddress = formatAccountAddresses(
     currentAccount.byChain,
@@ -84,7 +83,6 @@ function AccountInfo({
 
       <div className={styles.address}>
         {isTestnet && <i className={buildClassName(styles.icon, 'icon-testnet')} aria-hidden />}
-        {isHardware && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
         {isView && <i className={buildClassName(styles.icon, 'icon-eye-filled')} aria-hidden />}
         {formattedAddress}
       </div>

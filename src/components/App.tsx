@@ -15,11 +15,10 @@ import { useAccentColor } from '../util/accentColor';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
 import { MINUTE } from '../util/dateFormat';
-import { closeThisTab } from '../util/ledger/tab';
 import { resolveRender } from '../util/renderPromise';
 import resolveSlideTransitionName from '../util/resolveSlideTransitionName';
 import {
-  IS_ELECTRON, IS_LEDGER_EXTENSION_TAB, IS_LINUX,
+  IS_ELECTRON, IS_LINUX,
 } from '../util/windowEnvironment';
 import { updateSizes } from '../util/windowSize';
 import { callApi } from '../api';
@@ -47,7 +46,6 @@ import Dialogs from './Dialogs';
 import ElectronHeader from './electron/ElectronHeader';
 import ExchangeModal from './exchange/ExchangeModal';
 import Explore from './explore/Explore';
-import LedgerModal from './ledger/LedgerModal';
 import Main from './main/Main';
 import BackupModal from './main/modals/BackupModal';
 import NftAttributesModal from './main/modals/NftAttributesModal';
@@ -77,7 +75,6 @@ interface StateProps {
   accountId?: string;
   isBackupWalletModalOpen?: boolean;
   isQrScannerOpen?: boolean;
-  isHardwareModalOpen?: boolean;
   isExploreOpen?: boolean;
   currentTokenSlug?: string;
   isFullscreen: boolean;
@@ -102,7 +99,6 @@ function App({
   appState,
   accountId,
   isBackupWalletModalOpen,
-  isHardwareModalOpen,
   isQrScannerOpen,
   isExploreOpen,
   currentTokenSlug,
@@ -114,7 +110,6 @@ function App({
 }: StateProps) {
   const {
     closeBackupWalletModal,
-    closeHardwareWalletModal,
     closeSettings,
     cancelCaching,
     closeQrScanner,
@@ -161,7 +156,7 @@ function App({
     void callApi('setIsAppFocused', false);
   }, () => {
     void callApi('setIsAppFocused', true);
-  }, IS_LEDGER_EXTENSION_TAB);
+  });
 
   useLayoutEffect(() => {
     document.documentElement.classList.add('is-rendered');
@@ -215,8 +210,6 @@ function App({
         return <Settings isActive={isActive} />;
       case AppState.TokenInfo:
         return <TokenInfo isActive={isActive} />;
-      case AppState.Ledger:
-        return <LedgerModal isOpen noBackdropClose onClose={closeThisTab} />;
       case AppState.Inactive:
         return <AppInactive />;
       case AppState.Empty:
@@ -246,7 +239,6 @@ function App({
       {!isInactive && (
         <>
           <AuthImportWalletModal />
-          <LedgerModal isOpen={isHardwareModalOpen} onClose={closeHardwareWalletModal} />
           <BackupModal
             isOpen={isBackupWalletModalOpen}
             onClose={closeBackupWalletModal}
@@ -288,7 +280,6 @@ export default memo(withGlobal((global): StateProps => {
     appState: global.appState,
     accountId: selectCurrentAccountId(global),
     isBackupWalletModalOpen: global.isBackupWalletModalOpen,
-    isHardwareModalOpen: global.isHardwareModalOpen,
     isExploreOpen: global.isExploreOpen,
     currentTokenSlug: selectCurrentAccountState(global)?.currentTokenSlug,
     areSettingsOpen: global.areSettingsOpen,

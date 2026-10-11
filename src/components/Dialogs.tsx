@@ -39,7 +39,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
 
   const handleAction = useLastCallback(() => {
     if (buttons.confirm.action) {
-      void executeDialogAction(buttons.confirm.action, dialog);
+      executeDialogAction(buttons.confirm.action, dialog);
     }
 
     if (isNativeDialog) {
@@ -120,15 +120,8 @@ export default memo(withGlobal(
   (global): StateProps => pick(global, ['dialogs']),
 )(Dialogs));
 
-async function executeDialogAction(action: DialogAction, dialog: DialogType) {
+function executeDialogAction(action: DialogAction, dialog: DialogType) {
   switch (action) {
-    case 'openBluetoothSettings': {
-      const { openSystemBluetoothSettings } = await import('../util/ledger');
-
-      openSystemBluetoothSettings();
-      break;
-    }
-
     case 'openReturnUrl': {
       getActions().closeLoadingOverlay();
       // Close the wake placeholder skeleton (if any) when returning to the dapp.

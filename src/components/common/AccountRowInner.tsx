@@ -48,7 +48,6 @@ function AccountRowInner({
   avatarClassName,
   avatarUrl,
 }: AccountRowInnerProps) {
-  const isHardware = accountType === 'hardware';
   const isView = isViewAccount(accountType);
   const chains = visibleChains ?? getOrderedAccountChains(byChain);
   const formattedAddress = formatAccountAddresses(byChain, chains, chains.length === 1 ? 'medium' : 'small');
@@ -69,7 +68,6 @@ function AccountRowInner({
         </div>
         <div className={styles.address}>
           {isTestnet && <i className={buildClassName(styles.icon, 'icon-testnet')} aria-hidden />}
-          {isHardware && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
           {isView && <i className={buildClassName(styles.icon, 'icon-eye-filled')} aria-hidden />}
           {formattedAddress}
         </div>

@@ -10,7 +10,6 @@ import type { ApiUpdatingStatus } from './updates';
 export type EVMChain = 'bnb';
 export type ApiChain = 'ton' | EVMChain;
 export type ApiNetwork = 'mainnet' | 'testnet';
-export type ApiLedgerDriver = 'HID' | 'USB';
 export type ApiTokenType = 'lp_token' | 'legacy_token' | 'token_2022';
 export type ApiDappConnectionType = 'connect' | 'sendTransaction' | 'signData';
 

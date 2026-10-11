@@ -38,7 +38,6 @@ function AccountButton({
   withCheckbox,
   onClick,
 }: OwnProps) {
-  const isHardware = accountType === 'hardware';
   const isViewMode = accountType === 'view';
   const fullClassName = buildClassName(
     className,
@@ -65,7 +64,6 @@ function AccountButton({
       )}
       <div className={buildClassName(styles.accountFooter)}>
         {isViewMode && <i className={buildClassName('icon-eye-filled', styles.icon)} aria-hidden />}
-        {isHardware && <i className={buildClassName('icon-ledger', styles.icon)} aria-hidden />}
         <span className={styles.accountAddress}>
           {formattedAddress}
         </span>

@@ -38,7 +38,6 @@ import { FIRST_TRANSACTIONS_LIMIT, MINUTE, SEC } from '../../constants';
 import { getToncenterSocket } from './toncenter/socket';
 import { fetchActivitySlice } from './activities';
 import { getWalletFromAddress } from './auth';
-import { LEDGER_WALLET_VERSIONS } from './constants';
 import { fetchDomains } from './domains';
 import { getNftUpdates, streamAllAccountNfts } from './nfts';
 import { RichActivityStream } from './richActivityStream';
@@ -458,7 +457,7 @@ function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
     period: VERSIONS_INTERVAL,
     async poll() {
       try {
-        const { type: accountType, byChain: { ton: tonWallet } } = await fetchStoredAccount(accountId);
+        const { byChain: { ton: tonWallet } } = await fetchStoredAccount(accountId);
         if (!tonWallet) {
           return 'stop';
         }
@@ -482,12 +481,7 @@ function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
         }
 
         const publicKeyBytes = hexToBytes(publicKey);
-        let versions = (
-          accountType === 'ledger'
-            ? Object.keys(LEDGER_WALLET_VERSIONS) as (keyof typeof LEDGER_WALLET_VERSIONS)[]
-            : POPULAR_WALLET_VERSIONS
-        )
-          .filter((value) => value !== version);
+        let versions = POPULAR_WALLET_VERSIONS.filter((value) => value !== version);
 
         // For W5 wallets, always include W5 to show subwallet ID variants for testnet
         if (version === 'W5') {

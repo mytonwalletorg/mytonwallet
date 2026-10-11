@@ -31,7 +31,7 @@ function AddressBookItem({
   onDeleteClick,
 }: OwnProps) {
   const lang = useLang();
-  const { address, name, chain, domain, isHardware, isSavedAddress } = item;
+  const { address, name, chain, domain, isSavedAddress } = item;
   const title = domain
     ? `${shortenDomain(domain)} · ${shortenAddress(
       address, ACCOUNT_ADDRESS_SHIFT_START, ACCOUNT_ADDRESS_SHIFT_END,
@@ -61,7 +61,6 @@ function AddressBookItem({
         <span className={styles.savedAddressNameText}>
           {name || shortenAddress(address)}
         </span>
-        {isHardware && <i className={buildClassName(styles.iconLedger, 'icon-ledger')} aria-hidden />}
       </span>
       {isSavedAddress && onDeleteClick && (
         <span className={styles.savedAddressDelete}>

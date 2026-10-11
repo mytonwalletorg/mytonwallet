@@ -26,7 +26,6 @@ import styles from './ReceiveModal.module.scss';
 
 type StateProps = {
   isOpen?: boolean;
-  isLedger?: boolean;
   currentAccountId?: string;
   accountTitle?: string;
   hasMultipleAccounts?: boolean;

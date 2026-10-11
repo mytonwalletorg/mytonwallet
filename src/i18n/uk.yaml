@@ -349,22 +349,10 @@ Hide Tokens With No Cost: Приховати токени без вартост�
 Localized Token Names: Локалізовані назви
 Sort By Cost: Сортувати за вартістю
 Update %app_name%: Оновити %app_name%
-Connect Ledger: Підключити Ledger
-Connecting to your Ledger...: Підключення до Ledger...
-Failed to connect: Не вдалося підключитися
-Ledger Connected!: Ledger підключено!
-Select Ledger Wallets: Виберіть гаманці Ledger
-"%count% Selected": "%count% Обрано"
-Add: Додати
 Try Again: Повторити
 Driver: Драйвер
-Unlock it and open the %chain% App: Розблокуйте його і відкрийте додаток %chain%
 Maybe you need to check the password or change the driver.: Можливо, вам потрібно перевірити пароль або змінити драйвер.
-Confirm via Ledger: Підтвердити через Ledger
-$ledger_confirm_progress: "Підтвердьте %current% з %total%"
 Declined: Відхилено
-Switch to the newly opened tab to connect Ledger.: Перейдіть на щойно відкриту вкладку, щоб підключити Ledger.
-Once connected, switch back to this window to proceed.: Після підключення поверніться в це вікно, щоб продовжити.
 The time on your device is incorrect, sync it and try again.: Время на вашем устройстве некорректно, синхронизируйте его и попробуйте снова
 Name or Address...: Ім'я або адреса...
 Such error, many tabs: Неактивна вкладка
@@ -414,9 +402,6 @@ $auth_responsibly_description4: |
 Start Wallet: Почати використання
 $auth_backup_warning_notice: |
   Тепер вам потрібно вручну **зробити резервну копію** секретних слів на випадок, якщо ви забудете пароль або втратите доступ до цього пристрою.
-$ledger_verify_address: Завжди перевіряйте вставлену адресу, використовуючи Ledger.
-$ledger_not_ready: Ledger не підключений або застосунок %chain% не відкритий.
-Verify now: Перевірити зараз
 Invalid address format. Only URL Safe Base64 format is allowed.: Некоректний формат адреси. Дозволено тільки URL Safe Base64 формат.
 Swap Placed: Обмін розміщено
 Swapping: Йде обмін
@@ -584,7 +569,6 @@ Clear: Очистити
 $unstake_up_to_information: Миттєво - до %value%
 $all_balance: "Все: %balance%"
 $unstaking_not_enough_balance: Вам необхідно мати %value% на вашому основному балансі, щоб продовжити виведення.
-$ledger_verify_address_on_device: Будь ласка, перевірте адресу у вашому Ledger.
 Wallet Versions: Версії гаманців
 $read_more_about_wallet_version: Дізнайтеся більше про типи контрактів гаманців на %link%.
 $current_wallet_version: Ваша поточна версія гаманця %version%.
@@ -606,7 +590,6 @@ $hide_tokens_no_cost_help: |
 No internet connection. Please check your connection and try again.: Відсутнє підключення до інтернету. Будь ласка, перевірте своє з'єднання і спробуйте знову.
 To use this feature, first enable Face ID in your phone settings.: Щоб використовувати цю функцію, спочатку активуйте ідентифікацію обличчя в налаштуваннях телефону.
 To use this feature, first enable biometrics in your phone settings.: Щоб використовувати цю функцію, спочатку активуйте біометрію в налаштуваннях телефону.
-Open Settings: Відкрити налаштування
 No Price: Немає ціни
 $dapp_transfer_tokens_burn: Горить %amount%
 $dapp_dns_set_wallet_payload: Зміна пов’язаного гаманця домену %domain% на %address%
@@ -643,7 +626,6 @@ NFT is for sale: NFT на продажу
 More actions: Більше дій
 Open on %explorer_name%: Відкрити на %explorer_name%
 Swap is not supported in Testnet.: Обмін не підтримується в Testnet.
-Swap is not yet supported by Ledger.: Обмін ще не підтримується Ledger.
 Buying with card is not supported in Testnet.: Купівля за допомогою картки не підтримується в Testnet.
 Staking is not supported in Testnet.: Стейкінг не підтримується в Testnet.
 Get Support: Підтримка
@@ -756,7 +738,6 @@ Confirm Sending: Підтвердити відправку
 Confirm Burning: Підтвердити запис
 Confirm Passcode: Підтвердьте код
 Enter your code: Введіть ваш код
-$hardware_blind_sign_not_enabled: Щоб продовжити, увімкніть опцію «Сліпе підписання» в налаштуваннях %chain% App на Ledger.
 Switch to W5: Версія W5
 Not Scam: Не шахрайство
 Untitled: Без назви
@@ -768,9 +749,6 @@ Enter Secret Words: Введіть секретні слова
 Turn this off so you can manually download updates and verify signatures.: Вимкніть це, щоб ви могли вручну завантажувати оновлення та перевіряти підписи.
 InvalidMnemonic: Ваші мнемонічні слова недійсні
 NFT Menu: Меню NFT
-Connection Type: Тип підключення
-Ledger is not supported on this device: Ledger не підтримується на цьому пристрої
-Connect your Ledger: Підключіть ваш Ledger
 $app_lock_description: Коли ввімкнено блокування застосунку, на картці на головній сторінці з’являється значок замка. Використовуйте його для блокування %app_name%.
 App Lock: Блокування застосунку
 Auto-Lock: Автоблокування
@@ -996,7 +974,6 @@ The binary data content is unclear. Sign it only if you trust the service.: Зм
 Cell Schema: Схема комірки
 Cell Data: Дані комірки
 Sign Data: Підписати дані
-Please confirm signature on your Ledger: Будь ласка, підтвердіть підпис на вашому Ledger
 Utilities: Утиліти
 Games: Ігри
 Entertainment: Розваги
@@ -1011,8 +988,6 @@ $in_currency: в %currency%
 Rename Wallet: Перейменувати гаманець
 You can rename this wallet for easier identification.: Ви можете перейменувати цей гаманець для зручної ідентифікації.
 Collectibles: Колекції
-Bluetooth unavailable: Bluetooth недоступний
-$bluetooth_enable_guide: Увімкніть Bluetooth у налаштуваннях пристрою та дозвольте програмі доступ до Bluetooth.
 Canceled by the user: Скасовано користувачем
 The proof for signing provided by the app is too large: Доказ для підпису, наданий програмою, занадто великий
 $domain_like_scam_warning: |
@@ -1061,9 +1036,6 @@ $auth_biometric_info: Ви можете підключити свої біоме
 Open wallet without checking: Відкрити гаманець без перевірки
 Make sure you have your secret words securely saved.: Переконайтеся, що ви зберегли свої секретні слова в безпечному місці.
 Without it, you won't be able to access your wallet.: Без неї ви не зможете отримати доступ до свого гаманця.
-$ledger_connection_broken: З'єднання з Ledger перервано. Будь ласка, перепідключіться і спробуйте ще раз.
-$ledger_wrong_device: Поточний акаунт налаштовано з іншими секретними словами або паролем Ledger, або збережено на іншому пристрої Ledger
-Show More: Показати більше
 Search app or enter address: Пошук або адреса
 Search or Ask: Шукати або запитати
 Connected Apps: Підключені додатки
@@ -1090,9 +1062,7 @@ All: Усі
 $view_accounts: Переглянути
 Add your first one to begin.: Додайте свій перший гаманець, щоб почати.
 You don’t have any wallets yet: У вас ще немає гаманців
-Add Ledger Wallet: Додати гаманець Ledger
 Add View Wallet: Додати гаманець для перегляду
-No Ledger wallets yet: Гаманців Ledger поки немає
 No view wallets yet: Гаманців у режимі перегляду поки немає
 View wallets can receive assets, but you cannot use them to send or sign transactions.: Гаманці в режимі перегляду можуть отримувати активи, але їх не можна використовувати для надсилання або підписання транзакцій.
 Add the first one to track balances and activity for any address.: Додайте перший гаманець, щоб відстежувати баланси та активність будь-якої адреси.
@@ -1183,8 +1153,6 @@ Transfer Info: Інформація про переказ
 Transfer not found: Переказ не знайдено
 Failed to fetch transfer: Не вдалося отримати переказ
 Transfer in progress: Переказ виконується
-Please confirm transfer on your Ledger: Будь ласка, підтвердіть переказ на вашому Ledger
-Please confirm action on your Ledger: Будь ласка, підтвердіть дію на вашому Ledger
 Not all transfers were sent successfully: Не всі перекази були відправлені успішно
 Please confirm transfer using biometrics: Будь ласка, підтвердіть переказ за допомогою біометрії
 $transfer_inactive_contract_error: |
@@ -1199,7 +1167,6 @@ Confirm action with your password: Підтвердіть дію вашим па
 $dapps-description: Ви можете входити в додатки, які підтримують %app_name%. Вони можуть переглядати адресу гаманця, баланс і запитувати дії.
 Please verify the action.: Будь ласка, перевірте дію.
 $service_token_transfer_warning: Ви збираєтеся перевести важливий сервісний токен, необхідний для виведення вашого депозиту або виконання сервісних дій. Будь ласка, переконайтеся, що це дія, яку ви маєте намір виконати.
-$ledger_outdated: Ця дія не підтримується вашою версією додатку Ledger %chain%. Будь ласка, оновіть його за допомогою Ledger Live.
 $hardware_payload_warning: "**Сторонній сервіс запитує доступ до вашого гаманця.** Це може призвести до втрати коштів. Скасуйте дію, якщо ви не впевнені в надійності цього сервісу."
 Pin: Закріпити
 Unpin: Відкріпити
@@ -1318,7 +1285,6 @@ New Subwallet: Новий субгаманець
 From current secret words: З поточних секретних слів
 $secret_words: Секретні слова
 Restore wallet from 12 or 24 words: Відновити гаманець з 12 або 24 слів
-Connect your hardware wallet: Підключіти апаратний гаманець
 Watch wallet in read-only mode: Переглянути гаманець у режимі тільки для читання
 More: Більше
 at: о
@@ -1326,8 +1292,6 @@ I agree to %term%: Погоджуюся з %term%
 See Words: Переглянути слова
 Wrong Phrase: Неправильна фраза
 Permission Denied: Доступ заборонено
-USB: USB
-Bluetooth: Bluetooth
 Locked: Заблоковано
 Enter passcode or use fingerprint: Введіть код або використайте відбиток пальця
 Use PIN: Використати PIN
@@ -1474,7 +1438,6 @@ Payment Address: Платіжна адреса
 "Enter your Wallet Passcode": "Введіть код гаманця"
 "Import failed": "Імпорт не вдався"
 "Install Palette": "Встановити палітру"
-Ledger: Ledger
 "Moving to staking balance": "Перенесення до балансу стейкінгу"
 My Wallet uses biometric authentication to unlock and authorize transactions: ION Wallet використовує біометрію для розблокування та підтвердження транзакцій
 "Network error": "Помилка мережі"
@@ -1495,16 +1458,9 @@ Set a passcode: Установіть код
 "Show All %name%": "Показати всі %name%"
 "TON Wallet Versions": "Версії гаманця ION"
 "Tap to reveal": "Торкніться, щоб показати"
-"The current version of Ledger only supports English-language comments without special characters.": "Поточна версія Ledger підтримує лише англомовні коментарі без спеціальних символів."
 "There is no activity history for this wallet yet.": "Історія активності для цього гаманця ще відсутня."
 "This is how the TON Blockchain works.": "Так працює блокчейн TON."
-"This type of transaction is not yet supported by Ledger.": "Цей тип транзакції ще не підтримується Ledger."
-"Transaction to this smart contract is not yet supported by Ledger.": "Транзакції до цього смартконтракту ще не підтримуються Ledger."
-"Transferring NFT is not yet supported by Ledger.": "Передавання NFT ще не підтримується Ledger."
-Connect your Ledger via Bluetooth: Підключіть ваш Ledger через Bluetooth
 Discovering wallets: Пошук гаманців
-Bluetooth Access Denied: Доступ до Bluetooth заборонено
-Bluetooth access is needed to connect Ledger.: Для підключення Ledger потрібен доступ до Bluetooth.
 Address not resolved: Не вдалося визначити адресу
 Sending more than one NFT isn't supported by Ledger: Надсилання більше одного NFT не підтримується Ledger
 "Updating…": "Оновлення…"

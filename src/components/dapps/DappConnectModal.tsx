@@ -25,8 +25,6 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import AccountSwitcherPill from '../common/AccountSwitcherPill';
 import AccountSwitcherSlide from '../common/AccountSwitcherSlide';
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import AddAccountPasswordModal from '../main/modals/accountSelector/AddAccountPasswordModal';
 import Button from '../ui/Button';
 import Image from '../ui/Image';
@@ -80,7 +78,6 @@ function DappConnectModal({
     submitDappConnectRequestConfirm,
     cancelDappConnectRequestConfirm,
     setDappConnectRequestState,
-    resetHardwareWalletConnect,
     addAccount,
     clearAccountError,
   } = getActions();
@@ -127,11 +124,10 @@ function DappConnectModal({
   const handleSubmit = useLastCallback(() => {
     if (isViewAccount(accounts![selectedAccount].type) && requiredProof) return;
 
-    const isHardware = accounts![selectedAccount].type === 'hardware';
     const { isPasswordRequired, isAddressRequired } = requiredPermissions || {};
     const doesNeedSigning = Boolean(requiredProof);
 
-    if (!doesNeedSigning || (!isHardware && isAddressRequired && !isPasswordRequired)) {
+    if (!doesNeedSigning || (isAddressRequired && !isPasswordRequired)) {
       submitDappConnectRequestConfirm({
         accountId: selectedAccount,
       });
@@ -139,9 +135,6 @@ function DappConnectModal({
       requestAnimationFrame(() => {
         cancelDappConnectRequestConfirm();
       });
-    } else if (isHardware) {
-      resetHardwareWalletConnect({ chain: 'ton' });
-      setDappConnectRequestState({ state: DappConnectState.ConnectHardware });
     } else if (selectIsEnclaveSessionValid(getGlobal())) {
       submitDappConnectRequestConfirm({
         accountId: selectedAccount,
@@ -157,12 +150,6 @@ function DappConnectModal({
 
   const handlePasswordCancel = useLastCallback(() => {
     setDappConnectRequestState({ state: DappConnectState.Info });
-  });
-
-  const submitDappConnectRequestHardware = useLastCallback(() => {
-    submitDappConnectRequestConfirm({
-      accountId: selectedAccount,
-    });
   });
 
   const handlePasswordSubmit = useLastCallback((enclaveToken: string) => {
@@ -355,24 +342,6 @@ function DappConnectModal({
             onAuthorize={handleAddAccountPasswordSubmit}
             onBack={handleAddAccountPasswordCancel}
             onClose={cancelDappConnectRequestConfirm}
-          />
-        );
-      case DappConnectState.ConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={submitDappConnectRequestHardware}
-            onClose={handlePasswordCancel}
-          />
-        );
-      case DappConnectState.ConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            isActive={isActive}
-            text={lang('Please confirm action on your Ledger')}
-            error={error}
-            onTryAgain={submitDappConnectRequestHardware}
-            onClose={handlePasswordCancel}
           />
         );
     }

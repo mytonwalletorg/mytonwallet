@@ -36,18 +36,9 @@ const GET_DAPPS_PAUSE = 250;
 addActionHandler('submitDappConnectRequestConfirm', withEnclaveSessionRelease(async (
   global, actions, { enclaveToken, accountId },
 ) => {
-  const {
-    promiseId, permissions, proof, dapp,
-  } = global.dappConnectRequest!;
+  const { promiseId, proof, dapp } = global.dappConnectRequest!;
 
-  if (!prepareDappOperation(
-    accountId,
-    DappConnectState.ConfirmHardware,
-    updateDappConnectRequest,
-    Boolean(permissions?.isPasswordRequired),
-  )) {
-    return;
-  }
+  prepareDappOperation(updateDappConnectRequest);
 
   const signingResult = proof
     ? await callApi(
@@ -125,17 +116,10 @@ addActionHandler('submitDappTransfer', withEnclaveSessionRelease(async (global, 
     return;
   }
 
-  if (!prepareDappOperation(
-    selectCurrentAccountId(global)!,
-    TransferState.ConfirmHardware,
-    updateCurrentDappTransfer,
-    true,
-  )) {
-    return;
-  }
+  prepareDappOperation(updateCurrentDappTransfer);
 
   global = getGlobal();
-  const { transactions, validUntil, vestingAddress, operationChain, dapp, isLegacyOutput } = global.currentDappTransfer;
+  const { transactions, validUntil, operationChain, dapp, isLegacyOutput } = global.currentDappTransfer;
   const currentChain = dapp?.chains?.find((e) => e.chain === operationChain);
   if (!currentChain) {
     return;
@@ -150,7 +134,6 @@ addActionHandler('submitDappTransfer', withEnclaveSessionRelease(async (global, 
     {
       enclaveToken,
       validUntil,
-      vestingAddress,
       isLegacyOutput,
     });
 
@@ -168,14 +151,7 @@ addActionHandler('submitDappSignData', withEnclaveSessionRelease(async (global, 
     return;
   }
 
-  if (!prepareDappOperation(
-    selectCurrentAccountId(global)!,
-    0 as never, // Ledger doesn't support SignData yet, so this value is never used
-    updateCurrentDappSignData,
-    true,
-  )) {
-    return;
-  }
+  prepareDappOperation(updateCurrentDappSignData);
 
   global = getGlobal();
   const { dapp, payloadToSign, operationChain } = global.currentDappSignData;
@@ -275,7 +251,6 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, payload
     emulation,
     dapp,
     validUntil,
-    vestingAddress,
     operationChain,
     shouldHideTransfers,
     isLegacyOutput,
@@ -295,7 +270,6 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, payload
       emulation,
       dapp,
       validUntil,
-      vestingAddress,
       shouldHideTransfers,
       isLegacyOutput,
     }),

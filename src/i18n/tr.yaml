@@ -343,22 +343,10 @@ Hide Tokens With No Cost: Tokenleri ücretsiz olarak saklayın
 Localized Token Names: Yerelleştirilmiş Adlar
 Sort By Cost: Maliyete göre sıralayın
 Update %app_name%: "%app_name%'ı güncelle"
-Connect Ledger: Ledger'i bağla
-Connecting to your Ledger...: Ledger'ınıza bağlanıyor...
-Failed to connect: Bağlantı başarısız
-Ledger Connected!: Ledger bağlandı!
-Select Ledger Wallets: Ledger cüzdanları seçin
-"%count% Selected": "%count% seçildi"
-Add: Ekle
 Try Again: Yeniden dene
 Driver: Sürücü
-Unlock it and open the %chain% App: Cihazın kilidi açın ve %chain% uygulamasını başlatın
 Maybe you need to check the password or change the driver.: Şifreyi kontrol etmeniz veya sürücüyü değiştirmeniz gerekebilir.
-Confirm via Ledger: Ledger aracılığıyla onaylayın
-$ledger_confirm_progress: "%total% işlemden %current%. işlemi onayla"
 Declined: Reddedildi
-Switch to the newly opened tab to connect Ledger.: Ledger'ı bağlamak için yeni açılan sekmeye geçin.
-Once connected, switch back to this window to proceed.: Bağlandıktan sonra devam etmek için bu pencereye geri dönün.
 The time on your device is incorrect, sync it and try again.: Cihazınızdaki saat hatalı, saati senkronize edin ve tekrar deneyin
 Name or Address...: İsim veya Adres...
 Such error, many tabs: Bu tür hatalar, birçok sekme
@@ -408,9 +396,6 @@ $auth_responsibly_description4: |
 Start Wallet: Cüzdanı Başlat
 $auth_backup_warning_notice: |
   Artık şifrenizi unutmanız veya bu cihaza erişiminizi kaybetmeniz ihtimaline karşı **gizli anahtarları** manuel olarak **yedeklemeniz** gerekmektedir.
-$ledger_verify_address: Yapıştırılan adresi her zaman Ledger cihazınızı kullanarak doğrulayın.
-$ledger_not_ready: Ledger bağlı değil veya %chain% uygulaması açık değil.
-Verify now: Şimdi doğrula
 Invalid address format. Only URL Safe Base64 format is allowed.: Geçersiz adres formatı. Yalnızca URL Safe Base64 formatına izin verilmektedir.
 Swap Placed: Takas emri gönderildi
 Swapping: Takas devam ediyor
@@ -579,7 +564,6 @@ Clear: Temizle
 $unstake_up_to_information: Anında – en fazla %value%
 $all_balance: "Tümü: %balance%"
 $unstaking_not_enough_balance: Stake iptal işlemine devam etmek için ana bakiyenizde %value% olması gerekmektedir.
-$ledger_verify_address_on_device: Lütfen Ledger'ınızdaki adresi doğrulayın.
 Wallet Versions: Cüzdan Versiyonları
 $read_more_about_wallet_version: "%link% üzerinde cüzdan sözleşmeleri türleri hakkında daha fazla bilgi edinin."
 $current_wallet_version: Mevcut cüzdan versiyonunuz %version%.
@@ -600,7 +584,6 @@ $hide_tokens_no_cost_help: |
 No internet connection. Please check your connection and try again.: İnternet bağlantısı yok. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.
 To use this feature, first enable Face ID in your phone settings.: Bu özelliği kullanmak için öncelikle telefon ayarlarınızda Face ID'yi etkinleştirin.
 To use this feature, first enable biometrics in your phone settings.: Bu özelliği kullanmak için öncelikle telefon ayarlarınızda biyometriyi etkinleştirin.
-Open Settings: Ayarları aç
 No Price: Fiyat yok
 $dapp_transfer_tokens_burn: "%amount% yakılıyor"
 $dapp_dns_set_wallet_payload: "%domain% alanının bağlı cüzdanını %address% olarak değiştirme"
@@ -635,7 +618,6 @@ NFT is for sale: NFT satılık
 More actions: Daha fazla hareket
 Open on %explorer_name%: "%explorer_name%'da aç"
 Swap is not supported in Testnet.: Takas Testnet'te desteklenmemektedir.
-Swap is not yet supported by Ledger.: Takas henüz Ledger tarafından desteklenmiyor.
 Buying with card is not supported in Testnet.: Testnet'te kartla satın alma desteklenmemektedir.
 Staking is not supported in Testnet.: Staking Testnet'te desteklenmemektedir.
 Get Support: Destek almak
@@ -743,7 +725,6 @@ Confirm Sending: Göndermeyi Onayla
 Confirm Burning: Yazmayı Onayla
 Confirm Passcode: Şifreyi Onayla
 Enter your code: Kodunuzu girin
-$hardware_blind_sign_not_enabled: Devam etmek için, Ledger üzerindeki %chain% Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
 Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
@@ -755,9 +736,6 @@ Enter Secret Words: Gizli Kelimeleri Girin
 Turn this off so you can manually download updates and verify signatures.: Bunu kapatın, böylece güncellemeleri manuel olarak indirip imzaları doğrulayabilirsiniz.
 InvalidMnemonic: Mnemonik kelimeleriniz geçersiz
 NFT Menu: NFT Menüsü
-Connection Type: Bağlantı Türü
-Ledger is not supported on this device: Ledger bu cihazda desteklenmiyor
-Connect your Ledger: Ledger'ınızı bağlayın
 $app_lock_description: Uygulama kilidi etkinleştirildiğinde, ana sayfadaki kartta bir kilit simgesi görünür. %app_name%'i kilitlemek için kullanın.
 App Lock: Uygulama Kilidi
 Auto-Lock: Otomatik Kilit
@@ -978,7 +956,6 @@ The binary data content is unclear. Sign it only if you trust the service.: İki
 Cell Schema: Hücre Şeması
 Cell Data: Hücre Verisi
 Sign Data: Veriyi İmzala
-Please confirm signature on your Ledger: Lütfen imzayı Ledger cihazınızda onaylayın
 Utilities: Araçlar
 Games: Oyunlar
 Entertainment: Eğlence
@@ -993,8 +970,6 @@ $in_currency: → %currency%
 Rename Wallet: Cüzdanı Yeniden Adlandır
 You can rename this wallet for easier identification.: Bu cüzdanı daha kolay tanımlamak için yeniden adlandırabilirsiniz.
 Collectibles: Koleksiyonlar
-Bluetooth unavailable: Bluetooth kullanılamıyor
-$bluetooth_enable_guide: Cihaz ayarlarında Bluetooth'u açın ve uygulamanın Bluetooth'a erişmesine izin verin.
 Canceled by the user: Kullanıcı tarafından iptal edildi
 The proof for signing provided by the app is too large: Uygulama tarafından sağlanan imzalama kanıtı çok büyük
 $domain_like_scam_warning: |
@@ -1042,9 +1017,6 @@ $auth_biometric_info: "**Daha fazla konfor** için biyometrik verilerinizi bağl
 Open wallet without checking: Kontrol etmeden cüzdanı aç
 Make sure you have your secret words securely saved.: Gizli kelimelerinizi güvenli bir şekilde kaydettiğinizden emin olun.
 Without it, you won't be able to access your wallet.: Onsuz cüzdanınıza erişemezsiniz.
-$ledger_connection_broken: Ledger bağlantısı kesildi. Lütfen yeniden bağlanıp tekrar deneyin.
-$ledger_wrong_device: Mevcut hesap farklı Ledger gizli kelimeleri veya parola ile kuruldu ya da başka bir Ledger cihazında saklanıyor
-Show More: Daha fazla göster
 Search app or enter address: Uygulama ara veya adres gir
 Search or Ask: Ara veya sor
 Connected Apps: Bağlı Uygulamalar
@@ -1070,9 +1042,7 @@ All: Tümü
 $view_accounts: Görüntüle
 Add your first one to begin.: Başlamak için ilk cüzdanınızı ekleyin.
 You don’t have any wallets yet: Henüz hiç cüzdanınız yok
-Add Ledger Wallet: Ledger Cüzdanı Ekle
 Add View Wallet: Görüntüleme Cüzdanı Ekle
-No Ledger wallets yet: Henüz Ledger cüzdanı yok
 No view wallets yet: Henüz görüntüleme cüzdanı yok
 View wallets can receive assets, but you cannot use them to send or sign transactions.: Görüntüleme cüzdanları varlık alabilir, ancak gönderme veya işlem imzalama için kullanılamaz.
 Add the first one to track balances and activity for any address.: Herhangi bir adresin bakiyelerini ve aktivitelerini takip etmek için ilk cüzdanı ekleyin.
@@ -1163,8 +1133,6 @@ Transfer Info: Transfer Bilgisi
 Transfer not found: Transfer bulunamadı
 Failed to fetch transfer: Transfer alınamadı
 Transfer in progress: Transfer devam ediyor
-Please confirm transfer on your Ledger: Lütfen Ledger'ınızda transferi onaylayın
-Please confirm action on your Ledger: Lütfen Ledger'ınızda işlemi onaylayın
 Not all transfers were sent successfully: Tüm transferler başarıyla gönderilmedi
 Please confirm transfer using biometrics: Lütfen biyometri kullanarak transferi onaylayın
 $transfer_inactive_contract_error: |
@@ -1179,7 +1147,6 @@ Confirm action with your password: İşlemi şifrenizle onaylayın
 $dapps-description: "%app_name% destekleyen uygulamalarda giriş yapabilirsiniz. Cüzdan adresini, bakiyeyi görüntüleyebilir ve işlem talep edebilirler."
 Please verify the action.: Lütfen işlemi doğrulayın.
 $service_token_transfer_warning: Yatırımınızı çekmek veya hizmet işlemlerini tamamlamak için gerekli olan önemli bir hizmet token'ını transfer etmek üzeresiniz. Lütfen bunun yapmak istediğiniz işlem olduğundan emin olun.
-$ledger_outdated: Bu işlem, Ledger %chain% Uygulamanızın sürümü tarafından desteklenmiyor. Lütfen Ledger Live kullanarak güncelleyin.
 $hardware_payload_warning: "**Bir üçüncü taraf hizmeti cüzdanınıza erişim talep ediyor.** Bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin."
 Pin: Sabitle
 Unpin: Sabitlemeyi Kaldır
@@ -1292,7 +1259,6 @@ New Subwallet: Yeni Alt Cüzdan
 From current secret words: Mevcut gizli kelimelerden
 $secret_words: Gizli Kelimeler
 Restore wallet from 12 or 24 words: Cüzdanı 12 veya 24 kelimeyle geri yükle
-Connect your hardware wallet: Donanım cüzdanınızı bağlayın
 Watch wallet in read-only mode: Cüzdanı salt okunur modda izle
 More: Daha Fazla
 at: tarihinde
@@ -1300,8 +1266,6 @@ I agree to %term%: "%term% şartlarını kabul ediyorum"
 See Words: Kelimeleri Gör
 Wrong Phrase: Yanlış ifade
 Permission Denied: İzin reddedildi
-USB: USB
-Bluetooth: Bluetooth
 Locked: Kilitli
 Enter passcode or use fingerprint: Geçiş kodunu girin veya parmak izi kullanın
 Use PIN: PIN kullan
@@ -1443,7 +1407,6 @@ Payment Address: Ödeme adresi
 "Enter your Wallet Passcode": Cüzdan geçiş kodunuzu girin
 "Import failed": İçe aktarma başarısız oldu
 "Install Palette": Paleti yükle
-Ledger: Ledger
 "Moving to staking balance": Stake bakiyesine aktarılıyor
 My Wallet uses biometric authentication to unlock and authorize transactions: ION Wallet, biyometrik doğrulamayla kilidi açar ve işlemleri onaylar
 "Network error": Ağ hatası
@@ -1464,16 +1427,9 @@ Set a passcode: Geçiş kodu ayarla
 "Show All %name%": "Tüm %name% öğelerini göster"
 "TON Wallet Versions": ION cüzdan sürümleri
 "Tap to reveal": Görüntülemek için dokunun
-"The current version of Ledger only supports English-language comments without special characters.": Ledger'ın mevcut sürümü yalnızca özel karakter içermeyen İngilizce yorumları destekler.
 "There is no activity history for this wallet yet.": Bu cüzdanda henüz etkinlik geçmişi yok.
 "This is how the TON Blockchain works.": TON blok zinciri bu şekilde çalışır.
-"This type of transaction is not yet supported by Ledger.": Bu işlem türü Ledger tarafından henüz desteklenmiyor.
-"Transaction to this smart contract is not yet supported by Ledger.": Ledger bu akıllı sözleşmeye işlem göndermeyi henüz desteklemiyor.
-"Transferring NFT is not yet supported by Ledger.": Ledger, NFT transferini henüz desteklemiyor.
-Connect your Ledger via Bluetooth: Ledger'ınızı Bluetooth ile bağlayın
 Discovering wallets: Cüzdanlar aranıyor
-Bluetooth Access Denied: Bluetooth erişimi reddedildi
-Bluetooth access is needed to connect Ledger.: Ledger'a bağlanmak için Bluetooth erişimi gereklidir.
 Address not resolved: Adres çözümlenemedi
 Sending more than one NFT isn't supported by Ledger: Birden fazla NFT göndermek Ledger tarafından desteklenmiyor
 "Updating…": Güncelleniyor…

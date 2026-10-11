@@ -24,8 +24,6 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import useSyncEffectWithPrevDeps from '../../hooks/useSyncEffectWithPrevDeps';
 
 import TransactionBanner from '../common/TransactionBanner';
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import NftInfo from '../transfer/NftInfo';
 import AddressInput from '../ui/AddressInput';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -111,12 +109,6 @@ function LinkingDomainModal({
   const handleAuthorize = useLastCallback((enclaveToken: string) => {
     if (canSubmit) {
       submitDomainLinking({ enclaveToken });
-    }
-  });
-
-  const handleHardwareSubmit = useLastCallback(() => {
-    if (canSubmit) {
-      submitDomainLinking();
     }
   });
 
@@ -233,25 +225,6 @@ function LinkingDomainModal({
 
       case DomainLinkingState.Password:
         return renderPasswordForm(isActive);
-
-      case DomainLinkingState.ConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={handleHardwareSubmit}
-            onClose={cancelDomainLinking}
-          />
-        );
-
-      case DomainLinkingState.ConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            text={lang('Please confirm action on your Ledger')}
-            error={error}
-            onClose={cancelDomainLinking}
-            onTryAgain={handleHardwareSubmit}
-          />
-        );
 
       case DomainLinkingState.Complete:
         return renderComplete(isActive);

@@ -15,10 +15,8 @@ import { fixIosAppStorage, initCapacitor, processCapacitorLaunchDeeplink } from 
 import { initElectron } from './util/electron';
 import { initFocusScrollController } from './util/focusScroll';
 import { forceLoadFonts } from './util/fonts';
-import { logDebug, logSelfXssWarnings } from './util/logs';
-import {
-  IS_ELECTRON, IS_IOS_APP, IS_LEDGER_EXTENSION_TAB,
-} from './util/windowEnvironment';
+import { logSelfXssWarnings } from './util/logs';
+import { IS_ELECTRON, IS_IOS_APP } from './util/windowEnvironment';
 
 import App from './components/App';
 
@@ -52,13 +50,7 @@ void (async () => {
 
   getActions().init();
 
-  // Connecting to the API from remote tabs creates excessive polling in the API.
-  // The remote tab doesn't need the API anyway.
-  if (!IS_LEDGER_EXTENSION_TAB) {
-    getActions().initApi();
-  } else {
-    logDebug('API was not initialized because it was connected from a detached tab');
-  }
+  getActions().initApi();
 
   if (IS_CAPACITOR) {
     await processCapacitorLaunchDeeplink();

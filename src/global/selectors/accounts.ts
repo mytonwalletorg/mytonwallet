@@ -1,4 +1,4 @@
-import type { ApiChain, ApiLedgerAccountInfo, ApiNetwork } from '../../api/types';
+import type { ApiChain, ApiNetwork } from '../../api/types';
 import type { Account, AccountSettings, AccountState, GlobalState, UserToken } from '../types';
 
 import { parseAccountId } from '../../util/account';
@@ -79,22 +79,6 @@ export function selectAccountSettings(global: GlobalState, accountId: string): A
 export function selectCurrentAccountSettings(global: GlobalState) {
   const accountId = selectCurrentAccountId(global);
   return accountId ? selectAccountSettings(global, accountId) : undefined;
-}
-
-function isHardwareAccount(account: Account) {
-  return account.type === 'hardware';
-}
-
-export function selectIsHardwareAccount(global: GlobalState): boolean; // To prevent passing accountId=undefined by accident
-export function selectIsHardwareAccount(global: GlobalState, accountId: string): boolean;
-export function selectIsHardwareAccount(global: GlobalState, accountId?: string) {
-  const resolvedAccountId = accountId ?? selectCurrentAccountId(global);
-  if (!resolvedAccountId) {
-    return false;
-  }
-
-  const account = selectAccount(global, resolvedAccountId);
-  return Boolean(account) && isHardwareAccount(account);
 }
 
 export function selectIsOneAccount(global: GlobalState) {
@@ -181,18 +165,6 @@ export function selectIsCurrentAccountViewMode(global: GlobalState) {
   const account = selectCurrentAccount(global);
 
   return account ? getIsViewAccountDisabled(account) : isViewAccount();
-}
-
-export function selectSelectedHardwareAccountsSlow(global: GlobalState): ApiLedgerAccountInfo[] {
-  const selectedIndices = new Set(global.auth.hardwareSelectedIndices ?? []);
-  const { chain, hardwareWallets } = global.hardware;
-
-  return (hardwareWallets ?? [])
-    .filter((wallet) => selectedIndices.has(wallet.wallet.index))
-    .map(({ wallet, balance, ...rest }) => ({
-      ...rest,
-      byChain: { [chain]: wallet },
-    }));
 }
 
 /**

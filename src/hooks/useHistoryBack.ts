@@ -2,7 +2,7 @@ import { useCallback, useRef } from '../lib/teact/teact';
 
 import { IS_TEST } from '../config';
 import { requestMeasure } from '../lib/fasterdom/fasterdom';
-import { IS_IOS, IS_LEDGER_EXTENSION_TAB } from '../util/windowEnvironment';
+import { IS_IOS } from '../util/windowEnvironment';
 import useEffectOnce from './useEffectOnce';
 import useLastCallback from './useLastCallback';
 import useSyncEffect from './useSyncEffect';
@@ -93,9 +93,7 @@ function resetHistory() {
     onBack: () => window.history.back(),
   }];
 
-  if (!IS_LEDGER_EXTENSION_TAB) {
-    window.history.replaceState({ index: 0, historyUniqueSessionId }, '', PATH_BASE);
-  }
+  window.history.replaceState({ index: 0, historyUniqueSessionId }, '', PATH_BASE);
 }
 
 resetHistory();

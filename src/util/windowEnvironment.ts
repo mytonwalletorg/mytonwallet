@@ -2,10 +2,8 @@ import type { LangCode } from '../global/types';
 
 import {
   IS_CAPACITOR, IS_EXTENSION, IS_FIREFOX_EXTENSION, LANG_LIST, LEGACY_APP_HOSTS,
-  NO_LEDGER,
 } from '../config';
 import { requestForcedReflow } from '../lib/fasterdom/fasterdom';
-import { DETACHED_TAB_URL } from './ledger/tab';
 import { getPlatform } from './getPlatform';
 
 function getBrowserLanguage(): LangCode {
@@ -48,9 +46,6 @@ export function setUserAgentLangCode(langCode: LangCode) {
   USER_AGENT_LANG_CODE = langCode;
 }
 export const DPR = window.devicePixelRatio || 1;
-export const IS_LEDGER_SUPPORTED = !NO_LEDGER
-  && (IS_CAPACITOR || !(IS_IOS || IS_FIREFOX_EXTENSION));
-export const IS_LEDGER_EXTENSION_TAB = global.location.hash.startsWith(DETACHED_TAB_URL);
 // Disable biometric auth on electron for now until this issue is fixed:
 // https://github.com/electron/electron/issues/24573
 export const IS_BIOMETRIC_AUTH_SUPPORTED = Boolean(

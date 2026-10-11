@@ -71,7 +71,6 @@ function AccountWalletCard({
 
   // Screen width affects font size only in portrait orientation
   const screenWidthDep = isPortrait ? screenWidth : 0;
-  const isHardware = accountType === 'hardware';
   const isViewMode = accountType === 'view';
   const chains = visibleChains ?? getOrderedAccountChains(byChain);
   const formattedAddress = formatAccountAddresses(byChain, chains, 'x-small');
@@ -183,7 +182,6 @@ function AccountWalletCard({
           )}
           <div className={buildClassName(styles.accountAddressBlock)}>
             {isTestnet && <i className="icon-testnet" aria-hidden />}
-            {isHardware && <i className="icon-ledger" aria-hidden />}
             {isViewMode && <i className="icon-eye-filled" aria-hidden />}
             <span>{formattedAddress}</span>
           </div>

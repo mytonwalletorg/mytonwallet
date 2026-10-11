@@ -28,8 +28,6 @@ import usePrevious from '../../hooks/usePrevious';
 
 import AccountSwitcherSlide from '../common/AccountSwitcherSlide';
 import TransactionBanner from '../common/TransactionBanner';
-import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
-import LedgerConnect from '../ledger/LedgerConnect';
 import Modal from '../ui/Modal';
 import Transition from '../ui/Transition';
 import TransferComplete from './TransferComplete';
@@ -122,10 +120,6 @@ function TransferModal({
     cancelTransfer({ shouldReset: true });
   });
 
-  const handleLedgerConnect = useLastCallback(() => {
-    submitTransfer();
-  });
-
   const handleSelectAccount = useLastCallback((accountId: string) => {
     switchTransferAccount({ accountId });
   });
@@ -184,23 +178,6 @@ function TransferModal({
               isTextHidden={isBurning}
             />
           </TransferPassword>
-        );
-      case TransferState.ConnectHardware:
-        return (
-          <LedgerConnect
-            isActive={isActive}
-            onConnected={handleLedgerConnect}
-            onClose={handleClose}
-          />
-        );
-      case TransferState.ConfirmHardware:
-        return (
-          <LedgerConfirmOperation
-            text={lang('Please confirm transfer on your Ledger')}
-            error={error}
-            onClose={handleClose}
-            onTryAgain={handleLedgerConnect}
-          />
         );
       case TransferState.Complete:
         return (nfts?.length || 0) <= NFT_BATCH_SIZE ? (

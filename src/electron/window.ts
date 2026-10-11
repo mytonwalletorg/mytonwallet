@@ -28,8 +28,6 @@ import {
   WINDOW_STATE_FILE,
 } from './utils';
 
-const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://', BASE_URL];
-
 function maybeSetupAutoUpdates() {
   if (shouldStartUpdater({
     isProduction: IS_PRODUCTION, isStaging: IS_STAGING, isPreview: IS_PREVIEW, isMacOs: IS_MAC_OS,
@@ -87,9 +85,7 @@ export function createWindow() {
     return { action: 'deny' };
   });
 
-  mainWindow.webContents.session.setDevicePermissionHandler(({ deviceType, origin }) => {
-    return deviceType === 'hid' && ALLOWED_DEVICE_ORIGINS.includes(origin);
-  });
+  mainWindow.webContents.session.setDevicePermissionHandler(() => false);
 
   window.webContents.on('will-navigate', (event, newUrl) => {
     if (!checkIsWebContentsUrlAllowed(newUrl)) {

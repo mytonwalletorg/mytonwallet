@@ -340,22 +340,10 @@ Hide Tokens With No Cost: 無需掩蓋令牌
 Localized Token Names: 本地化名稱
 Sort By Cost: 按成本排序
 Update %app_name%: 更新 %app_name%
-Connect Ledger: 連接賬本
-Connecting to your Ledger...: 連接到您的分類帳...
-Failed to connect: 連接失敗
-Ledger Connected!: 賬本連接！
-Select Ledger Wallets: 選擇分類帳錢包
-"%count% Selected": "%count% 已選"
-Add: 添加
 Try Again: 再試一次
 Driver: 司機
-Unlock it and open the %chain% App: 解鎖並開啟 %chain% 應用
 Maybe you need to check the password or change the driver.: 也許您需要檢查密碼或更改驅動程序。
-Confirm via Ledger: 通過賬本確認
-$ledger_confirm_progress: "確認第 %current% 個，共 %total% 個"
 Declined: 謝絕
-Switch to the newly opened tab to connect Ledger.: 切換到新開啟的頁籤以連接 Ledger。
-Once connected, switch back to this window to proceed.: 連接完成後，切換回此視窗以繼續。
 The time on your device is incorrect, sync it and try again.: 您設備上的時間不正確，請同步並重試
 Name or Address...: 姓名或地址...
 Such error, many tabs: 這樣的錯誤，很多標籤
@@ -405,9 +393,6 @@ $auth_responsibly_description4: |
 Start Wallet: 啟動錢包
 $auth_backup_warning_notice: |
   現在，您需要手動**備份密鑰**，以防忘記密碼或無法訪問該設備。
-$ledger_verify_address: 請務必使用您的 Ledger 設備驗證粘貼的地址。
-$ledger_not_ready: Ledger 未連接或 %chain% 應用程序未打開。
-Verify now: 現在檢查
 Invalid address format. Only URL Safe Base64 format is allowed.: 地址格式無效。 僅允許使用 URL Safe Base64 格式。
 Swap Placed: 已提交交換
 Swapping: 進行交換
@@ -575,7 +560,6 @@ Clear: 清除
 $unstake_up_to_information: 即時 – 高達 %value%
 $all_balance: "全部: %balance%"
 $unstaking_not_enough_balance: 您需要在您的主要余额中有 %value% 才能继续进行解押。
-$ledger_verify_address_on_device: 請驗證您的 Ledger 上的網址。
 Wallet Versions: 錢包版本
 $read_more_about_wallet_version: 在%link%上了解更多關於錢包合約的類型。
 $current_wallet_version: 您當前的錢包版本為%version%。
@@ -596,7 +580,6 @@ $hide_tokens_no_cost_help: |
 No internet connection. Please check your connection and try again.: 沒有網路連線。 請檢查您的連線並重試。
 To use this feature, first enable Face ID in your phone settings.: 若要使用此功能，請先在手機設定中啟用面容 ID。
 To use this feature, first enable biometrics in your phone settings.: 若要使用此功能，請先在手機設定中啟用生物辨識功能。
-Open Settings: 開啟設定
 No Price: 無價格
 $dapp_transfer_tokens_burn: 燃燒%amount%
 $dapp_dns_set_wallet_payload: 將網域 %domain% 的連結錢包更改為 %address%
@@ -631,7 +614,6 @@ NFT is for sale: NFT 正在出售
 More actions: 更多操作
 Open on %explorer_name%: 在 %explorer_name% 上打開
 Swap is not supported in Testnet.: 測試網不支援共享。
-Swap is not yet supported by Ledger.: Ledger 尚不支援該交易所。
 Buying with card is not supported in Testnet.: 測試網不支援刷卡購買。
 Staking is not supported in Testnet.: 測試網不支援質押。
 Get Support: 得到支持
@@ -738,7 +720,6 @@ Confirm Sending: 確認發送
 Confirm Burning: 確認刻錄
 Confirm Passcode: 確認密碼
 Enter your code: 輸入您的代碼
-$hardware_blind_sign_not_enabled: 要繼續，請在 Ledger 的 %chain% 應用程序設置中啟用“盲簽名”選項。
 Switch to W5: 切換到 W5
 Not Scam: 不是騙局
 Untitled: 未命名
@@ -750,9 +731,6 @@ Enter Secret Words: 輸入密語
 Turn this off so you can manually download updates and verify signatures.: 關閉此功能以手動下載更新並驗證簽名。
 InvalidMnemonic: 您的助記詞無效
 NFT Menu: NFT選單
-Connection Type: 連接類型
-Ledger is not supported on this device: 此設備不支持 Ledger
-Connect your Ledger: 連接您的 Ledger
 $app_lock_description: 啟用應用程式鎖後，主頁面的卡片上會出現鎖圖標。使用它鎖定 %app_name%。
 App Lock: 應用程式鎖
 Auto-Lock: 自動鎖
@@ -972,7 +950,6 @@ The binary data content is unclear. Sign it only if you trust the service.: 二�
 Cell Schema: 單元結構
 Cell Data: 單元資料
 Sign Data: 簽署資料
-Please confirm signature on your Ledger: 請在您的Ledger上確認簽名
 Utilities: 實用工具
 Games: 遊戲
 Entertainment: 娛樂
@@ -987,8 +964,6 @@ $in_currency: 以 %currency%
 Rename Wallet: 重新命名錢包
 You can rename this wallet for easier identification.: 您可以重新命名該錢包以便於識別。
 Collectibles: 收藏品
-Bluetooth unavailable: 藍牙不可用
-$bluetooth_enable_guide: 請在設備設定中開啟藍牙並允許應用程式存取藍牙。
 Canceled by the user: 用戶已取消
 The proof for signing provided by the app is too large: 應用提供的簽名證明過大
 $domain_like_scam_warning: |
@@ -1036,9 +1011,6 @@ $auth_biometric_info: 您可以連接生物識別資料以**獲得更多便利�
 Open wallet without checking: 不檢查直接開啟錢包
 Make sure you have your secret words securely saved.: 請確保您已安全保存密語。
 Without it, you won't be able to access your wallet.: 沒有它，您將無法存取您的錢包。
-$ledger_connection_broken: Ledger連線已中斷。請重新連接並再試一次。
-$ledger_wrong_device: 當前帳戶使用了其他 Ledger 密語或密碼，或存儲在其他 Ledger 設備上
-Show More: 顯示更多
 Search app or enter address: 搜尋應用程式或輸入地址
 Search or Ask: 搜尋或提問
 Connected Apps: 已連線的應用程式
@@ -1064,9 +1036,7 @@ All: 全部
 $view_accounts: 查看
 Add your first one to begin.: 新增您的第一個錢包以開始。
 You don’t have any wallets yet: 您還沒有任何錢包
-Add Ledger Wallet: 新增 Ledger 錢包
 Add View Wallet: 新增檢視錢包
-No Ledger wallets yet: 尚無 Ledger 錢包
 No view wallets yet: 尚無檢視錢包
 View wallets can receive assets, but you cannot use them to send or sign transactions.: 檢視錢包可以接收資產，但你無法用它來發送或簽署交易。
 Add the first one to track balances and activity for any address.: 新增第一個錢包以追蹤任何地址的餘額和活動。
@@ -1157,8 +1127,6 @@ Transfer Info: 轉帳資訊
 Transfer not found: 未找到轉帳
 Failed to fetch transfer: 取得轉帳失敗
 Transfer in progress: 轉帳進行中
-Please confirm transfer on your Ledger: 請在您的 Ledger 上確認轉帳
-Please confirm action on your Ledger: 請在您的 Ledger 上確認操作
 Not all transfers were sent successfully: 並非所有轉帳都發送成功
 Please confirm transfer using biometrics: 請使用生物辨識確認轉帳
 $transfer_inactive_contract_error: |
@@ -1173,7 +1141,6 @@ Confirm action with your password: 用密碼確認操作
 $dapps-description: 您可以在支援 %app_name% 的應用上登入。它們可以查看錢包地址、餘額並請求操作。
 Please verify the action.: 請驗證操作。
 $service_token_transfer_warning: 您即將轉移一個重要的服務代幣，該代幣是提取存款或完成服務操作所必需的。請確保這是您打算執行的操作。
-$ledger_outdated: 此操作不受您的 Ledger %chain% 應用程式版本支援。請使用 Ledger Live 更新它。
 $hardware_payload_warning: "**第三方服務正在請求存取您的錢包。** 這可能導致資金損失。如果您不確定此服務的可靠性，請取消操作。"
 Pin: 固定
 Unpin: 取消固定
@@ -1285,7 +1252,6 @@ New Subwallet: 新子錢包
 From current secret words: 來自當前密語
 $secret_words: 密語
 Restore wallet from 12 or 24 words: 使用 12 或 24 個助記詞恢復錢包
-Connect your hardware wallet: 連接您的硬體錢包
 Watch wallet in read-only mode: 以唯讀模式查看錢包
 More: 更多
 at: 於
@@ -1293,8 +1259,6 @@ I agree to %term%: 我同意 %term%
 See Words: 查看單詞
 Wrong Phrase: 片語不正確
 Permission Denied: 拒絕存取
-USB: USB
-Bluetooth: 藍牙
 Locked: 已鎖定
 Enter passcode or use fingerprint: 輸入 PIN 碼或使用指紋
 Use PIN: 使用 PIN 碼
@@ -1430,7 +1394,6 @@ Payment Address: 付款地址
 "Enter your Wallet Passcode": 輸入錢包 PIN 碼
 "Import failed": 匯入失敗
 "Install Palette": 安裝調色盤
-Ledger: Ledger
 "Moving to staking balance": 正移至質押餘額
 My Wallet uses biometric authentication to unlock and authorize transactions: ION Wallet 使用生物辨識來解鎖並授權交易
 "Network error": 網路錯誤
@@ -1451,16 +1414,9 @@ Set a passcode: 設定 PIN 碼
 "Show All %name%": "顯示所有 %name%"
 "TON Wallet Versions": ION 錢包版本
 "Tap to reveal": 點一下顯示
-"The current version of Ledger only supports English-language comments without special characters.": 目前版本的 Ledger 僅支援英文註解且不得有特殊符號。
 "There is no activity history for this wallet yet.": 此錢包尚無活動紀錄。
 "This is how the TON Blockchain works.": TON 區塊鏈就是這樣運作的。
-"This type of transaction is not yet supported by Ledger.": Ledger 尚未支援此類交易。
-"Transaction to this smart contract is not yet supported by Ledger.": Ledger 尚未支援針對此智慧合約的交易。
-"Transferring NFT is not yet supported by Ledger.": Ledger 尚未支援 NFT 轉移。
-Connect your Ledger via Bluetooth: 透過藍牙連接您的 Ledger
 Discovering wallets: 正在尋找錢包
-Bluetooth Access Denied: 藍牙存取遭拒
-Bluetooth access is needed to connect Ledger.: 需要藍牙存取權限才能連接 Ledger。
 Address not resolved: 無法解析地址
 Sending more than one NFT isn't supported by Ledger: Ledger 不支援一次傳送多個 NFT
 "Updating…": 更新中…

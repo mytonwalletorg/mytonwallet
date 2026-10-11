@@ -213,7 +213,6 @@ export async function submitGasfullTransfer(
   try {
     const account = await fetchStoredChainAccount(accountId, chain);
 
-    if (account.type === 'ledger') throw new Error('Not supported by Ledger accounts');
     if (account.type === 'view') throw new Error('Not supported by View accounts');
 
     const { address } = account.byChain[chain];
