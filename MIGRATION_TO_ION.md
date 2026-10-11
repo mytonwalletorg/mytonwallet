@@ -17,7 +17,7 @@
 | Сети | ✅ | Удалены Tron и Solana. Из EVM оставлена только BNB Chain; из токенов BNB оставлен только ION. |
 | Бренды и Explorer | ◐ | Удалены Gram Wallet и его iOS widget extension. Переименованы web/npm, Android и iOS targets, desktop-артефакты, package IDs, ION Gateway/EIP-6963 identifiers и основные deep link-схемы в ION Wallet. |
 | История релизов и CI | ✅ | Удалены changelogs и неактуальные build/deploy-пайплайны. |
-| ION API и инфраструктура | ◐ | Runtime URL переведены на `wallet.ice.io`; в предпросмотре подключён ION RPC v2. Полноценного совместимого v3 indexer пока нет. Firebase использует безопасную заглушку до получения настоящих ключей. |
+| ION API и инфраструктура | ◐ | Runtime URL переведены на `wallet.ice.io`; в предпросмотре подключён ION RPC v2. ION v3 indexer совместим, кошельку нужен свой прокси Toncenter. Firebase использует безопасную заглушку до получения настоящих ключей. |
 | Agent | ✅ | Удалены оставшиеся ключи storage и локализаций, CI-задачи, иконки, анимации, CSS и комментарии. |
 | iOS-проект | ✅ | Удалены Air-only targets, Gram Wallet и widget extension; рабочие схемы — `IONWallet`, `IONWallet_NoExtensions`, `IONWallet_Preview`. `pod install`, `cap sync ios` и сборка всех трёх схем для generic iOS Simulator проходят. |
 
@@ -76,10 +76,11 @@
   - Workspace разрешает зависимости; после `cap sync ios` собраны `IONWallet`, `IONWallet_NoExtensions` и `IONWallet_Preview` для generic iOS Simulator с отключённым code signing.
   - Запуск на симуляторе или устройстве остаётся ручной проверкой из P2.
 
-- [ ] **Закрыть вопрос с ION activity API.**
-  - ION RPC v2 отвечает на JSON-RPC вызовы и подходит для базовых операций.
-  - Кошелёк использует v3 indexer для истории, pending activities и части данных об аккаунте.
-  - Нужен совместимый ION v3 endpoint либо отдельная адаптация слоя активности. Подмена nginx не решает проблему.
+- [x] **Закрыть вопрос с ION activity API.**
+  - ION v3 indexer (`https://api.mainnet.ice.io/indexer/v3`) совместим: `/actions` (включая `action_id` и фильтры), `/traces` по `trace_id`/`msg_hash`/`tx_hash`, `/messages`, `/transactions`, `/jetton/wallets`, `/nft/items`, `/nft/transfers`, `/addressBook`, `/walletStates`, `/accountStates`, `/metadata` отвечают в формате, который ждёт клиент. RPC v2 — `https://api.mainnet.ice.io/http/v2`.
+  - Отличия ION учтены в клиенте: нативный перевод называется `ion_transfer`, провайдер ликвидного стейкинга — `ionstakers`.
+  - Пути у ION другие (`/indexer/v3`, `/http/v2` вместо `/api/v3`, `/api/v2`), а CORS не пропускает заголовки клиента (`X-Actions-Version`, `X-App-Origin`). Поэтому кошелёк ходит через свой прокси — см. P1 про прокси Toncenter.
+  - Не хватает на стороне ION (кошелёк работает без них): `/pendingActions` и `/pendingTraces` отвечают `500 emulatedTracesRepository is not initialized` — нет ожидающих операций до подтверждения; `/api/emulate/v1/emulateTrace` нет — комиссия считается через `estimateFee`, превью действий в dApp-транзакциях не показывается; streaming WebSocket нет — см. `NO_WEBSOCKET`. Публичного ION testnet API нет.
 
 - [ ] **Убрать зависимость preview от MyTonWallet backend.**
   - ✅ `GET /assets` перенесён в ION backend. Slug токена теперь `<chain>-<полный канонический адрес>` (EIP-55 для BNB, bounceable для ION) вместо 10 символов в нижнем регистре: обрезанный slug позволял поддельному токену совпасть с настоящим.
@@ -89,7 +90,7 @@
     - кошелёк и безопасность: `GET /assets`, `/currency-rates`, `/known-addresses`, `/utils/get-config`;
     - каталог и рынок: `/v2/dapp/catalog`, `/prices/chart/*`;
     - legacy swap: `/swap/*`, DEX/CEX маршрутизация и история swap удаляются; будущий ION bridge не использует эти endpoint-ы;
-    - staking и DNS: `/staking/*`, `/dns/getDomains` — требуют утверждённых ION контрактов и indexer;
+    - staking и DNS: `/staking/common` и `/staking/state` перенесены в ION backend; `/dns/getDomains` ждёт решения по ION DNS-зоне;
     - уведомления и live-обновления: `/notifications/*`, WebSocket `/{testnet/}ws`;
     - proxy: `/proxy/download-json` и `/proxy/download-lottie` для внешних метаданных и анимаций.
   - После решения проверить, что все runtime запросы к backend идут к утверждённому ION-сервису, а не к MyTonWallet; сами GitHub forks в `package.json` остаются закреплёнными исходниками зависимостей до появления ION forks.
@@ -148,6 +149,8 @@
 - [ ] Снять `NO_WEBSOCKET`, когда ION начнёт отдавать update-сокет.
   - Пока сборки используют HTTP polling вместо Toncenter, EVM и backend WebSocket.
 - [ ] Пересмотреть CI после удаления Agent: оставить только проверки актуальных web и Capacitor целей.
+- [ ] Поднять production-прокси Toncenter на `toncenter.wallet.ice.io` (адрес по умолчанию в клиенте) с раскладкой как в предпросмотре: `/api/v2/` → ION RPC (`/http/v2/`), `/api/v3/` → ION indexer (`/indexer/v3/`).
+- [ ] Попросить ION включить в индексаторе emulated traces (`/pendingActions`, `/pendingTraces`), `emulateTrace` и streaming WebSocket.
 - [ ] Закоммитить и перенести в репозиторий nginx-конфигурацию предпросмотра `wallet.lab.windbit.dev`, если она остаётся частью инфраструктуры проекта.
 
 ### P2 — проверка перед выпуском
@@ -162,7 +165,7 @@
 ## Известные технические факты
 
 - Предпросмотр на Home Lab уже умеет проксировать ION RPC v2. В нём также устранены утечка basic-auth заголовка в upstream и ошибочный SPA fallback для отсутствующих API.
-- У ION пока нет совместимого v3 indexer. Без решения этого вопроса история операций не может считаться готовой.
+- ION v3 indexer совместим с клиентом, но без emulated traces, `emulateTrace` и streaming. Подробности — в P0 «ION activity API».
 - Android: `:app:assembleIonwalletProdDebug` проходит с Firebase-заглушкой. iOS: `cap sync ios --deployment`, `pod install` и Xcode-сборка всех рабочих схем проходят; запуск требует совместимого iOS runtime или подключённого устройства.
 - В текущем checkout нет файла `AGENTS.md`. Запрошенная зачистка Agent относится к остаткам функциональности в коде и CI, перечисленным выше.
 

@@ -154,13 +154,14 @@ export type NftTransfersResponse = {
   metadata: MetadataMap;
 };
 
-export type StakingProvider = 'tonstakers' | 'nominators' | (string & {});
+export type StakingProvider = 'ionstakers' | (string & {});
 export type DexSlug = 'stonfi' | 'stonfi_v2' | 'dedust';
 export type MarketplaceSlug = 'getgems';
 export type AnyTokenMetadata = NftCollectionMetadata | NftItemMetadata | JettonMasterMetadata;
 
 export type TonTransferAction = BaseAction & {
-  type: 'ton_transfer';
+  // The ION indexer names the native transfer `ion_transfer`
+  type: 'ton_transfer' | 'ion_transfer';
   details: {
     source: string;
     destination: string;
