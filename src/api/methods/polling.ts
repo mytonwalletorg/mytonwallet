@@ -142,7 +142,6 @@ export async function tryUpdateConfig() {
       isLimited,
       isCopyStorageEnabled = false,
       now: serverUtc,
-      country: countryCode,
       isUpdateRequired: isAppUpdateRequired,
     } = config;
 
@@ -150,7 +149,6 @@ export async function tryUpdateConfig() {
       type: 'updateConfig',
       isLimited,
       isCopyStorageEnabled,
-      countryCode,
       isAppUpdateRequired,
     };
 

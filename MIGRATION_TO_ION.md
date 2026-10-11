@@ -94,12 +94,12 @@
     - proxy: `/proxy/download-json` и `/proxy/download-lottie` для внешних метаданных и анимаций.
   - После решения проверить, что все runtime запросы к backend идут к утверждённому ION-сервису, а не к MyTonWallet; сами GitHub forks в `package.json` остаются закреплёнными исходниками зависимостей до появления ION forks.
 
-- [ ] **Принять решение по каждому оставшемуся полю `/utils/get-config`.**
-  - `isLimited` и `country`: нужны только для региональных ограничений iOS/Android; утвердить источник и правила ION или удалить ограничение.
-  - `isCopyStorageEnabled`: разрешает экспорт диагностических данных; определить, нужен ли он в production и чем управляется.
-  - `now`: используется для предупреждения о неверном времени устройства; сохранить через ION time endpoint либо заменить локальной проверкой.
-  - `isUpdateRequired`: обязательное обновление клиента; определить источник версии для App Store, Google Play и desktop.
-  - `isWebSocketEnabled`: сейчас не читается клиентом; удалить из контрактной схемы после решения, нужны ли live-обновления.
+- [x] **Принять решение по каждому оставшемуся полю `/utils/get-config`.**
+  - `isLimited`: ION backend отдаёт `false`, региональных ограничений нет.
+  - `country` и `isWebSocketEnabled`: удалены из контракта и клиента — клиент их не читал.
+  - `now`: серверное время для предупреждения о неверных часах устройства.
+  - `isCopyStorageEnabled`: `false`, экспорт диагностических данных выключен.
+  - `isUpdateRequired`: пока `false`. Перед релизом нужен источник версий для App Store, Google Play и desktop (P1).
   - Уже удалены без замены: `seasonalTheme`, `isNegVerdictCacheEnabled`, `isTonConnectAnalyticsEnabled`, `supportAccountsCount`, `knowledgeBaseVersion`, `isVestingEnabled`, `/account-config`, `/referrer/get`, `/attribution/claim`, `/nfts/report`, promotion UI, сезонные ресурсы, install attribution, NFT reporting, negative-verdict cache и TonConnect telemetry.
 
 ### P1 — подготовка продукта к ребрендингу и выпуску
@@ -129,6 +129,8 @@
 - [ ] Утвердить bridge-путь ION между ION Network и BNB Chain.
   - Зафиксировать контракт/адрес получателя, сеть-источник и сеть-назначение, правила amount/fee и подтверждения.
   - После этого включить создание обычной bridge-транзакции в сохранённом окне Exchange.
+- [ ] Включить обязательное обновление клиента через `isUpdateRequired` в `/utils/get-config`.
+  - Определить источник минимальной версии для App Store, Google Play и desktop и сравнивать с `X-App-Version` клиента.
 - [ ] Подготовить Electron publish-конфигурацию к выпуску.
   - В `src/electron/config.yml` установить generic publish URL `https://s3.wallet.ice.io/public/desktop-beta` и versioned artifact name `IONWallet-${version}-${arch}.${ext}`.
   - Одновременно сверить update feed, `package-and-publish.yml` и публичную desktop download-страницу, чтобы имена файлов и URL совпадали.

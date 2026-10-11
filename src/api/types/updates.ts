@@ -16,7 +16,6 @@ import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBalanceBySlug,
   ApiChain,
-  ApiCountryCode,
   ApiCurrencyRates,
   ApiDappConnectionType,
   ApiDappTransfer,
@@ -363,7 +362,6 @@ export type ApiUpdateConfig = {
   type: 'updateConfig';
   isLimited: boolean;
   isCopyStorageEnabled: boolean;
-  countryCode?: ApiCountryCode;
   isAppUpdateRequired: boolean;
 };
 

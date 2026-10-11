@@ -1,5 +1,5 @@
 import type { StakingPoolConfig } from '../chains/ton/contracts/JettonStaking/StakingPool';
-import type { ApiCountryCode, ApiLoyaltyType } from './misc';
+import type { ApiLoyaltyType } from './misc';
 
 export type ApiStakingJettonPool = {
   pool: string;
@@ -95,8 +95,5 @@ export type ApiBackendConfig = {
   isLimited: boolean;
   isCopyStorageEnabled?: boolean;
   now: number;
-  country: ApiCountryCode;
   isUpdateRequired: boolean;
-  isWebSocketEnabled?: boolean;
-  // Lower-case currency codes the on/off-ramp surfaces may offer; the client may only narrow its own baseline with it
 };

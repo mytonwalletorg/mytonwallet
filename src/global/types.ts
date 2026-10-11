@@ -16,7 +16,6 @@ import type {
   ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiChain,
-  ApiCountryCode,
   ApiCurrencyRates,
   ApiDappPermissions,
   ApiDappTransfer,
@@ -810,7 +809,6 @@ export type GlobalState = {
     isLimitedRegion: boolean;
     isNftBuyingDisabled: boolean;
     isCopyStorageEnabled?: boolean;
-    countryCode?: ApiCountryCode;
   };
 
   mediaViewer: {

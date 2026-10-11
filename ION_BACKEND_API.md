@@ -12,7 +12,7 @@
 | --- | --- | --- | --- |
 | ✅ P0 | `GET /assets?langCode=` | `api/common/tokens.ts` | Готово в ION backend: три токена закреплены в коде (ION, BNB, ION в BNB), цены и изменение за 24 ч из CoinGecko раз в 2 минуты; до первой загрузки запрос ждёт цены. `langCode` игнорируется. |
 | ✅ P0 | `GET /currency-rates` | `methods/polling.ts` | Готово в ION backend: `{ rates }` — единиц USD, EUR, RUB, CNY, BTC и ION (ключ `TON`) за 1 USD. Фиат и BTC из CoinGecko `exchange_rates` раз в 10 минут, ION — `1 / priceUsd` из `/assets`. До первой загрузки запрос ждёт данные. |
-| P0 | `GET /utils/get-config` | `methods/polling.ts` | `isLimited`, `country`, `now`, `isUpdateRequired`, `isCopyStorageEnabled`, `isWebSocketEnabled`. Решение по каждому полю — в плане миграции. |
+| ✅ P0 | `GET /utils/get-config` | `methods/polling.ts` | Готово в ION backend: `isLimited: false`, `now` (серверное время), `isUpdateRequired: false`, `isCopyStorageEnabled: false`. |
 | ✅ P0 | `GET /known-addresses` | `api/common/addresses.ts` | Готово в ION backend: `knownAddresses` из [catchain/ion-address-book](https://github.com/catchain/ion-address-book) раз в час, `scamMarkers`, `trustedSites` (домены `ice.io`), `trustedCollections` (пусто). Антифишинг и подписи адресов. |
 | P1 | `GET /staking/common` | `chains/ton/staking.ts` | `liquid` (rate, apy, available, tvl, totalStakers, loyaltyApy), `round`/`prevRound`, `jettonPools`. |
 | P1 | `GET /staking/state/{address}?isViewMode=1` | `chains/ton/staking.ts` | `balance`, `totalProfit`, `loyaltyBalance` и состояние стейкинга адреса. |

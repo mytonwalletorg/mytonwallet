@@ -273,7 +273,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const {
         isLimited: isLimitedRegion,
         isCopyStorageEnabled,
-        countryCode,
         isAppUpdateRequired,
       } = update;
 
@@ -285,7 +284,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         // to survive a shallow merge with a cached state
         isNftBuyingDisabled: shouldRestrictRegionalFeatures,
         isCopyStorageEnabled,
-        countryCode,
       });
       global = {
         ...global,
