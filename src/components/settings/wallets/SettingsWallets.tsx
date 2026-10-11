@@ -10,7 +10,6 @@ import {
   selectOrderedAccounts,
 } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
-import { getTelegramAvatarUrlFromDomain } from '../../../util/dns';
 
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -121,7 +120,6 @@ const SettingsWallets = ({
             isSensitiveDataHidden={isSensitiveDataHidden}
             className={buildClassName(styles.item, styles.item_withWallet)}
             avatarClassName={styles.itemAvatarWallet}
-            avatarUrl={getTelegramAvatarUrlFromDomain(byChain.ton?.domain)}
             onClick={handleSwitchAccount}
           />
         ))}

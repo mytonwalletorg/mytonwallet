@@ -2,7 +2,6 @@ import { TON_DNS_ZONES } from '../config';
 import {
   getDnsDomainZone,
   getDnsZoneByCollection,
-  getTelegramAvatarUrlFromDomain,
   isTonChainDns,
 } from './dns';
 
@@ -13,14 +12,6 @@ const correctDomains = [
       { full: 'foo-bar.ton', base: 'foo-bar' },
       { full: 'sub.domain.ton', base: 'sub.domain' },
       { full: 'sub.sub.domain.ton', base: 'sub.sub.domain' },
-    ],
-  },
-  {
-    zone: TON_DNS_ZONES.find((zone) => zone.suffixes[0] === 't.me'),
-    domains: [
-      { full: 'foo-bar_baz.t.me', base: 'foo-bar_baz' },
-      { full: 'sub.domain.t.me', base: 'sub.domain' },
-      { full: 'sub.sub.domain.t.me', base: 'sub.sub.domain' },
     ],
   },
   {
@@ -121,17 +112,4 @@ describe('getDnsZoneByCollection', () => {
       expect(getDnsZoneByCollection(zone.resolver)).toBe(zone);
     },
   );
-});
-
-describe('getTelegramAvatarUrlFromDomain', () => {
-  it('returns a Telegram avatar URL for direct .t.me domains', () => {
-    expect(getTelegramAvatarUrlFromDomain('tonsbid.t.me')).toBe('https://t.me/i/userpic/320/tonsbid.jpg');
-    expect(getTelegramAvatarUrlFromDomain('  Foo-Bar_Baz.t.me  ')).toBe('https://t.me/i/userpic/320/foo-bar_baz.jpg');
-  });
-
-  it('returns undefined for non-Telegram domains and Telegram subdomains', () => {
-    expect(getTelegramAvatarUrlFromDomain('tonsbid.ton')).toBeUndefined();
-    expect(getTelegramAvatarUrlFromDomain('sub.tonsbid.t.me')).toBeUndefined();
-    expect(getTelegramAvatarUrlFromDomain()).toBeUndefined();
-  });
 });

@@ -7,12 +7,10 @@ import type {
 import type { ParsedAction, ParsedTrace, TraceOutput } from './types';
 
 import { TONCOIN } from '../../../config';
-import { pauseWithAbortSignal, raceWithAbortSignal, throwIfAborted } from '../../../util/abortSignal';
+import { pauseWithAbortSignal, raceWithAbortSignal } from '../../../util/abortSignal';
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs, getIsActivityPending } from '../../../util/activities';
-import { mergeSortedActivities } from '../../../util/activities/order';
 import { toDecimal } from '../../../util/decimals';
-import { extractKey, findDifference, split } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { getSigner } from './util/signer';
@@ -24,9 +22,6 @@ import { fetchActions, fetchTransactions, parseActionActivityId } from './toncen
 import { fetchAndParseTrace } from './traces';
 
 const GET_TRANSACTIONS_LIMIT = 128;
-
-const RELOAD_ACTIVITIES_ATTEMPTS = 4;
-const RELOAD_ACTIVITIES_PAUSE = SEC;
 
 const TRACE_ATTEMPT_COUNT = 5;
 const TRACE_RETRY_DELAY = SEC;
@@ -95,75 +90,7 @@ export async function fetchActivitySlice({
     activities = activities.filter((activity) => getActivityTokenSlugs(activity).includes(tokenSlug));
   }
 
-  return reloadIncompleteActivities(network, address, activities, signal);
-}
-
-export async function reloadIncompleteActivities(
-  network: ApiNetwork,
-  address: string,
-  activities: ApiActivity[],
-  signal?: AbortSignal,
-) {
-  try {
-    let actionIdsToReload = activities
-      .filter((activity) => activity.shouldReload)
-      .map((activity) => parseActionActivityId(activity.id).actionId);
-
-    for (let attempt = 0; attempt < RELOAD_ACTIVITIES_ATTEMPTS && actionIdsToReload.length; attempt++) {
-      logDebug(`Reload incomplete activities #${attempt + 1}`, actionIdsToReload);
-      await pauseWithAbortSignal(RELOAD_ACTIVITIES_PAUSE, signal);
-
-      ({ activities, actionIdsToReload } = await tryReloadIncompleteActivities(
-        network,
-        address,
-        activities,
-        actionIdsToReload,
-        signal,
-      ));
-    }
-  } catch (err) {
-    throwIfAborted(signal);
-    logDebugError('reloadIncompleteActivities', err);
-  }
-
-  // We want to return the latest modified activities list in case of an error in the above `try { }`
   return activities;
-}
-
-async function tryReloadIncompleteActivities(
-  network: ApiNetwork,
-  address: string,
-  activities: ApiActivity[],
-  actionIdsToReload: string[],
-  signal?: AbortSignal,
-) {
-  const actionIdBatches = split(actionIdsToReload, GET_TRANSACTIONS_LIMIT);
-
-  const batchResults = await Promise.all(actionIdBatches.map(async (actionIds) => {
-    const reloadedActivities = await fetchActions({
-      network,
-      filter: { actionId: actionIds },
-      walletAddress: address,
-      limit: GET_TRANSACTIONS_LIMIT,
-      signal,
-    });
-    return reloadedActivities.filter((activity) => !activity.shouldReload);
-  }));
-
-  const reloadedActivities = batchResults.flat();
-
-  if (reloadedActivities.length) {
-    const replacedIds = new Set(extractKey(reloadedActivities, 'id'));
-    const reloadedActionIds = reloadedActivities.map((activity) => parseActionActivityId(activity.id).actionId);
-
-    activities = mergeSortedActivities(
-      activities.filter((activity) => !replacedIds.has(activity.id)),
-      reloadedActivities,
-    );
-    actionIdsToReload = findDifference(actionIdsToReload, reloadedActionIds);
-  }
-
-  return { activities, actionIdsToReload };
 }
 
 export async function decryptComment({ accountId, activity, enclaveToken }: ApiDecryptCommentOptions) {

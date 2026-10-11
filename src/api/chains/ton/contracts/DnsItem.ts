@@ -40,14 +40,6 @@ export class DnsItem implements Contract {
     return domain;
   }
 
-  async getTelemintDomain(provider: ContractProvider) {
-    const res = await provider.get('get_full_domain', []);
-    // The contract returns the full domain with its parts in reverse order, separated by zero bytes: "me\0t\0alice\0"
-    const parts = res.stack.readString().split('\0').filter(Boolean);
-    parts.reverse();
-    return parts.join('.');
-  }
-
   async getNftData(provider: ContractProvider) {
     const res = await provider.get('get_nft_data', []);
     const isInitialized = res.stack.readBoolean();

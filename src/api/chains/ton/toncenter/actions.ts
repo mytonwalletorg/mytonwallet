@@ -95,11 +95,6 @@ function resolveActivityStatus(
   return isSuccess ? 'completed' : 'failed';
 }
 
-const RAW_NFT_CARD_COLLECTION = '0:901362FD85FC31D55F2C82617D91EADA1F1D6B34AF559A047572D56F20D046CA';
-const TME_RENEW_HASH_SUFFIX = '0000000000000000000000000000000000000000000000';
-
-const RAW_NFT_COLLECTIONS_TO_RELOAD_METADATA = new Set<string | null>([RAW_NFT_CARD_COLLECTION]);
-
 type FetchActionsOptions = {
   network: ApiNetwork;
   filter: {
@@ -473,7 +468,7 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Par
     payout_amount: payoutAmount,
   } = action.details;
 
-  const { nft, isMetadataMissing } = parseToncenterNft(
+  const { nft } = parseToncenterNft(
     network,
     metadata,
     rawNftAddress,
@@ -500,8 +495,6 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Par
     slug: TONCOIN.slug,
     nft,
     comment: (forwardPayload && safeReadComment(forwardPayload)) || undefined,
-    shouldReload: (isMetadataMissing && RAW_NFT_COLLECTIONS_TO_RELOAD_METADATA.has(action.details.nft_collection))
-      || undefined,
     extra: omitUndefined({
       queryId: action.details.query_id,
     }),
@@ -538,7 +531,7 @@ function parseNftMint(action: NftMintAction, options: ParseOptions): ParsedActio
     nft_collection: rawCollectionAddress,
   } = action.details;
 
-  const { nft, isMetadataMissing } = parseToncenterNft(
+  const { nft } = parseToncenterNft(
     network,
     metadata,
     rawNftAddress,
@@ -550,8 +543,6 @@ function parseNftMint(action: NftMintAction, options: ParseOptions): ParsedActio
     slug: TONCOIN.slug,
     nft,
     type: 'mint',
-    shouldReload: (isMetadataMissing && RAW_NFT_COLLECTIONS_TO_RELOAD_METADATA.has(action.details.nft_collection))
-      || undefined,
   };
 
   return {
@@ -656,10 +647,7 @@ function parseDns(action: DnsAction, options: ParseOptions): ParsedAction {
     } else if (sumType === 'DNSNextResolver') {
       type = 'dnsChangeSubdomains';
     }
-  } else if (
-    action.type === 'renew_dns'
-    || (action.type === 'delete_dns' && action.details.hash.endsWith(TME_RENEW_HASH_SUFFIX))
-  ) {
+  } else if (action.type === 'renew_dns') {
     type = 'dnsRenew';
   } else {
     type = 'dnsDelete';
@@ -774,14 +762,14 @@ export function parseToncenterNft(
      */
     isDns?: boolean;
   },
-): { nft?: ApiNft; isMetadataMissing?: true } {
+): { nft?: ApiNft } {
   const { rawCollectionAddress, index, ownerAddress, isOnSale, isDns: isDnsByContext } = options ?? {};
 
   try {
     const nftMetadata = extractMetadata<NftItemMetadata>(rawNftAddress, metadataMap, 'nft_items');
 
     if (!nftMetadata) {
-      return { isMetadataMissing: true };
+      return {};
     }
 
     const {

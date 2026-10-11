@@ -347,10 +347,7 @@ export async function getDnsItemDomain(network: ApiNetwork, address: Address | s
     return undefined;
   }
 
-  // Telemint contracts return the full domain, the other contracts return only the part before the zone suffix
-  return zone.isTelemint
-    ? await contract.getTelemintDomain()
-    : `${await contract.getDomain()}.${zone.suffixes[0]}`;
+  return `${await contract.getDomain()}.${zone.suffixes[0]}`;
 }
 
 export function buildJettonUnstakePayload(jettonsToUnstake: bigint, forceUnstake?: boolean, queryId?: bigint) {

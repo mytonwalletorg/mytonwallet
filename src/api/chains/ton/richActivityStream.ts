@@ -1,14 +1,11 @@
 import type { ApiActivity } from '../../types';
 import type { ActivityStream, OnActivityUpdate, OnLoadingChange } from './toncenter';
 
-import { parseAccountId } from '../../../util/account';
 import { mergeSortedActivities } from '../../../util/activities/order';
 import { createCallbackManager } from '../../../util/callbacks';
 import { areSortedArraysEqual, extractKey } from '../../../util/iteratees';
 import { OrGate } from '../../../util/orGate';
 import { throttle } from '../../../util/schedulers';
-import { fetchStoredWallet } from '../../common/accounts';
-import { reloadIncompleteActivities } from './activities';
 
 /**
  * Like `ActivityStream` but applies `enrichActivities` to the confirmed activities.
@@ -16,8 +13,6 @@ import { reloadIncompleteActivities } from './activities';
  * @see enrichActivities
  */
 export class RichActivityStream {
-  #accountId: string;
-
   /** Sorted by timestamp descending */
   #confirmedActivitiesToReport: ApiActivity[] = [];
 
@@ -33,12 +28,7 @@ export class RichActivityStream {
 
   #onDestroy: NoneToVoidFunction[];
 
-  constructor(
-    accountId: string,
-    rawActivityStream: ActivityStream,
-  ) {
-    this.#accountId = accountId;
-
+  constructor(rawActivityStream: ActivityStream) {
     this.#onDestroy = [
       rawActivityStream.onUpdate(this.#handleRawActivitiesUpdate),
       rawActivityStream.onLoadingChange((isLoading) => this.#isLoading.toggle('raw', isLoading)),
@@ -80,18 +70,17 @@ export class RichActivityStream {
   };
 
   // Using `throttle` to batch the new activities and ensure that they are reported in the order they were received
-  #enrichAndReportActivities = throttle(async () => {
+  #enrichAndReportActivities = throttle(() => {
     if (this.#isDestroyed) return;
 
     try {
       this.#isLoading.on('enrich');
 
-      const rawConfirmedActivities = this.#confirmedActivitiesToReport;
+      const confirmedActivities = this.#confirmedActivitiesToReport;
       this.#confirmedActivitiesToReport = [];
-      const richConfirmedActivities = await enrichActivities(this.#accountId, rawConfirmedActivities);
 
-      this.#pendingActivities.updateAfterEnrichment(rawConfirmedActivities);
-      this.#reportActivities(richConfirmedActivities);
+      this.#pendingActivities.updateAfterEnrichment(confirmedActivities);
+      this.#reportActivities(confirmedActivities);
     } finally {
       this.#isLoading.off('enrich');
     }
@@ -157,13 +146,4 @@ function deduplicateActivityUpdates(onUpdate: OnActivityUpdate): OnActivityUpdat
 
     lastPendingActivities = pendingActivities;
   };
-}
-
-async function enrichActivities(accountId: string, activities: ApiActivity[]) {
-  const { network } = parseAccountId(accountId);
-  const { address } = await fetchStoredWallet(accountId, 'ton');
-
-  activities = await reloadIncompleteActivities(network, address, activities);
-
-  return activities;
 }

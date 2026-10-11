@@ -223,7 +223,7 @@ function setupActivityPolling(
       },
     );
 
-    richActivityStream = new RichActivityStream(accountId, rawActivityStream);
+    richActivityStream = new RichActivityStream(rawActivityStream);
 
     rawActivityStream.onUpdate(onRawActivities);
     richActivityStream.onUpdate(onRichActivities);

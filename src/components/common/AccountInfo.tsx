@@ -12,7 +12,6 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getOrderedAccountChains } from '../../util/chain';
-import { getTelegramAvatarUrlFromDomain } from '../../util/dns';
 import { formatAccountAddresses } from '../../util/formatAccountAddress';
 import { formatCurrency } from '../../util/formatNumber';
 import isViewAccount from '../../util/isViewAccount';
@@ -28,7 +27,6 @@ interface StateProps {
   visibleChains?: ApiChain[];
   isSensitiveDataHidden?: boolean;
   isTestnet?: boolean;
-  avatarUrl?: string;
 }
 
 interface OwnProps {
@@ -41,7 +39,6 @@ function AccountInfo({
   visibleChains,
   isSensitiveDataHidden,
   isTestnet,
-  avatarUrl,
   balanceData,
 }: StateProps & OwnProps) {
   if (!currentAccount) return;
@@ -58,7 +55,6 @@ function AccountInfo({
         title={currentAccount.title}
         accountId={currentAccountId}
         className={styles.avatar}
-        imageUrl={avatarUrl}
       />
 
       <div className={styles.titleRow}>
@@ -101,6 +97,5 @@ export default memo(withGlobal((global): StateProps => {
     visibleChains: selectCurrentAccountChainDisplay(global)?.visibleChains,
     isSensitiveDataHidden,
     isTestnet,
-    avatarUrl: getTelegramAvatarUrlFromDomain(currentAccount?.byChain.ton?.domain),
   };
 })(AccountInfo));

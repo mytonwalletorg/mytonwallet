@@ -7,7 +7,6 @@ import type { AccountBalance } from '../../hooks/useAccountsBalances';
 
 import buildClassName from '../../util/buildClassName';
 import { getOrderedAccountChains } from '../../util/chain';
-import { getTelegramAvatarUrlFromDomain } from '../../util/dns';
 import { formatAccountAddresses } from '../../util/formatAccountAddress';
 import { formatCurrency } from '../../util/formatNumber';
 import isViewAccount from '../../util/isViewAccount';
@@ -28,7 +27,6 @@ export interface AccountRowInnerProps {
   isSensitiveDataHidden?: true;
   suffixIcon?: TeactNode;
   avatarClassName?: string;
-  avatarUrl?: string;
 }
 
 /**
@@ -46,12 +44,10 @@ function AccountRowInner({
   isSensitiveDataHidden,
   suffixIcon,
   avatarClassName,
-  avatarUrl,
 }: AccountRowInnerProps) {
   const isView = isViewAccount(accountType);
   const chains = visibleChains ?? getOrderedAccountChains(byChain);
   const formattedAddress = formatAccountAddresses(byChain, chains, chains.length === 1 ? 'medium' : 'small');
-  const resolvedAvatarUrl = avatarUrl ?? getTelegramAvatarUrlFromDomain(byChain.ton?.domain);
 
   return (
     <>
@@ -59,7 +55,6 @@ function AccountRowInner({
         title={title}
         accountId={accountId}
         className={buildClassName(styles.avatar, avatarClassName)}
-        imageUrl={resolvedAvatarUrl}
       />
 
       <div className={styles.info}>

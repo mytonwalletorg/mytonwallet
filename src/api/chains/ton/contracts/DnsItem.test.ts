@@ -49,16 +49,6 @@ describe('getNftData', () => {
   });
 });
 
-describe('getTelemintDomain', () => {
-  it('assembles the domain from the reversed zero-separated parts', async () => {
-    const provider = mockProvider({
-      get_full_domain: [{ type: 'slice', cell: beginCell().storeStringTail('me\0t\0alice\0').endCell() }],
-    });
-
-    expect(await new DnsItem(ITEM_ADDRESS).getTelemintDomain(provider)).toBe('alice.t.me');
-  });
-});
-
 function mockProvider(stackByMethod: Record<string, TupleItem[]>) {
   return {
     get(method: string) {

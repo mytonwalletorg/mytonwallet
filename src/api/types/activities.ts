@@ -17,8 +17,6 @@ type BaseActivity = {
   shouldHide?: boolean;
   /** Trace external message hash normalized. Not unique but doesn't change in pending activities. Only for TON. */
   externalMsgHashNorm?: string;
-  /** Whether the activity data should be re-loaded to get the necessary data before showing in the activity list */
-  shouldReload?: boolean;
   /**
    * Whether more details should be loaded by calling the `fetchTonActivityDetails` action when the activity modal is
    * open. Undefined means "no".

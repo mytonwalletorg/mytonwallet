@@ -543,16 +543,6 @@ export const TON_DNS_ZONES = [
     collectionName: 'TON DNS Domains',
     isRenewable: true,
     isLinkable: true,
-    isTelemint: false,
-  },
-  {
-    suffixes: ['t.me'],
-    baseFormat: /^([-\da-z]+\.){0,2}[-_\da-z]{4,32}$/i,
-    resolver: 'EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi',
-    collectionName: 'Telegram Usernames',
-    isRenewable: false,
-    isLinkable: true,
-    isTelemint: true,
   },
   {
     suffixes: ['vip', 'ton.vip', 'vip.ton'],
@@ -561,7 +551,6 @@ export const TON_DNS_ZONES = [
     collectionName: 'VIP DNS Domains',
     isRenewable: false,
     isLinkable: true,
-    isTelemint: false,
   },
   {
     suffixes: ['grm'],
@@ -570,7 +559,6 @@ export const TON_DNS_ZONES = [
     collectionName: 'GRAM DNS Domains',
     isRenewable: false,
     isLinkable: true,
-    isTelemint: false,
   },
 ] as const;
 
