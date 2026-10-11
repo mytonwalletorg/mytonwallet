@@ -421,7 +421,7 @@ export const CURRENCIES: Record<
     decimals: 9,
     shortSymbol: 'ION',
     shortSymbolPosition: 'end',
-    fallbackRate: '0.31360000',
+    fallbackRate: '13238',
   },
 };
 
