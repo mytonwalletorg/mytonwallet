@@ -25,7 +25,7 @@ function getApiUpdateHandler() {
 
 function makeGlobal(currentAccountId: string): GlobalState {
   const account = { title: 'Test', type: 'mnemonic', byChain: {} };
-  const accountIds = ['0-ton-mainnet', '0-ton-testnet'];
+  const accountIds = ['0-mainnet', '0-testnet'];
   return {
     currentAccountId,
     accounts: { byId: Object.fromEntries(accountIds.map((id) => [id, account])) },
@@ -39,7 +39,7 @@ function makeGlobal(currentAccountId: string): GlobalState {
 }
 
 describe('updateNfts api update', () => {
-  const ACCOUNT_ID = '0-ton-mainnet';
+  const ACCOUNT_ID = '0-mainnet';
   const NFT_ADDRESS = 'EQAglL_g6q2AhMK_BT9jN1F-8jBlv2pOI30vRkPluU9kcXgV';
 
   function makeNft(partial: Partial<ApiNft> = {}): ApiNft {
@@ -112,33 +112,33 @@ describe('removeAccounts api update', () => {
   }
 
   it('re-selects a surviving account when the removed one was current', () => {
-    const { actions, updatedGlobal } = dispatchRemoveAccounts(makeGlobal('0-ton-testnet'), ['0-ton-testnet']);
+    const { actions, updatedGlobal } = dispatchRemoveAccounts(makeGlobal('0-testnet'), ['0-testnet']);
 
-    expect(updatedGlobal.byAccountId).not.toHaveProperty('0-ton-testnet');
-    expect(actions.switchAccount).toHaveBeenCalledWith({ accountId: '0-ton-mainnet', newNetwork: 'mainnet' });
+    expect(updatedGlobal.byAccountId).not.toHaveProperty('0-testnet');
+    expect(actions.switchAccount).toHaveBeenCalledWith({ accountId: '0-mainnet', newNetwork: 'mainnet' });
   });
 
   it('skips a stale ordered id that no longer has an account when picking the survivor', () => {
-    const global = makeGlobal('0-ton-testnet');
+    const global = makeGlobal('0-testnet');
     // `orderedAccountIds` retains a ghost id from an account removed in an earlier session (never cleaned there).
-    global.settings.orderedAccountIds = ['9-ton-mainnet', '0-ton-mainnet', '0-ton-testnet'];
+    global.settings.orderedAccountIds = ['9-mainnet', '0-mainnet', '0-testnet'];
 
-    const { actions } = dispatchRemoveAccounts(global, ['0-ton-testnet']);
+    const { actions } = dispatchRemoveAccounts(global, ['0-testnet']);
 
-    expect(actions.switchAccount).toHaveBeenCalledWith({ accountId: '0-ton-mainnet', newNetwork: 'mainnet' });
+    expect(actions.switchAccount).toHaveBeenCalledWith({ accountId: '0-mainnet', newNetwork: 'mainnet' });
   });
 
   it('does not switch when the current account survives', () => {
-    const { actions, updatedGlobal } = dispatchRemoveAccounts(makeGlobal('0-ton-mainnet'), ['0-ton-testnet']);
+    const { actions, updatedGlobal } = dispatchRemoveAccounts(makeGlobal('0-mainnet'), ['0-testnet']);
 
-    expect(updatedGlobal.currentAccountId).toBe('0-ton-mainnet');
+    expect(updatedGlobal.currentAccountId).toBe('0-mainnet');
     expect(actions.switchAccount).not.toHaveBeenCalled();
   });
 
   it('leaves no account selected after a full wipe', () => {
     const { actions, updatedGlobal } = dispatchRemoveAccounts(
-      makeGlobal('0-ton-testnet'),
-      ['0-ton-mainnet', '0-ton-testnet'],
+      makeGlobal('0-testnet'),
+      ['0-mainnet', '0-testnet'],
     );
 
     expect(updatedGlobal.currentAccountId).toBeUndefined();

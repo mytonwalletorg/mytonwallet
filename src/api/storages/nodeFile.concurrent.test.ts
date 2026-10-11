@@ -46,7 +46,7 @@ describe('node-file storage cross-process concurrency', () => {
       startPath,
       'accounts',
       JSON.stringify({
-        'ton-testnet-1': {
+        '1-testnet': {
           type: 'mnemonic',
           byChain: {
             ton: { address: 'address-1' },
@@ -59,7 +59,7 @@ describe('node-file storage cross-process concurrency', () => {
       readyBPath,
       startPath,
       'currentAccountId',
-      JSON.stringify('ton-testnet-1'),
+      JSON.stringify('1-testnet'),
     ]);
 
     await Promise.all([
@@ -74,14 +74,14 @@ describe('node-file storage cross-process concurrency', () => {
 
     expect(stored).toEqual({
       accounts: {
-        'ton-testnet-1': {
+        '1-testnet': {
           type: 'mnemonic',
           byChain: {
             ton: { address: 'address-1' },
           },
         },
       },
-      currentAccountId: 'ton-testnet-1',
+      currentAccountId: '1-testnet',
     });
   });
 
@@ -105,7 +105,7 @@ describe('node-file storage cross-process concurrency', () => {
           ton: { address: 'address-1' },
         },
       }),
-      'ton-testnet-1',
+      '1-testnet',
     ]);
     const writerB = spawnWriter([
       storagePath,
@@ -118,7 +118,7 @@ describe('node-file storage cross-process concurrency', () => {
           ton: { address: 'address-2' },
         },
       }),
-      'ton-testnet-2',
+      '2-testnet',
     ]);
 
     await Promise.all([
@@ -133,13 +133,13 @@ describe('node-file storage cross-process concurrency', () => {
 
     expect(stored).toEqual({
       accounts: {
-        'ton-testnet-1': {
+        '1-testnet': {
           type: 'mnemonic',
           byChain: {
             ton: { address: 'address-1' },
           },
         },
-        'ton-testnet-2': {
+        '2-testnet': {
           type: 'mnemonic',
           byChain: {
             ton: { address: 'address-2' },

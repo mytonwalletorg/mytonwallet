@@ -24,8 +24,8 @@ jest.mock('../storages', () => ({
 }));
 jest.mock('../../util/logs', () => ({ logDebugError: jest.fn() }));
 
-const CURRENT_ACCOUNT_ID = '0-ton-mainnet';
-const MISSING_ACCOUNT_ID = '1-ton-mainnet';
+const CURRENT_ACCOUNT_ID = '0-mainnet';
+const MISSING_ACCOUNT_ID = '1-mainnet';
 
 // The activation reports the divergence without waiting for it, so the assertions run once the queue is drained.
 function flushDetachedWork() {

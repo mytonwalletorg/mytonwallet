@@ -14,7 +14,7 @@ import type { ApiStakingState } from '../types';
 
 import { checkStakeDraft } from './staking';
 
-const ACCOUNT_ID = '0-ton-mainnet';
+const ACCOUNT_ID = '0-mainnet';
 
 function buildState(tokenSlug: string) {
   return { type: 'liquid', tokenSlug } as unknown as ApiStakingState;

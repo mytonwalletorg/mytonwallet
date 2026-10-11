@@ -8,13 +8,13 @@ import { getActions, getGlobal, setGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 
-import { MAIN_ACCOUNT_ID } from '../../../../config';
 import { INITIAL_STATE } from '../../../../global/initialState';
 import { cloneDeep } from '../../../../util/iteratees';
 import { pause } from '../../../../util/schedulers';
 
 import Nfts from './Nfts';
 
+const ACCOUNT_ID = '0-mainnet';
 const COLLECTION = { address: 'EQCollectionAddress', chain: 'ton' } as const;
 const PROXIED_IMAGE_URL = 'https://imgproxy.toncenter.com/signature/pr:medium/encoded';
 
@@ -45,17 +45,17 @@ beforeEach(() => {
   let global = cloneDeep(INITIAL_STATE);
   global = {
     ...global,
-    currentAccountId: MAIN_ACCOUNT_ID,
+    currentAccountId: ACCOUNT_ID,
     accounts: {
       byId: {
-        [MAIN_ACCOUNT_ID]: {
+        [ACCOUNT_ID]: {
           title: 'Test Account',
           type: 'mnemonic' as const,
           byChain: { ton: { address: 'UQTestAddress' } },
         },
       },
     },
-    byAccountId: { [MAIN_ACCOUNT_ID]: {} },
+    byAccountId: { [ACCOUNT_ID]: {} },
   };
   setGlobal(global);
 });
@@ -80,7 +80,7 @@ function getIsEmptyStateShown() {
 function emitTerminalNftUpdate() {
   getActions().apiUpdate({
     type: 'updateNfts',
-    accountId: MAIN_ACCOUNT_ID,
+    accountId: ACCOUNT_ID,
     chain: 'ton',
     nfts: [],
     isFullLoading: false,
@@ -89,7 +89,7 @@ function emitTerminalNftUpdate() {
 
 function emitNfts(nfts: ApiNft[]) {
   getActions().apiUpdate({
-    type: 'updateNfts', accountId: MAIN_ACCOUNT_ID, chain: 'ton', nfts, isFullLoading: false,
+    type: 'updateNfts', accountId: ACCOUNT_ID, chain: 'ton', nfts, isFullLoading: false,
   });
 }
 
@@ -153,7 +153,7 @@ describe('Nfts landscape widget', () => {
 
     getActions().apiUpdate({
       type: 'updateNfts',
-      accountId: MAIN_ACCOUNT_ID,
+      accountId: ACCOUNT_ID,
       chain: 'ton',
       nfts: [{
         chain: 'ton',
@@ -181,7 +181,7 @@ describe('Nfts landscape widget', () => {
     emitTerminalNftUpdate();
     await flushUpdates();
 
-    const { nfts } = getGlobal().byAccountId[MAIN_ACCOUNT_ID];
+    const { nfts } = getGlobal().byAccountId[ACCOUNT_ID];
     expect(nfts?.orderedAddresses).toEqual([]);
     expect(getIsSpinnerShown()).toBe(false);
   });

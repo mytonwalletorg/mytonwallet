@@ -23,14 +23,14 @@ describe('auth-state selectors', () => {
   });
 
   it('sees a password once the Enclave is provisioned', () => {
-    const global = buildGlobal({ '0-ton-mainnet': MNEMONIC_ACCOUNT }, ['passcode']);
+    const global = buildGlobal({ '0-mainnet': MNEMONIC_ACCOUNT }, ['passcode']);
 
     expect(selectHasAuth(global)).toBe(true);
     expect(selectHasPassword(global)).toBe(true);
   });
 
   it('sees no password in a view-only wallet', () => {
-    const global = buildGlobal({ '0-ton-mainnet': VIEW_ACCOUNT });
+    const global = buildGlobal({ '0-mainnet': VIEW_ACCOUNT });
 
     expect(selectHasPassword(global)).toBe(false);
   });

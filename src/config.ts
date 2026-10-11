@@ -117,7 +117,6 @@ export const ANIMATION_LEVEL_MAX = 2;
 export const ANIMATION_LEVEL_DEFAULT = ANIMATION_LEVEL_MAX;
 export const THEME_DEFAULT = 'system';
 
-export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
 export const TONCENTER_MAINNET_URL = process.env.TONCENTER_MAINNET_URL || 'https://api.mainnet.ice.io';

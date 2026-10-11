@@ -52,7 +52,7 @@ describe('node-file storage', () => {
 
     await expect(Promise.all([
       storageA.setItem('accounts', { a: 1 }),
-      storageB.setItem('currentAccountId', 'ton-testnet-1'),
+      storageB.setItem('currentAccountId', '1-testnet'),
     ])).resolves.toEqual([undefined, undefined]);
 
     const tempWritePaths = writeFileMock.mock.calls

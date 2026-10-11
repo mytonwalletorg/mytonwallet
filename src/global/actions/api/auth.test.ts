@@ -38,7 +38,7 @@ function getHandler(name: string): ActionHandler {
   return call![1] as ActionHandler;
 }
 
-const ACCOUNT_ID = '0-ton-mainnet';
+const ACCOUNT_ID = '0-mainnet';
 const PASSWORD = '123456';
 function makeGlobal(overrides: Partial<GlobalState>): GlobalState {
   return {

@@ -6,21 +6,9 @@ import { escapeStringRegexp } from './regex';
 import { shortenAddress } from './shortenAddress';
 
 export function parseAccountId(accountId: string): AccountIdParsed {
-  const parts = accountId.split('-');
-  const network: ApiNetwork = parts.includes('testnet') ? 'testnet' : 'mainnet';
+  const [id, network] = accountId.split('-');
 
-  const primaryId = Number(parts[0]);
-  if (Number.isFinite(primaryId)) {
-    return { id: primaryId, network };
-  }
-
-  const legacyIdPart = [...parts].reverse().find((part) => /^\d+$/.test(part));
-  const legacyId = legacyIdPart ? Number(legacyIdPart) : NaN;
-
-  return {
-    id: Number.isFinite(legacyId) ? legacyId : 0,
-    network,
-  };
+  return { id: Number(id), network: network === 'testnet' ? 'testnet' : 'mainnet' };
 }
 
 export function buildAccountId(account: AccountIdParsed) {

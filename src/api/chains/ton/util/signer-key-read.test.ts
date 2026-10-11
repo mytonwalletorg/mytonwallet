@@ -19,7 +19,7 @@ const account = {
 const proof = { timestamp: 0, domain: { lengthBytes: 0, value: '' }, payload: '' } as any;
 
 function buildSigner() {
-  return getSigner('ton-mainnet-1', account, ENCLAVE_TOKEN);
+  return getSigner('1-mainnet', account, ENCLAVE_TOKEN);
 }
 
 describe('mnemonic signer key reads', () => {

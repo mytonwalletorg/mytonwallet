@@ -23,7 +23,7 @@ describe('storage selection', () => {
     const storageDir = await mkdtemp(join(tmpdir(), 'ionwallet-storage-'));
     const storagePath = join(storageDir, STORAGE_FILE_NAME);
     const accounts = {
-      'ton-testnet-1': {
+      '1-testnet': {
         type: 'mnemonic',
         byChain: {
           ton: {
@@ -39,7 +39,7 @@ describe('storage selection', () => {
     });
 
     await firstStorage.setItem('accounts', accounts);
-    await firstStorage.setItem('currentAccountId', 'ton-testnet-1');
+    await firstStorage.setItem('currentAccountId', '1-testnet');
 
     const secondStorage = configureStorage({
       type: 'nodeFile',
@@ -47,6 +47,6 @@ describe('storage selection', () => {
     });
 
     await expect(secondStorage.getItem('accounts')).resolves.toEqual(accounts);
-    await expect(secondStorage.getItem('currentAccountId')).resolves.toBe('ton-testnet-1');
+    await expect(secondStorage.getItem('currentAccountId')).resolves.toBe('1-testnet');
   });
 });
