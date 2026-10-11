@@ -50,7 +50,7 @@ import { omitUndefined } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import safeExec from '../../../../util/safeExec';
 import { getIsNftUnverified, readComment } from '../util/metadata';
-import { toBase64Address } from '../util/tonCore';
+import { toBase64Address, toRawAddress } from '../util/tonCore';
 import {
   checkHasScamLink,
   checkIsTrustedCollection,
@@ -95,7 +95,6 @@ function resolveActivityStatus(
   return isSuccess ? 'completed' : 'failed';
 }
 
-const RAW_LIQUID_POOL_ADDRESS = '0:F6FF877DD4CE1355B101572045F09D54C29309737EB52CA542CFA6C195F7CC5B';
 const RAW_NFT_CARD_COLLECTION = '0:901362FD85FC31D55F2C82617D91EADA1F1D6B34AF559A047572D56F20D046CA';
 const TME_RENEW_HASH_SUFFIX = '0000000000000000000000000000000000000000000000';
 
@@ -587,7 +586,7 @@ function parseStakeWithdrawal(action: StakeWithdrawalAction, options: ParseOptio
   const { details, details: { stake_holder: holder, amount } } = action;
 
   // Fix issue with old data when pool is null
-  const pool = details.pool ?? RAW_LIQUID_POOL_ADDRESS;
+  const pool = details.pool ?? toRawAddress(LIQUID_POOL).toUpperCase();
   const fixedOptions = pool in addressBook ? options : {
     ...options,
     addressBook: {

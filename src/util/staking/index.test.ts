@@ -1,6 +1,6 @@
 import type { ApiStakingState } from '../../api/types';
 
-import { TONCOIN } from '../../config';
+import { LIQUID_POOL, TONCOIN } from '../../config';
 import { TON_USDT_MAINNET } from '../../../tests/mocks/tokens';
 import { getFullStakingBalance, getIsNewStakeAllowed } from '.';
 
@@ -21,7 +21,7 @@ describe('getFullStakingBalance', () => {
       type: 'liquid',
       id: 'liquid',
       tokenSlug: TONCOIN.slug,
-      pool: 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o',
+      pool: LIQUID_POOL,
       balance,
       loyaltyBalance,
       tokenBalance: 4_549_625_219_272n,
