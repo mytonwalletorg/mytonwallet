@@ -253,8 +253,6 @@ Currently Staked: راهنة حاليا
 Total Staked: إجمالي الرهان
 Total Stakers: مجموع ستيكرز
 Unstake: غير مستقر
-Earning History: تاريخ الكسب
-$total: "الإجمالي: %value%"
 $unstake_asset: إلغاء تثبيت %symbol%
 Amount to unstake: المبلغ المراد فكه
 Confirm Unstaking: تأكيد عدم الثبات
@@ -286,7 +284,6 @@ Earning: كسب
 Unexpected: خطأ غير متوقع
 You can save this address for quick access while sending.: يمكنك حفظ هذا العنوان للوصول إليه بسرعة أثناء الإرسال.
 Stake Again: حصة مرة أخرى
-Earned: حصل
 $staking_history_earned: حصل
 Select wallet to use on this app: حدد المحفظة لاستخدامها في هذا التطبيق
 Connect: يتصل

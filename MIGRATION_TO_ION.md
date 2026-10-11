@@ -79,20 +79,14 @@
 - [x] **Закрыть вопрос с ION activity API.**
   - ION v3 indexer (`https://api.mainnet.ice.io/indexer/v3`) совместим: `/actions` (включая `action_id` и фильтры), `/traces` по `trace_id`/`msg_hash`/`tx_hash`, `/messages`, `/transactions`, `/jetton/wallets`, `/nft/items`, `/nft/transfers`, `/addressBook`, `/walletStates`, `/accountStates`, `/metadata` отвечают в формате, который ждёт клиент. RPC v2 — `https://api.mainnet.ice.io/http/v2`.
   - Отличия ION учтены в клиенте: нативный перевод называется `ion_transfer`, провайдер ликвидного стейкинга — `ionstakers`.
-  - Пути у ION другие (`/indexer/v3`, `/http/v2` вместо `/api/v3`, `/api/v2`), а CORS не пропускает заголовки клиента (`X-Actions-Version`, `X-App-Origin`). Поэтому кошелёк ходит через свой прокси — см. P1 про прокси Toncenter.
+  - Кошелёк ходит в ION API напрямую: пути `/indexer/v3` и `/http/v2`, без Toncenter-заголовков `X-Actions-Version` и `X-App-Origin`, которые не пропускает CORS ION.
   - Не хватает на стороне ION (кошелёк работает без них): `/pendingActions` и `/pendingTraces` отвечают `500 emulatedTracesRepository is not initialized` — нет ожидающих операций до подтверждения; `/api/emulate/v1/emulateTrace` нет — комиссия считается через `estimateFee`, превью действий в dApp-транзакциях не показывается; streaming WebSocket нет — см. `NO_WEBSOCKET`. Публичного ION testnet API нет.
 
 - [ ] **Убрать зависимость preview от MyTonWallet backend.**
   - ✅ `GET /assets` перенесён в ION backend. Slug токена теперь `<chain>-<полный канонический адрес>` (EIP-55 для BNB, bounceable для ION) вместо 10 символов в нижнем регистре: обрезанный slug позволял поддельному токену совпасть с настоящим.
   - Полный список endpoint-ов, которые клиент ждёт от ION backend: [ION_BACKEND_API.md](ION_BACKEND_API.md).
-  - На 2026-09-29 `api.wallet.ice.io` не резолвится из среды сборки; fallback в `BRILLIANT_API_BASE_URL` и `PROXY_API_BASE_URL` нельзя считать работающей ION-инфраструктурой.
-  - Утвердить ION endpoint либо осознанно убрать зависимые функции, сгруппированные по назначению:
-    - кошелёк и безопасность: `GET /assets`, `/currency-rates`, `/known-addresses`, `/utils/get-config`;
-    - каталог и рынок: `/v2/dapp/catalog`, `/prices/chart/*`;
-    - legacy swap: `/swap/*`, DEX/CEX маршрутизация и история swap удаляются; будущий ION bridge не использует эти endpoint-ы;
-    - staking и DNS: `/staking/common` и `/staking/state` перенесены в ION backend; `/dns/getDomains` ждёт решения по ION DNS-зоне;
-    - уведомления и live-обновления: `/notifications/*`, WebSocket `/{testnet/}ws`;
-    - proxy: `/proxy/download-json` и `/proxy/download-lottie` для внешних метаданных и анимаций.
+  - Все endpoint-ы кошелька реализованы в ION backend, кроме двух отложенных: `/prices/chart/*` (графики цены пока пустые) и WebSocket `/{testnet/}ws` (выключен `NO_WEBSOCKET`). Подписки на уведомления сохраняются, пуши не отправляются. Каталог dApp пуст, вкладка Explore скрыта.
+  - Осталось развернуть ION backend на `api.wallet.ice.io` и проверить все сценарии против него.
   - После решения проверить, что все runtime запросы к backend идут к утверждённому ION-сервису, а не к MyTonWallet; сами GitHub forks в `package.json` остаются закреплёнными исходниками зависимостей до появления ION forks.
 
 - [x] **Принять решение по каждому оставшемуся полю `/utils/get-config`.**
@@ -135,9 +129,7 @@
 - [ ] Подготовить Electron publish-конфигурацию к выпуску.
   - В `src/electron/config.yml` установить generic publish URL `https://s3.wallet.ice.io/public/desktop-beta` и versioned artifact name `IONWallet-${version}-${arch}.${ext}`.
   - Одновременно сверить update feed, `package-and-publish.yml` и публичную desktop download-страницу, чтобы имена файлов и URL совпадали.
-- [ ] Заменить `TON_DNS_ZONES` на единственную утверждённую ION DNS-зону.
-  - Получить suffix, resolver, название коллекции и правила renewal/linking для ION DNS, затем убрать TON-специфичные зоны из `src/config.ts`.
-  - Проверить валидацию доменов, receive/send, NFT metadata и экран управления доменом с новой зоной.
+- [x] Заменить `TON_DNS_ZONES` на единственную ION DNS-зону `.ion` (коллекция `EQD-T0TF…Fb5E`); картинки доменов — `dns.ice.io/meta/img`, «Configure DNS» открывает `dns.ice.io`, домены владельца бэкенд берёт из ION DNS API.
 - [ ] Проверить все жёстко заданные TON-адреса, token slug'и и идентификаторы коллекций.
   - Для каждого runtime-значения подтвердить ION-аналог; если аналога нет, удалить связанную функцию либо временно отключить её безопасной заглушкой до получения утверждённого значения.
   - ✅ `STON_PTON_ADDRESS`/`STON_PTON_SLUG` удалены вместе со специальной веткой; USDT (TON и BNB) удалён из конфигурации, scam-эвристики, выбора токена и комиссий.
@@ -149,9 +141,8 @@
 - [ ] Снять `NO_WEBSOCKET`, когда ION начнёт отдавать update-сокет.
   - Пока сборки используют HTTP polling вместо Toncenter, EVM и backend WebSocket.
 - [ ] Пересмотреть CI после удаления Agent: оставить только проверки актуальных web и Capacitor целей.
-- [ ] Поднять production-прокси Toncenter на `toncenter.wallet.ice.io` (адрес по умолчанию в клиенте) с раскладкой как в предпросмотре: `/api/v2/` → ION RPC (`/http/v2/`), `/api/v3/` → ION indexer (`/indexer/v3/`).
 - [ ] Попросить ION включить в индексаторе emulated traces (`/pendingActions`, `/pendingTraces`), `emulateTrace` и streaming WebSocket.
-- [ ] Закоммитить и перенести в репозиторий nginx-конфигурацию предпросмотра `wallet.lab.windbit.dev`, если она остаётся частью инфраструктуры проекта.
+- [ ] Перевести предпросмотр `wallet.lab.windbit.dev` на прямые адреса ION API (`/indexer/v3`, `/http/v2`) вместо nginx-маппинга `/ion/api/*`, и закоммитить оставшуюся nginx-конфигурацию, если она остаётся частью инфраструктуры.
 
 ### P2 — проверка перед выпуском
 

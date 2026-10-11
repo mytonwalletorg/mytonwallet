@@ -35,7 +35,6 @@ import { selectAccountState, selectAccountTokens } from './selectors';
 const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
 const ACTIVITIES_LIMIT = 20;
 const ACTIVITY_TOKENS_LIMIT = 30;
-const STAKING_HISTORY_LIMIT = 30;
 
 const updateCacheThrottled = throttle(() => onFullyIdle(() => updateCache()), UPDATE_THROTTLE, false);
 const updateCacheForced = () => updateCache(true);
@@ -309,9 +308,6 @@ function reduceByAccountId(global: GlobalState) {
     acc[accountId].balances = reduceAccountBalances(state.balances, accountTokenSlugs);
     acc[accountId].activities = reduceAccountActivities(state.activities, accountTokenSlugs);
     acc[accountId].staking = reduceAccountStaking(state.staking);
-    acc[accountId].stakingHistory = state.stakingHistory?.length
-      ? state.stakingHistory.slice(0, STAKING_HISTORY_LIMIT)
-      : undefined;
 
     return acc;
   }, {} as GlobalState['byAccountId']);

@@ -5,7 +5,6 @@ import type {
   ApiBalanceBySlug,
   ApiCheckTransactionDraftResult,
   ApiJettonStakingState,
-  ApiLoyaltyType,
   ApiNetwork,
   ApiStakingCommonData,
   ApiStakingCommonResponse,
@@ -286,7 +285,6 @@ type StakingStateOptions = {
   backendState: ApiBackendStakingState;
   commonData: ApiStakingCommonData;
   address: string;
-  loyaltyType?: ApiLoyaltyType;
   network: ApiNetwork;
   balances: ApiBalanceBySlug;
 };
@@ -300,14 +298,11 @@ export async function getStakingStates(
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredWallet(accountId, 'ton');
 
-  const { loyaltyType } = backendState;
-
   const options: StakingStateOptions = {
     accountId,
     backendState,
     commonData,
     address,
-    loyaltyType,
     network,
     balances,
   };
@@ -329,7 +324,6 @@ function buildLiquidState({
   address,
   backendState,
   commonData,
-  loyaltyType,
   balances,
 }: StakingStateOptions): ApiStakingState {
   const { currentRate } = commonData.liquid;
@@ -344,11 +338,6 @@ function buildLiquidState({
   const liquidAvailable = isInstantUnstake ? commonData.liquid.available : 0n;
   const { start, end } = getLiquidStakingTimeRange(commonData);
 
-  let liquidApy = commonData.liquid.apy;
-  if (loyaltyType && loyaltyType in commonData.liquid.loyaltyApy) {
-    liquidApy = commonData.liquid.loyaltyApy[loyaltyType];
-  }
-
   const balance = bigintMultiplyToNumber(tokenBalance, currentRate) + unstakeRequestAmount;
 
   return {
@@ -357,10 +346,9 @@ function buildLiquidState({
     tokenSlug: TONCOIN.slug,
     pool: LIQUID_POOL,
     balance,
-    annualYield: liquidApy,
+    annualYield: commonData.liquid.apy,
     yieldType: 'APY',
     tokenBalance,
-    loyaltyBalance: backendState.loyaltyBalance ?? 0n,
     tvl: commonData.liquid.tvl,
     totalStakers: commonData.liquid.totalStakers,
     unstakeRequestAmount,
@@ -463,19 +451,7 @@ function getLiquidStakingTimeRange(commonData: ApiStakingCommonData) {
 
 export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState> {
   const account = await fetchStoredChainAccount(accountId, 'ton');
-  return fetchBackendStakingState(account.byChain.ton.address, account.type === 'view');
-}
-
-export async function fetchBackendStakingState(address: string, isViewOnly: boolean): Promise<ApiBackendStakingState> {
-  const stakingState = await callBackendGet(`/staking/state/${address}`, {
-    isViewMode: isViewOnly ? 1 : undefined,
-  });
-
-  stakingState.balance = fromDecimal(stakingState.balance);
-  stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
-  stakingState.loyaltyBalance = fromDecimal(stakingState.loyaltyBalance ?? '0');
-
-  return stakingState as ApiBackendStakingState;
+  return callBackendGet<ApiBackendStakingState>(`/staking/state/${account.byChain.ton.address}`);
 }
 
 export async function submitTokenStakingClaim(

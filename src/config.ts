@@ -128,7 +128,7 @@ export const TONCENTER_TESTNET_KEY = process.env.TONCENTER_TESTNET_KEY;
 export const ELECTRON_TONCENTER_TESTNET_KEY = process.env.ELECTRON_TONCENTER_TESTNET_KEY;
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.wallet.ice.io';
-export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.wallet.ice.io/proxy';
+export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.wallet.ice.io';
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';
 export const SSE_BRIDGE_URL = 'https://tonconnectbridge.wallet.ice.io/bridge/';
 
@@ -326,7 +326,7 @@ export const STAKED_TON_SLUG = `ton-${LIQUID_JETTON}`;
 // Tokens that do not accept new stakes; existing positions stay fully withdrawable
 export const NEW_STAKE_DISABLED_TOKEN_SLUGS: ReadonlySet<string> = new Set();
 
-export const DNS_IMAGE_GEN_URL = 'https://dns-image.wallet.ice.io/img?d=';
+export const DNS_IMAGE_GEN_URL = 'https://dns.ice.io/meta/img?d=';
 
 // Wrapped ION on BNB Smart Chain: the bridged form of the native coin, verified on-chain
 // (symbol ION, name "Ice Open Network", 9 decimals).
@@ -505,7 +505,6 @@ export const DEFAULT_STAKING_STATE: ApiLiquidStakingState = {
   balance: 0n,
   pool: LIQUID_POOL,
   tokenBalance: 0n,
-  loyaltyBalance: 0n,
   unstakeRequestAmount: 0n,
   instantAvailable: 0n,
   start: 0,
@@ -536,27 +535,11 @@ export const HELP_CENTER_URL = {
 
 export const TON_DNS_ZONES = [
   {
-    suffixes: ['ton'],
+    suffixes: ['ion'],
     baseFormat: /^([-\da-z]+\.){0,2}[-\da-z]{4,126}$/i,
-    resolver: 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz',
-    collectionName: 'TON DNS Domains',
+    resolver: 'EQD-T0TFfemKkgq2GCuKfsuCJhs56wVDfqXSCi65TrzZFb5E',
+    collectionName: 'ION DNS Domains',
     isRenewable: true,
-    isLinkable: true,
-  },
-  {
-    suffixes: ['vip', 'ton.vip', 'vip.ton'],
-    baseFormat: /^([-\da-z]+\.){0,2}[\da-z]{1,24}$/i,
-    resolver: 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS',
-    collectionName: 'VIP DNS Domains',
-    isRenewable: false,
-    isLinkable: true,
-  },
-  {
-    suffixes: ['grm'],
-    baseFormat: /^([-\da-z]+\.){0,2}[-\da-z]{1,127}$/i,
-    resolver: 'EQAic3zPce496ukFDhbco28FVsKKl2WUX_iJwaL87CBxSiLQ',
-    collectionName: 'GRAM DNS Domains',
-    isRenewable: false,
     isLinkable: true,
   },
 ] as const;

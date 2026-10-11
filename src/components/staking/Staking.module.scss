@@ -89,11 +89,6 @@
   color: var(--color-red);
 }
 
-.historyTotalValue {
-  unicode-bidi: plaintext;
-  font-weight: 600;
-}
-
 .detailsSection,
 .stakingBalance {
   --color-accent: var(--color-purple-1);
@@ -309,24 +304,6 @@
 
   @media (max-height: 639.8px) {
     border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
-
-    .history {
-      // Workaround for the bottom padding on flex layout
-      &::after {
-        content: '';
-        flex-shrink: 0;
-        height: 1rem;
-      }
-
-      @include mixins.adapt-padding-to-scrollbar(1rem);
-    }
-  }
-
-  @media (min-height: 640px) {
-    .historyList {
-      overflow-x: hidden;
-      overflow-y: scroll;
-    }
   }
 
   &.withBackground {
@@ -459,62 +436,6 @@
   transform: translate(-50%, -50%);
 
   font-size: 1rem;
-}
-
-.history {
-  position: relative;
-
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-
-  min-height: 0;
-  padding: 1.25rem 1rem 1rem;
-
-  &_static {
-    padding: 2.25rem 0 0;
-  }
-}
-
-.historyTotal {
-  position: absolute;
-  top: 1.25rem;
-  inset-inline-end: 1.5rem;
-
-  font-size: 0.8125rem;
-  line-height: 0.8125rem;
-  color: var(--color-gray-2);
-
-  .history_static & {
-    top: 2.25rem;
-    inset-inline-end: 0;
-  }
-}
-
-.historyTitle {
-  margin-inline-start: 0.5rem;
-
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 0.8125rem;
-  color: var(--color-gray-2);
-
-  .history_static & {
-    margin-inline-start: 0;
-  }
-}
-
-.historyList {
-  flex-grow: 1;
-  margin-top: 0.5rem;
-  border-radius: var(--border-radius-default);
-  background: var(--color-background-first);
-
-  &_static {
-    margin-bottom: -1rem;
-    margin-inline-start: -1rem;
-    margin-inline-end: -1rem;
-  }
 }
 
 .transactionBanner {

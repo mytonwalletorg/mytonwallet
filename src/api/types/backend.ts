@@ -1,5 +1,4 @@
 import type { StakingPoolConfig } from '../chains/ton/contracts/JettonStaking/StakingPool';
-import type { ApiLoyaltyType } from './misc';
 
 export type ApiStakingJettonPool = {
   pool: string;
@@ -24,7 +23,6 @@ export type ApiStakingCommonResponse = {
     /** The string is a floating point number */
     tvl: string;
     totalStakers: number;
-    loyaltyApy: Record<ApiLoyaltyType, number>;
   };
   round: {
     start: number;

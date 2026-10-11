@@ -256,8 +256,6 @@ Currently Staked: Güncel stake miktarı
 Total Staked: Toplam Stake
 Total Stakers: Toplam Staker
 Unstake: Unstake et
-Earning History: Kazanç Geçmişi
-$total: "Toplam: %value%"
 $unstake_asset: "%symbol% Unstake et"
 Amount to unstake: Unstake edilecek tutar
 Confirm Unstaking: Unstaking işlemini onayla
@@ -287,7 +285,6 @@ Earning: Kazanıyor
 Unexpected: Beklenmedik hata
 You can save this address for quick access while sending.: Gönderirken hızlı erişim için bu adresi kaydedebilirsiniz.
 Stake Again: Yeniden stake edin
-Earned: Kazanıldı
 $staking_history_earned: Kazanıldı
 Select wallet to use on this app: Bu uygulama üzerinde kullanılacak cüzdanı seçin
 Connect: Bağlan

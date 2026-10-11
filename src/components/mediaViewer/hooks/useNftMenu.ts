@@ -176,7 +176,7 @@ export default function useNftMenu({
       }
 
       case 'tondns': {
-        const url = `https://dns.ton.org/#${(nft!.name || '').replace(/\.ton$/i, '')}`;
+        const url = `https://dns.ice.io/domains/${encodeURIComponent(nft!.name || '')}/edit`;
 
         void openUrl(url, { isExternal });
         break;

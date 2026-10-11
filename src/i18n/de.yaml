@@ -256,8 +256,6 @@ Currently Staked: Derzeit gestakt
 Total Staked: Gesamt gestaked
 Total Stakers: Anzahl der Staker
 Unstake: Unstaken
-Earning History: Verdiensthistorie
-$total: "Gesamt: %value%"
 $unstake_asset: "%symbol% unstaken"
 Amount to unstake: Betrag zum unstaken
 Confirm Unstaking: Entstaken bestätigen
@@ -288,7 +286,6 @@ Earning: Verdienend
 Unexpected: Unerwarteter Fehler
 You can save this address for quick access while sending.: Sie können diese Adresse speichern, um schnellen Zugriff beim Senden zu haben.
 Stake Again: Erneut staken
-Earned: Verdient
 $staking_history_earned: Verdient
 Select wallet to use on this app: Wählen Sie die Brieftasche aus, die Sie für diese App verwenden möchten.
 Connect: Verbinden

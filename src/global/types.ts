@@ -30,7 +30,6 @@ import type {
   ApiPriceHistoryPeriod,
   ApiSite,
   ApiSiteCategory,
-  ApiStakingHistory,
   ApiStakingState,
   ApiTokenType,
   ApiTokenWithPrice,
@@ -417,7 +416,6 @@ export interface AccountState {
   staking?: {
     stakingId?: string;
     stateById?: Record<string, ApiStakingState>;
-    totalProfit?: bigint;
   };
 
   vesting?: {
@@ -428,7 +426,6 @@ export interface AccountState {
     unfreezeRequestedIds?: { id: number; partId: number }[];
   };
 
-  stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
   isLongUnstakeRequested?: boolean;
@@ -1073,7 +1070,6 @@ export interface ActionPayloads {
   submitStaking: { enclaveToken?: string; isUnstaking?: boolean } | undefined;
   clearStakingError: undefined;
   cancelStaking: undefined;
-  fetchStakingHistory: undefined;
   fetchStakingFee: { amount: bigint };
   openStakingInfo: undefined;
   openAnyAccountStakingInfo: { accountId: string; network: ApiNetwork; stakingId: string };

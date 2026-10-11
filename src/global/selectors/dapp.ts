@@ -77,3 +77,7 @@ export function selectDappTransferInsufficientTokens(global: GlobalState): strin
 
   return selectDappTransferInsufficientTokensMemoized(amountsBySlug, balances, tokensBySlug);
 }
+
+export function selectHasExploreSites(global: GlobalState) {
+  return Boolean(global.exploreData?.sites.length);
+}

@@ -1,7 +1,6 @@
 import type { ApiStakingState } from '../../api/types';
 import type { Account, GlobalState } from '../types';
 
-import { TONCOIN } from '../../config';
 import { buildCollectionByKey } from '../../util/iteratees';
 import memoize from '../../util/memoize';
 import withCache from '../../util/withCache';
@@ -36,18 +35,6 @@ export function selectAccountStakingState(global: GlobalState, accountId: string
   }
 
   return stateById[stakingId];
-}
-
-export function selectAccountStakingHistory(global: GlobalState, accountId: string) {
-  const accountState = selectAccountState(global, accountId);
-  const stakingState = selectAccountStakingState(global, accountId);
-  return stakingState.tokenSlug === TONCOIN.slug ? accountState?.stakingHistory : undefined;
-}
-
-export function selectAccountStakingTotalProfit(global: GlobalState, accountId: string) {
-  const accountState = selectAccountState(global, accountId);
-  const stakingState = selectAccountStakingState(global, accountId);
-  return (stakingState.tokenSlug === TONCOIN.slug ? accountState?.staking?.totalProfit : undefined) ?? 0n;
 }
 
 export function selectIsStakingDisabled(global: GlobalState) {

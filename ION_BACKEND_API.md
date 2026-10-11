@@ -14,27 +14,26 @@
 | ✅ P0 | `GET /currency-rates` | `methods/polling.ts` | Готово в ION backend: `{ rates }` — единиц USD, EUR, RUB, CNY, BTC и ION (ключ `TON`) за 1 USD. Фиат и BTC из CoinGecko `exchange_rates` раз в 10 минут, ION — `1 / priceUsd` из `/assets`. До первой загрузки запрос ждёт данные. |
 | ✅ P0 | `GET /utils/get-config` | `methods/polling.ts` | Готово в ION backend: `isLimited: false`, `now` (серверное время), `isUpdateRequired: false`, `isCopyStorageEnabled: false`. |
 | ✅ P0 | `GET /known-addresses` | `api/common/addresses.ts` | Готово в ION backend: `knownAddresses` из [catchain/ion-address-book](https://github.com/catchain/ion-address-book) раз в час, `scamMarkers`, `trustedSites` (домены `ice.io`), `trustedCollections` (пусто). Антифишинг и подписи адресов. |
-| P1 | `GET /staking/common` | `chains/ton/staking.ts` | `liquid` (rate, apy, available, tvl, totalStakers, loyaltyApy), `round`/`prevRound`, `jettonPools`. |
-| P1 | `GET /staking/state/{address}?isViewMode=1` | `chains/ton/staking.ts` | `balance`, `totalProfit`, `loyaltyBalance` и состояние стейкинга адреса. |
-| P1 | `GET /staking/profits/{address}` | `methods/staking.ts` | История начислений. |
-| P1 | `GET /prices/chart/{assetId}` | `methods/prices.ts` | График цены токена. |
-| P1 | `POST /notifications/subscribe`, `POST /notifications/unsubscribe` | `methods/notifications.ts` | Push-подписки (нужен ION Firebase). |
-| P2 | `GET /dns/getDomains?address=` | `chains/ton/domains.ts` | Домены адреса; зависит от ION DNS-зоны. |
-| P2 | `GET /v2/dapp/catalog?isLandscape=&langCode=` | `methods/exploreSites.ts` | Каталог dApp во вкладке Explore. |
-| P2 | WebSocket `/{testnet/}ws` | `api/common/backendSocket.ts` | Live-обновления; сейчас выключен через `NO_WEBSOCKET`. |
+| ✅ P1 | `GET /staking/common` | `chains/ton/staking.ts` | Готово в ION backend: снимок ION-пула (`currentRate`, `nextRoundRate`, `apy`, `available`, `tvl`, `totalStakers`, `collection`), `round`/`prevRound` из реальных валидационных циклов, `jettonPools: []`. |
+| ✅ P1 | `GET /staking/state/{address}` | `chains/ton/staking.ts` | Готово в ION backend: `stakedAt` (последний депозит) и `liquid.unstakeRequestAmount` из payout-NFT. Баланс стейка клиент считает сам. |
+| — | `GET /prices/chart/{assetId}` | `methods/prices.ts` | Пока не делаем: графики цены пустые. |
+| ✅ P1 | `POST /notifications/subscribe`, `POST /notifications/unsubscribe` | `methods/notifications.ts` | Готово в ION backend: подписки сохраняются в `notification_subscription`. Сами пуши не отправляются, пока нет ION Firebase и приложений в сторах. |
+| ✅ P2 | `GET /dns/getDomains?address=` | `chains/ton/domains.ts` | Готово в ION backend: домены `.ion` владельца из ION DNS API (`https://dns.ice.io`). |
+| ✅ P2 | `GET /v2/dapp/catalog?isLandscape=&langCode=` | `methods/exploreSites.ts` | Готово в ION backend, каталог пока пустой; без сайтов вкладка Explore скрыта. |
+| — | WebSocket `/{testnet/}ws` | `api/common/backendSocket.ts` | Пока не делаем, выключен через `NO_WEBSOCKET`. |
 
-Стейкинг: поддерживаются только `liquid` и `jetton`, nominator staking удалён. Формат ответов нужно сверить с ION-бэкендом, где стейкинг уже есть: либо бэкенд отдаёт текущий контракт, либо адаптируем клиент.
+Стейкинг: поддерживаются только `liquid` и `jetton`, nominator staking удалён. История начислений, «Всего заработано» и программа лояльности удалены из кошелька.
 
-## 2. Proxy (`PROXY_API_BASE_URL`)
+## 2. Загрузка внешних файлов (`PROXY_API_BASE_URL`, тот же ION backend)
 
 | Приоритет | Endpoint | Зачем |
 | --- | --- | --- |
-| P1 | `GET /download-json?url=` | Загрузка внешних NFT/jetton метаданных без CORS. |
-| P2 | `GET /download-lottie?url=` | Загрузка Lottie-анимаций. |
+| ✅ P1 | `GET /download-json?url=` | Внешние NFT/jetton метаданные без CORS; приватные сети, редиректы, размер и тип ответа ограничены. |
+| ✅ P2 | `GET /download-lottie?url=` | Lottie-анимации. |
 
-## 3. ION indexer (`TONCENTER_*_URL`, совместимость с Toncenter v3)
+## 3. ION indexer и RPC (`TONCENTER_*_URL` = `https://api.mainnet.ice.io`)
 
-Блокер P0: без него не работают история и pending-операции. ION RPC v2 (`/api/v2`) уже есть.
+Кошелёк ходит в ION напрямую: indexer — `/indexer/v3`, RPC — `/http/v2/jsonRPC`. Всё ниже совместимо, кроме `/pendingActions` и `/pendingTraces` (на стороне ION не включены emulated traces); `emulateTrace` и streaming у ION нет.
 
 | Endpoint v3 | Зачем |
 | --- | --- |

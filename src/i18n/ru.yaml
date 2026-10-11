@@ -259,8 +259,6 @@ Currently Staked: Текущий депозит
 Total Staked: Всего в стейкинге
 Total Stakers: Всего стейкеров
 Unstake: Вывести
-Earning History: История начислений
-$total: "Всего: %value%"
 $unstake_asset: Вывести %symbol%
 Amount to unstake: Сумма к выводу
 Confirm Unstaking: Подтвердить вывод
@@ -289,7 +287,6 @@ Earn: Стейкинг
 Earning: Стейкинг
 You can save this address for quick access while sending.: Вы можете сохранить этот адрес для быстрого доступа при отправке.
 Stake Again: Повторить депозит
-Earned: Всего
 $staking_history_earned: Доход
 Select wallet to use on this app: Выберите кошелёк для использования с этим приложением
 Connect: Подключить

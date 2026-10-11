@@ -314,18 +314,6 @@ addActionHandler('setStakingScreen', (global, actions, payload) => {
   setGlobal(updateCurrentStaking(global, { state }));
 });
 
-addActionHandler('fetchStakingHistory', async (global) => {
-  const stakingHistory = await callApi('getStakingHistory', selectCurrentAccountId(global)!);
-
-  if (!stakingHistory) {
-    return;
-  }
-
-  global = getGlobal();
-  global = updateAccountState(global, selectCurrentAccountId(global)!, { stakingHistory }, true);
-  setGlobal(global);
-});
-
 addActionHandler('openAnyAccountStakingInfo', async (global, actions, { accountId, network, stakingId }) => {
   await Promise.all([
     closeAllOverlays(),

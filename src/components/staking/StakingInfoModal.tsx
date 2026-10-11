@@ -45,17 +45,11 @@ function StakingInfoModal({
   byAccountId,
   onClose,
 }: OwnProps & StateProps) {
-  const { fetchStakingHistory, switchAccount } = getActions();
+  const { switchAccount } = getActions();
 
   const [isSelectorOpen, openSelector, closeSelector] = useFlag();
 
   const withBackground = tokenSlug !== TONCOIN.slug;
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchStakingHistory();
-    }
-  }, [fetchStakingHistory, isOpen, accountId]);
 
   useEffect(() => {
     if (!isOpen) {

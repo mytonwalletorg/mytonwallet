@@ -389,15 +389,12 @@ function setupStakingPolling(accountId: string, getBalances: () => Promise<ApiBa
         ]);
         const states = await staking.getStakingStates(accountId, common, backendState, balances);
 
-        const { totalProfit } = backendState;
-
         if (!areDeepEqual(states, lastStates)) {
           lastStates = states;
           onUpdate({
             type: 'updateStaking',
             accountId,
             states,
-            totalProfit,
           });
         }
       } catch (err) {

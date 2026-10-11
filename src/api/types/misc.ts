@@ -177,7 +177,6 @@ export interface ApiDomainData {
 export type ApiHistoryList = Array<[number, number]>;
 
 export type ApiStakingType = ApiStakingState['type'];
-export type ApiBackendStakingType = 'liquid';
 
 type BaseStakingState = {
   id: string;
@@ -194,12 +193,6 @@ type BaseStakingState = {
 export type ApiLiquidStakingState = BaseStakingState & {
   type: 'liquid';
   tokenBalance: bigint;
-  /**
-   * Accrued loyalty bonus. Kept outside the STAKED jetton and paid as a separate transfer on
-   * unstake. Optional: the backend omits it for addresses below the visible-stake threshold, and
-   * state persisted by an older build has no such field at all.
-   */
-  loyaltyBalance?: bigint;
   instantAvailable: bigint;
   start: number;
   end: number;
@@ -225,21 +218,11 @@ export type ApiStakingState = ApiLiquidStakingState
 export type ApiToncoinStakingState = ApiLiquidStakingState;
 
 export interface ApiBackendStakingState {
-  balance: bigint;
-  totalProfit: bigint;
-  type?: ApiBackendStakingType;
-  loyaltyType?: ApiLoyaltyType;
-  loyaltyBalance?: bigint;
   stakedAt?: number;
   liquid?: {
     unstakeRequestAmount?: string;
   };
 }
-
-export type ApiStakingHistory = {
-  timestamp: number;
-  profit: string;
-}[];
 
 export interface ApiDappPermissions {
   isAddressRequired?: boolean;
@@ -311,8 +294,6 @@ export enum ApiLiquidUnstakeMode {
   Instant,
   BestRate,
 }
-
-export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
 
 export type ApiBalanceBySlug = Record<string, bigint>;
 

@@ -35,7 +35,7 @@ jest.mock('../renderPromise', () => ({
 const TEST_TON_ADDRESS = 'EQAIsixsrb93f9kDyplo_bK5OdgW5r0WCcIJZdGOUG1B282S';
 const TEST_EVM_ADDRESS = '0x9429C8Af1089efD542b313156Af2DFA35c7e0a81';
 const TEST_BNB_ADDRESS = '0x0000000000000000000000000000000000000001';
-const TEST_DNS_NAME = 'testmywallet.ton';
+const TEST_DNS_NAME = 'testmywallet.ion';
 const TEST_BIN_PAYLOAD = 'te6ccgEBAQEANwAAaV0r640BleSq4Ql3m5OrdlSApYTNRMdDGUFXwTpwZ1oe1G8cPlS_Zym8CwoAdO4mWSned-Fg';
 const TEST_STATE_INIT = 'te6ccgEBAgEACwACATQBAQAI_____w\\=\\=';
 const TEST_COMMENT = 'ION Wallet';

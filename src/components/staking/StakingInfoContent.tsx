@@ -1,23 +1,20 @@
 import React, {
-  memo, type TeactNode, useEffect, useMemo,
+  memo, type TeactNode, useMemo,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type {
-  ApiBaseCurrency, ApiCurrencyRates, ApiStakingHistory, ApiStakingState, ApiTokenWithPrice,
+  ApiBaseCurrency, ApiCurrencyRates, ApiStakingState, ApiTokenWithPrice,
 } from '../../api/types';
 import type { Theme, UserToken } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
   SHORT_FRACTION_DIGITS,
-  TONCOIN,
 } from '../../config';
 import {
-  selectAccountStakingHistory,
   selectAccountStakingState,
   selectAccountStakingStates,
-  selectAccountStakingTotalProfit,
   selectCurrentAccountId,
   selectCurrentAccountTokens,
   selectIsCurrentAccountViewMode,
@@ -36,7 +33,6 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 import { useTransitionActiveKey } from '../../hooks/useTransitionActiveKey';
-import useWindowSize from '../../hooks/useWindowSize';
 import { useTokenDropdown } from './hooks/useTokenDropdown';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -46,7 +42,6 @@ import RichNumberField from '../ui/RichNumberField';
 import Spinner from '../ui/Spinner';
 import TokenDropdown from '../ui/TokenDropdown';
 import Transition from '../ui/Transition';
-import StakingProfitItem from './StakingProfitItem';
 
 import styles from './Staking.module.scss';
 
@@ -60,8 +55,6 @@ interface StateProps {
   isViewMode: boolean;
   states?: ApiStakingState[];
   stakingState?: ApiStakingState;
-  totalProfit: bigint;
-  stakingHistory?: ApiStakingHistory;
   tokens?: UserToken[];
   tokenBySlug?: Record<string, ApiTokenWithPrice>;
   baseCurrency: ApiBaseCurrency;
@@ -71,7 +64,6 @@ interface StateProps {
 }
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
-const HISTORY_SCROLL_APPEARANCE_HEIGHT_PX = 640;
 const FRACTION_DIGITS = 2;
 
 function StakingInfoContent({
@@ -79,8 +71,6 @@ function StakingInfoContent({
   stakingState,
   isActive,
   isStatic,
-  totalProfit,
-  stakingHistory,
   tokens,
   tokenBySlug,
   baseCurrency,
@@ -94,7 +84,6 @@ function StakingInfoContent({
     startStaking,
     startUnstaking,
     startStakingClaim,
-    fetchStakingHistory,
     changeCurrentStaking,
   } = getActions();
 
@@ -117,7 +106,6 @@ function StakingInfoContent({
 
   const lang = useLang();
   const isLoading = amount === undefined;
-  const hasHistory = Boolean(stakingHistory?.length);
   const {
     shouldRender: shouldRenderSpinner,
     ref: spinnerRef,
@@ -125,31 +113,15 @@ function StakingInfoContent({
     isOpen: isLoading && isActive,
     withShouldRender: true,
   });
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens])!;
   const forceUpdate = useForceUpdate();
-  const { height } = useWindowSize();
   const appTheme = useAppTheme(theme);
-  const {
-    shouldRender: shouldRenderTotalAmount,
-    ref: totalAmountRef,
-  } = useShowTransition({
-    isOpen: !isSensitiveDataHidden,
-    withShouldRender: true,
-  });
 
   const unclaimedRewards = stakingState?.type === 'jetton'
     ? stakingState.unclaimedRewards
     : undefined;
-  const loyaltyBalance = (stakingState?.type === 'liquid' ? stakingState.loyaltyBalance : 0n) ?? 0n;
 
   // Updates the unstaking countdown
   useInterval(forceUpdate, unstakeRequestAmount ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
-
-  useEffect(() => {
-    if (isActive) {
-      fetchStakingHistory();
-    }
-  }, [fetchStakingHistory, isActive]);
 
   const handleStakeClick = useLastCallback(() => {
     onClose?.();
@@ -169,13 +141,9 @@ function StakingInfoContent({
   let stakingResult = '0';
   let balanceResult = '0';
   if (amount) {
-    // Unlike the jetton rewards above, the loyalty bonus has no field of its own, so the tile is
-    // the only place it can be seen. It is not held in the STAKED jetton and does not compound
-    // with the rate, hence it is added to the year projection rather than multiplied by the yield.
-    stakingResult = toBig(amount + loyaltyBalance, decimals).round(SHORT_FRACTION_DIGITS).toString();
+    stakingResult = toBig(amount, decimals).round(SHORT_FRACTION_DIGITS).toString();
     balanceResult = toBig(amount, decimals)
       .mul((annualYield / 100) + 1)
-      .add(toBig(loyaltyBalance, decimals))
       .round(SHORT_FRACTION_DIGITS)
       .toString();
   }
@@ -228,46 +196,10 @@ function StakingInfoContent({
     );
   }
 
-  function renderHistory() {
-    return (
-      <div className={buildClassName(styles.history, isStatic && styles.history_static)}>
-        {shouldRenderTotalAmount && (
-          <div ref={totalAmountRef} className={styles.historyTotal}>
-            {lang('$total', {
-              value: (
-                <span className={styles.historyTotalValue}>
-                  {formatCurrency(toDecimal(totalProfit), TONCOIN.symbol)}
-                </span>
-              ),
-            })}
-          </div>
-        )}
-        <div className={styles.historyTitle}>{lang('Earning History')}</div>
-        <div className={buildClassName(
-          styles.historyList,
-          isStatic && styles.historyList_static,
-          isStatic && 'custom-scroll',
-          !isStatic && height >= HISTORY_SCROLL_APPEARANCE_HEIGHT_PX && 'custom-scroll',
-        )}
-        >
-          {stakingHistory?.map((record) => (
-            <StakingProfitItem
-              key={record.timestamp}
-              profit={record.profit}
-              timestamp={record.timestamp}
-              tonToken={tonToken}
-              isSensitiveDataHidden={isSensitiveDataHidden}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const fullClassName = buildClassName(
     styles.stakingInfo,
     !isStatic && styles.stakingInfo_modal,
-    !hasHistory && styles.stakingInfoNoHistory,
+    styles.stakingInfoNoHistory,
     isStatic && 'staking-info',
   );
 
@@ -405,7 +337,6 @@ function StakingInfoContent({
             )}
         </div>
 
-        {hasHistory && renderHistory()}
       </>
     );
   }
@@ -436,14 +367,9 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
   const stakingState = accountId ? selectAccountStakingState(global, accountId) : undefined;
 
-  const stakingHistory = accountId ? selectAccountStakingHistory(global, accountId) : undefined;
-  const totalProfit = accountId ? selectAccountStakingTotalProfit(global, accountId) : 0n;
-
   return {
     stakingState,
     states,
-    totalProfit,
-    stakingHistory,
     tokens: selectCurrentAccountTokens(global),
     tokenBySlug,
     baseCurrency: global.settings.baseCurrency,

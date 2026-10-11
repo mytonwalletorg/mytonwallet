@@ -100,7 +100,6 @@ function UnstakeModal({
     clearStakingError,
     submitStakingInitial,
     submitStaking,
-    fetchStakingHistory,
     switchStakingAccount,
   } = getActions();
 
@@ -145,10 +144,9 @@ function UnstakeModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetchStakingHistory();
       setUnstakeAmount(isOnlyFullAmount ? stakingBalance : undefined);
     }
-  }, [isOpen, fetchStakingHistory, isOnlyFullAmount, stakingBalance]);
+  }, [isOpen, isOnlyFullAmount, stakingBalance]);
 
   useSyncEffect(() => {
     if (unstakeTime) {
@@ -156,14 +154,7 @@ function UnstakeModal({
     }
   }, [unstakeTime]);
 
-  const refreshUnstakeDate = useLastCallback(() => {
-    if (unstakeDate < Date.now()) {
-      fetchStakingHistory();
-    }
-    forceUpdate();
-  });
-
-  useInterval(refreshUnstakeDate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
+  useInterval(forceUpdate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
   const handleBackClick = useLastCallback(() => {
     if (state === StakingState.UnstakePassword) {
       setStakingScreen({ state: StakingState.UnstakeInitial });

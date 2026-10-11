@@ -1,7 +1,6 @@
 import type {
   ApiChain,
   ApiJettonStakingState,
-  ApiStakingHistory,
   ApiStakingState,
 } from '../types';
 import { ApiCommonError } from '../types';
@@ -9,8 +8,7 @@ import { ApiCommonError } from '../types';
 import { logDebugError } from '../../util/logs';
 import { getChainBySlug } from '../../util/tokens';
 import chains from '../chains';
-import { doesAccountHaveChain, fetchStoredAccount, fetchStoredWallet } from '../common/accounts';
-import { callBackendGet } from '../common/backend';
+import { fetchStoredWallet } from '../common/accounts';
 import { setStakingCommonCache } from '../common/cache';
 import { createLocalTransactions } from './transfer';
 
@@ -25,17 +23,6 @@ function resolveStaking(state: ApiStakingState) {
   }
 
   return { chain, staking };
-}
-
-/**
- * The account's staking chain, for the operations that have no staking state to take it from. The registry
- * scan is unambiguous only while a single chain supports staking.
- */
-async function findStakingChain(accountId: string): Promise<ApiChain | undefined> {
-  const account = await fetchStoredAccount(accountId);
-  return (Object.keys(chains) as ApiChain[]).find(
-    (chain) => chains[chain].staking && doesAccountHaveChain(account, chain),
-  );
 }
 
 export async function checkStakeDraft(accountId: string, amount: bigint, state: ApiStakingState) {
@@ -112,13 +99,6 @@ export async function submitUnstake(
   return {
     activityId: localActivity.id,
   };
-}
-
-export async function getStakingHistory(accountId: string): Promise<ApiStakingHistory> {
-  const chain = await findStakingChain(accountId);
-  if (!chain) return [];
-  const { address } = await fetchStoredWallet(accountId, chain);
-  return callBackendGet(`/staking/profits/${address}`);
 }
 
 export async function tryUpdateStakingCommonData() {

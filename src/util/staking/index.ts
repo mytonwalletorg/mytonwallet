@@ -78,11 +78,7 @@ export function getFullStakingBalance(state: ApiStakingState): bigint {
       return state.balance + state.unclaimedRewards;
     }
     case 'liquid': {
-      // The loyalty bonus is not held in the STAKED jetton, so `balance` (jettons at the current
-      // rate) can't contain it - that number is also the unstake limit, and inflating it would
-      // build a burn for more jettons than the wallet holds. It is the holder's money all the same,
-      // and arrives as a separate transfer on unstake, so it belongs in the full balance.
-      return state.balance + (state.loyaltyBalance ?? 0n);
+      return state.balance;
     }
   }
 }

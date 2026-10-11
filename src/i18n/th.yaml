@@ -255,8 +255,6 @@ Currently Staked: ทรัพย์สินที่สเต็กปัจ�
 Total Staked: สเตคทั้งหมด
 Total Stakers: จำนวนผู้สเตคทั้งหมด
 Unstake: ถอนการสเต็ก
-Earning History: ประวัติการได้รับ
-$total: "ทั้งหมด: %value%"
 $unstake_asset: ถอนการสเต็ก %symbol%
 Amount to unstake: จำนวนที่ถอนจากการสเต็ก
 Confirm Unstaking: ยืนยันการถอนการสเต็ก
@@ -287,7 +285,6 @@ Earning: กำลังได้รับ
 Unexpected: เกิดข้อผิดพลาดที่ไม่คาดคิด
 You can save this address for quick access while sending.: คุณสามารถบันทึกที่อยู่บัญชีนี้ไว้ได้เพื่อเข้าถึงได้ง่ายขึ้นเมื่อทำการส่ง.
 Stake Again: สเต็กอีกครั้ง
-Earned: ได้รับแล้ว
 $staking_history_earned: ได้รับแล้ว
 Select wallet to use on this app: เลือกกระเป๋าเงินที่จะใช้กับแอปนี้
 Connect: เชื่อมต่อ

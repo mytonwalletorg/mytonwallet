@@ -257,8 +257,6 @@ Currently Staked: Obecnie zastawione
 Total Staked: Łącznie zastakowane
 Total Stakers: Liczba stakujących
 Unstake: Odzastaw
-Earning History: Historia zarobków
-$total: "Suma: %value%"
 $unstake_asset: Odzastaw %symbol%
 Amount to unstake: Kwota do odzastawienia
 Confirm Unstaking: Potwierdź odzastawienie
@@ -289,7 +287,6 @@ Earning: Zarobek
 Unexpected: Nieoczekiwany
 You can save this address for quick access while sending.: Możesz zapisać ten adres, aby szybko się do niego dostać podczas wysyłania.
 Stake Again: Zastaw ponownie
-Earned: Zarobione
 $staking_history_earned: Zarobione
 Select wallet to use on this app: Wybierz portfel, którego chcesz używać w tej aplikacji
 Connect: Połącz

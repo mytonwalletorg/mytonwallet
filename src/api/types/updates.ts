@@ -111,7 +111,6 @@ export type ApiUpdateStaking = {
   type: 'updateStaking';
   accountId: string;
   states: ApiStakingState[];
-  totalProfit: bigint;
 };
 
 export type ApiUpdateDappSignData = {

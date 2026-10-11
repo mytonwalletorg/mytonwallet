@@ -258,8 +258,6 @@ Currently Staked: Поточний депозит
 Total Staked: Усього в стейкінгу
 Total Stakers: Усього стейкерів
 Unstake: Вивести
-Earning History: Історія нарахувань
-$total: "Усього: %value%"
 $unstake_asset: Вивести %symbol%
 Amount to unstake: Сума до виведення
 Confirm Unstaking: Підтвердити виведення
@@ -289,7 +287,6 @@ Earn: Стейкінг
 Earning: Стейкінг
 You can save this address for quick access while sending.: Ви можете зберегти цю адресу для швидкого доступу під час надсилання.
 Stake Again: Повторити депозит
-Earned: Зароблено
 $staking_history_earned: Зароблено
 Select wallet to use on this app: Виберіть гаманець для використання в цій програмі
 Connect: Підключити

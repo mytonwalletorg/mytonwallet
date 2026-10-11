@@ -253,8 +253,6 @@ Currently Staked: 目前質押數量
 Total Staked: 總質押量
 Total Stakers: 總質押人數
 Unstake: 解除質押
-Earning History: 收益紀錄
-$total: "總額: %value%"
 $unstake_asset: 解除 %symbol% 質押
 Amount to unstake: 解除質押數量
 Confirm Unstaking: 確認解除質押
@@ -284,7 +282,6 @@ Earn: 赚取
 Earning: 賺取中
 You can save this address for quick access while sending.: 您可以保存此地址以便在發送時快速訪問。
 Stake Again: 再次質押
-Earned: 獲得
 $staking_history_earned: 獲得
 Select wallet to use on this app: 選擇要在此應用上使用的錢包
 Connect: 連接

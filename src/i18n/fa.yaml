@@ -251,8 +251,6 @@ Currently Staked: استیک‌شده فعلی
 Total Staked: مجموع استیک‌شده
 Total Stakers: مجموع استیک‌کنندگان
 Unstake: برداشت استیک
-Earning History: تاریخچه درآمد
-$total: "مجموع: %value%"
 $unstake_asset: برداشت استیک %symbol%
 Amount to unstake: مقدار برای برداشت استیک
 Confirm Unstaking: تأیید برداشت استیک
@@ -284,7 +282,6 @@ Earning: کسب درآمد
 Unexpected: خطای غیرمنتظره
 You can save this address for quick access while sending.: می‌توانید این آدرس را برای دسترسی سریع هنگام ارسال ذخیره کنید.
 Stake Again: استیک دوباره
-Earned: کسب‌شده
 $staking_history_earned: کسب‌شده
 Select wallet to use on this app: کیف پولی را برای استفاده در این اپلیکیشن انتخاب کنید
 Connect: اتصال

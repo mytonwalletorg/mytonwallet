@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
-import { selectCurrentAccountSettings } from '../../../../global/selectors';
+import { selectCurrentAccountSettings, selectHasExploreSites } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
@@ -26,12 +26,13 @@ const ANIMATED_STICKER_SPEED = 2;
 interface StateProps {
   areSettingsOpen?: boolean;
   isExploreOpen?: boolean;
+  hasExplore?: boolean;
   theme: Theme;
   accentColorIndex?: number;
 }
 
 function LandscapeNavBar({
-  areSettingsOpen, isExploreOpen, theme, accentColorIndex,
+  areSettingsOpen, isExploreOpen, hasExplore, theme, accentColorIndex,
 }: StateProps) {
   const {
     switchToWallet, switchToExplore, switchToSettings,
@@ -62,14 +63,16 @@ function LandscapeNavBar({
         accentColor={accentColor}
         onClick={handleWalletClick}
       />
-      <NavButton
-        isActive={isExploreOpen}
-        label={lang('Explore')}
-        tgsUrl={isExploreOpen ? stickerPaths.iconExploreSolid : stickerPaths.iconExplore}
-        previewUrl={isExploreOpen ? stickerPaths.preview.iconExploreSolid : stickerPaths.preview.iconExplore}
-        accentColor={accentColor}
-        onClick={switchToExplore}
-      />
+      {hasExplore && (
+        <NavButton
+          isActive={isExploreOpen}
+          label={lang('Explore')}
+          tgsUrl={isExploreOpen ? stickerPaths.iconExploreSolid : stickerPaths.iconExplore}
+          previewUrl={isExploreOpen ? stickerPaths.preview.iconExploreSolid : stickerPaths.preview.iconExplore}
+          accentColor={accentColor}
+          onClick={switchToExplore}
+        />
+      )}
 
       <NavButton
         isActive={areSettingsOpen}
@@ -89,6 +92,7 @@ export default memo(withGlobal((global): StateProps => {
   return {
     areSettingsOpen,
     isExploreOpen,
+    hasExplore: selectHasExploreSites(global),
     theme: global.settings.theme,
     accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
   };

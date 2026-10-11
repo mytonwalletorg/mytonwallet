@@ -797,9 +797,7 @@ export function parseToncenterNft(
 
     if (domainZone && isDns && !image) {
       // Rendered by our own service, so it is as trusted as an indexer preview
-      const generatedImage = domainZone.suffixes[0] === 'ton'
-        ? `${DNS_IMAGE_GEN_URL}${domainBase}`
-        : undefined;
+      const generatedImage = `${DNS_IMAGE_GEN_URL}${domainBase}`;
 
       const nft = omitUndefined<ApiNft>({
         chain: 'ton',

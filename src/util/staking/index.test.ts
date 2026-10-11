@@ -16,14 +16,13 @@ describe('getIsNewStakeAllowed', () => {
 });
 
 describe('getFullStakingBalance', () => {
-  function buildLiquidState(balance: bigint, loyaltyBalance: bigint) {
+  function buildLiquidState(balance: bigint) {
     return {
       type: 'liquid',
       id: 'liquid',
       tokenSlug: TONCOIN.slug,
       pool: LIQUID_POOL,
       balance,
-      loyaltyBalance,
       tokenBalance: 4_549_625_219_272n,
       annualYield: 14.37,
       yieldType: 'APY',
@@ -35,22 +34,8 @@ describe('getFullStakingBalance', () => {
     } as unknown as ApiStakingState;
   }
 
-  it('adds the loyalty bonus to a liquid stake', () => {
-    // The bonus lives outside the STAKED jetton, so only the full balance accounts for it.
-    expect(getFullStakingBalance(buildLiquidState(5_206_490_590_615n, 1_392_408_248n)))
-      .toBe(5_207_882_998_863n);
-  });
-
-  it('leaves a liquid stake without a bonus untouched', () => {
-    expect(getFullStakingBalance(buildLiquidState(5_206_490_590_615n, 0n)))
-      .toBe(5_206_490_590_615n);
-  });
-
-  it('survives a state persisted before the bonus field existed', () => {
-    const state = { ...buildLiquidState(5_206_490_590_615n, 0n) } as Record<string, unknown>;
-    delete state.loyaltyBalance;
-
-    expect(getFullStakingBalance(state as unknown as ApiStakingState)).toBe(5_206_490_590_615n);
+  it('takes a liquid stake as is', () => {
+    expect(getFullStakingBalance(buildLiquidState(5_206_490_590_615n))).toBe(5_206_490_590_615n);
   });
 
   it('still adds unclaimed rewards to a jetton stake', () => {

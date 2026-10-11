@@ -45,11 +45,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'updateStaking': {
-      const {
-        accountId,
-        states,
-        totalProfit,
-      } = update;
+      const { accountId, states } = update;
 
       const stateById = buildCollectionByKey(states, 'id');
 
@@ -64,7 +60,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       global = updateAccountStaking(global, accountId, {
         stateById,
-        totalProfit,
       });
 
       const { stakingId } = selectAccountState(global, accountId)?.staking ?? {};

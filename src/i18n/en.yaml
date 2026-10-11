@@ -251,8 +251,6 @@ Currently Staked: Currently Staked
 Total Staked: Total Staked
 Total Stakers: Total Stakers
 Unstake: Unstake
-Earning History: Earning History
-$total: "Total: %value%"
 $unstake_asset: Unstake %symbol%
 Amount to unstake: Amount to unstake
 Confirm Unstaking: Confirm Unstaking
@@ -284,7 +282,6 @@ Earning: Earning
 Unexpected: Unexpected error
 You can save this address for quick access while sending.: You can save this address for quick access while sending.
 Stake Again: Stake Again
-Earned: Earned
 $staking_history_earned: Earned
 Select wallet to use on this app: Select wallet to use on this app
 Connect: Connect

@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 
-import { selectCurrentAccountSettings } from '../../../../global/selectors';
+import { selectCurrentAccountSettings, selectHasExploreSites } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import buildStyle from '../../../../util/buildStyle';
@@ -29,13 +29,14 @@ interface StateProps {
   theme: Theme;
   areSettingsOpen?: boolean;
   isExploreOpen?: boolean;
+  hasExplore?: boolean;
   accentColorIndex?: number;
 }
 
 type IconKey = 'iconWallet' | 'iconExplore' | 'iconSettings';
 
 interface TabConfig {
-  index: number;
+  key: 'wallet' | 'explore' | 'settings';
   label: string;
   iconKey: IconKey;
   onClick: NoneToVoidFunction;
@@ -44,14 +45,8 @@ interface TabConfig {
 const ICON_SIZE_PX = 38;
 const ANIMATED_STICKER_SPEED = 2;
 
-const TAB_WALLET = 0;
-const TAB_EXPLORE = 1;
-const TAB_SETTINGS = 2;
-
-const TAB_COUNT = 3;
-
 function BottomBar({
-  theme, areSettingsOpen, isExploreOpen, accentColorIndex,
+  theme, areSettingsOpen, isExploreOpen, hasExplore, accentColorIndex,
 }: StateProps) {
   const { switchToWallet, switchToExplore, switchToSettings } = getActions();
 
@@ -67,16 +62,18 @@ function BottomBar({
     });
   });
 
-  const activeIndex = getActiveIndex({ isExploreOpen, areSettingsOpen });
-
+  const exploreTab: TabConfig = { key: 'explore', label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore };
+  // Explore is hidden while the catalog has no sites
   const tabs: TabConfig[] = [
-    { index: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
-    { index: TAB_EXPLORE, label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore },
-    { index: TAB_SETTINGS, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
+    { key: 'wallet', label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
+    ...(hasExplore ? [exploreTab] : []),
+    { key: 'settings', label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
   ];
+  const activeKey = isExploreOpen ? 'explore' : (areSettingsOpen ? 'settings' : 'wallet');
+  const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.key === activeKey));
 
   const switchToTabByIndex = useLastCallback((index: number) => {
-    tabs.find((tab) => tab.index === index)?.onClick();
+    tabs[index]?.onClick();
   });
 
   const {
@@ -86,13 +83,13 @@ function BottomBar({
     renderedActiveIndex,
     pointerHandlers,
   } = useDraggablePill({
-    tabCount: TAB_COUNT,
+    tabCount: tabs.length,
     activeIndex,
     onCommit: switchToTabByIndex,
   });
 
   const rootStyle = buildStyle(
-    `--tab-count: ${TAB_COUNT}`,
+    `--tab-count: ${tabs.length}`,
     `--active-index: ${activeIndex}`,
   );
 
@@ -107,13 +104,13 @@ function BottomBar({
         {...pointerHandlers}
       >
         <Pill isDragging={isDragging} squeeze={squeeze} />
-        {tabs.map(({ index, label, iconKey, onClick }) => {
+        {tabs.map(({ key, label, iconKey, onClick }, index) => {
           const isActive = renderedActiveIndex === index;
           const variant = isActive ? `${iconKey}Solid` as const : iconKey;
 
           return (
             <TabButton
-              key={index}
+              key={key}
               isActive={isActive}
               label={lang(label)}
               tgsUrl={stickerPaths[variant]}
@@ -135,6 +132,7 @@ export default memo(withGlobal((global): StateProps => {
     theme: global.settings.theme,
     areSettingsOpen,
     isExploreOpen,
+    hasExplore: selectHasExploreSites(global),
     accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
   };
 })(BottomBar));
@@ -178,12 +176,3 @@ const TabButton = memo(({
     </Button>
   );
 });
-
-function getActiveIndex({
-  isExploreOpen, areSettingsOpen,
-}: Pick<StateProps, 'isExploreOpen' | 'areSettingsOpen'>) {
-  if (isExploreOpen) return TAB_EXPLORE;
-  if (areSettingsOpen) return TAB_SETTINGS;
-
-  return TAB_WALLET;
-}

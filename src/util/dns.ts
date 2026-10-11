@@ -50,7 +50,7 @@ export function getDnsZoneByCollection(collectionAddress: string) {
 }
 
 export function isDotTonDomainNft(nft: ApiNft | undefined): nft is ApiNft {
-  return TON_DNS_ZONES.find((zone) => zone.resolver === nft?.collectionAddress)?.collectionName === 'TON DNS Domains';
+  return TON_DNS_ZONES.find((zone) => zone.resolver === nft?.collectionAddress)?.collectionName === 'ION DNS Domains';
 }
 
 export function isRenewableDnsNft(nft: ApiNft | undefined): nft is ApiNft {
