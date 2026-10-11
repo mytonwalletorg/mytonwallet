@@ -6,7 +6,6 @@ jest.mock('../../../common/addresses', () => ({
   checkHasScamLink: jest.fn(() => false),
   checkIsTrustedCollection: jest.fn(() => false),
   getHasTrustedCollections: jest.fn(() => true),
-  getNftSuperCollectionsByCollectionAddress: jest.fn(),
 }));
 
 const TRUSTED_COLLECTION = 'EQBDMXqg2YcGmMnn5_bXG63y-hh_YNV0dx-ylx-vL3v_WZt4';

@@ -1,8 +1,7 @@
-import type { ApiNetwork, ApiNft, ApiNftSuperCollection } from '../../../types';
+import type { ApiNetwork, ApiNft } from '../../../types';
 import type { MetadataMap, NftItemsResponse, NftItemState, NftTransfersResponse } from './types';
 
 import { toBase64Address, toRawAddress } from '../util/tonCore';
-import { getNftSuperCollectionsByCollectionAddress } from '../../../common/addresses';
 import { parseToncenterNft } from './actions';
 import { callToncenterV3 } from './other';
 
@@ -47,10 +46,9 @@ export function fetchNftTransfers(network: ApiNetwork, options: {
 }
 
 export async function fetchNftByAddress(network: ApiNetwork, nftAddress: string): Promise<ApiNft | undefined> {
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
   const { nft_items: items, metadata } = await fetchNftItems(network, { addresses: [nftAddress] });
 
-  return items[0] && parseNftItem(network, items[0], metadata, nftSuperCollectionsByCollectionAddress);
+  return items[0] && parseNftItem(network, items[0], metadata);
 }
 
 /**
@@ -61,13 +59,11 @@ export async function fetchNftByAddress(network: ApiNetwork, nftAddress: string)
 export function parseNftItems(
   network: ApiNetwork,
   response: NftItemsResponse,
-  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
 ): (ApiNft | undefined)[] {
   return response.nft_items.map((item) => parseNftItem(
     network,
     item,
     response.metadata,
-    nftSuperCollectionsByCollectionAddress,
   ));
 }
 
@@ -75,14 +71,12 @@ export function parseNftItem(
   network: ApiNetwork,
   item: NftItemState,
   metadata: MetadataMap,
-  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
 ): ApiNft | undefined {
   const rawOwnerAddress = item.real_owner ?? item.owner_address;
   const { nft } = parseToncenterNft(
     network,
     metadata,
     item.address,
-    nftSuperCollectionsByCollectionAddress,
     {
       rawCollectionAddress: item.collection_address ?? undefined,
       index: item.index,

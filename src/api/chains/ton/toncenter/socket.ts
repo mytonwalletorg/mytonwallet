@@ -23,10 +23,9 @@ import { TONCENTER_ACTIONS_VERSION } from '../../../../config';
 import { logDebug } from '../../../../util/logs';
 import { type InMessageCallback } from '../../../../util/reconnectingWebsocket';
 import safeExec from '../../../../util/safeExec';
-import { forbidConcurrency, setCancellableTimeout } from '../../../../util/schedulers';
+import { setCancellableTimeout } from '../../../../util/schedulers';
 import withCache from '../../../../util/withCache';
 import { areAddressesEqual, toBase64Address } from '../util/tonCore';
-import { getNftSuperCollectionsByCollectionAddress } from '../../../common/addresses';
 import { addBackendHeadersToSocketUrl } from '../../../common/backend';
 import { AbstractWebsocketClient } from '../../../common/websocket/abstractWsClient';
 import { SEC } from '../../../constants';
@@ -85,7 +84,7 @@ class ToncenterSocket extends AbstractWebsocketClient<
         this.#notifyTraceInvalidation(message.trace_external_hash_norm);
 
         // Create an empty actions message to clear the activities for this trace
-        void this.#handleNewActions({
+        this.#handleNewActions({
           type: 'actions',
           finality: 'finalized',
           trace_external_hash_norm: message.trace_external_hash_norm,
@@ -95,7 +94,7 @@ class ToncenterSocket extends AbstractWebsocketClient<
         } satisfies ActionsSocketMessage);
         break;
       case 'actions':
-        void this.#handleNewActions(message);
+        this.#handleNewActions(message);
         break;
       case 'account_state_change':
         this.#handleAccountStateChange(message);
@@ -138,15 +137,14 @@ class ToncenterSocket extends AbstractWebsocketClient<
     }
   }
 
-  // Limiting the concurrency to 1 to ensure the new activities are reported in the order they were received
-  #handleNewActions = forbidConcurrency(async (message: ActionsSocketMessage) => {
+  #handleNewActions = (message: ActionsSocketMessage) => {
     if (message.finality === 'confirmed') {
       logDebug('toncenter: trace confirmed (shard)', { hash: message.trace_external_hash_norm });
     } else if (message.finality === 'finalized') {
       logDebug('toncenter: trace finalized', { hash: message.trace_external_hash_norm });
     }
     const messageHashNormalized = message.trace_external_hash_norm;
-    const activitiesByAddress = await parseSocketActions(
+    const activitiesByAddress = parseSocketActions(
       this.#network,
       message,
       this.#getAddressesReadyForActivities(),
@@ -175,7 +173,7 @@ class ToncenterSocket extends AbstractWebsocketClient<
         }));
       }
     }
-  });
+  };
 
   #handleAccountStateChange(message: AccountStateChangeSocketMessage) {
     this.#notifyBalanceUpdate(
@@ -401,10 +399,9 @@ function getSocketUrl(network: ApiNetwork) {
   return url;
 }
 
-async function parseSocketActions(network: ApiNetwork, message: ActionsSocketMessage, addressWhitelist: Set<string>) {
+function parseSocketActions(network: ApiNetwork, message: ActionsSocketMessage, addressWhitelist: Set<string>) {
   const actionsByAddress = groupActionsByAddress(message.actions, message.address_book);
   const activitiesByAddress: Record<string, ApiActivity[]> = {};
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   for (const [address, actions] of Object.entries(actionsByAddress)) {
     if (!addressWhitelist.has(address)) {
@@ -416,7 +413,6 @@ async function parseSocketActions(network: ApiNetwork, message: ActionsSocketMes
       walletAddress: address,
       addressBook: message.address_book,
       metadata: message.metadata,
-      nftSuperCollectionsByCollectionAddress,
       isPending: message.finality === 'pending',
       finality: message.finality,
     });

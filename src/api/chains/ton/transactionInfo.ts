@@ -1,7 +1,6 @@
 import type { ApiActivity, ApiFetchTransactionByIdOptions } from '../../types';
 
 import { logDebugError } from '../../../util/logs';
-import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import { parseActionsToActivities } from './toncenter/actions';
 import { fetchTraceByIdOrHash, fetchTraceByTxHash } from './toncenter/traces';
 import { fillActivityDetails } from './activities';
@@ -27,14 +26,11 @@ export async function fetchTransactionById(
       return [];
     }
 
-    const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
-
     const activities = parseActionsToActivities(trace.actions, {
       network,
       walletAddress,
       addressBook,
       metadata,
-      nftSuperCollectionsByCollectionAddress,
     });
 
     /*
@@ -67,7 +63,6 @@ export async function fetchTransactionById(
           addressBook,
           metadata,
           transactions: trace.transactions,
-          nftSuperCollectionsByCollectionAddress,
         });
 
         const filledActivity = fillActivityDetails(activity, parsedTrace);

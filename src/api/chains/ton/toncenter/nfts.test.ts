@@ -6,7 +6,6 @@ import { callToncenterV3 } from './other';
 jest.mock('./other', () => ({ callToncenterV3: jest.fn(() => Promise.resolve({})) }));
 
 jest.mock('../../../common/addresses', () => ({
-  getNftSuperCollectionsByCollectionAddress: jest.fn(() => Promise.resolve({})),
   checkIsTrustedCollection: () => false,
   checkHasScamLink: () => false,
   getHasTrustedCollections: () => true,

@@ -1,4 +1,4 @@
-import type { ApiNetwork, ApiNftSuperCollection } from '../../types';
+import type { ApiNetwork } from '../../types';
 import type { AddressBook, AnyAction, MetadataMap, TraceDetail, Transaction } from './toncenter/types';
 import type { ApiTransactionExtended, ParsedAction, ParsedTrace, TraceOutput } from './types';
 
@@ -6,7 +6,6 @@ import { TONCOIN } from '../../../config';
 import { bigintAbs } from '../../../util/bigint';
 import { groupBy, intersection } from '../../../util/iteratees';
 import { parseBidaskPayload } from './util/metadata';
-import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import { fetchTrace } from './toncenter/traces';
 import { BidaskOpCode } from './constants';
 import { parseActions, parseRawTransactions } from './toncenter';
@@ -25,7 +24,6 @@ export async function fetchAndParseTrace(
   const {
     trace, addressBook, metadata,
   } = await fetchTrace({ network, msgHashNormalized, isActionPending, signal });
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   return trace && parseTrace({
     network,
@@ -35,7 +33,6 @@ export async function fetchAndParseTrace(
     addressBook,
     metadata,
     transactions: trace.transactions,
-    nftSuperCollectionsByCollectionAddress,
   });
 }
 
@@ -47,7 +44,6 @@ export function parseTrace(options: {
   addressBook: AddressBook;
   metadata: MetadataMap;
   transactions: Record<string, Transaction>;
-  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>;
 }): ParsedTrace {
   const {
     network,
@@ -57,7 +53,6 @@ export function parseTrace(options: {
     addressBook,
     metadata,
     transactions: rawTransactionMap,
-    nftSuperCollectionsByCollectionAddress,
   } = options;
 
   let traceOutputs: TraceOutput[];
@@ -67,7 +62,6 @@ export function parseTrace(options: {
     walletAddress,
     addressBook,
     metadata,
-    nftSuperCollectionsByCollectionAddress,
   });
 
   if (isFailedTransactionTrace(traceDetail)) {

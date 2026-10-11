@@ -5,7 +5,6 @@ import type {
   ApiNetwork,
   ApiNft,
   ApiNftAttribute,
-  ApiNftSuperCollection,
   ApiTransaction,
   ApiTransactionActivity,
   ApiTransactionType,
@@ -55,7 +54,6 @@ import { toBase64Address } from '../util/tonCore';
 import {
   checkHasScamLink,
   checkIsTrustedCollection,
-  getNftSuperCollectionsByCollectionAddress,
 } from '../../../common/addresses';
 import { updateActivityMetadata } from '../../../common/helpers';
 import { buildTokenSlug } from '../../../common/tokens';
@@ -79,7 +77,6 @@ type ParseOptions = {
   addressBook: AddressBook;
   walletAddress: string;
   metadata: MetadataMap;
-  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>;
   isPending?: boolean;
   finality?: SocketFinality;
 };
@@ -152,14 +149,11 @@ export async function fetchActions(options: FetchActionsOptions): Promise<ApiAct
     metadata = {},
   } = await callToncenterV3<ActionsResponse>(network, '/actions', data, signal);
 
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
-
   const activities = parseActionsToActivities(actions, {
     network,
     walletAddress,
     addressBook,
     metadata,
-    nftSuperCollectionsByCollectionAddress,
   });
 
   // Even though the activities returned by Toncenter are sorted by timestamp, our sorting may differ.
@@ -176,14 +170,11 @@ export async function fetchPendingActions(network: ApiNetwork, address: string):
     account: address,
   });
 
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
-
   return parseActionsToActivities(actions, {
     network,
     walletAddress: address,
     addressBook,
     metadata,
-    nftSuperCollectionsByCollectionAddress,
     isPending: true,
   });
 }
@@ -467,7 +458,6 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Par
     metadata,
     walletAddress,
     addressBook,
-    nftSuperCollectionsByCollectionAddress,
   } = options;
 
   const {
@@ -488,7 +478,6 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Par
     network,
     metadata,
     rawNftAddress,
-    nftSuperCollectionsByCollectionAddress,
     { rawCollectionAddress: rawCollectionAddress ?? undefined, index: index ?? undefined },
   );
 
@@ -541,7 +530,7 @@ function parseNftTransfer(action: NftTransferAction, options: ParseOptions): Par
 }
 
 function parseNftMint(action: NftMintAction, options: ParseOptions): ParsedAction {
-  const { network, metadata, nftSuperCollectionsByCollectionAddress } = options;
+  const { network, metadata } = options;
 
   const {
     owner,
@@ -554,7 +543,6 @@ function parseNftMint(action: NftMintAction, options: ParseOptions): ParsedActio
     network,
     metadata,
     rawNftAddress,
-    nftSuperCollectionsByCollectionAddress,
     { rawCollectionAddress: rawCollectionAddress ?? undefined, index: index ?? undefined },
   );
 
@@ -644,14 +632,13 @@ function parseJettonSwap(action: SwapAction, options: ParseOptions): ParsedActio
 }
 
 function parseDns(action: DnsAction, options: ParseOptions): ParsedAction {
-  const { network, metadata, nftSuperCollectionsByCollectionAddress } = options;
+  const { network, metadata } = options;
   const { details: { source, asset } } = action;
 
   const { nft } = parseToncenterNft(
     network,
     metadata,
     asset,
-    nftSuperCollectionsByCollectionAddress,
     // Toncenter gives no collection address for DNS actions, and without one the parser would
     // refuse to treat the item as a domain. Such an action can only come from a real DNS contract,
     // so it is safe to confirm that here
@@ -693,7 +680,7 @@ function parseDns(action: DnsAction, options: ParseOptions): ParsedAction {
 }
 
 function parseAuctionBid(action: AuctionBidAction, options: ParseOptions): ParsedAction {
-  const { network, metadata, nftSuperCollectionsByCollectionAddress } = options;
+  const { network, metadata } = options;
   const { details } = action;
 
   const {
@@ -708,7 +695,6 @@ function parseAuctionBid(action: AuctionBidAction, options: ParseOptions): Parse
     network,
     metadata,
     rawNftAddress ?? undefined,
-    nftSuperCollectionsByCollectionAddress,
     { rawCollectionAddress: rawCollectionAddress ?? undefined, index: index ?? undefined },
   );
 
@@ -772,7 +758,6 @@ export function parseToncenterNft(
   network: ApiNetwork,
   metadataMap: MetadataMap,
   rawNftAddress: string,
-  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
   options?: {
     rawCollectionAddress?: string;
     /** Stringified integer */

@@ -70,12 +70,6 @@ export interface ApiKnownAddressInfo {
   isMemoRequired?: boolean;
 }
 
-export interface ApiNftSuperCollection {
-  id: string;
-  name: string;
-  icon?: 'gift';
-}
-
 export type ApiActivityTimestamps = Record<string, number | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest'
   | 'callContract' | 'excess' | 'contractDeploy' | 'bounced'

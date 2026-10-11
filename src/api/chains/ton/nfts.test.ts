@@ -17,7 +17,6 @@ jest.mock('../../common/accounts', () => ({
 }));
 
 jest.mock('../../common/addresses', () => ({
-  getNftSuperCollectionsByCollectionAddress: jest.fn(() => Promise.resolve({})),
   checkIsTrustedCollection: () => false,
   checkHasScamLink: () => false,
   getHasTrustedCollections: () => true,

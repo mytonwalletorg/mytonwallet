@@ -5,14 +5,12 @@ import type {
   ApiActivity,
   ApiEmulationResult,
   ApiNetwork,
-  ApiNftSuperCollection,
 } from '../../types';
 import type { EmulationResponse } from './toncenter/emulation';
 import type { TonWallet } from './util/tonCore';
 
 import { BURN_ADDRESS, TONCOIN } from '../../../config';
 import { toBase64Address } from './util/tonCore';
-import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import { FAKE_TX_ID } from '../../constants';
 import { fetchEmulateTrace } from './toncenter/emulation';
 import { parseTrace } from './traces';
@@ -26,9 +24,8 @@ export async function emulateTransaction(
 ) {
   const boc = buildExternalBoc(wallet, transaction, isInitialized);
   const emulation = await fetchEmulateTrace(network, boc, signal);
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
   const walletAddress = toBase64Address(wallet.address, false, network);
-  return parseEmulation(network, walletAddress, emulation, nftSuperCollectionsByCollectionAddress);
+  return parseEmulation(network, walletAddress, emulation);
 }
 
 export async function emulateExternalMessage(
@@ -41,15 +38,13 @@ export async function emulateExternalMessage(
 ) {
   const boc = buildExternalBocTo(toAddress, body, init);
   const emulation = await fetchEmulateTrace(network, boc, signal);
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
-  return parseEmulation(network, walletAddress, emulation, nftSuperCollectionsByCollectionAddress);
+  return parseEmulation(network, walletAddress, emulation);
 }
 
 export function parseEmulation(
   network: ApiNetwork,
   walletAddress: string,
   emulation: EmulationResponse,
-  nftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection>,
 ): ApiEmulationResult {
   const parsedTrace = parseTrace({
     network,
@@ -59,7 +54,6 @@ export function parseEmulation(
     addressBook: emulation.address_book,
     metadata: emulation.metadata,
     transactions: emulation.transactions,
-    nftSuperCollectionsByCollectionAddress,
   });
 
   let walletActivities: ApiActivity[] = [];

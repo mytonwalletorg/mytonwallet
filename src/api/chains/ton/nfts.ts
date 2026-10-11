@@ -23,7 +23,6 @@ import { generateQueryId } from './util';
 import { getSigner } from './util/signer';
 import { commentToBytes, packBytesAsSnakeCell, storeInlineOrRefCell, toBase64Address } from './util/tonCore';
 import { fetchStoredChainAccount, fetchStoredWallet } from '../../common/accounts';
-import { getNftSuperCollectionsByCollectionAddress } from '../../common/addresses';
 import { fetchAllPaginated, streamPaginated } from '../../common/pagination';
 import { parseToncenterNft } from './toncenter/actions';
 import { fetchNftItems, fetchNftTransfers, parseNftItem, parseNftItems } from './toncenter/nfts';
@@ -46,11 +45,10 @@ export async function getAccountNfts(accountId: string, options?: {
 }): Promise<ApiNft[]> {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredWallet(accountId, 'ton');
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   if (options?.offset !== undefined || options?.limit !== undefined) {
     const response = await fetchNftItems(network, { ownerAddress: address, ...options });
-    return compact(parseNftItems(network, response, nftSuperCollectionsByCollectionAddress));
+    return compact(parseNftItems(network, response));
   }
 
   const { nftBatchLimit, nftBatchPauseMs } = getChainConfig('ton');
@@ -62,7 +60,7 @@ export async function getAccountNfts(accountId: string, options?: {
       collectionAddress: options?.collectionAddress,
       offset: cursor * nftBatchLimit!,
       limit: nftBatchLimit!,
-    }).then((response) => parseNftItems(network, response, nftSuperCollectionsByCollectionAddress)),
+    }).then((response) => parseNftItems(network, response)),
   });
 
   return compact(nfts);
@@ -74,7 +72,6 @@ export async function streamAllAccountNfts(accountId: string, options: {
 }): Promise<void> {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredWallet(accountId, 'ton');
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const { nftBatchLimit, nftBatchPauseMs } = getChainConfig('ton');
   await streamPaginated({
@@ -85,7 +82,7 @@ export async function streamAllAccountNfts(accountId: string, options: {
       ownerAddress: address,
       offset: cursor * nftBatchLimit!,
       limit: nftBatchLimit!,
-    }).then((response) => parseNftItems(network, response, nftSuperCollectionsByCollectionAddress)),
+    }).then((response) => parseNftItems(network, response)),
     onBatch: (batch) => options.onBatch(compact(batch)),
   });
 }
@@ -93,13 +90,12 @@ export async function streamAllAccountNfts(accountId: string, options: {
 export async function checkNftOwnership(accountId: string, nftAddress: string) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredWallet(accountId, 'ton');
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const response = await fetchNftItems(network, { addresses: [nftAddress] });
   const item = response.nft_items[0];
   if (!item) return false;
 
-  const nft = parseNftItem(network, item, response.metadata, nftSuperCollectionsByCollectionAddress);
+  const nft = parseNftItem(network, item, response.metadata);
 
   return address === nft?.ownerAddress;
 }
@@ -107,7 +103,6 @@ export async function checkNftOwnership(accountId: string, nftAddress: string) {
 export async function getNftUpdates(accountId: string, fromSec: number) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredWallet(accountId, 'ton');
-  const nftSuperCollectionsByCollectionAddress = await getNftSuperCollectionsByCollectionAddress();
 
   const { nft_transfers: transfers, metadata } = await fetchNftTransfers(network, {
     ownerAddress: address,
@@ -128,7 +123,6 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         network,
         metadata,
         transfer.nft_address,
-        nftSuperCollectionsByCollectionAddress,
         {
           rawCollectionAddress: transfer.nft_collection ?? undefined,
           // `/nft/transfers` reports no ownership, but the check above has just confirmed that this
