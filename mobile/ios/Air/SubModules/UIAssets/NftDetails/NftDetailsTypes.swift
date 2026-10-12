@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum NftDetailsPageTransitionState<Page: Equatable>: Equatable, CustomStringConvertible {
     case staticPage(Page)
@@ -69,3 +70,20 @@ extension Notification.Name {
     static let nftDetailsStopLottieAnimations = Notification.Name("nftDetailsStopLottieAnimations")
 }
 
+
+/// CISwipeTransition with a feather width of three screen widths is a linear
+/// alpha ramp. Share its geometry with Core Animation so live video can use the
+/// identical wipe without readback, snapshots, or per-frame image uploads.
+enum NftDetailsPageWipe {
+    static let widthRatio: CGFloat = 3
+
+    static func configure(_ mask: CAGradientLayer, progress: CGFloat, showingLeft: Bool, isRTL: Bool) {
+        let start = 1 - (1 + widthRatio) * progress
+        let end = start + widthRatio
+        mask.startPoint = CGPoint(x: isRTL ? 1 - start : start, y: 0.5)
+        mask.endPoint = CGPoint(x: isRTL ? 1 - end : end, y: 0.5)
+        mask.colors = showingLeft ? [UIColor.white.cgColor, UIColor.clear.cgColor]
+            : [UIColor.clear.cgColor, UIColor.white.cgColor]
+        mask.locations = [0, 1]
+    }
+}

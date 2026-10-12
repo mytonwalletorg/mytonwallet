@@ -11,7 +11,7 @@ import WalletContext
 public class WScalableButton: UIControl {
     
     public enum Style {
-        case standard, thinGlass
+        case standard, thinGlass, plain
     }
     
     public var onTap: (() -> Void)?
@@ -35,21 +35,22 @@ public class WScalableButton: UIControl {
     
     public var fillColor: UIColor? {
         didSet {
-            assert(style == .thinGlass)
-            thinGlassView?.fillColor = fillColor
+            assert(style == .thinGlass || style == .plain)
+            if style == .plain { containerView.backgroundColor = fillColor }
+            else { thinGlassView?.fillColor = fillColor }
         }
     }
 
     public var highlightedFillColor: UIColor? {
         didSet {
-            assert(style == .thinGlass)
+            assert(style == .thinGlass || style == .plain)
         }
     }
 
     public var edgeColor: UIColor? {
         didSet {
-            assert(style == .thinGlass)
-            thinGlassView?.edgeColor = edgeColor
+            assert(style == .thinGlass || style == .plain)
+            if style == .thinGlass { thinGlassView?.edgeColor = edgeColor }
         }
     }
 
@@ -103,6 +104,13 @@ public class WScalableButton: UIControl {
             view.isUserInteractionEnabled = false
             return view
             
+        case .plain:
+            let view = UIView()
+            view.layer.cornerRadius = baseCornerRadius
+            view.layer.cornerCurve = .continuous
+            view.isUserInteractionEnabled = false
+            return view
+
         case .thinGlass:
             let view = ThinGlassView()
             view.isUserInteractionEnabled = false
@@ -126,7 +134,7 @@ public class WScalableButton: UIControl {
             } else {
                 containerView
             }
-        case .thinGlass:
+        case .thinGlass, .plain:
             containerView
         }
     }
@@ -214,6 +222,10 @@ public class WScalableButton: UIControl {
                 guard !IOS_26_MODE_ENABLED else { return }
                 UIView.animate(withDuration: isHighlighted ? 0.1 : 0.3, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {
                     self.containerView.backgroundColor = self.isHighlighted ? .air.highlight : .air.groupedItem
+                }
+            case .plain:
+                UIView.animate(withDuration: isHighlighted ? 0.1 : 0.2, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {
+                    self.alpha = self.isHighlighted ? 0.5 : 1
                 }
             case .thinGlass:
                 UIView.animate(withDuration: isHighlighted ? 0.1 : 0.3, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {

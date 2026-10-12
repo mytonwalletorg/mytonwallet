@@ -415,6 +415,7 @@ public class NftDetailsVC: NftDetailsBaseVC {
                         return
                     }
                     let vc = NftsFullScreenVC(accountSource: .accountId(accountId), filter: .collection(collection))
+                    vc.matchesNftDetailsBackButton = true
                     nc.pushViewController(vc, animated: true)
                 }
             )
