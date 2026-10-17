@@ -52,6 +52,18 @@ struct SwapView: View {
                             swapModel.performHintAction(hint)
                         }
                     }
+                    if let estimateDebugSummary = swapModel.estimateDebugSummary {
+                        Text(estimateDebugSummary)
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundStyle(Color.air.secondaryLabel)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(
+                                Color.air.secondaryFill,
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            )
+                    }
                 }
                 .padding(.horizontal, 16)
                 .animation(.snappy, value: swapModel.estimateState.dexEstimate)

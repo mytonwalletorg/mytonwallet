@@ -4,6 +4,7 @@ import org.json.JSONObject
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2ActionPresentation
+import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2AnswerFeedbackResponse
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2EntryPoint
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2FollowUpReference
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2HintsResponse
@@ -36,6 +37,11 @@ interface AgentV2Client {
     suspend fun cancelRun(runId: String): AgentV2ThreadResponse
     suspend fun clearThread(threadId: String, revision: Int): AgentV2ThreadResponse
     suspend fun reportProblem(threadId: String, messageId: String?, comment: String?)
+    suspend fun setMessageFeedback(
+        threadId: String,
+        messageId: String,
+        feedback: String?
+    ): AgentV2AnswerFeedbackResponse
     suspend fun actionPresentation(messageId: String, actionId: String): AgentV2ActionPresentation
     suspend fun resolveAction(messageId: String, actionId: String): AgentV2ResolvedAction
 }
@@ -99,6 +105,12 @@ class LiveAgentV2Client : AgentV2Client {
     override suspend fun reportProblem(threadId: String, messageId: String?, comment: String?) {
         callAgentV2Mutation(ApiMethod.AgentV2.ReportProblem(threadId, messageId, comment))
     }
+
+    override suspend fun setMessageFeedback(
+        threadId: String,
+        messageId: String,
+        feedback: String?
+    ) = callAgentV2Mutation(ApiMethod.AgentV2.SetMessageFeedback(threadId, messageId, feedback))
 
     override suspend fun resolveAction(messageId: String, actionId: String) =
         WalletCore.call(ApiMethod.AgentV2.ResolveAction(messageId, actionId))

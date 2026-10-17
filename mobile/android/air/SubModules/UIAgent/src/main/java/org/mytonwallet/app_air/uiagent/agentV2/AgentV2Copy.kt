@@ -54,6 +54,14 @@ internal fun localizedAgentV2Hint(id: String): AgentHint? {
 
 internal fun agentUnavailableText(): String = LocaleController.getString("\$agent_error_generic")
 
+internal fun agentActionUnavailableText(reason: String?): String {
+    val key = when (reason) {
+        "viewOnlyWallet" -> "\$action_not_available_view_mode"
+        else -> "This action is no longer available."
+    }
+    return LocaleController.getString(key)
+}
+
 internal fun agentV2SemanticText(content: Map<String, Any>?): String {
     val code = content?.get("code") as? String
     val key = when {

@@ -17,6 +17,7 @@ public struct NetworkFeeData {
 
 public struct ApiSwapCexEstimateResponse: Equatable, Hashable, Codable, Sendable {
     public var hint: ApiSwapHint?
+    public var debug: ApiSwapEstimateDebug?
     public var cexLabel: ApiSwapCexLabel
     public var providerName: String?
     public var termsOfUseUrl: String?

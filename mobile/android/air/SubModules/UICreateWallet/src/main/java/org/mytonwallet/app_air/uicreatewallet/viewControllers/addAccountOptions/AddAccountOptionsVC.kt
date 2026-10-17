@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import java.lang.ref.WeakReference
 import org.mytonwallet.app_air.ledger.screens.ledgerConnect.LedgerConnectVC
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WNavigationController
 import org.mytonwallet.app_air.uicomponents.base.WViewController
@@ -73,7 +74,8 @@ class AddAccountOptionsVC(
                     LocaleController.getString("New Wallet"),
                     LocaleController.getString("From new secret words"),
                     value = null,
-                    hasTintColor = false
+                    hasTintColor = false,
+                    testViewId = UIComponentsR.id.add_wallet_create
                 ),
                 subtitle = null,
                 isFirst = true,
@@ -108,7 +110,8 @@ class AddAccountOptionsVC(
                     LocaleController.getString("New Subwallet"),
                     LocaleController.getString("From current secret words"),
                     value = null,
-                    hasTintColor = false
+                    hasTintColor = false,
+                    testViewId = UIComponentsR.id.add_wallet_subwallet
                 ),
                 subtitle = null,
                 isFirst = false,
@@ -159,7 +162,8 @@ class AddAccountOptionsVC(
                     LocaleController.getPluralOrFormat("%count% Secret Words", 12, "12/24"),
                     LocaleController.getString("Restore wallet from 12 or 24 words"),
                     value = null,
-                    hasTintColor = false
+                    hasTintColor = false,
+                    testViewId = UIComponentsR.id.add_wallet_secret_words
                 ),
                 subtitle = null,
                 isFirst = true,
@@ -210,7 +214,8 @@ class AddAccountOptionsVC(
                     LocaleController.getString("Ledger"),
                     LocaleController.getString("Connect your hardware wallet"),
                     value = null,
-                    hasTintColor = false
+                    hasTintColor = false,
+                    testViewId = UIComponentsR.id.add_wallet_ledger
                 ),
                 subtitle = null,
                 isFirst = false,
@@ -230,7 +235,8 @@ class AddAccountOptionsVC(
                 LocaleController.getString("View Any Address"),
                 LocaleController.getString("Watch wallet in read-only mode"),
                 value = null,
-                hasTintColor = false
+                hasTintColor = false,
+                testViewId = UIComponentsR.id.add_wallet_view
             ),
             subtitle = null,
             isFirst = true,

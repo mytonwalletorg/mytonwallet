@@ -13,11 +13,8 @@ class SwapTypeTest {
             MBlockchain.ethereum,
             MBlockchain.base,
             MBlockchain.bnb,
-            MBlockchain.polygon,
             MBlockchain.arbitrum,
             MBlockchain.optimism,
-            MBlockchain.monad,
-            MBlockchain.avalanche,
             MBlockchain.robinhood,
             MBlockchain.arc
         ).forEach { chain ->
@@ -35,7 +32,13 @@ class SwapTypeTest {
 
     @Test
     fun unsupportedAndDifferentEvmChainsKeepCrossChainFlow() {
-        listOf("hyperliquid" to "hyperliquid", "ethereum" to "base").forEach { (from, to) ->
+        listOf(
+            "hyperliquid" to "hyperliquid",
+            "polygon" to "polygon",
+            "avalanche" to "avalanche",
+            "monad" to "monad",
+            "ethereum" to "base"
+        ).forEach { (from, to) ->
             assertEquals(
                 SwapType.CROSS_CHAIN_FROM_WALLET,
                 SwapType.from(

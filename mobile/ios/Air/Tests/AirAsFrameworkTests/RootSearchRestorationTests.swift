@@ -312,6 +312,45 @@ final class RootSearchRestorationTests: XCTestCase {
         root.dismiss(animated: false)
     }
 
+    @available(iOS 27.1, *)
+    func testDuoNavigationPlacementPreservesSplitSidebarAndSearchStack() async throws {
+        let key = DuoNavigationSettings.userDefaultsKey
+        let previous = UserDefaults.standard.object(forKey: key)
+        defer {
+            if let previous { UserDefaults.standard.set(previous, forKey: key) }
+            else { UserDefaults.standard.removeObject(forKey: key) }
+            DuoNavigationSettings.notifyDidChange()
+        }
+        UserDefaults.standard.set(DuoNavigationSettings.Placement.sidebar.rawValue, forKey: key)
+        let (root, window) = host(.regular)
+        defer { window.isHidden = true }
+        selectTab(.market, in: root)
+        try await settle(window)
+        let split = try XCTUnwrap(root.children.first as? SplitRootViewController)
+        let sidebar = try XCTUnwrap(split.viewController(for: .primary))
+        let navigation = try navigation(root)
+        let market = try XCTUnwrap(navigation.viewControllers.first)
+        root.searchController.openSearch()
+        try await settle(window)
+        let search = try XCTUnwrap(root.searchController.universalSearchViewController)
+        search.restoresKeyboard = false
+        root.searchController.searchToolbar.endEditing()
+        root.searchController.searchToolbar.onTextChange?("ton")
+
+        for placement in [DuoNavigationSettings.Placement.toolbar, .sidebar] {
+            UserDefaults.standard.set(placement.rawValue, forKey: key)
+            DuoNavigationSettings.notifyDidChange()
+            try await settle(window)
+            XCTAssertTrue(root.children.first === split)
+            XCTAssertTrue(split.viewController(for: .primary) === sidebar)
+            XCTAssertTrue(split.searchNavigationController === navigation)
+            XCTAssertTrue(navigation.viewControllers.first === market)
+            XCTAssertTrue(navigation.topViewController === search)
+            XCTAssertEqual(search.fieldConfiguration.text, "ton")
+            XCTAssertEqual(split.currentTabId, .market)
+        }
+    }
+
     @available(iOS 17.0, *)
     private func host(_ sizeClass: UIUserInterfaceSizeClass) -> (AdaptiveRootViewController, UIWindow) {
         let root = AdaptiveRootViewController()

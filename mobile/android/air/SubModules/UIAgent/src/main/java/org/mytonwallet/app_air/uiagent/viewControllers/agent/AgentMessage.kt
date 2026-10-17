@@ -16,6 +16,16 @@ enum class AgentMessageRole {
 
 data class AgentDeeplink(val title: String, val url: String? = null, val actionId: String? = null)
 
+/** The user's rating of a complete answer, spelled as the server stores it */
+enum class AgentAnswerFeedback(val wireValue: String) {
+    LIKE("like"),
+    DISLIKE("dislike");
+
+    companion object {
+        fun fromWireValue(value: String?) = entries.firstOrNull { it.wireValue == value }
+    }
+}
+
 data class AgentMessage(
     val id: String = UUID.randomUUID().toString(),
     val sdkMessageId: String? = null,
@@ -29,7 +39,10 @@ data class AgentMessage(
     val date: Date = Date(),
     val isStreaming: Boolean = false,
     val isAwaitingSemanticContent: Boolean = false,
-    val deeplinks: List<AgentDeeplink> = emptyList()
+    val deeplinks: List<AgentDeeplink> = emptyList(),
+    /** The server stores the answer as complete, so the user can rate it */
+    val isComplete: Boolean = false,
+    val feedback: AgentAnswerFeedback? = null
 ) {
     val hasText: Boolean
         get() = text.isNotEmpty() || tableReferences.any { reference ->

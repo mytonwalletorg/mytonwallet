@@ -11,6 +11,7 @@ public final class WNavigationBarIconGroup {
         public init(
             title: String,
             accessibilityLabel: String? = nil,
+            accessibilityIdentifier: String? = nil,
             image: UIImage?,
             onPress: @escaping () -> Void
         ) {
@@ -30,6 +31,7 @@ public final class WNavigationBarIconGroup {
             button.setImage(renderedImage, for: .normal)
             button.imageView?.contentMode = .center
             button.accessibilityLabel = resolvedAccessibilityLabel
+            button.accessibilityIdentifier = accessibilityIdentifier
             button.addTarget(actionProxy, action: #selector(ActionProxy.invoke), for: .touchUpInside)
             NSLayoutConstraint.activate([
                 button.widthAnchor.constraint(equalToConstant: Self.iconSize),

@@ -133,6 +133,18 @@ export function updateTradeCounterToken(global: GlobalState, direction: TradeDir
   });
 }
 
+export function updateLastSwapPair(global: GlobalState) {
+  const { tokenInSlug, tokenOutSlug } = global.currentSwap;
+  if (!tokenInSlug || !tokenOutSlug) return global;
+
+  const { lastSwapPairsBySlug } = selectCurrentAccountState(global) ?? {};
+  const pair = { tokenInSlug, tokenOutSlug };
+
+  return updateCurrentAccountState(global, {
+    lastSwapPairsBySlug: { ...lastSwapPairsBySlug, [tokenInSlug]: pair, [tokenOutSlug]: pair },
+  });
+}
+
 /** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
 export function replaceCurrentSwapId(global: GlobalState, replaceMap: Record<string, string>) {
   return updateCurrentSwap(global, {

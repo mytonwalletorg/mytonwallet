@@ -170,6 +170,7 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
     abstract val id: String
     abstract val shouldHide: Boolean?
     abstract val externalMsgHashNorm: String?
+    abstract val traceId: String?
     abstract val shouldLoadDetails: Boolean?
     abstract val extra: ActivityExtra?
     abstract val kind: String
@@ -184,6 +185,7 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
         @Json(name = "id") override val id: String,
         @Json(name = "shouldHide") override val shouldHide: Boolean? = null,
         @Json(name = "externalMsgHashNorm") override val externalMsgHashNorm: String?,
+        @Json(name = "traceId") override val traceId: String? = null,
         @Json(name = "shouldLoadDetails") override val shouldLoadDetails: Boolean? = null,
         @Json(name = "extra") override val extra: ActivityExtra? = null,
         @Json(name = "kind") override val kind: String = "transaction",
@@ -277,12 +279,6 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
 
                 return !shouldHide
             }
-
-        val noAmountTransaction: Boolean
-            get() {
-                return ApiTransactionType.noAmountTransactionTypes.contains(type) &&
-                    amount.abs() <= BigInteger.ONE
-            }
     }
 
     @JsonClass(generateAdapter = true)
@@ -290,6 +286,7 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
         @Json(name = "id") override val id: String,
         @Json(name = "shouldHide") override val shouldHide: Boolean? = null,
         @Json(name = "externalMsgHashNorm") override val externalMsgHashNorm: String?,
+        @Json(name = "traceId") override val traceId: String? = null,
         @Json(name = "shouldLoadDetails") override val shouldLoadDetails: Boolean? = null,
         @Json(name = "extra") override val extra: ActivityExtra? = null,
         @Json(name = "kind") override val kind: String = "swap",
@@ -419,6 +416,18 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
         }
     }
 
+    // The trace ID is the hash every TON explorer finds; a DEX swap row without it is named by its message hash,
+    // and a backend or local swap row that knows no hash at all has no transaction to show
+    fun getExplorerTxHash(): String? = traceId ?: when (this) {
+        is Swap -> when {
+            cex == null && externalMsgHashNorm != null -> externalMsgHashNorm
+            hashes.isEmpty() && (isBackendSwapId() || isLocal()) -> null
+            else -> getTxHash()
+        }
+
+        is Transaction -> getTxHash()
+    }
+
     fun getTxHash(): String? {
         if (getTxIdentifier().isNullOrEmpty()) return null
         val token = TokenStore.getToken(getTxSlug())
@@ -545,6 +554,8 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
             if (shouldHide != comparing.shouldHide) return true
             if (tokenPrice != comparing.tokenPrice) return true
             if (extra?.reconciliation != comparing.extra?.reconciliation) return true
+            if (traceId != comparing.traceId) return true
+            if (externalMsgHashNorm != comparing.externalMsgHashNorm) return true
             if (this is Swap && comparing is Swap) {
                 return status != comparing.status || cex?.status != comparing.cex?.status ||
                     hashes.size != comparing.hashes.size
@@ -801,11 +812,6 @@ enum class ApiTransactionType {
 
     @Json(name = "liquidityWithdraw")
     LIQUIDITY_WITHDRAW;
-
-    companion object {
-        val noAmountTransactionTypes =
-            setOf(UNSTAKE_REQUEST, CALL_CONTRACT, CONTRACT_DEPLOY)
-    }
 
     private val icons: Map<ApiTransactionType, Int> by lazy {
         mapOf(

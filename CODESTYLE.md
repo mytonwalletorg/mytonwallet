@@ -283,6 +283,24 @@ PWA: Support system sharing menu
 [Classic] Accounts: Allow view-only accounts to connect to dapps
 ```
 
+### Bug Fixes
+
+A bug fix starts its description with `Fix`, followed by the problem as a user or developer sees it. How the code now avoids the problem belongs in the PR description. A title is change history, so the rule against history framing in docs and comments does not apply to it.
+
+The word `Fix` opening the description is the only fix marker: no `fix/`, `fix:` or `Fixed`.
+
+```
+[Android] Token / Chart: Fix squashed price chart on tablet
+[All] TON Connect: Fix possible double confirmation of a transfer after restart
+```
+
+Not:
+
+```
+[All] TON Connect: Broadcast a transaction only once its settlement is stored
+[iOS] fix/Dapps: Make dapp title skeletons translucent
+```
+
 ### Linking Pull Requests to Issues
 
 Add `Closes #<issue_number>` to the PR description to link it to the corresponding issue.

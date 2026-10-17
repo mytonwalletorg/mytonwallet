@@ -1,5 +1,6 @@
 import type { Storage } from '../storages/types';
 import type {
+  AgentAnswerFeedbackV2,
   AgentMessageEndEvent,
   AgentRunCancelResponseV2,
   AgentRunRequestWireV2,
@@ -27,6 +28,7 @@ import { decodeAgentV2WalletSnapshotAck } from './protocol/decoders/coreRun';
 import {
   AgentV2CompatibilityError,
   AgentV2ContractError,
+  decodeAgentV2AnswerFeedback,
   decodeAgentV2DefaultThread,
   decodeAgentV2Messages,
   decodeAgentV2ProblemReport,
@@ -134,6 +136,8 @@ export class AgentV2Runtime {
   private readonly actions: AgentV2ActionResolver;
   private readonly backgroundTasks = new Set<Promise<void>>();
   private readonly clearGenerationByThreadId = new Map<string, number>();
+  // The latest rating request of each answer; the next one waits for it, so the server keeps the last rating made
+  private readonly feedbackRequestByMessageId = new Map<string, Promise<unknown>>();
 
   private authorityGeneration = 0;
   private runGeneration = 0;
@@ -612,6 +616,36 @@ export class AgentV2Runtime {
       this.unansweredProblemReport = undefined;
     }
     return result;
+  }
+
+  /**
+   * Sets the user's rating of a complete answer, or withdraws it without `feedback`; a repeated request changes nothing.
+   * Requests for one answer reach the server one after another, so it keeps the rating made last.
+   */
+  async setMessageFeedback(threadId: string, messageId: string, feedback?: AgentAnswerFeedbackV2) {
+    this.assertActive();
+    const previousRequest = this.feedbackRequestByMessageId.get(messageId);
+    const request = (async () => {
+      await previousRequest?.catch(() => undefined);
+      await this.requireConsent();
+      const threadUrl = `${this.dependencies.baseUrl}/threads/${encodeURIComponent(threadId)}`;
+      return this.getJson(
+        `${threadUrl}/messages/${encodeURIComponent(messageId)}/feedback`,
+        decodeAgentV2AnswerFeedback,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // eslint-disable-next-line no-null/no-null -- The wire withdraws a rating with `null`, as the native apps pass it
+          body: JSON.stringify({ protocolVersion: 3, feedback: feedback ?? null }),
+        },
+      );
+    })();
+    this.feedbackRequestByMessageId.set(messageId, request);
+    try {
+      return await request;
+    } finally {
+      if (this.feedbackRequestByMessageId.get(messageId) === request) this.feedbackRequestByMessageId.delete(messageId);
+    }
   }
 
   resolveAction(messageId: string, actionId: string): AgentV2ResolvedAction {

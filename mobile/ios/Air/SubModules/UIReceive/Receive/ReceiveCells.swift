@@ -94,6 +94,7 @@ extension BuyCryptoItemCell {
     static func makeRegistration() -> UICollectionView.CellRegistration<UICollectionViewListCell, ReceiveItem> {
         UICollectionView.CellRegistration<UICollectionViewListCell, ReceiveItem> { cell, _, item in
             let (imageName, title) = item.displayInfo
+            cell.accessibilityIdentifier = item.accessibilityIdentifier
             cell.configurationUpdateHandler = { cell, state in
                 cell.contentConfiguration = UIHostingConfiguration {
                     BuyCryptoItemCell(imageName: imageName, title: title)
@@ -162,6 +163,14 @@ enum ReceiveItem: Hashable {
             ("CryptoIcon", lang("Buy with Crypto"))
         case .depositLink:
             ("AssetsAndActivityIcon", lang("Create Deposit Link"))
+        }
+    }
+
+    var accessibilityIdentifier: String? {
+        switch self {
+        case .buyWithCard: "receive_buy_card"
+        case .buyWithCrypto: "receive_buy_crypto"
+        case .address, .depositLink: nil
         }
     }
 }

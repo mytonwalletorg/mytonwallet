@@ -60,6 +60,7 @@ class WalletAddedVC(context: Context, isNew: Boolean, importedAccountsCount: Int
     }
 
     private val openWalletButton = WButton(context, WButton.Type.PRIMARY).apply {
+        id = R.id.wallet_added_open
         text = LocaleController.getString("Open Wallet")
         setOnClickListener {
             val window = window ?: return@setOnClickListener

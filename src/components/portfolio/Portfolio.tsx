@@ -169,8 +169,8 @@ function Portfolio({
   );
 
   const segmentsByChain = useMemo(
-    () => (tokens ? buildSegmentsByChain(tokens, baseCurrency) : []),
-    [tokens, baseCurrency],
+    () => (tokens ? buildSegmentsByChain(lang, tokens, baseCurrency) : []),
+    [tokens, baseCurrency, lang],
   );
 
   const segmentsByStacked = useMemo(

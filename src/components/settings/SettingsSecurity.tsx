@@ -354,9 +354,11 @@ function SettingsSecurity({
     }
   });
 
-  const handleDisableBiometricsCreatePassword = useLastCallback((password: string, isNumeric?: boolean) => {
-    disableBiometrics({ newPassword: password, isPasswordNumeric: isNumeric });
-  });
+  const handleDisableBiometricsCreatePassword = useLastCallback(
+    (password: string, isNumeric: boolean, onError: NoneToVoidFunction) => {
+      disableBiometrics({ newPassword: password, isPasswordNumeric: isNumeric, onError });
+    },
+  );
 
   const handleBiometricTurnOnConfirm = useLastCallback(() => {
     setIsTurnOnWarningOpen(false);
@@ -513,14 +515,15 @@ function SettingsSecurity({
                 <span className={styles.headerTitle}>{createPasswordTitle}</span>
               </div>
             )}
-            <CreatePasswordForm
-              isActive={isSlideActive && isActive}
-              isLoading={isLoading}
-              formId="settings_disable_biometrics_create_password"
-              containerClassName={styles.passwordFormWithHeaderOffset}
-              onCancel={openSettingsSlide}
-              onSubmit={handleDisableBiometricsCreatePassword}
-            />
+            <div className={styles.content}>
+              <CreatePasswordForm
+                isActive={isSlideActive && isActive}
+                isLoading={isLoading}
+                formId="settings_disable_biometrics_create_password"
+                onCancel={openSettingsSlide}
+                onSubmit={handleDisableBiometricsCreatePassword}
+              />
+            </div>
           </>
         );
       }

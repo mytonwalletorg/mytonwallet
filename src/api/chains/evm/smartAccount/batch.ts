@@ -4,6 +4,7 @@ import type { EvmBatchSubmitResult, EvmMetaTransaction } from './types';
 import { ApiTransactionError, EvmSmartAccountError } from '../../../types';
 
 import { logDebugError } from '../../../../util/logs';
+import { getEvmDelegationAddress } from '../approvals';
 import { getWalletBalance } from '../wallet';
 import {
   estimateMaxCostFromPrepareResult,
@@ -13,13 +14,18 @@ import {
   waitForAlchemyCallsConfirmation,
 } from './alchemyWallet';
 import { getAlchemyWalletApiUrl, getEvmChainId } from './constants';
-import { getForeignEvmDelegationAddress, withForeignDelegationResetCall } from './delegation';
+import { resolveBatchDelegation, withForeignDelegationResetCall } from './delegation';
 
 async function resolveBatchPreconditions(
   chain: EVMChain,
   network: ApiNetwork,
   address: string,
-): Promise<{ apiUrl: string; chainId: bigint; foreignDelegation?: string } | { error: ApiAnyDisplayError }> {
+): Promise<{
+  apiUrl: string;
+  chainId: bigint;
+  foreignDelegation?: string;
+  shouldDelegate: boolean;
+} | { error: ApiAnyDisplayError }> {
   const apiUrl = getAlchemyWalletApiUrl(network);
 
   if (!apiUrl) {
@@ -32,9 +38,11 @@ async function resolveBatchPreconditions(
     return { error: ApiTransactionError.WrongNetwork };
   }
 
-  const foreignDelegation = await getForeignEvmDelegationAddress(chain, network, address);
+  const { foreignDelegation, shouldDelegate } = resolveBatchDelegation(
+    await getEvmDelegationAddress(chain, network, address),
+  );
 
-  return { apiUrl, chainId, foreignDelegation };
+  return { apiUrl, chainId, foreignDelegation, shouldDelegate };
 }
 
 export async function estimateBatchUserOpFee(
@@ -49,11 +57,11 @@ export async function estimateBatchUserOpFee(
     return preconditions;
   }
 
-  const { apiUrl, chainId, foreignDelegation } = preconditions;
+  const { apiUrl, chainId, foreignDelegation, shouldDelegate } = preconditions;
 
   try {
     const calls = withForeignDelegationResetCall(address, transactions, foreignDelegation);
-    const prepareResult = await prepareAlchemyCalls(apiUrl, address, chainId, calls);
+    const prepareResult = await prepareAlchemyCalls(apiUrl, address, chainId, calls, shouldDelegate);
     const maxCost = estimateMaxCostFromPrepareResult(prepareResult);
     const nativeBalance = await getWalletBalance(chain, network, address);
 
@@ -82,11 +90,11 @@ export async function submitBatchUserOp(
     return preconditions;
   }
 
-  const { apiUrl, chainId, foreignDelegation } = preconditions;
+  const { apiUrl, chainId, foreignDelegation, shouldDelegate } = preconditions;
 
   try {
     const calls = withForeignDelegationResetCall(address, transactions, foreignDelegation);
-    const prepareResult = await prepareAlchemyCalls(apiUrl, address, chainId, calls);
+    const prepareResult = await prepareAlchemyCalls(apiUrl, address, chainId, calls, shouldDelegate);
     const maxCost = estimateMaxCostFromPrepareResult(prepareResult);
     const nativeBalance = await getWalletBalance(chain, network, address);
 

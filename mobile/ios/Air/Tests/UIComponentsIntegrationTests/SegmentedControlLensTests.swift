@@ -5,6 +5,39 @@ import WalletResources
 
 @MainActor
 final class SegmentedControlLensTests: XCTestCase {
+    func testPagingWidthsRemainLiveWhileNativeLensLiftsAndLowers() async throws {
+        guard #available(iOS 26, *) else { throw XCTSkip("Native lens requires iOS 26") }
+        let lens = WSegmentedControlLensView()
+        let (window, _) = host(lens)
+        defer { window.isHidden = true }
+        lens.frame = CGRect(x: 20, y: 100, width: 300, height: 24)
+        let native = try XCTUnwrap(descendants(lens).first { String(describing: type(of: $0)) == String("weiVsneLdiuqiLIU_".reversed()) })
+
+        for (startWidth, endWidth) in [(CGFloat(80), CGFloat(160)), (160, 80)] {
+            var selection = CGRect(x: 0, y: 0, width: startWidth, height: 24)
+            lens.update(selectionFrame: selection, isLifted: false, color: .gray, animated: false)
+            try await Task.sleep(for: .milliseconds(50))
+            lens.update(selectionFrame: selection, isLifted: true, color: .gray, animated: true)
+            for tick in 1...40 {
+                try await Task.sleep(for: .milliseconds(20))
+                let displayed = try XCTUnwrap(native.layer.presentation()).bounds
+                // Lift adds the same inset to width and height. Their difference must
+                // still follow the pager instead of retaining the width at lift-off.
+                XCTAssertEqual(displayed.width - displayed.height, selection.width - selection.height, accuracy: 0.5)
+                let progress = min(1, CGFloat(tick) / 30)
+                selection = CGRect(x: progress * 100, y: 0, width: startWidth + (endWidth - startWidth) * progress, height: 24)
+                if tick == 15 {
+                    lens.update(selectionFrame: selection, isLifted: false, color: .gray, animated: true)
+                }
+                UIView.performWithoutAnimation {
+                    lens.update(selectionFrame: selection, isLifted: tick < 15, color: .gray, animated: false)
+                }
+            }
+            XCTAssertEqual(native.bounds.width, endWidth, accuracy: 0.5)
+            XCTAssertEqual(native.bounds.height, 24, accuracy: 0.5)
+        }
+    }
+
     func testNativeLensIsAvailableAndHandlesRapidLiftChanges() async throws {
         guard #available(iOS 26, *) else { throw XCTSkip("Native lens requires iOS 26") }
         let lens = WSegmentedControlLensView()

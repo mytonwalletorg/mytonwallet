@@ -44,7 +44,7 @@ interface OwnProps {
   menuRef: ElementRef<HTMLDivElement>;
   isTestnet?: boolean;
   onClose: NoneToVoidFunction;
-  onExplorerClick: (chain: ApiChain, address: string) => void;
+  onActionClick: (chain: ApiChain, address: string) => void;
   onMouseEnter?: NoneToVoidFunction;
   onMouseLeave?: NoneToVoidFunction;
   getTriggerElement: () => HTMLElement | undefined | null;
@@ -77,7 +77,7 @@ function AddressMenu({
   menuRef,
   isTestnet,
   onClose,
-  onExplorerClick,
+  onActionClick,
   onMouseEnter,
   onMouseLeave,
   getTriggerElement,
@@ -237,10 +237,10 @@ function AddressMenu({
     }
   });
 
-  const handleRowExplorerClick = useLastCallback((e: React.UIEvent<HTMLElement>, item: AddressMenuItem) => {
+  const handleRowActionClick = useLastCallback((e: React.UIEvent<HTMLElement>, item: AddressMenuItem) => {
     stopEvent(e);
     onClose();
-    onExplorerClick(item.chain, item.address);
+    onActionClick(item.chain, item.address);
   });
 
   const toggleAllChainsMenu = useLastCallback((rowEl: HTMLElement) => {
@@ -362,8 +362,8 @@ function AddressMenu({
             withDelimiter={index === 0}
             onClick={handleMainRowClick}
             onMouseEnter={withHover ? handleMainRowMouseEnter : undefined}
-            onExplorerMouseEnter={withHover ? scheduleSubMenusClose : undefined}
-            onExplorerClick={handleRowExplorerClick}
+            onActionMouseEnter={withHover ? scheduleSubMenusClose : undefined}
+            onActionClick={handleRowActionClick}
           />
         ))}
         {hasHiddenItems && (
@@ -415,8 +415,8 @@ function AddressMenu({
               item={item}
               onClick={handleRowClick}
               onMouseEnter={withHover ? handleSubMenuRowMouseEnter : undefined}
-              onExplorerMouseEnter={withHover ? scheduleDomainSubMenuClose : undefined}
-              onExplorerClick={handleRowExplorerClick}
+              onActionMouseEnter={withHover ? scheduleDomainSubMenuClose : undefined}
+              onActionClick={handleRowActionClick}
             />
           ))}
         </Menu>

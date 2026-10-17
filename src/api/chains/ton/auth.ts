@@ -193,7 +193,7 @@ export async function getWalletFromBip39Mnemonic(
     }
 
     try {
-      const { wallet, version } = await pickBestWalletVersion(network, keypair.publicKey);
+      const { wallet, version, isInitialized } = await pickBestWalletVersion(network, keypair.publicKey);
 
       return [{
         address: toBase64Address(wallet.address, false, network),
@@ -201,6 +201,7 @@ export async function getWalletFromBip39Mnemonic(
         version,
         index: 0,
         derivation: { path: derivation.path, index: derivation.index },
+        ...(isInitialized !== undefined && { isInitialized }),
       }];
     } catch (err) {
       if (!(err instanceof ApiServerError)) throw err;
@@ -217,7 +218,9 @@ export async function getWalletFromBip39Mnemonic(
   try {
     const walletResults = await Promise.all(
       variants.map(async ({ publicKey, derivation: variantDerivation }) => {
-        const { wallet, version, balance } = await pickBestWalletVersion(network, publicKey, shouldSkipDiscovery);
+        const {
+          wallet, version, balance, isInitialized,
+        } = await pickBestWalletVersion(network, publicKey, shouldSkipDiscovery);
 
         return {
           address: toBase64Address(wallet.address, false, network),
@@ -225,6 +228,7 @@ export async function getWalletFromBip39Mnemonic(
           version,
           index: 0,
           derivation: variantDerivation,
+          ...(isInitialized !== undefined && { isInitialized }),
           balance,
         };
       }),
@@ -315,6 +319,7 @@ export async function getWalletFromTelegramRotationMnemonic(
     version: 'telegram',
     index: 0,
     derivation: { path: TON_BIP39_PATH, index: 0 },
+    isInitialized: telegramInfo.isInitialized,
   };
 }
 
@@ -322,7 +327,9 @@ async function getWalletFromKeys(
   network: ApiNetwork,
   variants: { publicKey: Uint8Array; derivation?: { path: string; index: number } }[],
 ): Promise<(ApiTonWallet & { lastTxId?: string })> {
-  const { wallet, version, lastTxId, derivation } = await pickBestWallet(network, variants);
+  const {
+    wallet, version, isInitialized, lastTxId, derivation,
+  } = await pickBestWallet(network, variants);
   let mfaExtensionAddress: string | undefined;
 
   if (wallet instanceof WalletContractV5R1) {
@@ -337,6 +344,7 @@ async function getWalletFromKeys(
     address,
     version,
     index: 0,
+    ...(isInitialized !== undefined && { isInitialized }),
     lastTxId,
     derivation,
     mfa: mfaExtensionAddress ? { address: mfaExtensionAddress } : undefined,

@@ -32,7 +32,14 @@ class SwapHelpers {
         }
 
         fun isBatchSwapTx(dex: MApiSwapEstimateResponse?, tokenToSend: IApiToken?): Boolean {
-            if (dex?.needsApprove != true) return false
+            if (dex?.needsBatch != true) return false
+            val chain = tokenToSend?.chain ?: return false
+            return MBlockchain.isEvmChain(chain)
+        }
+
+        /** An EVM DEX build can become a batch after the estimate, so the confirm step reserves a second key read. */
+        fun reservesBatchKeyRead(dex: MApiSwapEstimateResponse?, tokenToSend: IApiToken?): Boolean {
+            if (dex == null) return false
             val chain = tokenToSend?.chain ?: return false
             return MBlockchain.isEvmChain(chain)
         }

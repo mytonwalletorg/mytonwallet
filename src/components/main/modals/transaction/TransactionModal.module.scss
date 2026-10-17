@@ -1,6 +1,7 @@
 @use "../../../../styles/scssVariables" as *;
 
 .modalDialog {
+  overflow: hidden;
   height: $transactionModalHeight;
 
   @supports (height: var(--safe-area-bottom)) {

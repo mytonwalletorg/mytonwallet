@@ -3,13 +3,18 @@ package org.mytonwallet.app_air.uiagent.viewControllers.agent.cells
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.text.Spannable
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.animation.doOnEnd
 import androidx.core.view.doOnPreDraw
@@ -18,16 +23,19 @@ import androidx.core.view.updateLayoutParams
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
+import kotlin.math.roundToInt
 import org.mytonwallet.app_air.uiagent.agentV2.AgentTextLinks
 import org.mytonwallet.app_air.uiagent.agentV2.buildAgentV2MessageBlocks
+import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentAnswerFeedback
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentDeeplink
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentMessage
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentMessageRole
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.MarkdownParser
+import org.mytonwallet.app_air.uiagent.viewControllers.agent.views.AgentActivityIndicatorView
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.views.AgentBubbleDrawable
+import org.mytonwallet.app_air.uiagent.viewControllers.agent.views.AgentFeedbackPillView
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.views.AgentRichMessageView
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.views.StreamingRevealLabel
-import org.mytonwallet.app_air.uiagent.viewControllers.agent.views.TypingIndicatorView
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
 import org.mytonwallet.app_air.uicomponents.drawable.WRippleDrawable
 import org.mytonwallet.app_air.uicomponents.extensions.dp
@@ -35,9 +43,11 @@ import org.mytonwallet.app_air.uicomponents.extensions.setPaddingDpLocalized
 import org.mytonwallet.app_air.uicomponents.helpers.ClipboardHelpers
 import org.mytonwallet.app_air.uicomponents.helpers.HapticType
 import org.mytonwallet.app_air.uicomponents.helpers.Haptics
+import org.mytonwallet.app_air.uicomponents.helpers.PopupHelpers
 import org.mytonwallet.app_air.uicomponents.helpers.WFont
 import org.mytonwallet.app_air.uicomponents.helpers.adaptiveFontSize
 import org.mytonwallet.app_air.uicomponents.helpers.spans.ExtraHitLinkMovementMethod
+import org.mytonwallet.app_air.uicomponents.widgets.INavigationPopup
 import org.mytonwallet.app_air.uicomponents.widgets.WCell
 import org.mytonwallet.app_air.uicomponents.widgets.WFrameLayout
 import org.mytonwallet.app_air.uicomponents.widgets.WLabel
@@ -62,6 +72,10 @@ private const val MTW_SCHEME_PREFIX = "mtw://"
 private const val MESSAGE_HORIZONTAL_PADDING_DP = 34
 private const val RICH_MESSAGE_HORIZONTAL_GUTTER_DP = 40
 
+// The rating pill overlaps the answer's top edge and reaches past its end, as a thought bubble over it
+private const val FEEDBACK_PILL_OVERLAP_DP = 12
+private const val FEEDBACK_PILL_OVERHANG_DP = 20
+
 @SuppressLint("ViewConstructor")
 class AgentMessageCell(context: Context) :
     WCell(
@@ -76,7 +90,28 @@ class AgentMessageCell(context: Context) :
         id = generateViewId()
         orientation = LinearLayout.VERTICAL
     }
-    private val bubbleContainer = WFrameLayout(context)
+
+    // A tap on a finished answer opens its menu, unless it opens a link inside the answer
+    private val tapDetector = GestureDetector(
+        context,
+        object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                if (isOutgoingCell || !isCopyable || isTouchOnLink) return false
+                showCopyMenu()
+                return true
+            }
+        }
+    )
+    private var isTouchOnLink = false
+    private val bubbleContainer = object : WFrameLayout(context) {
+        override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                isTouchOnLink = hasClickableSpanAt(this, event.rawX, event.rawY)
+            }
+            tapDetector.onTouchEvent(event)
+            return super.dispatchTouchEvent(event)
+        }
+    }
     private val messageLabel = StreamingRevealLabel(context).apply {
         setStyle(adaptiveFontSize())
         isSingleLine = false
@@ -88,7 +123,10 @@ class AgentMessageCell(context: Context) :
     private val richMessageView = AgentRichMessageView(context).apply {
         visibility = GONE
     }
-    private val typingIndicator = TypingIndicatorView(context)
+    private val typingIndicator = AgentActivityIndicatorView(context).apply {
+        id = generateViewId()
+        visibility = GONE
+    }
     private val deeplinkContainer = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
     }
@@ -107,12 +145,6 @@ class AgentMessageCell(context: Context) :
             richMessageView,
             FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         )
-        bubbleContainer.addView(
-            typingIndicator,
-            FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                gravity = Gravity.CENTER
-            }
-        )
         contentContainer.addView(
             bubbleContainer,
             LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
@@ -122,6 +154,7 @@ class AgentMessageCell(context: Context) :
             LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         )
         addView(contentContainer, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+        addView(typingIndicator, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
         bubbleContainer.setOnLongClickListener(copyLongClickListener)
         messageLabel.setOnLongClickListener(copyLongClickListener)
         messageLabel.onRevealFinished = {
@@ -144,6 +177,9 @@ class AgentMessageCell(context: Context) :
     var onRegenerate: (() -> Unit)? = null
     var canRegenerateMessage: () -> Boolean = { false }
     var canReportProblem: () -> Boolean = { false }
+
+    /** Sets the rating of this answer, or withdraws it with null */
+    var onRate: ((AgentAnswerFeedback?) -> Unit)? = null
     var onPopupVisibilityChanged: ((visible: Boolean, bubbleView: View?) -> Unit)? = null
     var onSizeTransitionFrame: ((previousHeight: Int) -> Unit)? = null
     var onInsertAnimationStarted: ((targetHeight: Int) -> Unit)? = null
@@ -156,7 +192,8 @@ class AgentMessageCell(context: Context) :
     val isContentSettling: Boolean
         get() = isInsertAnimationPending || insertAnimation?.isRunning == true ||
             messageLabel.isRevealAnimating || deeplinksAnimating ||
-            pendingRichMessageId != null || richTransitionAnimator?.isRunning == true
+            pendingRichMessageId != null || richTransitionAnimator?.isRunning == true ||
+            typingCrossfadeAnimator?.isRunning == true
 
     private fun notifyContentSettled() {
         if (isContentSettling) return
@@ -179,6 +216,7 @@ class AgentMessageCell(context: Context) :
     private var deeplinkExpandAnimator: ValueAnimator? = null
     private var pendingRichMessageId: String? = null
     private var richTransitionAnimator: ValueAnimator? = null
+    private var typingCrossfadeAnimator: ValueAnimator? = null
     private var richContentWidth = 0
     private var parsedRichBlocksKey: ParsedRichBlocksKey? = null
     private var parsedRichBlocks: List<MarkdownParser.Block>? = null
@@ -219,6 +257,7 @@ class AgentMessageCell(context: Context) :
             onContentSettled = null
             deeplinksAnimating = false
             insertAnimationTargetHeight = 0
+            cancelTypingCrossfade()
             resetRichMessagePresentation()
         }
         currentMessage = message
@@ -232,8 +271,8 @@ class AgentMessageCell(context: Context) :
         isStreamingCell = message.isStreaming
         bubbleContainer.isHapticFeedbackEnabled = isCopyable
         val hasDeeplinks = message.deeplinks.isNotEmpty()
-        val wasShowingTypingForSameMessage =
-            previousMessageId == message.id && typingIndicator.isVisible
+        val wasShowingTypingForSameMessage = previousMessageId == message.id &&
+            typingIndicator.isVisible && typingCrossfadeAnimator == null
         if (message.isStreaming) {
             pendingDeeplinkAnimationIds.add(message.id)
         }
@@ -245,16 +284,21 @@ class AgentMessageCell(context: Context) :
         val showDeeplinks = hasDeeplinks && !message.isStreaming
 
         if (showTyping) {
+            cancelTypingCrossfade()
             messageLabel.visibility = GONE
             typingIndicator.visibility = VISIBLE
-            typingIndicator.setPadding(20.dp, 0, 20.dp, 0)
+            bubbleContainer.alpha = 0f
         } else {
             messageLabel.visibility = VISIBLE
-            typingIndicator.visibility = GONE
+            if (wasShowingTypingForSameMessage) {
+                crossfadeFromTypingIndicator()
+            } else if (typingCrossfadeAnimator == null) {
+                typingIndicator.visibility = GONE
+                bubbleContainer.alpha = 1f
+            }
         }
-        val maxBubbleWidth = (recyclerWidth * 0.8f).toInt()
-        val standardMessageMaxWidth =
-            (maxBubbleWidth - MESSAGE_HORIZONTAL_PADDING_DP.dp).coerceAtLeast(1)
+        val maxBubbleWidth = recyclerWidth - 15f.dp.roundToInt()
+        val standardMessageMaxWidth = maxBubbleWidth.coerceAtLeast(1)
         val richBlocks = if (
             message.role == AgentMessageRole.ASSISTANT &&
             (!message.isStreaming || message.tableReferences.isNotEmpty())
@@ -280,8 +324,8 @@ class AgentMessageCell(context: Context) :
                 constrainedWidth(contentContainer.id, true)
                 toTop(contentContainer, 4f)
                 toBottom(contentContainer, 4f)
-                toEnd(contentContainer, 10f)
-                toStart(contentContainer, 72f)
+                toEnd(contentContainer, 4.5f)
+                toStart(contentContainer, 10f)
                 setHorizontalBias(contentContainer.id, 1f)
             }
         } else {
@@ -303,9 +347,11 @@ class AgentMessageCell(context: Context) :
                 constrainedWidth(contentContainer.id, true)
                 toTop(contentContainer, 4f)
                 toBottom(contentContainer, 4f)
-                toStart(contentContainer, 10f)
-                toEnd(contentContainer, if (richBlocks != null) 30f else 72f)
+                toStart(contentContainer, 4.5f)
+                toEnd(contentContainer, if (richBlocks != null) 30f else 10f)
                 setHorizontalBias(contentContainer.id, 0f)
+                toTop(typingIndicator, 8f)
+                toStart(typingIndicator, 10f)
             }
         }
 
@@ -319,18 +365,6 @@ class AgentMessageCell(context: Context) :
                     WColor.SecondaryText.color
                 }
             val linkColor = if (isOutgoing) WColor.TextOnTint.color.colorWithAlpha(204) else null
-            // When the typing indicator is replaced by the first chunk, morph the bubble from
-            // its current size instead of snapping to the empty reveal size.
-            val transitionFrom = if (wasShowingTypingForSameMessage && message.isStreaming) {
-                Pair(
-                    (bubbleContainer.width - messageLabel.paddingLeft - messageLabel.paddingRight)
-                        .coerceAtLeast(0).toFloat(),
-                    (bubbleContainer.height - messageLabel.paddingTop - messageLabel.paddingBottom)
-                        .coerceAtLeast(0).toFloat()
-                )
-            } else {
-                null
-            }
             if (richBlocks == null || message.tableReferences.isEmpty()) {
                 messageLabel.setTextWithReveal(
                     MarkdownParser.parse(
@@ -343,8 +377,7 @@ class AgentMessageCell(context: Context) :
                         isStreaming = message.isStreaming
                     ),
                     isStreaming = message.isStreaming && richBlocks == null,
-                    key = message.id,
-                    transitionFromContentSize = transitionFrom
+                    key = message.id
                 )
             } else {
                 messageLabel.finishReveal(message.id)
@@ -389,9 +422,7 @@ class AgentMessageCell(context: Context) :
         bubbleContainer.minimumHeight = 40.dp
 
         if (shouldAnimateInsert) {
-            contentContainer.alpha = 0f
-            contentContainer.scaleX = 0.8f
-            contentContainer.scaleY = 0.8f
+            setInsertAppearance(alpha = 0f, scale = 0.8f)
             updateLayoutParams { height = 1 }
             doOnPreDraw {
                 if (isInsertAnimationPending && currentMessage?.id == message.id) {
@@ -400,15 +431,59 @@ class AgentMessageCell(context: Context) :
             }
         } else {
             insertAnimation?.cancel()
-            contentContainer.alpha = 1f
-            contentContainer.scaleX = 1f
-            contentContainer.scaleY = 1f
+            setInsertAppearance(alpha = 1f, scale = 1f)
             updateLayoutParams { height = WRAP_CONTENT }
             if (onInsertAnimationStarted != null) {
                 notifyInsertAnimationStarted(measureExpandedHeight())
             }
             notifyInsertAnimationFinished()
         }
+    }
+
+    private fun setInsertAppearance(alpha: Float, scale: Float) {
+        for (view in arrayOf(contentContainer, typingIndicator)) {
+            if (view !== typingIndicator || typingCrossfadeAnimator == null) view.alpha = alpha
+            view.scaleX = scale
+            view.scaleY = scale
+        }
+    }
+
+    private fun crossfadeFromTypingIndicator() {
+        if (!WGlobalStorage.getAreAnimationsActive() || !isAttachedToWindow) {
+            typingIndicator.visibility = GONE
+            bubbleContainer.alpha = 1f
+            return
+        }
+        val animator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = AnimationConstants.VERY_QUICK_ANIMATION
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener {
+                val progress = it.animatedValue as Float
+                bubbleContainer.alpha = progress
+                typingIndicator.alpha = 1f - progress
+            }
+        }
+        typingCrossfadeAnimator = animator
+        animator.doOnEnd {
+            if (typingCrossfadeAnimator !== animator) return@doOnEnd
+            typingCrossfadeAnimator = null
+            finishTypingCrossfade()
+            notifyContentSettled()
+        }
+        animator.start()
+    }
+
+    private fun cancelTypingCrossfade() {
+        val animator = typingCrossfadeAnimator ?: return
+        typingCrossfadeAnimator = null
+        animator.cancel()
+        finishTypingCrossfade()
+    }
+
+    private fun finishTypingCrossfade() {
+        typingIndicator.visibility = GONE
+        typingIndicator.alpha = 1f
+        bubbleContainer.alpha = 1f
     }
 
     private fun showPlainMessage() {
@@ -552,11 +627,10 @@ class AgentMessageCell(context: Context) :
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         cancelRichTransition()
+        cancelTypingCrossfade()
         isInsertAnimationPending = false
         insertAnimation?.cancel()
-        contentContainer.alpha = 1f
-        contentContainer.scaleX = 1f
-        contentContainer.scaleY = 1f
+        setInsertAppearance(alpha = 1f, scale = 1f)
         updateLayoutParams { height = WRAP_CONTENT }
         richMessageView.alpha = 1f
         messageLabel.alpha = 1f
@@ -759,8 +833,23 @@ class AgentMessageCell(context: Context) :
                 )
             )
         }
+        val canRate = !isOutgoingCell && !isStreamingCell && message.isComplete &&
+            message.sdkMessageId != null && onRate != null
+        lateinit var popup: INavigationPopup
+        val feedbackPill = if (canRate) {
+            AgentFeedbackPillView(
+                context,
+                message.feedback,
+                pointsLeft = layoutDirection != LAYOUT_DIRECTION_RTL
+            ) { feedback ->
+                onRate?.invoke(feedback)
+                popup.dismiss()
+            }.apply { setDisplayProgress(0f) }
+        } else {
+            null
+        }
         onPopupVisibilityChanged?.invoke(true, bubbleContainer)
-        WMenuPopup.present(
+        popup = WMenuPopup.present(
             bubbleContainer,
             listOfNotNull(
                 dateHeader,
@@ -803,12 +892,65 @@ class AgentMessageCell(context: Context) :
                 }.takeIf { !isOutgoingCell && !isStreamingCell && canReportProblem() }
             ),
             positioning = WMenuPopup.Positioning.BELOW,
+            // Without room below the answer, the menu opens above it clear of the rating pill
+            aboveFallbackYOffset = feedbackPill?.let {
+                FEEDBACK_PILL_OVERLAP_DP.dp - it.bodyHeight
+            },
             backdropStyle = WMenuPopup.BackdropStyle.BlurDimmed,
             yOffset = (-16).dp,
             centerHorizontally = true,
             windowBackgroundStyle = buildBubbleCutoutStyle(),
-            onWillDismiss = { onPopupVisibilityChanged?.invoke(false, null) }
+            onWillDismiss = { onPopupVisibilityChanged?.invoke(false, null) },
+            onDidDismiss = { (feedbackPill?.parent as? ViewGroup)?.removeView(feedbackPill) },
+            displayProgressListener = feedbackPill?.let { pill -> pill::setDisplayProgress }
         )
+        feedbackPill?.let(::showFeedbackPill)
+    }
+
+    /** Places the rating pill over the answer's top edge at its end, above the open menu */
+    private fun showFeedbackPill(pill: AgentFeedbackPillView) {
+        val host = PopupHelpers.popupHost ?: return
+        val bubbleLocation = IntArray(2).also(bubbleContainer::getLocationInWindow)
+        val hostLocation = IntArray(2).also(host::getLocationInWindow)
+        val bounds = host.getContentAreaBounds()
+        val bubbleLeft = bubbleLocation[0] - hostLocation[0]
+        val bubbleTop = bubbleLocation[1] - hostLocation[1]
+        val left = if (layoutDirection == LAYOUT_DIRECTION_RTL) {
+            bubbleLeft - FEEDBACK_PILL_OVERHANG_DP.dp
+        } else {
+            bubbleLeft + bubbleContainer.width + FEEDBACK_PILL_OVERHANG_DP.dp - pill.bodyWidth
+        }
+        val top = bubbleTop + FEEDBACK_PILL_OVERLAP_DP.dp - pill.bodyHeight
+        host.addView(
+            pill,
+            FrameLayout.LayoutParams(
+                WRAP_CONTENT,
+                WRAP_CONTENT,
+                Gravity.TOP or Gravity.LEFT
+            ).apply {
+                leftMargin = left.coerceAtMost(bounds.right - pill.bodyWidth)
+                    .coerceAtLeast(bounds.left) - host.paddingLeft
+                topMargin = top.coerceAtLeast(bounds.top) - host.paddingTop
+            }
+        )
+    }
+
+    /** Whether a touch at [rawX], [rawY] opens a link in [view], as its link movement method decides */
+    private fun hasClickableSpanAt(view: View, rawX: Float, rawY: Float): Boolean {
+        if (!view.isShown) return false
+        val location = IntArray(2).also(view::getLocationOnScreen)
+        val x = rawX - location[0]
+        val y = rawY - location[1]
+        if (x < 0 || y < 0 || x > view.width || y > view.height) return false
+        if (view is ViewGroup) {
+            return (0 until view.childCount).any {
+                hasClickableSpanAt(view.getChildAt(it), rawX, rawY)
+            }
+        }
+        val textView = view as? TextView ?: return false
+        val movementMethod = textView.movementMethod as? ExtraHitLinkMovementMethod ?: return false
+        val text = textView.text as? Spannable ?: return false
+        return movementMethod.findLinks(textView, text, x, y).isNotEmpty()
     }
 
     private fun buildBubbleCutoutStyle(): WMenuPopup.BackgroundStyle {
@@ -841,14 +983,10 @@ class AgentMessageCell(context: Context) :
                 val appearStart = targetHeight * 0.7f
                 val fraction =
                     ((value - appearStart) / (targetHeight - appearStart)).coerceIn(0f, 1f)
-                contentContainer.alpha = lerp(0f, 1f, fraction)
-                contentContainer.scaleX = lerp(0.8f, 1f, fraction)
-                contentContainer.scaleY = contentContainer.scaleX
+                setInsertAppearance(lerp(0f, 1f, fraction), lerp(0.8f, 1f, fraction))
             }
             addEndListener { _, _, _, _ ->
-                contentContainer.alpha = 1f
-                contentContainer.scaleX = 1f
-                contentContainer.scaleY = 1f
+                setInsertAppearance(alpha = 1f, scale = 1f)
                 updateLayoutParams { height = WRAP_CONTENT }
                 insertAnimation = null
                 insertAnimationTargetHeight = 0

@@ -589,6 +589,13 @@ Are you sure you want to disable biometrics?: آیا مطمئن هستید که 
 "Yes": "بله"
 Biometric confirmation failed: تأیید بیومتریک ناموفق بود
 No Activity: بدون فعالیت
+Loading Activity: در حال بارگیری فعالیت‌ها
+Loading More Activity: در حال بارگیری فعالیت‌های بیشتر
+Your activity history is loading.: تاریخچه فعالیت‌های شما در حال بارگیری است.
+Taking Longer Than Usual: بیشتر از معمول طول کشیده است
+Activity history is taking longer to load. Please check back shortly.: بارگیری تاریخچه فعالیت‌ها بیشتر از معمول طول کشیده است. لطفاً کمی بعد دوباره بررسی کنید.
+Activity Unavailable: فعالیت‌ها در دسترس نیستند
+Activity history is temporarily unavailable. We’ll try again shortly.: تاریخچه فعالیت‌ها موقتاً در دسترس نیست. به‌زودی دوباره تلاش می‌کنیم.
 Fund: واریز
 Buy with Card: خرید با کارت
 Buy with Crypto: خرید با کریپتو
@@ -623,6 +630,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: همچنین می‌توانید %action%.
 $wallet_switch_version_2: به نسخه دیگری از کیف پول تغییر دهید
 or import from: یا افزودن با
+or enter manually: یا به‌صورت دستی وارد کنید
 Insufficient fee: کارمزد ناکافی
 $insufficient_fee: "کارمزد ناکافی: %fee%"
 $dapp_insufficient_network_fee_warning: موجودی %token% برای پوشش کارمزد شبکه کافی نیست
@@ -678,6 +686,7 @@ $transfer_link_expired: لینک انتقال منقضی شده است
 $transfer_text_and_bin_exclusive: نمی‌توان همزمان از هر دو پارامتر text و bin استفاده کرد
 $unsupported_deeplink_parameter: این دیپ‌لینک شامل پارامترهای پشتیبانی‌نشده است.
 $unsupported_chain: بلاک‌چین پشتیبانی‌نشده.
+$token_chain_not_supported_by_wallet: "کیف پول فعلی شما از %chain% پشتیبانی نمی‌کند. برای استفاده از این توکن، یک کیف پول چندزنجیره‌ای بسازید."
 Successfully: با موفقیت
 Estimated Time: زمان تخمینی
 $utxo_confirmations:
@@ -1304,6 +1313,7 @@ $agent_connection_interrupted: اتصال عامل قطع شد. دوباره ت�
 $agent_history_unavailable: امکان بارگذاری تاریخچه چت وجود ندارد. دوباره تلاش کنید.
 $agent_secret_words_removed: "[کلمات محرمانه حذف شد و ارسال نشد]"
 $agent_activity_analyzing_request: در حال تحلیل درخواست شما…
+$agent_analyzing: در حال تحلیل
 $agent_activity_wallet: در حال خواندن اطلاعات کیف پول…
 $agent_activity_transactions: در حال بررسی فعالیت کیف پول…
 $agent_activity_portfolio: در حال بارگذاری اطلاعات پرتفوی…
@@ -1402,6 +1412,9 @@ $agent_report_problem_description: پیام‌های اخیر این گفتگو 
 $agent_report_problem_sent: متشکریم! گزارش شما ارسال شد.
 $agent_report_problem_failed: ارسال گزارش ناموفق بود. لطفاً دوباره تلاش کنید.
 $agent_report_problem_rate_limited: اخیراً چند گزارش ارسال کرده‌اید. لطفاً بعداً دوباره تلاش کنید.
+Like: پسندیدم
+Dislike: نپسندیدم
+$agent_feedback_failed: ذخیره امتیاز شما ممکن نشد. لطفاً دوباره تلاش کنید.
 $unknown_swap_token: توکن ناشناخته در لینک مبادله. از توکن‌های پیش‌فرض استفاده شد.
 $action_not_available_view_mode: این اقدام برای کیف پول‌های مشاهده در دسترس نیست
 Deposit: واریز
@@ -2041,4 +2054,5 @@ Ruble: روبل
 $token_price_value: "قیمت: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: این نوع مبادله معمولاً چند دقیقه طول می‌کشد. در موارد نادر، ممکن است تا دو ساعت طول بکشد.
 3D Gram Diamond: الماس سه‌بعدی Gram
+Hold to enlarge. Drag to rotate.: برای بزرگ‌نمایی نگه دارید. برای چرخاندن بکشید.
 "Max": "حداکثر"

@@ -91,6 +91,7 @@ interface StateProps {
   isWaitingForRequest?: boolean;
   returnUrl?: string;
   isSensitiveDataHidden?: true;
+  isAppLocked?: boolean;
 }
 
 interface SortedDappTransfer extends ApiDappTransfer {
@@ -135,6 +136,7 @@ function DappTransferInitial({
   isWaitingForRequest,
   returnUrl,
   isSensitiveDataHidden,
+  isAppLocked,
 }: OwnProps & StateProps) {
   const { showDappTransferTransaction, submitDappTransferConfirm, showDialog } = getActions();
 
@@ -158,10 +160,10 @@ function DappTransferInitial({
   });
 
   useEffect(() => (
-    isActive && canSubmit
+    isActive && canSubmit && !isAppLocked
       ? captureKeyboardListeners({ onEnter: { handler: handleEnter, noStopPropagation: true } })
       : undefined
-  ), [isActive, canSubmit, handleEnter]);
+  ), [isActive, canSubmit, isAppLocked, handleEnter]);
 
   // Placeholder modal (opened by a wake deeplink): warn if the request event never arrives.
   useTimeout(
@@ -406,6 +408,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isWaitingForRequest,
     returnUrl,
     isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+    isAppLocked: global.isAppLockActive,
   };
 })(DappTransferInitial));
 

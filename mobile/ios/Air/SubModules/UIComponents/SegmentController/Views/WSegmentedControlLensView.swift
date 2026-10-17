@@ -21,6 +21,8 @@ final class WSegmentedControlLensView: UIView {
     private var appliedNativeState: State?
     private var generation = 0
     private var contentSize: CGSize?
+    private var liftInset: CGFloat = 0
+    private var liftTransition: (from: CGFloat, to: CGFloat, startTime: CFTimeInterval)?
 
     private struct State: Equatable {
         var frame: CGRect
@@ -87,7 +89,18 @@ final class WSegmentedControlLensView: UIView {
         let geometryChanged = self.selectionFrame != selectionFrame || contentSize != bounds.size
         self.selectionFrame = selectionFrame
         let animated = animated && UIView.areAnimationsEnabled && !UIAccessibility.isReduceMotionEnabled
+        let wasLifted = self.isLifted
         self.isLifted = selectionFrame != nil && nativeLens != nil && isLifted && !UIAccessibility.isReduceMotionEnabled
+        if self.isLifted != wasLifted {
+            advanceLiftTransition()
+            let targetInset: CGFloat = self.isLifted ? 6 : 0
+            if animated {
+                liftTransition = (liftInset, targetInset, CACurrentMediaTime())
+            } else {
+                liftTransition = nil
+                liftInset = targetInset
+            }
+        }
         containerView.frame = bounds
         if contentSize != bounds.size {
             contentSize = bounds.size
@@ -129,6 +142,8 @@ final class WSegmentedControlLensView: UIView {
         isApplyingNativeState = false
         pendingNativeState = nil
         appliedNativeState = nil
+        liftTransition = nil
+        liftInset = isLifted ? 6 : 0
         for view in [nativeLens, restingBackgroundView, fallbackSelectionView, selectedContentView, contentView] {
             view?.layer.removeAllAnimations()
         }
@@ -146,8 +161,7 @@ final class WSegmentedControlLensView: UIView {
         isApplyingNativeState = true
         let previous = appliedNativeState
         appliedNativeState = state
-        let inset: CGFloat = state.isLifted ? 6 : 0
-        let lensBounds = CGRect(origin: .zero, size: state.frame.insetBy(dx: -inset, dy: -inset).size)
+        let lensBounds = nativeBounds(for: state)
         let center = CGPoint(x: state.frame.midX, y: state.frame.midY)
 
         if previous?.isLifted != state.isLifted {
@@ -156,7 +170,11 @@ final class WSegmentedControlLensView: UIView {
             var returned = false
             Native.setLifted(nativeLens, lifted: state.isLifted, animated: animated) { [weak self, weak nativeLens] in
                 guard let self, let nativeLens, self.generation == generation else { return }
-                nativeLens.bounds = lensBounds
+                // UIKit otherwise captures the tab width for the whole lift animation,
+                // hiding pager width updates until it ends and then snapping to them.
+                UIView.performWithoutAnimation {
+                    nativeLens.bounds = self.nativeBounds(for: state)
+                }
                 appliedSynchronously = true
                 if returned {
                     DispatchQueue.main.async { [weak self] in
@@ -172,7 +190,7 @@ final class WSegmentedControlLensView: UIView {
             }
         } else {
             let previousWidth = nativeLens.bounds.width
-            // UIKit's lens owns its size animation; animating those layers again breaks its warp.
+            // Pager frames supply their own geometry; only discrete selections animate position.
             nativeLens.layer.removeAllAnimations()
             nativeLens.bounds = lensBounds
             animate(animated) { nativeLens.center = center }
@@ -196,6 +214,20 @@ final class WSegmentedControlLensView: UIView {
         if let (state, animated) = pendingNativeState {
             pendingNativeState = nil
             applyNativeState(state, animated: animated)
+        }
+    }
+
+    private func nativeBounds(for state: State) -> CGRect {
+        CGRect(origin: .zero, size: state.frame.insetBy(dx: -liftInset, dy: -liftInset).size)
+    }
+
+    private func advanceLiftTransition() {
+        guard let transition = liftTransition else { return }
+        let progress = min(1, (CACurrentMediaTime() - transition.startTime) / 0.32)
+        let eased = 1 - pow(1 - progress, 3)
+        liftInset = transition.from + (transition.to - transition.from) * eased
+        if progress >= 1 {
+            liftTransition = nil
         }
     }
 
@@ -228,7 +260,7 @@ final class WSegmentedControlLensView: UIView {
     }
 
     private func updateDisplayLink() {
-        if isLifted && window != nil {
+        if (isLifted || liftTransition != nil) && window != nil {
             if displayLink == nil {
                 let link = CADisplayLink(target: displayLinkTarget, selector: #selector(DisplayLinkTarget.tick))
                 link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 120, preferred: 120)
@@ -245,8 +277,13 @@ final class WSegmentedControlLensView: UIView {
         weak var owner: WSegmentedControlLensView?
         @objc func tick() {
             guard let owner, !owner.isApplyingNativeState, let state = owner.appliedNativeState else { return }
+            owner.advanceLiftTransition()
+            UIView.performWithoutAnimation {
+                owner.nativeLens?.bounds = owner.nativeBounds(for: state)
+            }
             // UIKit only advances the lifted bounce while its position is being updated.
             owner.nativeLens?.center = CGPoint(x: state.frame.midX, y: state.frame.midY)
+            owner.updateDisplayLink()
         }
     }
 

@@ -1,7 +1,7 @@
 import { beginCell } from '@ton/core';
 import nacl from 'tweetnacl';
 
-import type { ApiUpdateDappSendTransactions } from '../../../types';
+import { ApiCommonError, type ApiUpdateDappSendTransactions } from '../../../types';
 import { DappProtocolType } from '../../types';
 
 import { SEND_TRANSACTION_ERROR_CODES } from './errors';
@@ -13,7 +13,9 @@ const mockGetCurrentAccountId = jest.fn();
 const mockCreateDappPromise = jest.fn();
 const mockAddDapp = jest.fn();
 const mockGetDapp = jest.fn();
+const mockSetSseDelivery = jest.fn();
 const mockCheckMultiTransactionDraft = jest.fn();
+const mockSendSignedTransactions = jest.fn();
 const mockTonConnectGetDeviceInfo = jest.fn();
 const mockGetWalletStateInit = jest.fn();
 const mockToRawAddress = jest.fn();
@@ -59,7 +61,9 @@ jest.mock('../../../methods/dapps', () => ({
   findLastConnectedAccount: jest.fn(),
   getDapp: (...args: unknown[]) => mockGetDapp(...args),
   getDappsState: jest.fn(),
+  getSseDelivery: jest.fn(),
   getSseLastEventId: jest.fn(),
+  setSseDelivery: (...args: unknown[]) => mockSetSseDelivery(...args),
   setSseLastEventId: jest.fn(),
   updateDapp: jest.fn(),
 }));
@@ -76,7 +80,7 @@ jest.mock('../../../chains', () => ({
 
 jest.mock('../../../chains/ton/transfer', () => ({
   checkMultiTransactionDraft: (...args: unknown[]) => mockCheckMultiTransactionDraft(...args),
-  sendSignedTransactions: jest.fn(),
+  sendSignedTransactions: (...args: unknown[]) => mockSendSignedTransactions(...args),
 }));
 
 jest.mock('../../../chains/ton/util/metadata', () => ({
@@ -361,6 +365,7 @@ describe('TonConnectAdapter.sendTransaction', () => {
       promiseId: 'promise-1',
       promise: new Promise(() => {}),
     });
+    mockSetSseDelivery.mockResolvedValue(undefined);
   });
 
   it('revalidates the raw payload and keeps the message destination as the primary address', async () => {
@@ -405,5 +410,41 @@ describe('TonConnectAdapter.sendTransaction', () => {
     expect(mockParsePayloadBase64).toHaveBeenCalledWith(
       'mainnet', contractAddress, expect.any(String), { expectedOwnerAddress: walletAddress },
     );
+  });
+
+  it('does not broadcast when the settlement of its bridge event cannot be stored', async () => {
+    const onUpdate = jest.fn();
+    const adapter = createTonConnectAdapter();
+    await adapter.init({
+      onUpdate,
+      env: {
+        agentOverride: 'v1', isAgentV2Enabled: false, isSseSupported: false, byNetwork: { mainnet: {}, testnet: {} },
+      },
+      chainDappSupports: {},
+    });
+    mockCreateDappPromise.mockReturnValue({
+      promiseId: 'promise-1',
+      promise: Promise.resolve([{ boc: 'signed' }]),
+    });
+    mockSetSseDelivery.mockRejectedValue(new Error('storage is unavailable'));
+
+    const result = await adapter.sendTransaction(
+      { url: 'https://example.com', accountId, sseEventId: '11' },
+      {
+        id: 'request-1',
+        chain: 'ton',
+        payload: {
+          messages: [{
+            address: contractAddress,
+            amount: '1',
+            payload: beginCell().endCell().toBoc().toString('base64'),
+          }],
+        },
+      },
+    );
+
+    expect(mockSendSignedTransactions).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ success: false, error: { code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR } });
+    expect(onUpdate).toHaveBeenCalledWith({ type: 'showError', error: ApiCommonError.Unexpected });
   });
 });

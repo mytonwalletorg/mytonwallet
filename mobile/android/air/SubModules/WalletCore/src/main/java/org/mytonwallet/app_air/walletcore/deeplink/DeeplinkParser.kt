@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import org.mytonwallet.app_air.walletbasecontext.APP_SCHEME
 import org.mytonwallet.app_air.walletbasecontext.APP_TC_SCHEME
+import org.mytonwallet.app_air.walletbasecontext.DEBUG_MODE
 import org.mytonwallet.app_air.walletbasecontext.R as BaseR
 import org.mytonwallet.app_air.walletbasecontext.utils.ApplicationContextHolder
 import org.mytonwallet.app_air.walletbasecontext.utils.decodeUrlOrNull
@@ -83,6 +84,9 @@ sealed class Deeplink {
     data class Explore(override val accountAddress: String?, val targetUri: Uri?) : Deeplink()
 
     data class Agent(override val accountAddress: String?) : Deeplink()
+
+    // UI tests, debug builds only
+    data class E2EUnlock(override val accountAddress: String?, val passcode: String) : Deeplink()
 
     data class Url(override val accountAddress: String?, val config: InAppBrowserConfig) :
         Deeplink()
@@ -376,6 +380,10 @@ class DeeplinkParser {
         private fun handleMTW(uri: Uri): Deeplink? {
             mintCardDeeplink(uri.host)?.let { return it }
             return when (uri.host) {
+                "e2e-unlock" -> uri.getQueryParameter("passcode")
+                    ?.takeIf { DEBUG_MODE && it.isNotEmpty() }
+                    ?.let { Deeplink.E2EUnlock(accountAddress = null, passcode = it) }
+
                 "swap", "buy-with-crypto" -> {
                     var from: String? = null
                     var to: String? = null

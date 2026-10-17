@@ -80,7 +80,7 @@ function SwapActivityInfo({
   function renderTransactionIds() {
     if (!transactionIdRows.length) return undefined;
 
-    return transactionIdRows.map(({ label, hash, chain }) => (
+    return transactionIdRows.map(({ label, hash, chain, traceId }) => (
       <div key={`${label}-${hash}`} className={styles.textFieldWrapper}>
         <span className={styles.textFieldLabel}>
           {lang(label)}
@@ -89,7 +89,7 @@ function SwapActivityInfo({
           noSavedAddress
           chain={chain}
           address={hash}
-          addressUrl={getExplorerTransactionUrl(chain, hash, undefined, selectedExplorerIds?.[chain])}
+          addressUrl={getExplorerTransactionUrl(chain, { hash, traceId }, undefined, selectedExplorerIds?.[chain])}
           isTransaction
           copyNotification={lang('Transaction ID Copied')}
         />

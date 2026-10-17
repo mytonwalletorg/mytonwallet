@@ -86,7 +86,7 @@ private final class AgentSuggestionsLabBackend: AgentBackend {
         context?.sendMessage(followup.title, source: .followup(messageID: messageID.uuidString, followupID: controlID))
     }
 
-    func clearConversation(completion: @escaping (Bool) -> Void) { completion(true) }
+    func clearConversation() {}
 
     private static let answer = """
     **Your wallet, at a glance**

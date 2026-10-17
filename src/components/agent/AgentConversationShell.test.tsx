@@ -13,7 +13,7 @@ import type {
 
 import { ANIMATION_LEVEL_MAX } from '../../config';
 import {
-  disableStrict, enableStrict, setHandler, setPhase,
+  disableStrict, enableStrict, getPhase, setHandler, setPhase,
 } from '../../lib/fasterdom/stricterdom';
 import { processDeeplink } from '../../util/deeplink';
 import { openUrl } from '../../util/openUrl';
@@ -807,44 +807,52 @@ describe('AgentConversationShell', () => {
     renderMessage = (message) => <div key={message.id}>{message.text}</div>,
     renderComposer,
   }: RenderShellOptions = {}) {
-    TeactDOM.render(
-      <AgentConversationShell
-        isActive={isActive}
-        animationLevel={animationLevel}
-        conversation={{
-          messages,
-          hints,
-          isInitialLoadComplete,
-          isRunActive,
-          textRevealPresentations,
-          renderMessage,
-        }}
-        composer={{
-          isDisabled: isInputDisabled,
-          shouldHide: noComposer,
-          onSendMessage,
-          onSendHint,
-          onHeightChange: onComposerHeightChange,
-          render: renderComposer,
-        }}
-        history={hasOlderMessages ? {
-          hasOlderMessages,
-          isLoading: isLoadingOlderMessages,
-          mode: historyMode,
-          loadOlderMessages,
-        } : undefined}
-        slots={{
-          body: conversationSlot,
-          messageListFooter,
-          beforeComposer: beforeComposerSlot,
-          bottomStickDependency,
-        }}
-        actions={{
-          onBack, onClearChat, onReportProblem, onScroll,
-        }}
-      />,
-      root,
-    );
+    // The app renders inside the mutate phase, where layout effects may use `forceMeasure`
+    const previousPhase = getPhase();
+    setPhase('mutate');
+
+    try {
+      TeactDOM.render(
+        <AgentConversationShell
+          isActive={isActive}
+          animationLevel={animationLevel}
+          conversation={{
+            messages,
+            hints,
+            isInitialLoadComplete,
+            isRunActive,
+            textRevealPresentations,
+            renderMessage,
+          }}
+          composer={{
+            isDisabled: isInputDisabled,
+            shouldHide: noComposer,
+            onSendMessage,
+            onSendHint,
+            onHeightChange: onComposerHeightChange,
+            render: renderComposer,
+          }}
+          history={hasOlderMessages ? {
+            hasOlderMessages,
+            isLoading: isLoadingOlderMessages,
+            mode: historyMode,
+            loadOlderMessages,
+          } : undefined}
+          slots={{
+            body: conversationSlot,
+            messageListFooter,
+            beforeComposer: beforeComposerSlot,
+            bottomStickDependency,
+          }}
+          actions={{
+            onBack, onClearChat, onReportProblem, onScroll,
+          }}
+        />,
+        root,
+      );
+    } finally {
+      setPhase(previousPhase);
+    }
   }
 });
 

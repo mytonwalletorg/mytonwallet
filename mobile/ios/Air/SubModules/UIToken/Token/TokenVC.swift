@@ -29,10 +29,6 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
         static let bottomSpacing: CGFloat = 10
         static let horizontalMargin: CGFloat = 36
         static let maxWidth: CGFloat = 500
-
-        static var reservedHeight: CGFloat {
-            buttonHeight + bottomSpacing
-        }
     }
 
     private lazy var tokenVM = TokenVM(
@@ -56,6 +52,7 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
         ($account.balances[token.slug] ?? 0) > 0
     }
     private var isSharedBottomToolbarHosted = false
+    private var tradeActionsBottomConstraint: NSLayoutConstraint?
     private let registeredRangeInteractionBlockers = NSHashTable<UIGestureRecognizer>.weakObjects()
 
     public var onSharedBottomToolbarActionsChange: (() -> Void)?
@@ -170,6 +167,65 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
     }
 
     private var navigationHeaderSnapshot: NavigationHeaderSnapshot?
+    private struct NavigationMenuSnapshot: Equatable {
+        var links: [ApiTokenDetails.Link]?
+        var explorerURL: URL?
+        var isRestricted: Bool
+    }
+    private var navigationMenuSnapshot: NavigationMenuSnapshot?
+    private var activitySnapshot: NSDiffableDataSourceSnapshot<Section, Row>?
+    private var minimumBottomContentInsetSnapshot: CGFloat?
+
+    private struct ActionsSnapshot: Equatable {
+        var accountId: String
+        var canReceive: Bool
+        var canSend: Bool
+        var canTrade: Bool
+        var canEarn: Bool
+    }
+
+    private var actionsSnapshot: ActionsSnapshot?
+    private var tradeActionsSnapshot: [SharedBottomToolbarAction]?
+
+    private var currentActionsSnapshot: ActionsSnapshot {
+        ActionsSnapshot(
+            accountId: accountContext.accountId,
+            canReceive: account.supportsReceive,
+            canSend: account.supportsSend,
+            canTrade: areTradeActionsAvailable,
+            canEarn: accountContext.isEarnAvailable(forTokenSlug: token.slug)
+        )
+    }
+
+    private func updateActionsCustomSection() {
+        let snapshot = currentActionsSnapshot
+        guard snapshot != actionsSnapshot else { return }
+        actionsSnapshot = snapshot
+        reconfigureCustomSection(id: actionsCustomSectionID)
+    }
+
+    private func updateChartCustomSection() {
+        if let cell = visibleCustomSectionCell(id: chartCustomSectionID) as? TokenChartCell {
+            configureChartCustomSection(cell: cell)
+        }
+    }
+
+    private func updateActivities(animated: Bool) {
+        guard isViewLoaded else { return }
+        let snapshot = makeSnapshot(reconfiguringCustomSections: [])
+        let hasChanges = activitySnapshot.map { previous in
+            previous.sectionIdentifiers != snapshot.sectionIdentifiers
+                || snapshot.sectionIdentifiers.contains {
+                    previous.itemIdentifiers(inSection: $0) != snapshot.itemIdentifiers(inSection: $0)
+                }
+                || !snapshot.reconfiguredItemIdentifiers.isEmpty
+        } ?? true
+        activitySnapshot = snapshot
+        if hasChanges {
+            applySnapshot(snapshot, animatingDifferences: animated)
+        }
+        updateSkeletonState()
+    }
 
     private func updateCustomSectionHeight(id: String) {
         suppressScrollUpdates = true
@@ -221,6 +277,7 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
 
     private func configureActionsCustomSection(cell: TokenActionsCell) {
         let token = currentToken
+        actionsSnapshot = currentActionsSnapshot
         cell.setup(accountContext: accountContext, token: token)
         cell.configure(
             token: token,
@@ -329,8 +386,7 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
         }
 
         UIView.performWithoutAnimation {
-            applySnapshot(makeSnapshot(), animatingDifferences: false)
-            updateSkeletonState()
+            updateActivities(animated: false)
         }
 
         view.backgroundColor = isInModal ? .air.sheetBackground : .air.groupedBackground
@@ -349,6 +405,11 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
             equalToConstant: TradeActionsLayout.maxWidth
         )
         maxWidthConstraint.priority = .defaultLow
+        let bottomConstraint = tradeActionsHostView.bottomAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+            constant: -TradeActionsLayout.bottomSpacing
+        )
+        tradeActionsBottomConstraint = bottomConstraint
 
         NSLayoutConstraint.activate([
             expandableContentView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -366,10 +427,7 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
             ),
             tradeActionsHostView.widthAnchor.constraint(lessThanOrEqualToConstant: TradeActionsLayout.maxWidth),
             tradeActionsHostView.heightAnchor.constraint(equalToConstant: TradeActionsLayout.buttonHeight),
-            tradeActionsHostView.bottomAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
-                constant: -TradeActionsLayout.bottomSpacing
-            ),
+            bottomConstraint,
             preferredWidthConstraint,
             maxWidthConstraint,
         ])
@@ -393,7 +451,6 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
             updateScroll()
             view.layoutIfNeeded()
         }
-        updateSkeletonViewMask()
     }
 
     public override func viewSafeAreaInsetsDidChange() {
@@ -401,34 +458,40 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
         updateSafeAreaInsets()
     }
 
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        var bottom = -TradeActionsLayout.bottomSpacing
+        if #available(iOS 27.1, *), !isInModal, !isSharedBottomToolbarHosted,
+           let container = navigationController?.view,
+           let frame = container.verticalToolbarBottomButtonFrame {
+            let centerY = view.convert(frame, from: container).midY
+            bottom = centerY + TradeActionsLayout.buttonHeight / 2 - view.safeAreaLayoutGuide.layoutFrame.maxY
+        }
+        if let constraint = tradeActionsBottomConstraint, constraint.constant != bottom {
+            constraint.constant = bottom
+            updateSafeAreaInsets()
+        }
+    }
+
     private var minimumBottomContentInset: CGFloat {
         let reservesLocalTradeActions = areTradeActionsAvailable && !isSharedBottomToolbarHosted
+        let bottomSpacing = -(tradeActionsBottomConstraint?.constant ?? -TradeActionsLayout.bottomSpacing)
+        let reservedHeight = reservesLocalTradeActions ? TradeActionsLayout.buttonHeight + bottomSpacing : 0
         return view.safeAreaInsets.bottom
             + 16
-            + (reservesLocalTradeActions ? TradeActionsLayout.reservedHeight : 0)
+            + reservedHeight
     }
 
     private func updateSafeAreaInsets() {
-        collectionView.contentInset.bottom = minimumBottomContentInset
+        let minimumInset = minimumBottomContentInset
+        // A drag can extend the inset to allow the header to collapse on short lists.
+        guard minimumInset != minimumBottomContentInsetSnapshot else { return }
+        minimumBottomContentInsetSnapshot = minimumInset
+        collectionView.contentInset.bottom = minimumInset
 
         if !IOS_26_MODE_ENABLED {
             scrollViewDidScroll(collectionView)
         }
-    }
-
-    public override func updateSkeletonViewMask() {
-        var skeletonViews = [UIView]()
-        for cell in collectionView.visibleCells {
-            if let transactionCell = cell as? ActivityCell {
-                skeletonViews.append(transactionCell.contentView)
-            }
-        }
-        for view in collectionView.visibleSupplementaryViews(ofKind: UICollectionView.elementKindSectionHeader) {
-            if let headerCell = view as? ActivityDateCell, let skeletonView = headerCell.skeletonView {
-                skeletonViews.append(skeletonView)
-            }
-        }
-        skeletonView.applyMask(with: skeletonViews)
     }
 
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -498,7 +561,11 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
     }
 
     private func updateTradeActions() {
-        onSharedBottomToolbarActionsChange?()
+        let actions = sharedBottomToolbarActions
+        if actions != tradeActionsSnapshot {
+            tradeActionsSnapshot = actions
+            onSharedBottomToolbarActionsChange?()
+        }
         guard isViewLoaded else { return }
 
         let actionsAvailable = areTradeActionsAvailable
@@ -558,6 +625,13 @@ public class TokenVC: ActivityListViewController, SharedBottomToolbarContentProv
     }
 
     private func updateNavigationMenu() {
+        let snapshot = NavigationMenuSnapshot(
+            links: tokenVM.tokenInfoState.details?.links,
+            explorerURL: ExplorerHelper.tokenUrl(token: currentToken),
+            isRestricted: ConfigStore.shared.shouldRestrictSwapsAndOnRamp
+        )
+        guard snapshot != navigationMenuSnapshot else { return }
+        navigationMenuSnapshot = snapshot
         let menu = makeMenu()
         navigationItem.rightBarButtonItem = menu.children.isEmpty
             ? nil
@@ -628,15 +702,14 @@ extension TokenVC: WalletCoreData.EventsObserver {
         switch event {
         case .configChanged:
             updateNavigationMenu()
-            applySnapshot(makeSnapshot(), animatingDifferences: true)
-            reconfigureCustomSection(id: actionsCustomSectionID)
+            updateActionsCustomSection()
             updateTradeActions()
             tokenVM.refreshTokenDetails()
         case .tokensChanged:
             updateNavigationHeader()
         case .stakingAccountData(let data):
             if data.accountId == accountContext.accountId {
-                reconfigureCustomSection(id: actionsCustomSectionID)
+                updateActionsCustomSection()
             }
         default:
             break
@@ -645,24 +718,18 @@ extension TokenVC: WalletCoreData.EventsObserver {
 }
 
 extension TokenVC: TokenVMDelegate {
-    func dataUpdated(isUpdateEvent: Bool) {
+    func dataUpdated() {
+        guard isViewLoaded else { return }
         expandableContentView.configure(token: currentToken)
         updateNavigationHeader()
-        reconfigureCustomSection(id: actionsCustomSectionID)
-        reconfigureCustomSection(id: chartCustomSectionID)
+        updateActionsCustomSection()
+        updateChartCustomSection()
         updateTradeActions()
-        super.transactionsUpdated(accountChanged: false, isUpdateEvent: isUpdateEvent)
+        updateTokensInVisibleRows()
     }
     func priceDataUpdated() {
-        expandableContentView.configure(token: currentToken)
-        reconfigureCustomSection(id: chartCustomSectionID)
-    }
-    func stateChanged() {
-        expandableContentView.configure(token: currentToken)
-        updateNavigationHeader()
-        reconfigureCustomSection(id: actionsCustomSectionID)
-        reconfigureCustomSection(id: chartCustomSectionID)
-        updateTradeActions()
+        guard isViewLoaded else { return }
+        updateChartCustomSection()
     }
     func tokenDetailsUpdated() {
         tokenInfoModel.configure(state: tokenVM.tokenInfoState)
@@ -676,8 +743,8 @@ extension TokenVC: TokenVMDelegate {
             self.tokenVM = TokenVM(accountId: newAccountId, selectedToken: token, tokenVMDelegate: self)
             self.activityViewModel = await ActivityListViewModel(accountId: newAccountId, token: token, customSectionIDs: customSectionIDs, delegate: self)
             self.tokenVM.refreshTransactions()
-            self.updateNavigationHeader()
-            self.updateTradeActions()
+            self.dataUpdated()
+            self.updateActivities(animated: false)
         }
     }
 }
@@ -691,6 +758,6 @@ extension TokenVC: TabItemTappedProtocol {
 
 extension TokenVC: ActivityListViewModelDelegate {
     public func activityViewModelChanged() {
-        super.transactionsUpdated(accountChanged: false, isUpdateEvent: false)
+        updateActivities(animated: true)
     }
 }

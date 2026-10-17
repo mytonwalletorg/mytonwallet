@@ -41,6 +41,8 @@ struct SparkleRaster {
 };
 struct SparkleAnchor { vec4 position; vec4 normal; };
 uniform Uniforms u;
+// Read the optical hull directly from uniforms. Passing this array by value
+// makes mobile drivers materialize private copies for each ray query.
 uniform vec4 planes[17];
 uniform SparkleAnchor anchors[8];
 in vec3 v_localPosition;
@@ -229,23 +231,32 @@ vec3 surfaceFinish(vec3 color, vec3 normal, vec3 view, Uniforms u) {
     return mix(color,vec3(0.87,0.99,1.0),strength);
 }
 
-float nearestExit(vec3 origin, vec3 ray, vec4 planes[17], uint count,
-                  inout vec3 normal) {
+// The optical hull always has 17 planes. Constant indices avoid the expensive
+// dynamically indexed uniform loop on mobile GPUs, without changing ray math.
+
+void exitPlane(vec4 plane, vec3 origin, vec3 ray, inout float nearest,
+               inout float second, inout vec3 normal, inout vec3 secondNormal) {
+    float denominator = dot(plane.xyz, ray);
+    if (denominator > 0.0001) {
+        float t = -(dot(plane.xyz, origin) + plane.w) / denominator;
+        if (t > 0.001 && t < nearest) {
+            second = nearest; secondNormal = normal;
+            nearest = t; normal = plane.xyz;
+        } else if (t > 0.001 && t < second) {
+            second = t; secondNormal = plane.xyz;
+        }
+    }
+}
+
+float nearestExit(vec3 origin, vec3 ray, inout vec3 normal) {
     float nearest = 1e5;
     float second = 1e5;
     vec3 secondNormal = normal;
-    for (uint i = 0u; i < count; ++i) {
-        float denominator = dot(planes[i].xyz, ray);
-        if (denominator > 0.0001) {
-            float t = -(dot(planes[i].xyz, origin) + planes[i].w) / denominator;
-            if (t > 0.001 && t < nearest) {
-                second = nearest; secondNormal = normal;
-                nearest = t; normal = planes[i].xyz;
-            } else if (t > 0.001 && t < second) {
-                second = t; secondNormal = planes[i].xyz;
-            }
-        }
-    }
+#define TEST_EXIT(I) exitPlane(planes[I], origin, ray, nearest, second, normal, secondNormal);
+    TEST_EXIT(0u) TEST_EXIT(1u) TEST_EXIT(2u) TEST_EXIT(3u) TEST_EXIT(4u) TEST_EXIT(5u)
+    TEST_EXIT(6u) TEST_EXIT(7u) TEST_EXIT(8u) TEST_EXIT(9u) TEST_EXIT(10u) TEST_EXIT(11u)
+    TEST_EXIT(12u) TEST_EXIT(13u) TEST_EXIT(14u) TEST_EXIT(15u) TEST_EXIT(16u)
+#undef TEST_EXIT
     if (second < 1e5) {
         // The optical hull inherits a tiny edge fillet. This also filters its
         // reflected boundaries when they become thinner than a screen pixel.
@@ -256,11 +267,10 @@ float nearestExit(vec3 origin, vec3 ray, vec4 planes[17], uint count,
     return nearest;
 }
 
-vec4 oppositeFacets(vec3 p, vec3 ray, Uniforms u,
-                      vec4 planes[17]) {
+vec4 oppositeFacets(vec3 p, vec3 ray, Uniforms u) {
     vec3 origin = p + ray*0.004;
     vec3 normal = vec3(0.0,1.0,0.0);
-    float distance = nearestExit(origin,ray,planes,uint(u.viewport.z),normal);
+    float distance = nearestExit(origin,ray,normal);
     if (distance > 100.0 || normal.y > 0.95) { return vec4(0.0); }
     vec3 hit = origin + ray*distance;
     vec3 worldNormal = (u.model*vec4(normal,0.0)).xyz;
@@ -455,14 +465,13 @@ vec3 pavilionReflections(vec3 color, vec3 origin, vec3 ray, Uniforms u) {
     return color;
 }
 
-vec3 interior(vec3 p, vec3 direction, float pavilion, Uniforms u,
-                vec4 planes[17]) {
+vec3 interior(vec3 p, vec3 direction, float pavilion, Uniforms u) {
     vec3 accumulated = vec3(0.0);
     float weight = 0.60;
     vec3 origin = p + direction * 0.004;
     for (uint bounce = 0u; bounce < 2u; ++bounce) {
         vec3 n = vec3(0.0, 1.0, 0.0);
-        float distance = nearestExit(origin, direction, planes, uint(u.viewport.z), n);
+        float distance = nearestExit(origin, direction, n);
         if (distance > 100.0) { break; }
         vec3 hit = origin + direction * distance;
         vec3 outgoing = refract(direction, -n, 1.62);
@@ -513,20 +522,27 @@ vec3 materialPalette(vec3 color, vec3 facetWeights, uint appearance) {
     }
 }
 
+void glowPlane(vec4 plane, vec3 position, vec3 ray, vec3 localNormal,
+               inout float planeAlignment, inout float thickness) {
+    planeAlignment = max(planeAlignment,dot(plane.xyz,localNormal));
+    float denominator = dot(plane.xyz,ray);
+    if (denominator > 0.0001) {
+        float exit = -(dot(plane.xyz,position)+plane.w) / denominator;
+        thickness = min(thickness,max(0.0,exit));
+    }
+}
+
 vec3 coolInnerGlow(vec3 color, vec3 position, vec3 ray, vec3 normal, vec3 localNormal, vec3 view,
-                     Uniforms u, vec4 planes[17]) {
+                     Uniforms u) {
     // Thin parts transmit a white light band into the stone. The optical chord
     // follows the 3D cut under every rotation, without expanding the silhouette.
     float thickness = 1e5;
     float planeAlignment = 0.0;
-    for (uint i = 0u; i < uint(u.viewport.z); ++i) {
-        planeAlignment = max(planeAlignment,dot(planes[i].xyz,localNormal));
-        float denominator = dot(planes[i].xyz,ray);
-        if (denominator > 0.0001) {
-            float exit = -(dot(planes[i].xyz,position)+planes[i].w) / denominator;
-            thickness = min(thickness,max(0.0,exit));
-        }
-    }
+#define TEST_GLOW(I) glowPlane(planes[I], position, ray, localNormal, planeAlignment, thickness);
+    TEST_GLOW(0u) TEST_GLOW(1u) TEST_GLOW(2u) TEST_GLOW(3u) TEST_GLOW(4u) TEST_GLOW(5u)
+    TEST_GLOW(6u) TEST_GLOW(7u) TEST_GLOW(8u) TEST_GLOW(9u) TEST_GLOW(10u) TEST_GLOW(11u)
+    TEST_GLOW(12u) TEST_GLOW(13u) TEST_GLOW(14u) TEST_GLOW(15u) TEST_GLOW(16u)
+#undef TEST_GLOW
     // Scale the penetration with the taper: the tip gets a narrow rim,
     // rather than filling with a solid white pool as its whole depth shrinks.
     float crossSection = clamp((position.y+1.09)/0.98,0.07,1.0);
@@ -538,14 +554,15 @@ vec3 coolInnerGlow(vec3 color, vec3 position, vec3 ray, vec3 normal, vec3 localN
     return mix(color,vec3(0.96,1.0,1.0),glow);
 }
 
-vec4 diamondSurface(Raster inputData, Uniforms u, vec4 planes[17]) {
+vec4 diamondSurface(Raster inputData, Uniforms u) {
     vec3 n = normalize(inputData.normal);
     float cameraDistance = -u.projection[3].w / u.projection[2].w;
     vec3 view = normalize(vec3(0.0, 0.0, cameraDistance) - inputData.worldPosition);
     vec3 localView = (u.inverseModel * vec4(-view, 0.0)).xyz;
     vec3 localNormal = normalize((u.inverseModel * vec4(n, 0.0)).xyz);
     vec3 transmitted = refract(localView, localNormal, 1.0 / 1.62);
-    vec3 optical = interior(inputData.localPosition, transmitted, inputData.facetWeights.z, u, planes);
+    // Zero internal bounces on every device; retain the existing material mapping.
+    vec3 optical = vec3(0.0);
     vec3 reflection = studio(reflect(-view, n), u.lightSweep.y);
     float fresnel = 0.08 + 0.46 * pow(1.0 - saturate(dot(n, view)), 4.0);
 
@@ -596,7 +613,8 @@ vec4 diamondSurface(Raster inputData, Uniforms u, vec4 planes[17]) {
     color = mix(color,optical,inputData.facetWeights.z*u.parameters.y*0.48);
     color = mix(color,body,inputData.facetWeights.z*pow(saturate(n.z),2.0)*0.32);
     vec3 rearRay = normalize(mix(localView,transmitted,mix(0.68,0.18,inputData.facetWeights.y)));
-    vec4 rear = oppositeFacets(inputData.localPosition,rearRay,u,planes);
+    // Disable the opposite-face ray independently of the lower-facet reflections.
+    vec4 rear = vec4(0.0);
     float transmission = mix(0.34,0.12+u.lightSweep.z*0.65,inputData.facetWeights.y) * u.parameters.y;
     float facing = smoothstep(0.12,0.65,n.z);
     color = mix(color,rear.rgb,rear.a*transmission*facing*mix(1.0,0.12,inputData.facetWeights.y));
@@ -635,7 +653,7 @@ vec4 diamondSurface(Raster inputData, Uniforms u, vec4 planes[17]) {
     color = surfaceFinish(color,polishedNormal(inputData,localNormal,u),view,u);
     color = materialPalette(color,inputData.facetWeights,uint(u.appearance.x));
     if (uint(u.appearance.x) == 2u) {
-        color = coolInnerGlow(color,inputData.localPosition,localView,n,localNormal,view,u,planes);
+        color = coolInnerGlow(color,inputData.localPosition,localView,n,localNormal,view,u);
     }
     if (uint(u.appearance.x) == 1u) {
         // Source facet flashes stay on the physical front/side planes, including
@@ -676,6 +694,6 @@ inputData.normal=v_normal;
 inputData.worldPosition=v_worldPosition;
 inputData.facetWeights=v_facetWeights;
 
-    fragColor = diamondSurface(inputData, u, planes);
+    fragColor = diamondSurface(inputData, u);
 
 }

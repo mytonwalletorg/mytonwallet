@@ -88,7 +88,8 @@ class UserResponsibilityVC(context: Context) : WViewController(context) {
                     icon = org.mytonwallet.app_air.icons.R.drawable.ic_responsibility_terms,
                     title = title,
                     value = null,
-                    hasTintColor = false
+                    hasTintColor = false,
+                    testViewId = null
                 ),
                 subtitle = null,
                 isFirst = true,

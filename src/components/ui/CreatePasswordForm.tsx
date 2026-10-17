@@ -24,14 +24,13 @@ import modalStyles from './Modal.module.scss';
 interface OwnProps {
   isActive?: boolean;
   isLoading?: boolean;
-  containerClassName?: string;
   formId: string;
   onCancel: NoneToVoidFunction;
-  onSubmit: (password: string, isPasswordNumeric: boolean) => void;
+  onSubmit: (password: string, isPasswordNumeric: boolean, onError: NoneToVoidFunction) => void;
 }
 
 function CreatePasswordForm({
-  isActive, isLoading, formId, onCancel, onSubmit, containerClassName,
+  isActive, isLoading, formId, onCancel, onSubmit,
 }: OwnProps) {
   const lang = useLang();
   const isMobile = IS_IOS || IS_ANDROID;
@@ -107,6 +106,10 @@ function CreatePasswordForm({
     }
   });
 
+  const handleSubmitError = useLastCallback(() => {
+    isSubmittedRef.current = false;
+  });
+
   const handleSubmit = useLastCallback((e: React.FormEvent) => {
     stopEvent(e);
 
@@ -136,7 +139,7 @@ function CreatePasswordForm({
     }
 
     isSubmittedRef.current = true;
-    onSubmit(firstPassword, isMobile);
+    onSubmit(firstPassword, isMobile, handleSubmitError);
   });
 
   function renderErrors() {
@@ -190,7 +193,7 @@ function CreatePasswordForm({
 
   return (
     <>
-      <form id={formId} className={buildClassName(styles.form, containerClassName)} onSubmit={handleSubmit}>
+      <form id={formId} className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formWidgets}>
           <Input
             ref={firstInputRef}
@@ -221,7 +224,7 @@ function CreatePasswordForm({
             onFocus={markSecondPasswordFocused}
             onBlur={unmarkSecondPasswordFocused}
             maxLength={isMobile ? PIN_LENGTH : undefined}
-            enterKeyHint="next"
+            enterKeyHint="done"
           />
         </div>
 

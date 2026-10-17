@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stable resource ids for UI automation (Maestro `id:` selectors) -->
+<resources>
+    <!-- App tabs (top segmented tabs on phones), from `AppTabsManager.registeredTabs` -->
+    <item name="tab_wallet" type="id" />
+    <item name="tab_market" type="id" />
+    <item name="tab_explore" type="id" />
+    <item name="tab_portfolio" type="id" />
+    <item name="tab_settings_button" type="id" />
+
+    <!-- Home header buttons -->
+    <item name="home_scan_button" type="id" />
+    <item name="home_lock_button" type="id" />
+    <item name="home_eye_button" type="id" />
+
+    <!-- Action row (`HeaderActionsView.Identifier`) on Home and the token screen -->
+    <item name="header_action_fund" type="id" />
+    <item name="header_action_send" type="id" />
+    <item name="header_action_swap" type="id" />
+    <item name="header_action_earn" type="id" />
+
+    <!-- Home "+" button and the actions sheet it opens (HomeActionsSheetVC) -->
+    <item name="home_more_actions_button" type="id" />
+    <item name="home_sheet_action_buy" type="id" />
+    <item name="home_sheet_action_fund" type="id" />
+    <item name="home_sheet_action_trade" type="id" />
+    <item name="home_sheet_action_sell" type="id" />
+    <item name="home_sheet_action_send" type="id" />
+    <item name="home_sheet_action_earn" type="id" />
+    <item name="home_sheet_action_scan" type="id" />
+
+    <!-- Explore tab -->
+    <item name="explore_list" type="id" />
+
+    <!-- Onboarding (IntroVC) -->
+    <item name="intro_terms" type="id" />
+    <item name="intro_create_wallet" type="id" />
+    <item name="intro_import_wallet" type="id" />
+
+    <!-- Add / import wallet options (AddAccountOptionsVC) -->
+    <item name="add_wallet_create" type="id" />
+    <item name="add_wallet_subwallet" type="id" />
+    <item name="add_wallet_secret_words" type="id" />
+    <item name="add_wallet_ledger" type="id" />
+    <item name="add_wallet_view" type="id" />
+
+    <!-- Import by secret words (ImportWalletVC) -->
+    <item name="import_paste" type="id" />
+    <item name="import_mode_12" type="id" />
+    <item name="import_mode_24" type="id" />
+    <item name="import_continue" type="id" />
+    <item name="import_word_1" type="id" />
+    <item name="import_word_2" type="id" />
+    <item name="import_word_3" type="id" />
+    <item name="import_word_4" type="id" />
+    <item name="import_word_5" type="id" />
+    <item name="import_word_6" type="id" />
+    <item name="import_word_7" type="id" />
+    <item name="import_word_8" type="id" />
+    <item name="import_word_9" type="id" />
+    <item name="import_word_10" type="id" />
+    <item name="import_word_11" type="id" />
+    <item name="import_word_12" type="id" />
+    <item name="import_word_13" type="id" />
+    <item name="import_word_14" type="id" />
+    <item name="import_word_15" type="id" />
+    <item name="import_word_16" type="id" />
+    <item name="import_word_17" type="id" />
+    <item name="import_word_18" type="id" />
+    <item name="import_word_19" type="id" />
+    <item name="import_word_20" type="id" />
+    <item name="import_word_21" type="id" />
+    <item name="import_word_22" type="id" />
+    <item name="import_word_23" type="id" />
+    <item name="import_word_24" type="id" />
+
+    <!-- Wallet creation (BackupVC, RecoveryPhraseVC, WalletAddedVC) -->
+    <item name="create_warning_1" type="id" />
+    <item name="create_warning_2" type="id" />
+    <item name="create_warning_3" type="id" />
+    <item name="create_go_to_words" type="id" />
+    <item name="create_check" type="id" />
+    <item name="create_skip_check" type="id" />
+    <item name="wallet_added_open" type="id" />
+
+    <!-- View-only wallet (ImportViewWalletVC) -->
+    <item name="view_address_input" type="id" />
+    <item name="view_continue" type="id" />
+
+    <!-- Receive (ReceiveVC) -->
+    <item name="receive_buy_card" type="id" />
+    <item name="receive_buy_crypto" type="id" />
+
+    <!-- Send (SendVC) -->
+    <item name="send_address_input" type="id" />
+    <item name="send_amount_input" type="id" />
+    <item name="send_token_selector" type="id" />
+    <item name="send_comment_input" type="id" />
+    <item name="send_continue" type="id" />
+
+    <!-- Swap (SwapVC) -->
+    <item name="swap_sell_token" type="id" />
+    <item name="swap_sell_amount" type="id" />
+    <item name="swap_buy_token" type="id" />
+    <item name="swap_buy_amount" type="id" />
+    <item name="swap_continue" type="id" />
+
+    <!-- Stake (StakingVC) -->
+    <item name="stake_amount_input" type="id" />
+    <item name="stake_submit" type="id" />
+</resources>

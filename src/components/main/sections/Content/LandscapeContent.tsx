@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo, useRef } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
@@ -17,6 +18,7 @@ import {
   selectUserTokenMemoized,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { animateContentShift } from '../../../../util/layoutChangeAnimation';
 import { calcVestingAmountByStatus } from '../../../../util/vesting';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 
@@ -262,10 +264,7 @@ function LandscapeContent({
           </div>
           <div className={buildClassName(styles.slides, currentToken && styles.slidesOnTokenScreen)}>
             {currentToken ? (
-              <>
-                <TokenSummary token={currentToken} />
-                <div className={styles.tokenActivity}>{slide}</div>
-              </>
+              <TokenSlideContent token={currentToken} isActive={isSlideActive}>{slide}</TokenSlideContent>
             ) : slide}
           </div>
         </div>
@@ -292,6 +291,32 @@ function LandscapeContent({
         isOpen={Boolean(selectedNftsToHide?.addresses.length)}
         selectedNftsToHide={selectedNftsToHide}
       />
+    </>
+  );
+}
+
+// Several slides can show a token at once (an opened Market token joins the one kept by the Activity slide),
+// so each slide shifts its own activity
+function TokenSlideContent({ token, isActive, children }: {
+  token: UserToken;
+  isActive: boolean;
+  children: TeactNode;
+}) {
+  const activityRef = useRef<HTMLDivElement>();
+
+  const handleSummaryHeightChange = useLastCallback((prevHeight: number, nextHeight: number) => {
+    animateContentShift(activityRef.current!, SCROLL_CONTAINER_SELECTOR, prevHeight - nextHeight);
+  });
+
+  return (
+    <>
+      <TokenSummary
+        key={token.slug}
+        token={token}
+        isActive={isActive}
+        onHeightChange={handleSummaryHeightChange}
+      />
+      <div ref={activityRef} className={styles.tokenActivity}>{children}</div>
     </>
   );
 }

@@ -864,16 +864,21 @@ addActionHandler('enableBiometrics', async (global, actions, { isLoginFlow } = {
   }
 });
 
-addActionHandler('disableBiometrics', async (global, actions, { newPassword, isPasswordNumeric } = {}) => {
+addActionHandler('disableBiometrics', async (global, actions, { newPassword, isPasswordNumeric, onError } = {}) => {
   const currentToken = selectEnclaveToken(global);
 
   if (newPassword && currentToken) {
     // WebAuthn biometric-only: replace biometric with passcode
-    const newSession = await enclave.migrateAuth(currentToken, 'passcode', newPassword, true);
+    const newSession = await enclave.migrateAuth(currentToken, 'passcode', newPassword, true)
+      .catch((err) => {
+        logDebugError('disableBiometrics', err);
+        return undefined;
+      });
     if (!newSession) {
       global = getGlobal();
       global = updateBiometrics(global, { error: 'Failed to create password' });
       setGlobal(global);
+      onError?.();
       return;
     }
 
@@ -896,6 +901,7 @@ addActionHandler('disableBiometrics', async (global, actions, { newPassword, isP
     if (!currentToken) {
       global = updateBiometrics(global, { error: 'Authentication required' });
       setGlobal(global);
+      onError?.();
       return;
     }
 

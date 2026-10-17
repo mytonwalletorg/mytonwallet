@@ -14,6 +14,10 @@ data class AgentV2ThreadResponse(val thread: AgentV2ThreadSummary)
 @JsonClass(generateAdapter = true)
 data class AgentV2ProblemReportResponse(val reportId: String, val duplicate: Boolean)
 
+/** The answer's rating after the request; without `feedback` the answer has none */
+@JsonClass(generateAdapter = true)
+data class AgentV2AnswerFeedbackResponse(val feedback: String? = null)
+
 @JsonClass(generateAdapter = true)
 data class AgentV2MutationError(val code: String, val retryable: Boolean)
 
@@ -83,7 +87,9 @@ data class AgentV2PersistedMessage(
     val runId: String? = null,
     val error: AgentV2MessageError? = null,
     val actions: List<AgentV2Action>? = null,
-    val followups: List<AgentV2FollowUp>? = null
+    val followups: List<AgentV2FollowUp>? = null,
+    /** `like` or `dislike` on a rated complete answer */
+    val feedback: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -168,8 +174,9 @@ sealed class AgentV2ResolvedAction {
     @JsonClass(generateAdapter = true)
     data class OpenDapp(val url: String) : AgentV2ResolvedAction()
 
+    /** Without a `reason` the action is no longer available */
     @JsonClass(generateAdapter = true)
-    class Inactive : AgentV2ResolvedAction()
+    data class Inactive(val reason: String? = null) : AgentV2ResolvedAction()
 }
 
 sealed class AgentV2Update {

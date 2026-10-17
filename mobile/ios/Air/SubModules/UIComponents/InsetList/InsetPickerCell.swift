@@ -6,18 +6,21 @@ public struct InsetPickerCell<Selection: Hashable, Content: View>: View {
     @Binding private var selection: Selection
     private let value: String
     private let content: Content
+    private let accessibilityID: String?
     @ScaledMetric(relativeTo: .body) private var arrowWidth = 10
 
     public init(
         _ title: String,
         selection: Binding<Selection>,
         value: String,
+        accessibilityIdentifier: String? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self._selection = selection
         self.value = value
         self.content = content()
+        self.accessibilityID = accessibilityIdentifier
     }
 
     public var body: some View {
@@ -53,6 +56,7 @@ public struct InsetPickerCell<Selection: Hashable, Content: View>: View {
             .buttonStyle(.plain)
             .accessibilityLabel(title)
             .accessibilityValue(value)
+            .accessibilityIdentifier(ifPresent: accessibilityID)
         }
     }
 }

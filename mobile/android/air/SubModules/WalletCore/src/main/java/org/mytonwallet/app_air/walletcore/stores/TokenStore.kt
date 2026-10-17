@@ -417,8 +417,25 @@ object TokenStore : IStore {
         callback: (data: Array<Array<Double>>?, fromCache: Boolean, MBridgeError?) -> Unit
     ) {
         val cachedData = WGlobalStorage.getPriceHistory(slug, period.value)
-        if (cachedData != null) callback(cachedData, true, null)
+        if (cachedData != null && isPriceHistoryFresh(cachedData, period)) {
+            callback(cachedData, true, null)
+        }
         updatePriceHistory(slug, period, callback)
+    }
+
+    private fun isPriceHistoryFresh(
+        data: Array<Array<Double>>,
+        period: MHistoryTimePeriod
+    ): Boolean {
+        val lastTimestamp = data.lastOrNull()?.firstOrNull() ?: return true
+        val maxAgeHours = when (period) {
+            MHistoryTimePeriod.DAY -> 3
+            MHistoryTimePeriod.WEEK -> 24
+            MHistoryTimePeriod.MONTH -> 4 * 24
+            MHistoryTimePeriod.THREE_MONTHS -> 12 * 24
+            MHistoryTimePeriod.YEAR, MHistoryTimePeriod.ALL -> 45 * 24
+        }
+        return System.currentTimeMillis() / 1000 - lastTimestamp <= maxAgeHours * 3600
     }
 
     // Update price history data for a specific token and time period

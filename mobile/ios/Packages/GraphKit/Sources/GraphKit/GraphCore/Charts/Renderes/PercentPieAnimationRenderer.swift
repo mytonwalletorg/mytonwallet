@@ -20,12 +20,27 @@ class PercentPieAnimationRenderer: BaseChartRenderer {
     
     private lazy var transitionAnimator = AnimationController<CGFloat>(current: 0, refreshClosure: refreshClosure)
     private var animationComponentsPoints: [[CGPoint]] = []
+    private var hasZeroTotals = false
+    private let crossfadePercentageRenderer = PecentChartRenderer()
+    private let crossfadePieRenderer: PieChartRenderer = {
+        let renderer = PieChartRenderer()
+        renderer.drawValues = false
+        return renderer
+    }()
     var visiblePercentageData: PecentChartRenderer.PercentageData = .blank {
         didSet {
             animationComponentsPoints = []
+            hasZeroTotals = visiblePercentageData.locations.indices.contains { index in
+                visiblePercentageData.components.reduce(CGFloat.zero) { $0 + $1.values[index] } <= 0
+            }
+            crossfadePercentageRenderer.percentageData = visiblePercentageData
         }
     }
-    var visiblePieComponents: [PieChartRenderer.PieComponent] = []
+    var visiblePieComponents: [PieChartRenderer.PieComponent] = [] {
+        didSet {
+            crossfadePieRenderer.updatePercentageData(visiblePieComponents, animated: false)
+        }
+    }
 
     func animate(fromDataToPie: Bool, animated: Bool, completion: @escaping () -> Void) {
         assert(visiblePercentageData.components.count == visiblePieComponents.count)
@@ -89,7 +104,13 @@ class PercentPieAnimationRenderer: BaseChartRenderer {
     var backgroundColor: GColor = .white
 
     override func render(context: CGContext, bounds: CGRect, chartFrame: CGRect) {
-        guard isEnabled && verticalRange.current.distance > 0 && verticalRange.current.distance > 0 else { return }
+        guard isEnabled && horizontalRange.current.distance > 0 && verticalRange.current.distance > 0 else { return }
+        let totalPieSumm = visiblePieComponents.reduce(CGFloat.zero) { $0 + $1.value }
+        if hasZeroTotals || totalPieSumm <= 0 {
+            // The morph requires a continuous stack. Crossfade segmented fills to preserve empty periods.
+            renderCrossfade(context: context, bounds: bounds, chartFrame: chartFrame)
+            return
+        }
         self.optimizationLevel = 1
         
         if animationComponentsPoints.isEmpty {
@@ -104,7 +125,6 @@ class PercentPieAnimationRenderer: BaseChartRenderer {
         let animationFractionD = Double(transitionAnimator.current)
         let easeInAnimationFractionD = animationFractionD * animationFractionD * animationFractionD * animationFractionD
         let center = CGPoint(x: chartFrame.midX, y: chartFrame.midY)
-        let totalPieSumm: CGFloat = visiblePieComponents.map { $0.value } .reduce(0, +)
         
         let pathsToDraw: [CGMutablePath] = (0..<numberOfComponents).map { _ in CGMutablePath() }
         
@@ -202,5 +222,23 @@ class PercentPieAnimationRenderer: BaseChartRenderer {
         context.setFillColor(backgroundColor.cgColor)
         context.fillPath(using: .evenOdd)
         context.restoreGState()
+    }
+
+    private func renderCrossfade(context: CGContext, bounds: CGRect, chartFrame: CGRect) {
+        crossfadePercentageRenderer.setup(horizontalRange: horizontalRange.current, animated: false)
+        let fraction = transitionAnimator.current
+        let layers: [(BaseChartRenderer, CGFloat)] = [
+            (crossfadePercentageRenderer, 1 - fraction),
+            (crossfadePieRenderer, fraction),
+        ]
+        for (renderer, alpha) in layers where alpha > 0 {
+            context.saveGState()
+            context.setAlpha(alpha)
+            // Fade the whole stack together so overlapping cumulative fills do not bleed through.
+            context.beginTransparencyLayer(auxiliaryInfo: nil)
+            renderer.render(context: context, bounds: bounds, chartFrame: chartFrame)
+            context.endTransparencyLayer()
+            context.restoreGState()
+        }
     }
 }

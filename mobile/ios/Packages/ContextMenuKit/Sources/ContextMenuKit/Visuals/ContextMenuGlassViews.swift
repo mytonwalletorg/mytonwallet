@@ -5,6 +5,8 @@ final class ContextMenuGlassBackgroundView: UIView {
     private let effectView = UIVisualEffectView(effect: nil)
     private let legacyTintView: UIView?
     private let legacyStrokeView: UIView?
+    private var legacyShapeMaskView: ContextMenuShapeView?
+    private var legacyShapeStrokeLayer: CAShapeLayer?
     let contentView = UIView()
 
     init() {
@@ -41,9 +43,13 @@ final class ContextMenuGlassBackgroundView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    /// `legacyShape`, in the view's coordinates, cuts the pre-glass material to a path other than a rounded rect, such as
+    /// the union of overlapping capsules. Native glass merges overlapping shapes in a `ContextMenuGlassContainerView`
+    /// instead and ignores it.
     func update(
         size: CGSize,
         cornerRadius: CGFloat,
+        legacyShape: CGPath? = nil,
         traits: UITraitCollection,
         isInteractive: Bool,
         glassTint: ContextMenuGlassTint
@@ -70,10 +76,48 @@ final class ContextMenuGlassBackgroundView: UIView {
             if let legacyStrokeView {
                 legacyStrokeView.frame = self.effectView.contentView.bounds
                 legacyStrokeView.layer.cornerRadius = cornerRadius
-                legacyStrokeView.layer.borderWidth = 1.0 / max(traits.displayScale, 1.0)
+                legacyStrokeView.layer.borderWidth = legacyShape == nil ? 1.0 / max(traits.displayScale, 1.0) : 0.0
                 legacyStrokeView.layer.borderColor = ContextMenuVisuals.legacyPanelStrokeColor(for: traits).cgColor
             }
+            self.updateLegacyShape(legacyShape, traits: traits)
         }
+    }
+
+    private func updateLegacyShape(_ shape: CGPath?, traits: UITraitCollection) {
+        guard let shape, let legacyStrokeView else {
+            self.effectView.mask = nil
+            self.legacyShapeStrokeLayer?.path = nil
+            return
+        }
+
+        let maskView = self.legacyShapeMaskView ?? ContextMenuShapeView()
+        maskView.frame = self.effectView.bounds
+        maskView.shapeLayer.path = shape
+        self.legacyShapeMaskView = maskView
+        self.effectView.mask = maskView
+
+        let strokeLayer = self.legacyShapeStrokeLayer ?? CAShapeLayer()
+        if strokeLayer.superlayer == nil {
+            strokeLayer.fillColor = nil
+            legacyStrokeView.layer.addSublayer(strokeLayer)
+        }
+        strokeLayer.frame = legacyStrokeView.bounds
+        strokeLayer.path = shape
+        strokeLayer.strokeColor = ContextMenuVisuals.legacyPanelStrokeColor(for: traits).cgColor
+        // The mask clips the outer half of the line, leaving the hairline the border draws around a rounded rect
+        strokeLayer.lineWidth = 2.0 / max(traits.displayScale, 1.0)
+        self.legacyShapeStrokeLayer = strokeLayer
+    }
+}
+
+/// A view drawn as a path, for a mask that is not a rounded rect
+private final class ContextMenuShapeView: UIView {
+    override class var layerClass: AnyClass {
+        CAShapeLayer.self
+    }
+
+    var shapeLayer: CAShapeLayer {
+        self.layer as! CAShapeLayer
     }
 }
 
@@ -90,10 +134,11 @@ final class ContextMenuGlassContainerView: UIView {
         }
     }
 
-    init(style: ContextMenuStyle) {
+    /// Glass shapes closer than `spacing` merge into one
+    init(spacing: CGFloat) {
         if #available(iOS 26.0, *) {
             let effect = UIGlassContainerEffect()
-            effect.spacing = style.containerSpacing
+            effect.spacing = spacing
             self.nativeEffectView = UIVisualEffectView(effect: effect)
             self.legacyContentView = nil
         } else {
@@ -134,7 +179,7 @@ final class ContextMenuPanelView: UIView {
 
     init(style: ContextMenuStyle) {
         self.style = style
-        self.backgroundContainer = ContextMenuGlassContainerView(style: style)
+        self.backgroundContainer = ContextMenuGlassContainerView(spacing: style.containerSpacing)
         self.backgroundView = ContextMenuGlassBackgroundView()
 
         super.init(frame: .zero)

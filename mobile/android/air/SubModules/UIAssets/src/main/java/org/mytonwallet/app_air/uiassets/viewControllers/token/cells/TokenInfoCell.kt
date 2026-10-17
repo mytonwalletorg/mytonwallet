@@ -855,8 +855,8 @@ class TokenInfoCell(
                 constrainedWidth(titleLabel.id, true)
                 setHorizontalBias(titleLabel.id, 0f)
                 if (infoButton != null) {
-                    endToStart(titleLabel, valueView, 36f)
-                    startToEnd(infoButton, titleLabel, 4f)
+                    endToStart(titleLabel, valueView, 34f)
+                    startToEnd(infoButton, titleLabel, 2f)
                     toCenterY(infoButton)
                 } else {
                     endToStart(titleLabel, valueView, 8f)

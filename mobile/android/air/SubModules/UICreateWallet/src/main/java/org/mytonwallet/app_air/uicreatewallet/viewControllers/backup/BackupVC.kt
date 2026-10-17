@@ -10,6 +10,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.constraintlayout.widget.ConstraintLayout
 import java.lang.ref.WeakReference
 import kotlin.math.max
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.uicomponents.base.WWindow
@@ -71,19 +72,22 @@ class BackupVC(
         }
     }
 
+    // Rule keys with stable resource ids of their checkboxes, for UI automation
     private val checks = arrayOf(
-        "\$safety_rules_one",
-        "\$safety_rules_two",
-        "\$safety_rules_three"
+        "\$safety_rules_one" to UIComponentsR.id.create_warning_1,
+        "\$safety_rules_two" to UIComponentsR.id.create_warning_2,
+        "\$safety_rules_three" to UIComponentsR.id.create_warning_3
     )
-    private val checkboxViews = checks.mapIndexed { i, it ->
+    private val checkboxViews = checks.mapIndexed { i, (key, viewId) ->
         CheckboxItemView(context, i == 0).apply {
-            setText(LocaleController.getString(it).trim().toProcessedSpannableStringBuilder())
+            id = viewId
+            setText(LocaleController.getString(key).trim().toProcessedSpannableStringBuilder())
         }
     }
 
     private val toWordsButton: WButton by lazy {
         WButton(context, WButton.Type.PRIMARY).apply {
+            id = UIComponentsR.id.create_go_to_words
             text = LocaleController.getString("Go to Words")
             isEnabled = false
             setOnClickListener {

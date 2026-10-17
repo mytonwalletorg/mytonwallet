@@ -237,14 +237,14 @@ public final class WSegmentedControl: UIView, UIScrollViewDelegate {
         guard model.rawProgress != progress else { return }
         autoScrollWorkItem?.cancel()
         model.setRawProgress(progress)
-        guard model.style == .compactRootHeader, hasAppliedSelection,
+        guard hasAppliedSelection,
               model.items == renderedItems, !model.isReordering, !isReorderingApplied,
               !isInReplacementCrossfade else {
             applyPendingModelChangesWithoutAnimation()
             return
         }
         UIView.performWithoutAnimation {
-            // Selection changes move the lens and item accessories, not the header's
+            // Selection changes move the lens and item accessories, not the control's
             // geometry. Honor pending resize/layout work without remeasuring every frame.
             layoutIfNeeded()
             updateSelection(animated: false)
@@ -374,6 +374,7 @@ public final class WSegmentedControl: UIView, UIScrollViewDelegate {
                 isSelected: selectedID == item.id,
                 itemId: item.id,
                 title: item.title,
+                accessibilityIdentifier: item.accessibilityIdentifier,
                 contextMenuProvider: item.contextMenuProvider,
                 segmentedControl: self,
                 allowsSimultaneousGlassInteraction: isGlassInteractive,

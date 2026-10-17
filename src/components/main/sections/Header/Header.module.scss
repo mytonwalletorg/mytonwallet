@@ -19,12 +19,15 @@ $landscapeActionsButtonWidth: 1.375rem;
 
       position: absolute;
       top: 0;
-      bottom: 0;
+      bottom: calc(-1 * #{v.$portraitHeaderHeight});
       inset-inline-start: 0;
 
       width: 100%;
 
-      @include mixins.transition('bottom 150ms, background-color 300ms ease-out');
+      // The background reaches over the tabs, and the part below the header stays cut off until they stick
+      clip-path: inset(0 0 v.$portraitHeaderHeight);
+
+      @include mixins.transition('clip-path 150ms, background-color 300ms ease-out');
     }
 
     :global(html.is-electron) & {
@@ -36,7 +39,7 @@ $landscapeActionsButtonWidth: 1.375rem;
     &::after {
       opacity: 0;
 
-      @include mixins.transition('bottom 150ms, opacity 200ms');
+      @include mixins.transition('transform 150ms, opacity 200ms');
     }
 
     &.isScrolled {
@@ -50,9 +53,12 @@ $landscapeActionsButtonWidth: 1.375rem;
       }
     }
 
-    &.isScrolled.areTabsStuck::after,
     &.areTabsStuck::before {
-      bottom: calc(-1 * #{v.$portraitHeaderHeight});
+      clip-path: inset(0);
+    }
+
+    &.isScrolled.areTabsStuck::after {
+      transform: translateY(v.$portraitHeaderHeight);
     }
 
     // Fix for Opera, dead zone of 37 pixels in extension window on Windows

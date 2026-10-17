@@ -10,9 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONS
 import androidx.constraintlayout.widget.Guideline
 import java.math.BigInteger
 import java.util.Date
-import java.util.Locale
 import kotlin.math.abs
-import kotlin.math.pow
 import kotlin.math.roundToInt
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.helpers.WFont
@@ -31,6 +29,8 @@ import org.mytonwallet.app_air.walletbasecontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletbasecontext.theme.WColor
 import org.mytonwallet.app_air.walletbasecontext.theme.color
 import org.mytonwallet.app_air.walletbasecontext.utils.WDateFormatter
+import org.mytonwallet.app_air.walletbasecontext.utils.signSpace
+import org.mytonwallet.app_air.walletbasecontext.utils.toBigInteger
 import org.mytonwallet.app_air.walletbasecontext.utils.toString
 import org.mytonwallet.app_air.walletbasecontext.utils.withLocalizedNumbers
 
@@ -209,7 +209,7 @@ class OverviewSectionView(context: Context) :
         totalValueLabel.text =
             formatOverviewCurrency(overview.totalValue, baseCurrency, showSign = false)
         netChangeLabel.text =
-            formatOverviewCurrency(overview.netChangeAbs, baseCurrency, showSign = true)
+            "‭" + formatOverviewCurrency(overview.netChangeAbs, baseCurrency, showSign = true)
         val isPositive = overview.netChangeAbs >= 0.0
         val deltaColor = if (isPositive) WColor.Green.color else WColor.Red.color
         val pct = overview.netChangePct
@@ -283,24 +283,34 @@ class OverviewSectionView(context: Context) :
         baseCurrency: MBaseCurrency,
         showSign: Boolean
     ): String {
-        val scale = 10.0.pow(baseCurrency.decimalsCount.toDouble())
-        val scaled = (abs(value) * scale).toLong()
-        val signedScaled = if (value < 0) -scaled else scaled
-        return BigInteger.valueOf(signedScaled).toString(
-            decimals = baseCurrency.decimalsCount,
+        val decimals = when (baseCurrency) {
+            MBaseCurrency.BTC -> 8
+            MBaseCurrency.TON -> 9
+            else -> 6
+        }
+        val amount = abs(value).toBigInteger(decimals) ?: BigInteger.ZERO
+        val isNegative = value < 0 && amount.signum() != 0
+        val requiredDecimals = decimals + 2 - amount.toString().length
+        val formatted = amount.toString(
+            decimals = decimals,
             currency = baseCurrency.sign,
-            currencyDecimals = baseCurrency.decimalsCount,
-            showPositiveSign = showSign
+            currencyDecimals = if (amount.signum() ==
+                0
+            ) {
+                0
+            } else {
+                minOf(decimals, maxOf(2, requiredDecimals))
+            },
+            showPositiveSign = showSign && !isNegative,
+            zeroCountSubscriptMinCount = null
         )
+        return if (isNegative) "-$signSpace$formatted" else formatted
     }
 
     private fun formatPercent(ratio: Double): String {
         val pct = ratio * 100.0
-        val abs = abs(pct)
-        return if (abs < 10.0 && abs != 0.0) {
-            String.format(Locale.ENGLISH, "%.1f%%", abs).withLocalizedNumbers
-        } else {
-            "${abs.roundToInt().withLocalizedNumbers}%"
-        }
+        val rounded = abs(pct).roundToInt()
+        val text = "${rounded.withLocalizedNumbers}%"
+        return if (pct < 0 && rounded != 0) "‭-$signSpace$text" else text
     }
 }

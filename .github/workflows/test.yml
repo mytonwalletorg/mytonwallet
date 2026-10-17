@@ -35,7 +35,7 @@ jobs:
         run: |
           # The Swift catalog test reads exactly two places: the locale sources it generates the
           # catalog from (LOCALES_DIR in test_import_localizations.py) and the importer and tests
-          # themselves. Nothing else in the repository can change its verdict.
+          # themselves. Workflow edits also run it to verify changes to the selected toolchain.
           #
           # On a pull request the checkout is a merge commit whose first parent is the base tip,
           # so HEAD~1 is the whole PR. On a push it is only the tip commit, and a push carrying
@@ -68,7 +68,7 @@ jobs:
           SWIFT_CATALOGS="false"
           while IFS= read -r file; do
             case "$file" in
-              src/i18n/*|mobile/ios/Air/scripts/strings/*) SWIFT_CATALOGS="true" ;;
+              src/i18n/*|mobile/ios/Air/scripts/strings/*|.github/workflows/test.yml) SWIFT_CATALOGS="true" ;;
             esac
           done <<< "$CHANGED"
 
@@ -118,9 +118,11 @@ jobs:
       contents: read
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.swift-catalogs == 'true' }}
-    # Match the Xcode 27 toolchain used for iOS releases.
+    # Match the explicitly selected Xcode 27.1 toolchain used for iOS releases.
     runs-on: xcode-27
     timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -211,6 +213,9 @@ jobs:
 
       - name: Install Chromium
         run: npx --no-install playwright install --with-deps chromium
+
+      - name: Test Web funnel IndexedDB concurrency
+        run: npm run test:web-funnel-storage
 
       - name: Run Agent V2 Chromium E2E
         run: npm run test:agent:v2:e2e

@@ -24,6 +24,7 @@ public struct TransactionOverviewView: View {
         WithPerceptionTracking {
             VStack(spacing: 0) {
                 iconView
+                    .zIndex(1)
                     .padding(.bottom, 16)
                 amountView
                     .padding(.top, 1)
@@ -35,17 +36,7 @@ public struct TransactionOverviewView: View {
     
     @ViewBuilder
     var iconView: some View {
-        WUIIconViewToken(
-            token: token,
-            isWalletView: false,
-            showldShowChain: true,
-            size: 60,
-            chainSize: 22,
-            chainBorderWidth: 1.5,
-            chainHorizontalOffset: 6,
-            chainVerticalOffset: 2
-        )
-            .frame(width: 60, height: 60)
+        TokenHeroView(token: token, size: 60)
     }
     
     @ViewBuilder

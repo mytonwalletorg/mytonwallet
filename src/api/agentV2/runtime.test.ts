@@ -22,6 +22,7 @@ import { AgentV2WalletSession } from './walletSession';
 import { AgentV2WalletToolDispatcher } from './walletTools';
 
 const DEVICE_ID = '11111111-1111-4111-8111-111111111111';
+const DEVICE_TOKEN_EXPIRES_AT = '2099-01-01T00:00:00.000Z';
 const CLIENT_RUN_ID = '22222222-2222-4222-8222-222222222222';
 const CLIENT_RUN_ID_2 = '22222222-2222-4222-8222-222222222223';
 const RUN_ID = '33333333-3333-4333-8333-333333333333';
@@ -1211,6 +1212,42 @@ describe('AgentV2Runtime transport', () => {
     await runtime.destroy();
   });
 
+  it('sets an answer rating, then withdraws it with an explicit null only after the rating is saved', async () => {
+    const storage = createMemoryStorage();
+    await storeIdentity(storage);
+    let resolveLike!: (response: Response) => void;
+    const fetchMock = jest.fn((_input: string | URL | Request, _init?: RequestInit) => Promise.resolve(
+      jsonResponse({ protocolVersion: 3 }),
+    )).mockReturnValueOnce(new Promise<Response>((resolve) => {
+      resolveLike = resolve;
+    }));
+    const runtime = new AgentV2Runtime({
+      storage,
+      baseUrl: 'https://agent.test/api/v2',
+      fetch: fetchMock as unknown as typeof fetch,
+      onUpdate: jest.fn(),
+    });
+    await runtime.acceptConsent();
+
+    const like = runtime.setMessageFeedback(THREAD_ID, MESSAGE_ID, 'like');
+    const withdrawal = runtime.setMessageFeedback(THREAD_ID, MESSAGE_ID);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    resolveLike(jsonResponse({ protocolVersion: 3, feedback: 'like' }));
+
+    await expect(like).resolves.toEqual({ protocolVersion: 3, feedback: 'like' });
+    await expect(withdrawal).resolves.toEqual({ protocolVersion: 3 });
+
+    const [[url, likeInit], [, withdrawInit]] = fetchMock.mock.calls;
+    expect(getRequestUrl(url)).toBe(`https://agent.test/api/v2/threads/${THREAD_ID}/messages/${MESSAGE_ID}/feedback`);
+    expect(likeInit!.method).toBe('POST');
+    expect(JSON.parse(likeInit!.body as string)).toEqual({ protocolVersion: 3, feedback: 'like' });
+    expect(withdrawInit!.body).toBe('{"protocolVersion":3,"feedback":null}');
+    await runtime.destroy();
+  });
+
   it('removes a recovery phrase from a problem report comment', async () => {
     const storage = createMemoryStorage();
     await storeIdentity(storage);
@@ -1696,7 +1733,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -1752,7 +1789,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -1879,7 +1916,7 @@ describe('AgentV2Runtime transport', () => {
         if (url.endsWith('/device-token')) {
           return Promise.resolve(jsonResponse({ protocolVersion: 3,
             deviceId: JSON.parse(init?.body as string).deviceId, deviceToken: `adt_v2.${'a'.repeat(43)}`,
-            expiresAt: '2026-10-14T00:00:00.000Z' }));
+            expiresAt: DEVICE_TOKEN_EXPIRES_AT }));
         }
         if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
         if (url.endsWith('/runs')) {
@@ -1926,7 +1963,7 @@ describe('AgentV2Runtime transport', () => {
       if (url.endsWith('/device-token')) {
         return Promise.resolve(jsonResponse({ protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId, deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z' }));
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
       if (url.endsWith('/runs')) {
@@ -1959,7 +1996,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2024,7 +2061,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2098,7 +2135,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2166,7 +2203,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2459,7 +2496,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2531,7 +2568,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2587,7 +2624,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2685,7 +2722,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -2762,7 +2799,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/tool-results')) {
@@ -3310,7 +3347,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/tool-results')) {
@@ -3505,7 +3542,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/tool-results')) {
@@ -3569,7 +3606,7 @@ describe('AgentV2Runtime transport', () => {
       version: 1,
       deviceId: DEVICE_ID,
       deviceToken: `adt_v2.${'a'.repeat(43)}`,
-      expiresAt: '2026-10-14T00:00:00.000Z',
+      expiresAt: DEVICE_TOKEN_EXPIRES_AT,
     }));
     const firstStream = openNdjsonResponse([
       boundEvent(RUN_ID, {
@@ -3700,7 +3737,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: body.deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -3778,7 +3815,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: body.deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -3895,7 +3932,7 @@ describe('AgentV2Runtime transport', () => {
       }],
       activeAccountId: 'view-only-account',
     })).resolves.toBe(true);
-    expect(runtime.resolveAction(MESSAGE_ID, actionId)).toEqual({ kind: 'inactive' });
+    expect(runtime.resolveAction(MESSAGE_ID, actionId)).toEqual({ kind: 'inactive', reason: 'viewOnlyWallet' });
 
     await expect(runtime.updateHostContext(refreshedHost)).resolves.toBe(true);
     expect(runtime.resolveAction(MESSAGE_ID, actionId)).toEqual({
@@ -3980,7 +4017,7 @@ describe('AgentV2Runtime transport', () => {
 
     const ineligibleHost = { ...host, accounts: host.accounts.map((account) => ({ ...account, isViewOnly: true })) };
     await runtime.updateHostContext(ineligibleHost);
-    expect(runtime.resolveAction(MESSAGE_ID, TOOL_CALL_ID)).toEqual({ kind: 'inactive' });
+    expect(runtime.resolveAction(MESSAGE_ID, TOOL_CALL_ID)).toEqual({ kind: 'inactive', reason: 'viewOnlyWallet' });
   });
 
   it('opens targeted Receive V3 on an inactive account-supported network', async () => {
@@ -3994,7 +4031,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: body.deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.includes('/hints')) return Promise.resolve(disabledHintsResponse());
@@ -4126,7 +4163,7 @@ describe('AgentV2Runtime transport', () => {
     expect(walletSession.snapshot().host?.activeNetwork).toBe('ton');
 
     await runtime.updateHostContext(receiveHost('ton'));
-    expect(runtime.resolveAction(MESSAGE_ID, TOOL_CALL_ID)).toEqual({ kind: 'inactive' });
+    expect(runtime.resolveAction(MESSAGE_ID, TOOL_CALL_ID)).toEqual({ kind: 'inactive', reason: 'viewOnlyWallet' });
   });
 
   it('invalidates thread-bound local actions before edit or regenerate admission', async () => {
@@ -4139,7 +4176,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       return Promise.resolve(ndjsonResponse([
@@ -4750,7 +4787,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: DEVICE_ID,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       return Promise.resolve(ndjsonResponse([
@@ -4822,7 +4859,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -4927,7 +4964,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -4971,7 +5008,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -5015,7 +5052,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -5063,7 +5100,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -5109,7 +5146,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -5163,7 +5200,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       return Promise.resolve(jsonResponse({
@@ -5209,7 +5246,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       if (url.endsWith('/capabilities')) return Promise.resolve(featureCapabilitiesResponse('disabled'));
@@ -5259,7 +5296,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       return Promise.resolve(ndjsonResponse([
@@ -5306,7 +5343,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       requests.push({
@@ -5417,7 +5454,7 @@ describe('AgentV2Runtime transport', () => {
           protocolVersion: 3,
           deviceId: JSON.parse(init?.body as string).deviceId,
           deviceToken: `adt_v2.${'a'.repeat(43)}`,
-          expiresAt: '2026-10-14T00:00:00.000Z',
+          expiresAt: DEVICE_TOKEN_EXPIRES_AT,
         }));
       }
       return Promise.resolve(jsonResponse({
@@ -5685,7 +5722,7 @@ async function storeIdentity(storage: Storage) {
     version: 1,
     deviceId: DEVICE_ID,
     deviceToken: `adt_v2.${'a'.repeat(43)}`,
-    expiresAt: '2026-10-14T00:00:00.000Z',
+    expiresAt: DEVICE_TOKEN_EXPIRES_AT,
   }));
 }
 

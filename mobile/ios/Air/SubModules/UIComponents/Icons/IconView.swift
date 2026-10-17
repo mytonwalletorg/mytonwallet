@@ -668,7 +668,11 @@ public class IconView: UIView {
             with: url,
             placeholder: placeholderImage,
             options: [.transition(.fade(0.15))]
-        )
+        ) { [weak self] result in
+            guard let self, case .success(let value) = result,
+                  self.imageView.image === value.image else { return }
+            self.largeLabel.text = nil
+        }
     }
     
     private func configAsStakedToken(

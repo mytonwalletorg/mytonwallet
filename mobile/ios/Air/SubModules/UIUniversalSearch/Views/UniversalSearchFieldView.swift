@@ -44,6 +44,7 @@ public struct UniversalSearchFieldConfiguration: Equatable, Sendable {
 
 public enum UniversalSearchFieldPresentation: Equatable, Sendable {
     case homeToolbar
+    case sideToolbar
     case compactToolbar
     case search
     case empty
@@ -121,6 +122,7 @@ public final class UniversalSearchFieldView: UIView {
     private let transitionProgressView = UIView()
     private let glassContainerView: UIVisualEffectView?
     private let contentView: UIView
+    private var closeButtonTopConstraint: NSLayoutConstraint!
     private var closeButtonLeadingConstraint: NSLayoutConstraint!
     private var closeButtonTrailingConstraint: NSLayoutConstraint!
     private var closeButtonCompactCenterXConstraint: NSLayoutConstraint!
@@ -165,7 +167,7 @@ public final class UniversalSearchFieldView: UIView {
     }
 
     public override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric, height: 48)
+        CGSize(width: UIView.noIntrinsicMetric, height: presentation == .sideToolbar ? 108 : 48)
     }
 
     public override var center: CGPoint {
@@ -416,7 +418,8 @@ public final class UniversalSearchFieldView: UIView {
         for presentation: UniversalSearchFieldPresentation
     ) {
         closeButtonLeadingConstraint.constant = presentation == .homeToolbar ? 12 : 8
-        if presentation == .compactToolbar {
+        closeButtonTopConstraint.constant = presentation == .sideToolbar ? 60 : 0
+        if presentation == .compactToolbar || presentation == .sideToolbar {
             NSLayoutConstraint.deactivate([
                 closeButtonLeadingConstraint,
                 closeButtonTrailingConstraint,
@@ -623,15 +626,16 @@ public final class UniversalSearchFieldView: UIView {
             equalTo: fieldView.centerXAnchor
         )
         fieldCompactWidthConstraint = fieldView.widthAnchor.constraint(equalToConstant: 48)
+        closeButtonTopConstraint = closeButton.topAnchor.constraint(equalTo: contentView.topAnchor)
         NSLayoutConstraint.activate([
             fieldView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             fieldView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            fieldView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            fieldView.heightAnchor.constraint(equalToConstant: 48),
 
             closeButtonLeadingConstraint,
             closeButtonTrailingConstraint,
-            closeButton.topAnchor.constraint(equalTo: contentView.topAnchor),
-            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            closeButtonTopConstraint,
+            closeButton.heightAnchor.constraint(equalToConstant: 48),
             closeButton.widthAnchor.constraint(equalToConstant: 48),
 
             transitionProgressView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -677,7 +681,7 @@ public final class UniversalSearchFieldView: UIView {
         closeButton.onTap = { [weak self] in
             guard let self else { return }
             switch presentation {
-            case .homeToolbar:
+            case .homeToolbar, .sideToolbar:
                 onActionsTap?()
             case .compactToolbar:
                 break
@@ -691,20 +695,24 @@ public final class UniversalSearchFieldView: UIView {
 
     private func updateTrailingButtonAccessibilityLabel() {
         switch presentation {
-        case .homeToolbar:
+        case .homeToolbar, .sideToolbar:
             closeButton.buttonAccessibilityLabel = actionsAccessibilityLabel
+            closeButton.buttonAccessibilityIdentifier = "home_more_actions_button"
             closeButton.accessibilityElementsHidden = false
             closeButton.isUserInteractionEnabled = true
         case .compactToolbar:
             closeButton.buttonAccessibilityLabel = nil
+            closeButton.buttonAccessibilityIdentifier = nil
             closeButton.accessibilityElementsHidden = true
             closeButton.isUserInteractionEnabled = false
         case .search:
             closeButton.buttonAccessibilityLabel = closeAccessibilityLabel
+            closeButton.buttonAccessibilityIdentifier = nil
             closeButton.accessibilityElementsHidden = false
             closeButton.isUserInteractionEnabled = true
         case .empty:
             closeButton.buttonAccessibilityLabel = nil
+            closeButton.buttonAccessibilityIdentifier = nil
             closeButton.accessibilityElementsHidden = true
             closeButton.isUserInteractionEnabled = false
         }
@@ -817,6 +825,7 @@ private final class UniversalSearchFieldCapsuleView: UIView, UITextFieldDelegate
     private var textToClearConstraint: NSLayoutConstraint!
     private var textToTrailingConstraint: NSLayoutConstraint!
     private var textFieldLeadingConstraint: NSLayoutConstraint!
+    private var textFieldCompactWidthConstraint: NSLayoutConstraint!
     private var presentation: UniversalSearchFieldPresentation = .search
 
     override init(frame: CGRect) {
@@ -860,8 +869,9 @@ private final class UniversalSearchFieldCapsuleView: UIView, UITextFieldDelegate
         guard presentation != self.presentation else { return }
         self.presentation = presentation
         let isSearch = presentation == .search
-        let isCompact = presentation == .compactToolbar
+        let isCompact = presentation == .compactToolbar || presentation == .sideToolbar
         textFieldLeadingConstraint.constant = isSearch ? 16 : 44
+        updateAccessory()
         textField.isUserInteractionEnabled = isSearch
         magnifyingGlass.isHidden = false
 
@@ -977,6 +987,7 @@ private final class UniversalSearchFieldCapsuleView: UIView, UITextFieldDelegate
             equalTo: glassView.contentView.leadingAnchor,
             constant: 16
         )
+        textFieldCompactWidthConstraint = textField.widthAnchor.constraint(equalToConstant: 0)
         NSLayoutConstraint.activate([
             glassView.leadingAnchor.constraint(equalTo: leadingAnchor),
             glassView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -1059,9 +1070,15 @@ private final class UniversalSearchFieldCapsuleView: UIView, UITextFieldDelegate
         clearButton.accessibilityElementsHidden = !showsClear
         clearButton.isUserInteractionEnabled = showsClear
         clearButton.accessibilityLabel = showsClear ? clearAccessibilityLabel : nil
-        textToMicrophoneConstraint.isActive = showsMicrophone
-        textToClearConstraint.isActive = showsClear
-        textToTrailingConstraint.isActive = !showsMicrophone && !showsClear
+        let isCompact = presentation == .compactToolbar || presentation == .sideToolbar
+        NSLayoutConstraint.deactivate([
+            textToMicrophoneConstraint, textToClearConstraint,
+            textToTrailingConstraint, textFieldCompactWidthConstraint,
+        ])
+        textFieldCompactWidthConstraint.isActive = isCompact
+        textToMicrophoneConstraint.isActive = !isCompact && showsMicrophone
+        textToClearConstraint.isActive = !isCompact && showsClear
+        textToTrailingConstraint.isActive = !isCompact && !showsMicrophone && !showsClear
         updatePresentationAccessibility()
     }
 
@@ -1837,6 +1854,11 @@ private final class UniversalSearchCloseButton: UIView {
         set { button.accessibilityLabel = newValue }
     }
 
+    var buttonAccessibilityIdentifier: String? {
+        get { button.accessibilityIdentifier }
+        set { button.accessibilityIdentifier = newValue }
+    }
+
     private let glassView = UniversalSearchInteractiveGlassView()
     private let button = UIButton(type: .system)
     private let actionContentView = WBlurredContentView()
@@ -1977,7 +1999,7 @@ private final class UniversalSearchCloseButton: UIView {
     private func applyContentOpacity(
         for presentation: UniversalSearchFieldPresentation
     ) {
-        let showsAction = presentation == .homeToolbar
+        let showsAction = presentation == .homeToolbar || presentation == .sideToolbar
         let showsClose = presentation == .search
         actionContentView.alpha = showsAction ? 1 : 0
         closeContentView.alpha = showsClose ? 1 : 0
@@ -1988,7 +2010,7 @@ private final class UniversalSearchCloseButton: UIView {
         presentation: UniversalSearchFieldPresentation
     ) -> CGFloat {
         let isVisible = switch kind {
-        case .action: presentation == .homeToolbar
+        case .action: presentation == .homeToolbar || presentation == .sideToolbar
         case .close: presentation == .search
         }
         return isVisible ? 0 : Self.maximumContentBlurRadius

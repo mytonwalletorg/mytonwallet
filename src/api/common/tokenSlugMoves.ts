@@ -1,8 +1,9 @@
 import { createCallbackManager } from '../../util/callbacks';
 
 /**
- * Reports the slugs whose tokens moved to their full slugs and left them to other tokens. A balance stored under such
- * a slug belongs to the previous holder, so the balance streams refetch it.
+ * Reports the slugs whose balances the catalog made stale, so the balance streams refetch them: a slug whose token moved
+ * to its full slug and left it to another token, as a balance stored under it belongs to the previous holder, and the
+ * full slug a catalog token left for its backend slug.
  */
 const slugMoveListeners = createCallbackManager<(slugs: string[]) => void>();
 

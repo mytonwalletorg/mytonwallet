@@ -600,6 +600,13 @@ Are you sure you want to disable Touch ID?: Вы уверены, что хоти
 Are you sure you want to disable biometrics?: Вы уверены, что хотите отключить биометрию?
 "Yes": Да
 No Activity: Нет активности
+Loading Activity: Загрузка активности
+Loading More Activity: Загрузка предыдущей активности
+Your activity history is loading.: Загружаем историю вашей активности.
+Taking Longer Than Usual: Загрузка занимает больше времени
+Activity history is taking longer to load. Please check back shortly.: История активности загружается дольше обычного. Проверьте ещё раз чуть позже.
+Activity Unavailable: Активность недоступна
+Activity history is temporarily unavailable. We’ll try again shortly.: История активности временно недоступна. Мы скоро попробуем снова.
 Fund: Пополнить
 Buy with Card: Покупка с карты
 Buy with Crypto: Покупка за криптовалюту
@@ -633,6 +640,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Вы также можете %action%.
 $wallet_switch_version_2: переключиться на другую версию кошелька
 or import from: или импортировать
+or enter manually: или введите вручную
 Insufficient fee: Недостаточно для комиссии
 $insufficient_fee: "Недостаточно для комиссии: %fee%"
 $dapp_insufficient_network_fee_warning: Недостаточно %token% для оплаты сетевой комиссии
@@ -688,6 +696,7 @@ $transfer_link_expired: Ссылка для перевода устарела
 $transfer_text_and_bin_exclusive: Нельзя использовать параметры text и bin одновременно
 $unsupported_deeplink_parameter: Эта ссылка содержит неподдерживаемые параметры.
 $unsupported_chain: Неподдерживаемый блокчейн.
+$token_chain_not_supported_by_wallet: "Текущий кошелёк не поддерживает %chain%. Создайте мультичейн-кошелёк, чтобы использовать этот токен."
 Successfully: Успешно
 Estimated Time: Примерное время
 $utxo_confirmations:
@@ -1336,6 +1345,7 @@ $agent_connection_interrupted: Соединение с Агентом прерв
 $agent_history_unavailable: Не удалось загрузить историю чата. Попробуйте ещё раз.
 $agent_secret_words_removed: "[секретные слова удалены и не отправлены]"
 $agent_activity_analyzing_request: Анализирую запрос…
+$agent_analyzing: Анализирую
 $agent_activity_wallet: Получаю данные кошелька…
 $agent_activity_transactions: Проверяю операции кошелька…
 $agent_activity_portfolio: Загружаю данные портфеля…
@@ -1444,6 +1454,9 @@ $agent_report_problem_description: Последние сообщения это�
 $agent_report_problem_sent: Спасибо! Сообщение о проблеме отправлено.
 $agent_report_problem_failed: Не удалось отправить сообщение о проблеме. Попробуйте ещё раз.
 $agent_report_problem_rate_limited: Вы недавно отправили несколько сообщений о проблемах. Попробуйте позже.
+Like: Нравится
+Dislike: Не нравится
+$agent_feedback_failed: Не удалось сохранить оценку. Попробуйте ещё раз.
 $unknown_swap_token: Неизвестный токен в ссылке обмена. Были использованы токены по умолчанию.
 $action_not_available_view_mode: Это действие недоступно для кошельков в режиме просмотра
 Deposit: Пополнить
@@ -2092,4 +2105,5 @@ Ruble: Рубль
 $token_price_value: "Цена: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: Обычно такой обмен занимает несколько минут. В редких случаях — до двух часов.
 3D Gram Diamond: 3D-бриллиант Gram
+Hold to enlarge. Drag to rotate.: Удерживайте, чтобы увеличить. Перетаскивайте, чтобы вращать.
 "Max": "Макс."

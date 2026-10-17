@@ -32,7 +32,7 @@ class WQRCodeView(
     private val qrCode: String,
     private val qWidth: Int,
     private val qHeight: Int,
-    private val logoRes: Int,
+    private val logoRes: Int?,
     private val logoSize: Int,
     private val colorGradient: LinearGradient?
 ) : AppCompatImageView(context) {
@@ -48,6 +48,11 @@ class WQRCodeView(
     var topPadding: Int = 0
         private set
 
+    var logoCenterOffsetX = 0f
+        private set
+    var logoCenterOffsetY = 0f
+        private set
+
     fun generate(onCompletion: (() -> Unit)? = null) {
         val executor = Executors.newSingleThreadExecutor()
         executor.execute {
@@ -60,11 +65,7 @@ class WQRCodeView(
                 code,
                 qWidth,
                 qHeight,
-                try {
-                    context.getDrawableCompat(logoRes)
-                } catch (_: Throwable) {
-                    null
-                },
+                logoDrawable(),
                 logoSize
             )
             Handler(Looper.getMainLooper()).post {
@@ -86,17 +87,21 @@ class WQRCodeView(
             code,
             qWidth,
             qHeight,
-            try {
-                context.getDrawableCompat(logoRes)
-            } catch (_: Throwable) {
-                null
-            },
+            logoDrawable(),
             logoSize,
             quietZone = 0
         )
 
         setImageBitmap(bitmap)
         isGenerated = true
+    }
+
+    private fun logoDrawable(): Drawable? = logoRes?.let {
+        try {
+            context.getDrawableCompat(it)
+        } catch (_: Throwable) {
+            null
+        }
     }
 
     private fun renderQRImage(
@@ -150,6 +155,15 @@ class WQRCodeView(
         val centerX = outputWidth / 2
         val centerY = outputHeight / 2
         val halfLogoSizeWithPadding = logoSize / 2 + logoPadding
+        fun cutoutCenter(padding: Int, center: Int, size: Int): Float {
+            val first = padding + multiple *
+                ((center - halfLogoSizeWithPadding - padding + multiple - 1) / multiple)
+            val last =
+                padding + multiple * ((center + halfLogoSizeWithPadding - padding) / multiple)
+            return (first + last + multiple) / 2f - size / 2f
+        }
+        logoCenterOffsetX = cutoutCenter(leftPadding, centerX, width)
+        logoCenterOffsetY = cutoutCenter(topPadding, centerY, height)
         fun isInCenter(x: Int, y: Int): Boolean = (x >= centerX - halfLogoSizeWithPadding) &&
             (x <= centerX + halfLogoSizeWithPadding) &&
             (y >= centerY - halfLogoSizeWithPadding) && (y <= centerY + halfLogoSizeWithPadding)

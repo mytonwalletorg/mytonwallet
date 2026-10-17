@@ -898,6 +898,7 @@ function reduceByAccountId(global: GlobalState) {
       'dappLastOpenedDatesByUrl',
       'dapps',
       'tradeCounterTokenSlugs',
+      'lastSwapPairsBySlug',
     ]);
 
     if (state.nfts?.collectionTabs || state.nfts?.ownedMwCardAddresses) {

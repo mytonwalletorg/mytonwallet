@@ -1118,5 +1118,5 @@ private final class PinnedReplyTestBackend: AgentBackend {
         typingIndicatorID = indicator.id
         context?.append(.typingIndicator(indicator), animated: true)
     }
-    func clearConversation(completion: @escaping (Bool) -> Void) { completion(true) }
+    func clearConversation() {}
 }

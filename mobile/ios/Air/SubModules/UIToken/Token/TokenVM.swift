@@ -11,9 +11,8 @@ import WalletContext
 import WReachability
 
 @MainActor protocol TokenVMDelegate: AnyObject {
-    func dataUpdated(isUpdateEvent: Bool)
+    func dataUpdated()
     func priceDataUpdated()
-    func stateChanged()
     func tokenDetailsUpdated()
     func accountChanged()
 }
@@ -71,11 +70,9 @@ import WReachability
             } else {
                 waitingForNetwork = false
             }
-            self.tokenVMDelegate?.stateChanged()
         }
         reachability.whenUnreachable = { [weak self] _ in
             self?.waitingForNetwork = true
-            self?.tokenVMDelegate?.stateChanged()
         }
         reachability.startNotifier()
     }
@@ -151,8 +148,8 @@ import WReachability
     }
     
     func loadPriceHistory(period: ApiPriceHistoryPeriod) {
+        Task { [weak self] in self?.tokenVMDelegate?.priceDataUpdated() }
         if let task = loadHistoryTask.withLock({ $0[period] }), !task.isCancelled {
-            Task { [weak self] in self?.tokenVMDelegate?.priceDataUpdated() }
             return
         }
         let task = Task { [weak self] in
@@ -162,15 +159,14 @@ import WReachability
     }
     
     private func _loadPriceHistory(period: ApiPriceHistoryPeriod, retriesLeft: Int = 3) async {
-        if allHistoryData.withLock({ $0[period] }) != nil && period == selectedPeriod {
-            tokenVMDelegate?.priceDataUpdated()
-        }
         do {
             let historyData = try await Api.fetchPriceHistory(slug: selectedToken.slug, period: period, baseCurrency: TokenStore.baseCurrency)
+            guard !Task.isCancelled else { return }
+            let previousHistoryData = allHistoryData.withLock { $0[period] ?? nil }
             self.allHistoryData.withLock { $0[period] = historyData }
             let allHistoryData = self.allHistoryData.withLock { $0 }
             TokenStore.setHistoryData(tokenSlug: selectedToken.slug, data: allHistoryData)
-            if period == selectedPeriod {
+            if period == selectedPeriod, historyData != previousHistoryData {
                 tokenVMDelegate?.priceDataUpdated()
             }
         } catch {
@@ -206,13 +202,13 @@ extension TokenVM: WalletCoreData.EventsObserver {
         switch event {
         case .rawBalancesChanged(let accountId):
             if accountId == self.accountId {
-                tokenVMDelegate?.dataUpdated(isUpdateEvent: false)
+                tokenVMDelegate?.dataUpdated()
             }
         case .baseCurrencyChanged:
             resetPriceHistoryAndReload()
-            tokenVMDelegate?.dataUpdated(isUpdateEvent: false)
-        case .tokensChanged, .hideTinyTransfersChanged:
-            tokenVMDelegate?.dataUpdated(isUpdateEvent: false)
+            tokenVMDelegate?.dataUpdated()
+        case .tokensChanged:
+            tokenVMDelegate?.dataUpdated()
         case .accountChanged:
             tokenVMDelegate?.accountChanged()
         default:

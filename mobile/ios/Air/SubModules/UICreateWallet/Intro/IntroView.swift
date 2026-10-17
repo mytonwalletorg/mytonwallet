@@ -115,6 +115,7 @@ struct IntroView: View {
         .accessibilityLabel(Text(accessibilityText))
         .accessibilityAddTraits(.isButton)
         .accessibilityAddTraits(didAgreeToTerms ? .isSelected : [])
+        .accessibilityIdentifier("intro_terms")
         .accessibilityAction {
             onAgreeToTerms()
         }
@@ -128,6 +129,7 @@ struct IntroView: View {
             Text(lang("Create New Wallet"))
         }
         .buttonStyle(.airPrimary)
+        .accessibilityIdentifier("intro_create_wallet")
         .disabled(!didAgreeToTerms)
         .animation(.smooth(duration: 0.4), value: didAgreeToTerms)
     }
@@ -137,6 +139,7 @@ struct IntroView: View {
             Text(lang("Import Existing Wallet"))
         }
         .buttonStyle(.airClearBackground)
+        .accessibilityIdentifier("intro_import_wallet")
         .disabled(!didAgreeToTerms)
         .animation(.smooth(duration: 0.4), value: didAgreeToTerms)
     }

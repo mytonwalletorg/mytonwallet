@@ -122,6 +122,7 @@ struct WordDisplayView: View {
             Text(lang("Let's Check"))
         }
         .buttonStyle(.airPrimary)
+        .accessibilityIdentifier("create_check")
         .environment(\.isLoading, isCheckingWords)
     }
     
@@ -130,6 +131,7 @@ struct WordDisplayView: View {
             Text(lang("Open wallet without checking"))
         }
         .buttonStyle(.airClearBackground)
+        .accessibilityIdentifier("create_skip_check")
         .environment(\.isLoading, isOpeningWallet)
         .alert(
             Text(lang("Security Warning")),

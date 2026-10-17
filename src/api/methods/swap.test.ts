@@ -18,8 +18,10 @@ jest.mock('../chains', () => ({
   default: {
     base: {
       submitGasfullTransfer: jest.fn().mockResolvedValue({ txId: '0xbase-deposit' }),
+      resolveSwapNeedsBatch: jest.fn((_accountId: string, needsApprove?: boolean) => !!needsApprove),
     },
     ton: {
+      resolveSwapNeedsBatch: jest.fn((_accountId: string, needsApprove?: boolean) => !!needsApprove),
       submitOnchainSwapTransfer: jest.fn().mockResolvedValue({
         activityId: 'swap-id::local',
         submittedHashes: ['raw-boc-hash', 'normalized-external-hash'],
@@ -65,8 +67,8 @@ jest.mock('./other', () => ({
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const chains = require('../chains').default as {
-  base: { submitGasfullTransfer: jest.Mock };
-  ton: { submitOnchainSwapTransfer: jest.Mock };
+  base: { submitGasfullTransfer: jest.Mock; resolveSwapNeedsBatch: jest.Mock };
+  ton: { submitOnchainSwapTransfer: jest.Mock; resolveSwapNeedsBatch: jest.Mock };
 };
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -127,8 +129,11 @@ describe('swap estimate hints', () => {
     const response = { ...estimate, hint: { type: 'intermediate', token: 'solana:native' } };
     callBackendPost.mockResolvedValue(response);
 
-    expect(await swapEstimate('account-mainnet', { from: 'eth', to: 'sol', fromAmount: '1' })).toEqual({
-      ...estimate, hint: { type: 'intermediate', token: 'sol' },
+    const result = await swapEstimate('account-mainnet', { from: 'eth', to: 'sol', fromAmount: '1' });
+    expect(result).toEqual({
+      ...estimate,
+      hint: { type: 'intermediate', token: 'sol' },
+      ...('route' in estimate && estimate.route === 'dex' ? { needsBatch: false } : undefined),
     });
     expect(getSwapItemSlug).toHaveBeenCalledWith('solana:native');
     expect(response.hint.token).toBe('solana:native');
@@ -140,10 +145,34 @@ describe('swap estimate hints', () => {
     const response = { route: 'dex', from: 'TON', to: 'USD₮', fromAmount: '1', toAmount: '5' };
     callBackendPost.mockResolvedValue(response);
 
-    expect(await swapEstimate('account-mainnet', { from: 'TON', to: 'USD₮', fromAmount: '1' })).toBe(response);
+    expect(await swapEstimate('account-mainnet', { from: 'TON', to: 'USD₮', fromAmount: '1' })).toEqual({
+      ...response,
+      needsBatch: false,
+    });
     expect(callBackendPost).toHaveBeenCalledWith('/swap/estimate', expect.objectContaining({
       walletVersion: 'W5',
     }), { isAllowBadRequest: true });
+  });
+
+  it('sets dex needsBatch from the chain sdk', async () => {
+    const resolveSwapNeedsBatch = chains.base.resolveSwapNeedsBatch;
+    resolveSwapNeedsBatch.mockResolvedValueOnce(true);
+    const response = {
+      route: 'dex' as const,
+      chain: 'base' as const,
+      from: 'eth',
+      to: 'usdc',
+      fromAmount: '1',
+      toAmount: '5',
+      needsApprove: false,
+    };
+    callBackendPost.mockResolvedValue(response);
+
+    expect(await swapEstimate('account-mainnet', { from: 'eth', to: 'usdc', fromAmount: '1' })).toEqual({
+      ...response,
+      needsBatch: true,
+    });
+    expect(resolveSwapNeedsBatch).toHaveBeenCalledWith('account-mainnet', false);
   });
 });
 

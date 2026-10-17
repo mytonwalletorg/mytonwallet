@@ -52,6 +52,7 @@ struct AccountTypePickerView: View {
                             subtitle: lang("From new secret words"),
                             showsDivider: canCreateSubwallet,
                             isLoading: authorizationState.action == .createWallet,
+                            accessibilityId: "add_wallet_create",
                             onTap: onCreate
                         )
 
@@ -61,6 +62,7 @@ struct AccountTypePickerView: View {
                                 title: lang("New Subwallet"),
                                 subtitle: lang("From current secret words"),
                                 isLoading: authorizationState.action == .createSubwallet,
+                                accessibilityId: "add_wallet_subwallet",
                                 onTap: onCreateSubwallet
                             )
                         }
@@ -75,6 +77,7 @@ struct AccountTypePickerView: View {
                             subtitle: localizedIntegerDigits(in: lang("Restore wallet from 12 or 24 words")),
                             showsDivider: network == .mainnet,
                             isLoading: authorizationState.action == .importWallet,
+                            accessibilityId: "add_wallet_secret_words",
                             onTap: onImport
                         )
                         if network == .mainnet {
@@ -82,6 +85,7 @@ struct AccountTypePickerView: View {
                                 icon: "LedgerIcon30",
                                 title: lang("Ledger"),
                                 subtitle: lang("Connect your hardware wallet"),
+                                accessibilityId: "add_wallet_ledger",
                                 onTap: onLedger
                             )
                         }
@@ -92,6 +96,7 @@ struct AccountTypePickerView: View {
                             icon: "ViewIcon30",
                             title: lang("View Any Address"),
                             subtitle: lang("Watch wallet in read-only mode"),
+                            accessibilityId: "add_wallet_view",
                             onTap: onViewAddress
                         )
                     }

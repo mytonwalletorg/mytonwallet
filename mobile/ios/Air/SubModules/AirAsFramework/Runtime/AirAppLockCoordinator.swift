@@ -35,6 +35,41 @@ final class AirAppLockCoordinator: NSObject {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
+    // UI tests: mtw://e2e-unlock (Deeplink.e2eUnlock, parsed in DEBUG builds only).
+    // The passcode is entered as if typed once the lock screen takes input, within
+    // 30 s of the link. A link that arrives while the app is unlocked is dropped, and
+    // a pending one is dropped on unlock, so it never opens a later lock screen.
+    #if DEBUG
+    private var e2ePasscode: (value: String, receivedAt: Date)?
+    #endif
+
+    func e2eUnlock(passcode: String) {
+        #if DEBUG
+        guard !isAppUnlocked else { return }
+        e2ePasscode = (passcode, Date())
+        applyE2EPasscode()
+        #endif
+    }
+
+    private func applyE2EPasscode() {
+        #if DEBUG
+        guard let pending = e2ePasscode else { return }
+        guard !isAppUnlocked, Date().timeIntervalSince(pending.receivedAt) <= 30 else {
+            e2ePasscode = nil
+            return
+        }
+        if unlockViewController?.passcodeScreenView?.enterPasscodeForUITests(pending.value) == true {
+            e2ePasscode = nil
+        }
+        #endif
+    }
+
+    private func dropE2EPasscode() {
+        #if DEBUG
+        e2ePasscode = nil
+        #endif
+    }
+
     func beginLaunchUnlockIfNeeded() {
         bridgeIsReady = false
         isAppUnlocked = false
@@ -90,6 +125,7 @@ final class AirAppLockCoordinator: NSObject {
             self.pendingLaunchPresentationCompletions.removeAll()
             unlockVC.passcodeScreenView.isUserInteractionEnabled = self.bridgeIsReady
             pendingLaunchPresentationCompletions.forEach { $0() }
+            self.applyE2EPasscode()
             self.tryLaunchUnlockBiometricIfPossible()
         }
     }
@@ -98,6 +134,7 @@ final class AirAppLockCoordinator: NSObject {
         bridgeIsReady = true
         if lockMode == .launch {
             unlockViewController?.passcodeScreenView.isUserInteractionEnabled = true
+            applyE2EPasscode()
         }
         tryLaunchUnlockBiometricIfPossible()
     }
@@ -148,6 +185,7 @@ final class AirAppLockCoordinator: NSObject {
                 self.lockMode = nil
                 self.rootStateCoordinator.hideUnlockState()
                 self.isAppUnlocked = true
+                self.dropE2EPasscode()
                 self.onUnlock?()
             },
             onSignOutRequested: { [weak self] in
@@ -163,6 +201,7 @@ final class AirAppLockCoordinator: NSObject {
 
         present(unlockVC, animated: animated) {
             self.tryBiometricsIfPossible()
+            self.applyE2EPasscode()
         }
     }
 
@@ -179,12 +218,15 @@ final class AirAppLockCoordinator: NSObject {
         isInitialRouteReady = false
         pendingLaunchPresentationCompletions.removeAll()
         isAppUnlocked = false
+        dropE2EPasscode()
         rootStateCoordinator.hideUnlockState()
     }
 
     private func removeAllWalletsFromLockScreen() async throws {
         try await AccountStore.resetAccounts()
         reset()
+        // With no wallets left there is nothing to lock; the next wallet's deeplinks and dapp requests need this to flow
+        isAppUnlocked = true
     }
 
     private func completeLaunchUnlockIfPossible() {
@@ -193,6 +235,7 @@ final class AirAppLockCoordinator: NSObject {
 
         StartupTrace.mark("splash.afterUnlock.completed")
         isAppUnlocked = true
+        dropE2EPasscode()
         lockMode = nil
         didPresentLaunchUnlock = false
         didRequestLaunchUnlockBiometric = false

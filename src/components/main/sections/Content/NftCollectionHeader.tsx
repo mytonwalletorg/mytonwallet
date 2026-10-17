@@ -102,6 +102,8 @@ function NftCollectionHeader({
     ? lang('Telegram Gifts')
     : collectionNfts?.[0]?.collectionName || lang('Unnamed Collection');
 
+  const selectedExplorerId = selectedExplorerIds?.[collection.chain];
+
   const menuItems: DropdownItem<MenuHandler>[] = useMemo(() => {
     const isInTabs = collectionTabs?.some((e) =>
       e.address === collection.address && e.chain === collection.chain,
@@ -118,12 +120,12 @@ function NftCollectionHeader({
         fontIcon: 'external',
       } satisfies DropdownItem<MenuHandler>,
       getMarketplaceNftCollectionUrl(collection.chain, collection.address) && {
-        name: getMarketplaceName(collection.chain, collection.address),
+        name: getMarketplaceName(collection.chain),
         value: 'marketplace',
         fontIcon: 'external',
       },
       !isTelegramGifts && {
-        name: getExplorerName(collection.chain),
+        name: getExplorerName(collection.chain, selectedExplorerId),
         value: 'explorer',
         fontIcon: 'external',
       },
@@ -154,7 +156,9 @@ function NftCollectionHeader({
         value: isInTabs ? 'removeTab' : 'addTab',
       },
     ]);
-  }, [collectionNfts, collectionTabs, collection, dnsExpireInDays, isTelegramGifts, isViewMode, lang]);
+  }, [
+    collectionNfts, collectionTabs, collection, dnsExpireInDays, isTelegramGifts, isViewMode, lang, selectedExplorerId,
+  ]);
 
   useHistoryBack({
     isActive: true,
@@ -188,7 +192,6 @@ function NftCollectionHeader({
           collection.chain,
           collection.address,
           isTestnet,
-          selectedExplorerIds?.ton,
         );
         if (url) {
           void openUrl(url);
@@ -202,7 +205,7 @@ function NftCollectionHeader({
           collection.chain,
           collection.address,
           isTestnet,
-          selectedExplorerIds?.ton,
+          selectedExplorerId,
         );
         if (url) {
           void openUrl(url);

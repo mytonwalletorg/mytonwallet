@@ -65,21 +65,15 @@ struct ActivityListSnapshotProxy {
                 snapshot.appendSections([.transactions(accountId, date)])
                 snapshot.appendItems(ids.map { Row.transaction(accountId, $0) })
             }
-        } else {
-            snapshot.appendSections([.placeholderTransactionsSection])
-            snapshot.appendItems(ActivityListViewModel.placeholderTransactionRows)
         }
 
-        if idsByDate != nil, visibleIds.isEmpty {
-            if isEndReached == true {
-                snapshot.appendSections([.emptyPlaceholder])
-                snapshot.appendItems([.emptyPlaceholder])
-            } else {
-                snapshot.appendSections([.placeholderTransactionsSection])
-                snapshot.appendItems([.loadingMore])
-            }
-        } else if !visibleIds.isEmpty, isEndReached != true {
+        if isEndReached != true {
+            snapshot.appendSections([.loadingPlaceholder])
             snapshot.appendItems([.loadingMore])
+            snapshot.reconfigureItems([.loadingMore])
+        } else if visibleIds.isEmpty {
+            snapshot.appendSections([.emptyPlaceholder])
+            snapshot.appendItems([.emptyPlaceholder])
         }
 
         let visibleUpdatedIds = OrderedSet(updatedIds).filter { visibleIds.contains($0) }

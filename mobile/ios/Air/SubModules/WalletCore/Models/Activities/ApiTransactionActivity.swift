@@ -11,6 +11,8 @@ public struct ApiTransactionActivity: BaseActivity, Codable, Equatable, Hashable
     public var shouldHide: Bool?
     /** Trace external message hash normalized. Only for TON. */
     public let externalMsgHashNorm: String?
+    /** Hash of the root transaction of the trace (Toncenter `trace_id`). Only for TON. */
+    public let traceId: String?
     public var shouldReload: Bool?
     public var shouldLoadDetails: Bool?
     public var extra: BaseActivityExtra?
@@ -48,11 +50,12 @@ public struct ApiTransactionActivity: BaseActivity, Codable, Equatable, Hashable
     /** Backend-provided approximate seconds until UTXO finality when available. */
     public var etaSeconds: Int?
     
-    public init(id: String, kind: String, shouldHide: Bool? = nil, externalMsgHashNorm: String?, shouldReload: Bool? = nil, shouldLoadDetails: Bool? = nil, extra: BaseActivityExtra? = nil, timestamp: Int64, amount: BigInt, fromAddress: String, toAddress: String?, comment: String?, encryptedComment: String?, fee: BigInt, slug: String, isIncoming: Bool, normalizedAddress: String?, type: ApiTransactionType?, isApprovalUnlimited: Bool? = nil, metadata: ApiAddressInfo?, nft: ApiNft?, status: ApiTransactionStatus, confirmations: Int? = nil, maxConfirmations: Int? = nil, etaSeconds: Int? = nil) {
+    public init(id: String, kind: String, shouldHide: Bool? = nil, externalMsgHashNorm: String?, traceId: String? = nil, shouldReload: Bool? = nil, shouldLoadDetails: Bool? = nil, extra: BaseActivityExtra? = nil, timestamp: Int64, amount: BigInt, fromAddress: String, toAddress: String?, comment: String?, encryptedComment: String?, fee: BigInt, slug: String, isIncoming: Bool, normalizedAddress: String?, type: ApiTransactionType?, isApprovalUnlimited: Bool? = nil, metadata: ApiAddressInfo?, nft: ApiNft?, status: ApiTransactionStatus, confirmations: Int? = nil, maxConfirmations: Int? = nil, etaSeconds: Int? = nil) {
         self.id = id
         self.kind = kind
         self.shouldHide = shouldHide
         self.externalMsgHashNorm = externalMsgHashNorm
+        self.traceId = traceId
         self.shouldReload = shouldReload
         self.shouldLoadDetails = shouldLoadDetails
         self.extra = extra

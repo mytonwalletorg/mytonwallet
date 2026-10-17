@@ -450,6 +450,17 @@ public enum ApiAgentV2PersistedMessageStatus: String, Codable, Equatable, Hashab
     case complete, error, cancelled
 }
 
+/// The user's rating of a complete answer
+public enum ApiAgentV2AnswerFeedback: String, Codable, Equatable, Hashable, Sendable {
+    case like, dislike
+}
+
+public struct ApiAgentV2AnswerFeedbackResponse: Codable, Equatable, Sendable {
+    public let protocolVersion: Int
+    /// The rating the server keeps, absent once it is withdrawn
+    public let feedback: ApiAgentV2AnswerFeedback?
+}
+
 public struct ApiAgentV2PersistedMessage: Codable, Equatable, Hashable, Sendable {
     public let id: String
     public let threadId: String
@@ -462,9 +473,10 @@ public struct ApiAgentV2PersistedMessage: Codable, Equatable, Hashable, Sendable
     public let error: ApiAgentV2MessageError?
     public let actions: [ApiAgentV2PersistedAction]?
     public let followups: [ApiAgentV2FollowUp]?
+    public let feedback: ApiAgentV2AnswerFeedback?
 
     private enum CodingKeys: String, CodingKey {
-        case id, threadId, role, status, content, createdAt, runId, responseLanguage, error, actions, followups
+        case id, threadId, role, status, content, createdAt, runId, responseLanguage, error, actions, followups, feedback
         case text, textFormat, widget
     }
 
@@ -492,6 +504,8 @@ public struct ApiAgentV2PersistedMessage: Codable, Equatable, Hashable, Sendable
         } else {
             followups = nil
         }
+        // An unknown rating never fails the message: the answer shows as not rated
+        feedback = try? container.decodeIfPresent(ApiAgentV2AnswerFeedback.self, forKey: .feedback)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -507,6 +521,7 @@ public struct ApiAgentV2PersistedMessage: Codable, Equatable, Hashable, Sendable
         try container.encodeIfPresent(error, forKey: .error)
         try container.encodeIfPresent(actions, forKey: .actions)
         try container.encodeIfPresent(followups, forKey: .followups)
+        try container.encodeIfPresent(feedback, forKey: .feedback)
     }
 }
 
@@ -1102,6 +1117,10 @@ public struct ApiAgentV2ResolvedAction: Codable, Equatable, Sendable {
         case source, destination
     }
 
+    public enum InactiveReason: String, Codable, Sendable {
+        case viewOnlyWallet
+    }
+
     public let kind: Kind
     public let chain: String?
     public let tokenSlug: String?
@@ -1116,10 +1135,12 @@ public struct ApiAgentV2ResolvedAction: Codable, Equatable, Sendable {
     public let url: String?
     /// Send opens with the most the wallet can send of the asset, as its Max button does
     public let isMaxAmount: Bool
+    /// Why an inactive action does not open; without one it is no longer available
+    public let inactiveReason: InactiveReason?
 
     private enum CodingKeys: String, CodingKey {
         case kind, chain, tokenSlug, toAddress, range
-        case productId, tokenInSlug, tokenOutSlug, amount, amountSide, url, isMaxAmount
+        case productId, tokenInSlug, tokenOutSlug, amount, amountSide, url, isMaxAmount, reason
     }
 
     public init(from decoder: Decoder) throws {
@@ -1135,6 +1156,7 @@ public struct ApiAgentV2ResolvedAction: Codable, Equatable, Sendable {
         amountSide = try container.decodeIfPresent(AmountSide.self, forKey: .amountSide)
         url = try container.decodeIfPresent(String.self, forKey: .url)
         isMaxAmount = try container.decodeIfPresent(Bool.self, forKey: .isMaxAmount) ?? false
+        inactiveReason = kind == .inactive ? try container.decodeIfPresent(InactiveReason.self, forKey: .reason) : nil
         if kind == .openStaking {
             stakeAmount = try container.decodeIfPresent(StakeAmount.self, forKey: .amount)
             swapAmount = nil
@@ -1166,6 +1188,8 @@ public struct ApiAgentV2ResolvedAction: Codable, Equatable, Sendable {
             try container.encodeIfPresent(stakeAmount, forKey: .amount)
         } else if kind == .openSwap {
             try container.encodeIfPresent(swapAmount, forKey: .amount)
+        } else if kind == .inactive {
+            try container.encodeIfPresent(inactiveReason, forKey: .reason)
         }
     }
 }

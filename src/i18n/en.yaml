@@ -590,6 +590,13 @@ Are you sure you want to disable biometrics?: Are you sure you want to disable b
 "Yes": "Yes"
 Biometric confirmation failed: Biometric confirmation failed
 No Activity: No Activity
+Loading Activity: Loading Activity
+Loading More Activity: Loading More Activity
+Your activity history is loading.: Your activity history is loading.
+Taking Longer Than Usual: Taking Longer Than Usual
+Activity history is taking longer to load. Please check back shortly.: Activity history is taking longer to load. Please check back shortly.
+Activity Unavailable: Activity Unavailable
+Activity history is temporarily unavailable. We’ll try again shortly.: Activity history is temporarily unavailable. We’ll try again shortly.
 Activity Failed to Load: Activity Failed to Load
 Fund: Fund
 Buy with Card: Buy with Card
@@ -625,6 +632,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: You can also %action%.
 $wallet_switch_version_2: switch to another wallet version
 or import from: or import from
+or enter manually: or enter manually
 Insufficient fee: Insufficient fee
 $insufficient_fee: "Insufficient fee: %fee%"
 $dapp_insufficient_network_fee_warning: Insufficient %token% to cover network fee
@@ -680,6 +688,7 @@ $transfer_link_expired: Transfer link has expired
 $transfer_text_and_bin_exclusive: Cannot use both text and bin parameters together
 $unsupported_deeplink_parameter: This deeplink contains unsupported parameters.
 $unsupported_chain: Unsupported blockchain.
+$token_chain_not_supported_by_wallet: "Your current wallet doesn't support %chain%. Create a multichain wallet to use this token."
 Successfully: Successfully
 Estimated Time: Estimated Time
 $utxo_confirmations:
@@ -1345,6 +1354,7 @@ $agent_connection_interrupted: Agent connection was interrupted. Try again.
 $agent_history_unavailable: Couldn’t load chat history. Try again.
 $agent_secret_words_removed: "[secret words removed and not sent]"
 $agent_activity_analyzing_request: Analyzing your request…
+$agent_analyzing: Analyzing
 $agent_activity_wallet: Reading wallet data…
 $agent_activity_transactions: Reviewing wallet activity…
 $agent_activity_portfolio: Loading portfolio data…
@@ -1452,6 +1462,9 @@ $agent_report_problem_description: Recent messages from this chat will be sent t
 $agent_report_problem_sent: Thank you! Your report has been sent.
 $agent_report_problem_failed: Could not send the report. Please try again.
 $agent_report_problem_rate_limited: You have sent several reports recently. Please try again later.
+Like: Like
+Dislike: Dislike
+$agent_feedback_failed: Could not save your rating. Please try again.
 $unknown_swap_token: Unknown token in swap link. Default tokens were used.
 $action_not_available_view_mode: This action is not available for View Wallets
 Deposit: Deposit
@@ -2054,4 +2067,5 @@ Ruble: Ruble
 $token_price_value: "Price: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: Swaps like this usually take a few minutes. In rare cases, up to two hours.
 3D Gram Diamond: 3D Gram Diamond
+Hold to enlarge. Drag to rotate.: Hold to enlarge. Drag to rotate.
 "Max": "Max"

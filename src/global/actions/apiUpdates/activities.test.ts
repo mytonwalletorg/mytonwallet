@@ -1,10 +1,12 @@
 import './activities';
+import '../ui/cards';
 
 import type { UtxoTransaction } from '../../../api/chains/utxo/types';
 import type { ApiBackendActivitiesUpdate } from '../../../api/common/backendSocket';
-import type { ApiActivity, ApiSwapActivity, ApiTransactionActivity, OnApiUpdate } from '../../../api/types';
+import type { ApiActivity, ApiNft, ApiSwapActivity, ApiTransactionActivity, OnApiUpdate } from '../../../api/types';
 import type { GlobalState } from '../../types';
 
+import { MW_CARDS_COLLECTION } from '../../../config';
 import { callApi } from '../../../api';
 import { setupUtxoBackendActivityTracking } from '../../../api/chains/utxo/polling';
 import { getUtxoBackendSocket } from '../../../api/common/backendSocket';
@@ -735,5 +737,115 @@ describe('NFT trade visibility', () => {
     const accountState = getGlobal().byAccountId[ACCOUNT_ID];
     expect(accountState.nfts?.byAddress?.[trade.nft!.address]).toBeUndefined();
     expect(accountState.whitelistedNftAddresses).toBeUndefined();
+  });
+});
+
+describe('MyTonWallet card auto-install', () => {
+  function makeCard(address: string): ApiNft {
+    return {
+      chain: 'ton',
+      interface: 'default',
+      index: 0,
+      address,
+      thumbnail: '',
+      image: '',
+      isOnSale: false,
+      collectionAddress: MW_CARDS_COLLECTION,
+      metadata: { mtwCardType: 'silver' },
+    };
+  }
+
+  async function receiveCard(card: ApiNft) {
+    const activity = makeRawReceive({ id: `${card.address}-hash`, nft: card });
+
+    await (getActions().apiUpdate({
+      type: 'newActivities',
+      accountId: ACCOUNT_ID,
+      activities: [activity],
+      pendingActivities: [],
+      chain: 'ton',
+    }) as unknown as Promise<void>);
+
+    return activity;
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (callApi as jest.Mock).mockResolvedValue(undefined);
+    setGlobal(buildGlobal([]));
+  });
+
+  it('installs a received card on an account without a card and keeps the received activity', async () => {
+    const card = makeCard('EQ-received-card');
+
+    const activity = await receiveCard(card);
+
+    expect(getGlobal().settings.byAccountId[ACCOUNT_ID]?.cardBackgroundNft).toEqual(card);
+    expect(getAccountActivities().byId[activity.id]).toBeDefined();
+  });
+
+  it('does not install a card that was received and then sent within the same batch', async () => {
+    const card = makeCard('EQ-sent-card');
+    const receive = makeRawReceive({ id: 'card-receive-hash', nft: card });
+    const send = makeRawReceive({
+      id: 'card-send-hash',
+      isIncoming: false,
+      nft: card,
+      timestamp: receive.timestamp + 1,
+    });
+
+    await (getActions().apiUpdate({
+      type: 'newActivities',
+      accountId: ACCOUNT_ID,
+      activities: [send, receive],
+      pendingActivities: [],
+      chain: 'ton',
+    }) as unknown as Promise<void>);
+
+    expect(getGlobal().settings.byAccountId[ACCOUNT_ID]?.cardBackgroundNft).toBeUndefined();
+    expect(getGlobal().byAccountId[ACCOUNT_ID].nfts?.byAddress?.[card.address]).toBeUndefined();
+  });
+
+  it('installs a still owned card when a newer card from the same batch was sent', async () => {
+    const ownedCard = makeCard('EQ-owned-card');
+    const sentCard = makeCard('EQ-sent-card');
+    const ownedCardReceive = makeRawReceive({ id: 'owned-card-receive-hash', nft: ownedCard });
+    const sentCardReceive = makeRawReceive({
+      id: 'sent-card-receive-hash',
+      nft: sentCard,
+      timestamp: ownedCardReceive.timestamp + 1,
+    });
+    const sentCardSend = makeRawReceive({
+      id: 'sent-card-send-hash',
+      isIncoming: false,
+      nft: sentCard,
+      timestamp: ownedCardReceive.timestamp + 2,
+    });
+
+    await (getActions().apiUpdate({
+      type: 'newActivities',
+      accountId: ACCOUNT_ID,
+      activities: [sentCardSend, sentCardReceive, ownedCardReceive],
+      pendingActivities: [],
+      chain: 'ton',
+    }) as unknown as Promise<void>);
+
+    expect(getGlobal().settings.byAccountId[ACCOUNT_ID]?.cardBackgroundNft).toEqual(ownedCard);
+  });
+
+  it('installs a minted card over the current one', async () => {
+    const currentCard = makeCard('EQ-current-card');
+    const mintedCard = makeCard('EQ-minted-card');
+    const global = getGlobal();
+    setGlobal({
+      ...global,
+      settings: { ...global.settings, byAccountId: { [ACCOUNT_ID]: { cardBackgroundNft: currentCard } } },
+      byAccountId: { [ACCOUNT_ID]: { ...global.byAccountId[ACCOUNT_ID], isCardMinting: true } },
+    });
+
+    await receiveCard(mintedCard);
+
+    expect(getGlobal().settings.byAccountId[ACCOUNT_ID]?.cardBackgroundNft).toEqual(mintedCard);
+    expect(getGlobal().byAccountId[ACCOUNT_ID].isCardMinting).toBeUndefined();
   });
 });

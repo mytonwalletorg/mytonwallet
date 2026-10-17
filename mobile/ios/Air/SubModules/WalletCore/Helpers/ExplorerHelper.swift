@@ -53,10 +53,10 @@ public final class ExplorerHelper {
         return URL(string: str)!
     }
     
-    public static func txUrl(chain: ApiChain, txHash: String) -> URL {
+    public static func txUrl(chain: ApiChain, txHash: String, isTraceId: Bool) -> URL {
         let network = AccountStore.activeNetwork
         var txHash = txHash
-        if let explorer = selectedExplorerConfig(for: chain),
+        if let explorer = transactionExplorerConfig(for: chain, isTraceId: isTraceId),
            let baseUrl = explorer.baseUrl[network] {
             if explorer.doConvertHashFromBase64 {
                 txHash = txHash.base64ToHex
@@ -282,13 +282,13 @@ public final class ExplorerHelper {
             return nil
         }
         let urlString = url.absoluteString
-        let fromTestnetBase = fromExplorer.baseUrl[.testnet]?.url ?? ""
-        let isTestnet = !fromTestnetBase.isEmpty && urlString.hasPrefix(fromTestnetBase)
-        guard let fromBaseUrl = fromExplorer.baseUrl[isTestnet ? .testnet : .mainnet]?.url,
-              let toBaseUrl = toExplorer.baseUrl[isTestnet ? .testnet : .mainnet]?.url else {
+        let network: ApiNetwork = isTestnetExplorerUrl(url, explorer: fromExplorer) ? .testnet : .mainnet
+        guard let fromBaseUrl = fromExplorer.baseUrl[network]?.url,
+              let toBaseUrl = toExplorer.baseUrl[network]?.url else {
             return nil
         }
-        let toParam = toExplorer.baseUrl[isTestnet ? .testnet : .mainnet]?.param ?? ""
+        let fromParam = fromExplorer.baseUrl[network]?.param ?? ""
+        let toParam = toExplorer.baseUrl[network]?.param ?? ""
         let pathAfterBase = String(urlString.dropFirst(fromBaseUrl.count))
         let patterns: [(from: String?, to: String?)] = [
             (fromExplorer.nftCollection, toExplorer.nftCollection),
@@ -298,12 +298,47 @@ public final class ExplorerHelper {
             (fromExplorer.address, toExplorer.address),
         ]
         for pattern in patterns {
-            guard let fromPattern = pattern.from, let toPattern = pattern.to else { continue }
+            guard let fromPattern = pattern.from, var toPattern = pattern.to else { continue }
             if let identifier = extractIdentifier(pathAfterBase, pattern: fromPattern) {
+                // An explorer that shows every kind of address on one page gives no hint of the kind,
+                // so its links convert to the plain address page
+                if fromPattern == fromExplorer.address {
+                    toPattern = toExplorer.address
+                }
                 return buildExplorerUrl(pattern: toPattern, baseUrl: toBaseUrl, identifier: identifier, param: toParam)
             }
         }
-        return URL(string: toBaseUrl + pathAfterBase + toParam)
+        guard let fallbackUrl = URL(string: toBaseUrl + pathAfterBase) else {
+            return nil
+        }
+        return replacingExplorerParams(in: fallbackUrl, removing: fromParam, adding: toParam)
+    }
+
+    private static func replacingExplorerParams(in url: URL, removing fromParam: String, adding toParam: String) -> URL? {
+        guard !fromParam.isEmpty || !toParam.isEmpty,
+              var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return url
+        }
+        let addedItems = URLComponents(string: toParam)?.queryItems ?? []
+        let replacedNames = Set((URLComponents(string: fromParam)?.queryItems ?? []).map(\.name) + addedItems.map(\.name))
+        let queryItems = (components.queryItems ?? []).filter { !replacedNames.contains($0.name) } + addedItems
+        components.queryItems = queryItems.isEmpty ? nil : queryItems
+        return components.url
+    }
+
+    // Explorers that host both networks under one base URL mark testnet links with their testnet URL parameter,
+    // so a link without it opens mainnet
+    private static func isTestnetExplorerUrl(_ url: URL, explorer: ExplorerConfig) -> Bool {
+        guard let testnetBaseUrl = explorer.baseUrl[.testnet] else { return false }
+        if testnetBaseUrl.url != explorer.baseUrl[.mainnet]?.url {
+            return url.absoluteString.hasPrefix(testnetBaseUrl.url)
+        }
+        guard let param = testnetBaseUrl.param,
+              let paramItems = URLComponents(string: param)?.queryItems,
+              let urlItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else {
+            return false
+        }
+        return paramItems.allSatisfy { urlItems.contains($0) }
     }
 
     public static func selectedExplorerId(for chain: ApiChain) -> String {
@@ -331,6 +366,7 @@ public final class ExplorerHelper {
     private static let explorerMenuIconNames = [
         "tonscan": "MenuTonscan26",
         "tonviewer": "MenuTonviewer26",
+        "actonscan": "MenuActonscan26",
     ]
 
     private static func availableExplorers(for chain: ApiChain) -> [ExplorerConfig] {
@@ -339,6 +375,13 @@ public final class ExplorerHelper {
 
     private static func availableMarketplaces(for chain: ApiChain) -> [ChainConfig.Marketplace] {
         getAvailableMarketplaces(chain: chain)
+    }
+
+    /// A hash other than the trace ID may name the external message of a TON trace, which only some explorers find
+    private static func transactionExplorerConfig(for chain: ApiChain, isTraceId: Bool) -> ExplorerConfig? {
+        guard let explorer = selectedExplorerConfig(for: chain) else { return nil }
+        if isTraceId || explorer.isMessageHashSupported { return explorer }
+        return availableExplorers(for: chain).first(where: \.isMessageHashSupported) ?? explorer
     }
 
     private static func selectedExplorerConfig(for chain: ApiChain) -> ExplorerConfig? {

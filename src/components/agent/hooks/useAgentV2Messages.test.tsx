@@ -934,6 +934,60 @@ describe('useAgentV2Messages', () => {
     });
   });
 
+  it('shows a rating over history at once, settles it by the latest request, keeps none after a clear', async () => {
+    hydratedMessages = [
+      persistedUserMessage(),
+      { ...persistedAssistantTextMessage(), feedback: 'like' },
+      { ...persistedAssistantTextMessage(), id: SECOND_ASSISTANT_MESSAGE_ID, status: 'cancelled' },
+    ];
+    const settleRequests: Array<(value: unknown) => void> = [];
+    const defaultImplementation = callApiMock.getMockImplementation()!;
+    callApiMock.mockImplementation((...args) => (args[0] === 'setAgentV2MessageFeedback'
+      ? new Promise((resolve) => {
+        settleRequests.push(resolve);
+      }) as never
+      : defaultImplementation(...args)));
+    const countFailures = () => mockShowError.mock.calls
+      .filter(([options]) => options.error === '$agent_feedback_failed').length;
+    TeactDOM.render(<Harness />, root);
+    expect(await waitFor(() => result?.messages.length === 3, 10, 20)).toBe(true);
+    const [, answer, cancelled] = result!.messages;
+    const getFeedback = () => result!.messages[1]?.feedback;
+    expect(answer).toMatchObject({ isComplete: true, feedback: 'like' });
+    expect(cancelled.isComplete).toBeUndefined();
+
+    result!.rateMessage(cancelled.id, 'like');
+    result!.rateMessage(answer.id, 'dislike');
+    result!.rateMessage(answer.id);
+    expect(await waitFor(() => settleRequests.length === 2 && getFeedback() === undefined, 10, 20)).toBe(true);
+    expect(callApiMock).toHaveBeenCalledWith('setAgentV2MessageFeedback', THREAD_ID, ASSISTANT_MESSAGE_ID, 'dislike');
+    const countHydrations = () => callApiMock.mock.calls.filter(([method]) => method === 'getAgentV2Messages').length;
+    const hydrations = countHydrations();
+    publishAgentV2Update({ kind: 'runtimeReady', generation: 100 });
+    expect(await waitFor(() => countHydrations() > hydrations, 10, 20)).toBe(true);
+    await pause(20);
+    expect(getFeedback()).toBeUndefined();
+    settleRequests[0]({ ok: true, value: { protocolVersion: 3, feedback: 'dislike' } });
+    await pause(20);
+    expect(getFeedback()).toBeUndefined();
+    settleRequests[1]({ ok: false, error: { code: 'network_error', retryable: true } });
+    expect(await waitFor(() => getFeedback() === 'dislike', 10, 20)).toBe(true);
+    expect(countFailures()).toBe(1);
+
+    result!.rateMessage(answer.id, 'like');
+    expect(await waitFor(() => settleRequests.length === 3, 10, 20)).toBe(true);
+    hydratedMessages = [];
+    clearThreadResponse = {
+      ok: true,
+      value: { protocolVersion: 3, thread: { ...threadSummary(threadRevision + 1), id: THREAD_ID }, duplicate: false },
+    };
+    result!.clearChat();
+    expect(await waitFor(() => result?.messages.length === 0, 10, 20)).toBe(true);
+    settleRequests[2]({ ok: false, error: { code: 'network_error', retryable: true } });
+    await pause(20);
+    expect(countFailures()).toBe(1);
+  });
+
   it('hides a historical failure after a newer user question is hydrated', async () => {
     hydratedMessages = conversationMessages();
     hydratedMessages[1] = {
@@ -1847,6 +1901,7 @@ describe('useAgentV2Messages', () => {
 
     expect(mockOpenReceiveModal).not.toHaveBeenCalled();
     expect(result!.messages.at(-1)?.actionPresentations?.[action.id]).toEqual({ kind: 'inactive' });
+    expect(mockShowError).toHaveBeenCalledWith({ error: 'This action is no longer available.' });
   });
 
   it.each([
@@ -2010,9 +2065,9 @@ describe('useAgentV2Messages', () => {
     expect(callApiMock.mock.calls.filter(([method]) => method === 'updateAgentV2HostContext')).toHaveLength(0);
   });
 
-  it('does not open Swap when current wallet authority rejects the action', async () => {
+  it('tells why Swap does not open in a view-only wallet', async () => {
     const action = swapAction('source');
-    resolvedAction = { kind: 'inactive' } satisfies AgentV2ResolvedAction;
+    resolvedAction = { kind: 'inactive', reason: 'viewOnlyWallet' } satisfies AgentV2ResolvedAction;
     TeactDOM.render(<Harness />, root);
     await pause(20);
     publishAction(action);
@@ -2024,6 +2079,7 @@ describe('useAgentV2Messages', () => {
     expect(callApiMock).toHaveBeenCalledWith('resolveAgentV2Action', ASSISTANT_MESSAGE_ID, action.id);
     expect(mockStartSwap).not.toHaveBeenCalled();
     expect(processDeeplinkMock).not.toHaveBeenCalled();
+    expect(mockShowError).toHaveBeenCalledWith({ error: '$action_not_available_view_mode' });
   });
 
   it('does not apply an account action after the active account changes during resolution', async () => {
@@ -2151,23 +2207,25 @@ describe('useAgentV2Messages', () => {
     expect(processDeeplinkMock).not.toHaveBeenCalled();
   });
 
-  it('opens the existing empty Send form for a view-only wallet', async () => {
-    const host = hostContext();
-    host.accounts[0].isViewOnly = true;
-    host.accounts[0].accountType = 'viewOnly';
-    buildAgentV2HostContextMock.mockReturnValue(host);
-    actionPresentationPromise = Promise.resolve(sendPresentation());
-    resolvedAction = { kind: 'sendForm', url: 'mtw://send' };
+  it('tells why Send does not open in a view-only wallet and keeps the reason for the next tap', async () => {
+    actionPresentationPromise = Promise.resolve({ kind: 'inactive', reason: 'viewOnlyWallet' });
     TeactDOM.render(<Harness />, root);
     await pause(20);
     const action = sendAction();
     publishSendAction(action);
     await pause(20);
-    result!.activateAction(result!.messages.at(-1)!.id, action);
+    const message = result!.messages.at(-1)!;
+    result!.activateAction(message.id, action);
     await pause(20);
-    expect(mockStartTransfer).toHaveBeenCalledWith({ shouldRequireFreshAuth: true });
-    expect(parseDeeplinkTransferParams).not.toHaveBeenCalled();
-    expect(processDeeplinkMock).not.toHaveBeenCalled();
+    result!.activateAction(message.id, action);
+    await pause(20);
+
+    expect(callApiMock).not.toHaveBeenCalledWith('resolveAgentV2Action', ASSISTANT_MESSAGE_ID, action.id);
+    expect(mockStartTransfer).not.toHaveBeenCalled();
+    expect(mockShowError.mock.calls).toEqual([
+      [{ error: '$action_not_available_view_mode' }],
+      [{ error: '$action_not_available_view_mode' }],
+    ]);
   });
 
   it('opens Send when an unrelated wallet-profile update arrives during action resolution', async () => {

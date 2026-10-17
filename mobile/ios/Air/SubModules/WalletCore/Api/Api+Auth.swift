@@ -80,8 +80,8 @@ extension Api {
     }
     
     /// - Important: Do not call this methods directly, use **AccountStore** instead
-    internal static func importNewWalletVersion(accountId: String, version: ApiTonWalletVersion) async throws -> ApiImportNewWalletVersionResult {
-        try await bridge.callApi("importNewWalletVersion", accountId, version, decoding: ApiImportNewWalletVersionResult.self)
+    internal static func importNewWalletVersion(accountId: String, version: ApiTonWalletVersion, isTestnetSubwalletId: Bool? = nil) async throws -> ApiImportNewWalletVersionResult {
+        try await bridge.callApi("importNewWalletVersion", accountId, version, isTestnetSubwalletId, decoding: ApiImportNewWalletVersionResult.self)
     }
     
 }

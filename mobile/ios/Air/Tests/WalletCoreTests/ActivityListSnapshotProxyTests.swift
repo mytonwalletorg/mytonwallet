@@ -22,9 +22,10 @@ struct ActivityListSnapshotProxyTests {
         ])
         #expect(!snapshot.sectionIdentifiers.contains(.transactions("0-mainnet", dates[0])))
         #expect(snapshot.itemIdentifiers(inSection: .transactions("0-mainnet", dates[1])) == [
-            .transaction("0-mainnet", "c"), .loadingMore,
+            .transaction("0-mainnet", "c"),
         ])
-        #expect(snapshot.reconfiguredItemIdentifiers == [.transaction("0-mainnet", "a"), .transaction("0-mainnet", "c")])
+        #expect(snapshot.itemIdentifiers(inSection: .loadingPlaceholder) == [.loadingMore])
+        #expect(snapshot.reconfiguredItemIdentifiers == [.loadingMore, .transaction("0-mainnet", "a"), .transaction("0-mainnet", "c")])
     }
 
     @Test
@@ -46,28 +47,34 @@ struct ActivityListSnapshotProxyTests {
     }
 
     @Test
-    func `unknown history uses skeletons and known empty history uses empty state`() {
+    func `unknown history uses one status row and known empty history uses empty state`() {
         var proxy = ActivityListSnapshotProxy(accountId: "0-mainnet", customSectionIDs: [])
 
         proxy.didUpdateData(idsByDate: nil)
         let loadingSnapshot = proxy.makeSnapshot(idsByDate: nil, isEndReached: nil, updatedIds: [])
 
-        #expect(loadingSnapshot.sectionIdentifiers.contains(.placeholderTransactionsSection))
-        #expect(loadingSnapshot.itemIdentifiers.contains { row in
-            if case .transactionPlaceholder = row.value { true } else { false }
-        })
+        #expect(loadingSnapshot.sectionIdentifiers.contains(.loadingPlaceholder))
+        #expect(loadingSnapshot.itemIdentifiers == [.headerPlaceholder, .loadingMore])
+        #expect(proxy.rowDidBecomeVisible(.loadingMore, isEndReached: nil))
         #expect(!loadingSnapshot.sectionIdentifiers.contains(.emptyPlaceholder))
 
         proxy.didUpdateData(idsByDate: [:])
         let emptySnapshot = proxy.makeSnapshot(idsByDate: [:], isEndReached: true, updatedIds: [])
 
-        #expect(!emptySnapshot.sectionIdentifiers.contains(.placeholderTransactionsSection))
+        #expect(!emptySnapshot.sectionIdentifiers.contains(.loadingPlaceholder))
         #expect(emptySnapshot.sectionIdentifiers.contains(.emptyPlaceholder))
         #expect(emptySnapshot.itemIdentifiers.contains(.emptyPlaceholder))
         #expect(!emptySnapshot.itemIdentifiers.contains(.loadingMore))
-        #expect(!emptySnapshot.itemIdentifiers.contains { row in
-            if case .transactionPlaceholder = row.value { true } else { false }
-        })
+        #expect(emptySnapshot.itemIdentifiers == [.headerPlaceholder, .emptyPlaceholder])
+    }
+
+    @Test
+    func `confirmed empty history does not require an initialized id list`() {
+        let proxy = ActivityListSnapshotProxy(accountId: "0-mainnet", customSectionIDs: [])
+        let snapshot = proxy.makeSnapshot(idsByDate: nil, isEndReached: true, updatedIds: [])
+
+        #expect(snapshot.itemIdentifiers == [.headerPlaceholder, .emptyPlaceholder])
+        #expect(!proxy.rowDidBecomeVisible(.loadingMore, isEndReached: true))
     }
 
     @Test

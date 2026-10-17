@@ -31,17 +31,22 @@ object BuyWithCardLauncher {
     fun buyWithCardUrl(
         chain: String,
         baseCurrency: MBaseCurrency,
-        onReceive: (url: String?) -> Unit
+        onReceive: (url: String?, error: MBridgeError?) -> Unit
     ) {
         when (baseCurrency) {
             MBaseCurrency.RUB -> {
                 val address = AccountStore.activeAccount?.tonAddress ?: ""
                 onReceive(
-                    "https://dreamwalkers.io/ru/mytonwallet/?wallet=$address&give=CARDRUB&take=TON&type=buy"
+                    "https://dreamwalkers.io/ru/mytonwallet/?wallet=$address&give=CARDRUB&take=TON&type=buy",
+                    null
                 )
             }
 
             MBaseCurrency.USD, MBaseCurrency.EUR -> {
+                if (WalletCore.bridge == null) {
+                    onReceive(null, MBridgeError.Type.BRIDGE_INTERRUPTED)
+                    return
+                }
                 val activeTheme = if (ThemeManager.isDark) "dark" else "light"
                 WalletCore.call(
                     ApiMethod.Other.GetMoonpayOnrampUrl(
@@ -53,12 +58,12 @@ object BuyWithCardLauncher {
                             currency = baseCurrency.currencyCode
                         )
                     )
-                ) { result, _ ->
-                    onReceive(result?.url)
+                ) { result, error ->
+                    onReceive(result?.url, error?.parsed)
                 }
             }
 
-            else -> {}
+            else -> onReceive(null, null)
         }
     }
 
@@ -70,12 +75,12 @@ object BuyWithCardLauncher {
             caller.get()?.showError(MBridgeError.Type.SERVER_ERROR)
             return
         }
-        buyWithCardUrl(chain, baseCurrency) { url ->
+        buyWithCardUrl(chain, baseCurrency) { url, error ->
             val context = caller.get()?.context
             if (context != null && url != null) {
                 CustomTabsBrowser.open(context, url)
             } else {
-                caller.get()?.showError(MBridgeError.Type.SERVER_ERROR)
+                caller.get()?.showError(error)
             }
         }
     }

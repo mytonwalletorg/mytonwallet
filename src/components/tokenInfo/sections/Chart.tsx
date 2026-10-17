@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../../global';
 import type { ApiBaseCurrency, ApiHistoryList, ApiPriceHistoryPeriod } from '../../../api/types';
 import type { LangCode, PriceHistoryPeriods, TokenChartMode, UserToken } from '../../../global/types';
 import type { TabWithProperties } from '../../ui/TabList';
+import type { TokenBalanceChange } from '../helpers/resolveBalanceChange';
 
 import { DEFAULT_PRICE_CURRENCY } from '../../../config';
 import { selectCurrentAccountState } from '../../../global/selectors';
@@ -15,6 +16,7 @@ import { vibrate } from '../../../util/haptics';
 import { TIME_RANGES } from '../../../util/portfolio/timeRange';
 import { SWIPE_DISABLED_CLASS_NAME } from '../../../util/swipeController';
 import { IS_IOS } from '../../../util/windowEnvironment';
+import { resolveBalanceChange } from '../helpers/resolveBalanceChange';
 
 import useInterval from '../../../hooks/useInterval';
 import useLang from '../../../hooks/useLang';
@@ -29,17 +31,13 @@ import Plot from './Plot';
 
 import styles from './Chart.module.scss';
 
-export interface TokenPricePoint {
-  price: number;
-  initialPrice: number;
-}
-
 interface OwnProps {
   token: UserToken;
   chartMode: TokenChartMode;
+  isActive?: boolean;
   className?: string;
   onChartModeChange: (mode: TokenChartMode) => void;
-  onPricePointChange: (point?: TokenPricePoint) => void;
+  onBalanceChangeUpdate: (change: TokenBalanceChange) => void;
 }
 
 interface StateProps {
@@ -66,6 +64,7 @@ const SELECTED_PRICE_FRACTION_DIGITS = 4;
 function Chart({
   token,
   chartMode,
+  isActive,
   className,
   period,
   baseCurrency,
@@ -73,7 +72,7 @@ function Chart({
   historyPeriods,
   netWorthHistoryPeriods,
   onChartModeChange,
-  onPricePointChange,
+  onBalanceChangeUpdate,
 }: OwnProps & StateProps) {
   const { loadPriceHistory, loadTokenNetWorthHistory, setCurrentTokenPeriod } = getActions();
 
@@ -99,9 +98,11 @@ function Chart({
     }
   });
 
-  useEffect(refreshHistory, [slug, period, chartCurrency, isNetWorthMode, refreshHistory]);
+  useEffect(() => {
+    if (isActive) refreshHistory();
+  }, [isActive, slug, period, chartCurrency, isNetWorthMode, refreshHistory]);
 
-  useInterval(refreshHistory, REFRESH_INTERVAL, true);
+  useInterval(refreshHistory, isActive ? REFRESH_INTERVAL : undefined, true);
 
   // The selection points into the shown series, so switching the token, the period or the mode drops it
   useEffect(() => {
@@ -132,13 +133,17 @@ function Chart({
     : historyChangePercent;
 
   // A price quoted in another currency would make the balance above jump between currencies
-  const shownPrice = isNetWorthMode || chartCurrency !== baseCurrency ? undefined : shownPoint?.[1];
+  const isBalanceFollowingChart = !isNetWorthMode && chartCurrency === baseCurrency;
+  const shownPrice = shownPoint?.[1];
 
   useEffect(() => {
-    onPricePointChange(!shouldUseTokenChange24h && shownPrice !== undefined && initialPrice
-      ? { price: shownPrice, initialPrice }
-      : undefined);
-  }, [shouldUseTokenChange24h, shownPrice, initialPrice, onPricePointChange]);
+    onBalanceChangeUpdate(resolveBalanceChange({
+      shouldUseChange24h: shouldUseTokenChange24h || !isBalanceFollowingChart,
+      isLoading,
+      price: shownPrice,
+      initialPrice,
+    }));
+  }, [shouldUseTokenChange24h, isBalanceFollowingChart, isLoading, shownPrice, initialPrice, onBalanceChangeUpdate]);
 
   const axisLabels = useMemo(() => buildAxisLabels(lang.code!, period, history), [lang.code, period, history]);
 

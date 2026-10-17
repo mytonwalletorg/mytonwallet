@@ -2,29 +2,61 @@ package org.mytonwallet.app_air.uicomponents.widgets
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.LayerDrawable
 import android.text.InputType
+import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.inputmethod.EditorInfo
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.widgets.WEditText.Delegate
+import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 import org.mytonwallet.app_air.walletbasecontext.theme.WColor
 import org.mytonwallet.app_air.walletbasecontext.theme.color
+import org.mytonwallet.app_air.walletbasecontext.utils.getDrawableCompat
 import org.mytonwallet.app_air.walletcore.constants.PossibleWords
 import org.mytonwallet.app_air.walletcore.helpers.PrivateKeyHelper
 import org.mytonwallet.app_air.walletcore.helpers.findMnemonicMatches
 
 @SuppressLint("SetTextI18n", "ViewConstructor")
 class WWordInput(context: Context, number: Int, val delegate: Delegate) :
-    WView(context, LayoutParams(0, 50.dp)),
+    WView(context, LayoutParams(0, 48.dp)),
     WThemedView {
 
     private val numberLabel: WLabel by lazy {
         val label = WLabel(context)
-        label.text = "$number "
-        label.textAlignment = TEXT_ALIGNMENT_TEXT_END
+        label.text = "$number"
+        label.textAlignment = TEXT_ALIGNMENT_CENTER
         label.setStyle(17F)
         label
+    }
+
+    var onFocusChanged: ((hasFocus: Boolean) -> Unit)? = null
+
+    private val clearCircle = context.getDrawableCompat(
+        org.mytonwallet.app_air.icons.R.drawable.ic_clear_24_circle
+    )?.mutate()
+
+    private val clearButton: AppCompatImageView by lazy {
+        AppCompatImageView(context).apply {
+            id = generateViewId()
+            setImageDrawable(
+                LayerDrawable(
+                    listOfNotNull(
+                        clearCircle,
+                        context.getDrawableCompat(
+                            org.mytonwallet.app_air.icons.R.drawable.ic_clear_24_cross
+                        )
+                    ).toTypedArray()
+                )
+            )
+            setPadding(10.dp, 10.dp, 10.dp, 10.dp)
+            contentDescription = LocaleController.getString("Clear")
+            isVisible = false
+            setOnClickListener { textField.setText("") }
+        }
     }
 
     private var textFieldIsLocked = false
@@ -39,7 +71,12 @@ class WWordInput(context: Context, number: Int, val delegate: Delegate) :
             InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         textField.isAutoFillSupported = false
 
+        textField.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+            updateClearButton()
+            onFocusChanged?.invoke(hasFocus)
+        }
         textField.doOnTextChanged { _, _, _, _ ->
+            updateClearButton()
             if (textFieldIsLocked) return@doOnTextChanged
 
             val currentText = textField.text?.toString().orEmpty()
@@ -64,13 +101,16 @@ class WWordInput(context: Context, number: Int, val delegate: Delegate) :
         numberLabel.minWidth = 24.dp
 
         addView(textField, LayoutParams(0, WRAP_CONTENT))
+        addView(clearButton, LayoutParams(44.dp, 44.dp))
 
         setConstraints {
-            toStart(numberLabel, 8f)
+            toStart(numberLabel, 20f)
             toCenterY(numberLabel)
-            startToEnd(textField, numberLabel)
-            toEnd(textField, 8f)
+            startToEnd(textField, numberLabel, 4f)
+            endToStart(textField, clearButton)
             toCenterY(textField)
+            toEnd(clearButton, 2f)
+            toCenterY(clearButton)
         }
 
         setOnClickListener {
@@ -83,7 +123,12 @@ class WWordInput(context: Context, number: Int, val delegate: Delegate) :
 
     override fun updateTheme() {
         numberLabel.setTextColor(WColor.SecondaryText.color)
+        clearCircle?.setTint(WColor.SecondaryText.color)
         setBackgroundColor(WColor.Background.color, 24f.dp)
+    }
+
+    private fun updateClearButton() {
+        clearButton.isVisible = textField.hasFocus() && !textField.text.isNullOrEmpty()
     }
 
     fun checkValue() {

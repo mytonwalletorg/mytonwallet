@@ -189,12 +189,9 @@ class TransactionHeaderView(
             }
         }
         if (isGramTransfer && diamondView == null) {
-            diamondView = WBlueDiamondView(context).also {
-                iconContainer.addView(
-                    it,
-                    0,
-                    LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-                )
+            diamondView = WBlueDiamondView(context, DIAMOND_MAX_GROW).also {
+                val canvasSize = (120 * DIAMOND_MAX_GROW).dp.toInt()
+                iconContainer.addView(it, 0, LayoutParams(canvasSize, canvasSize))
                 iconContainer.setConstraints { allEdges(it) }
             }
         }
@@ -350,5 +347,9 @@ class TransactionHeaderView(
         amountView.lbl.setTextColor(WColor.PrimaryText.color)
         addressLabel.setTextColor(WColor.PrimaryText.color)
         reloadData()
+    }
+
+    private companion object {
+        const val DIAMOND_MAX_GROW = 1.5f
     }
 }

@@ -65,6 +65,9 @@ struct AgentV2NativeMessage: Equatable, Sendable, Identifiable {
     var tables: [ApiAgentV2AnswerTable] = []
     var tableReferences: [ApiAgentV2AnswerTableReference] = []
     var links: [ApiAgentV2AnswerLink] = []
+    /// The server stores the answer as complete, so the user can rate it
+    private(set) var isStoredAsComplete = false
+    var feedback: ApiAgentV2AnswerFeedback?
 
     var text: String {
         AgentV2AnswerTables.text(content.text, tables: tables, references: tableReferences, links: links)
@@ -109,6 +112,8 @@ struct AgentV2NativeMessage: Equatable, Sendable, Identifiable {
             )
         }
         followups = message.followups ?? []
+        isStoredAsComplete = message.role == .assistant && message.status == .complete
+        feedback = message.feedback
     }
 
     init(
@@ -146,6 +151,15 @@ struct AgentV2NativeMessage: Equatable, Sendable, Identifiable {
         self.status = status
     }
 
+    mutating func complete(finishReason: String) {
+        finalize()
+        isStoredAsComplete = role == .assistant
+            && status == .complete
+            && Self.storedAsCompleteFinishReasons.contains(finishReason)
+    }
+
+    /// The server stores an answer that ends with these reasons as complete
+    private static let storedAsCompleteFinishReasons: Set<String> = ["complete", "tool_unavailable"]
 }
 
 struct AgentV2ConversationState {
@@ -226,8 +240,12 @@ struct AgentV2ConversationState {
         mutateMessage(id: id) { $0.links.append(link) }
     }
 
-    mutating func completeMessage(id: String) {
-        mutateMessage(id: id) { $0.finalize() }
+    mutating func completeMessage(id: String, finishReason: String) {
+        mutateMessage(id: id) { $0.complete(finishReason: finishReason) }
+    }
+
+    mutating func setFeedback(id: String, feedback: ApiAgentV2AnswerFeedback?) {
+        mutateMessage(id: id) { $0.feedback = feedback }
     }
 
     mutating func endMessageContent(id: String) {

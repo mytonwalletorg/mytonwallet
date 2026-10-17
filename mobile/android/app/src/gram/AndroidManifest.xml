@@ -31,6 +31,16 @@
           android:host="go.gramwallet.io"
           android:scheme="https" />
       </intent-filter>
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data
+          android:host="my.tt"
+          android:scheme="https" />
+      </intent-filter>
     </activity>
   </application>
 </manifest>

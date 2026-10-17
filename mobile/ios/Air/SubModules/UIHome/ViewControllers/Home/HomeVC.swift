@@ -59,18 +59,21 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
     // navbar buttons
     private lazy var lockNavigationItem = WNavigationBarIconGroup.Item(
         title: lang("Lock"),
+        accessibilityIdentifier: "home_lock_button",
         image: .airBundle("HomeLock")
     ) { [weak self] in
         self?.lockPressed()
     }
     private lazy var hideNavigationItem = WNavigationBarIconGroup.Item(
         title: lang("Hide"),
+        accessibilityIdentifier: "home_eye_button",
         image: .airBundle(AppStorageHelper.isSensitiveDataHidden ? "HomeUnhide" : "HomeHide")
     ) { [weak self] in
         self?.hidePressed()
     }
     private lazy var scanNavigationItem = WNavigationBarIconGroup.Item(
         title: lang("Scan"),
+        accessibilityIdentifier: "home_scan_button",
         image: .airBundle("HomeScan")
     ) { [weak self] in
         self?.scanPressed()
@@ -175,11 +178,11 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
         fatalError("init(coder:) has not been implemented")
     }
 
-    isolated deinit {
+    nonisolated deinit {
         imagePreloadTask?.cancel()
         guard removesTemporaryAccountOnDeinit else { return }
-        let accountId = homeVM.account.id
-        Task {
+        Task { @MainActor [homeVM] in
+            let accountId = homeVM.account.id
             try? await AccountStore.removeAccountIfTemporary(accountId: accountId)
         }
     }
@@ -612,6 +615,12 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
         let metrics = HomeCardLayoutMetrics.forContainerWidth(width, contentMargins: margins)
         let metricsChanged = balanceHeaderView.cardLayoutMetrics != metrics
         balanceHeaderView.cardLayoutMetrics = metrics
+        let isAtTopScreenEdge = view.window.map { window in
+            view.safeAreaInsets.top == 0
+                && abs(view.convert(view.bounds, to: window).minY - window.bounds.minY) < 0.5
+        } ?? false
+        let topSpacingChanged = balanceHeaderView.isAtTopScreenEdge != isAtTopScreenEdge
+        balanceHeaderView.isAtTopScreenEdge = isAtTopScreenEdge
         if headerContainerHeightConstraint?.constant != metrics.itemHeight {
             headerContainerHeightConstraint?.constant = metrics.itemHeight
         }
@@ -624,7 +633,7 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
         if headerGradientTrailingWidthConstraint?.constant != metrics.trailingInset {
             headerGradientTrailingWidthConstraint?.constant = metrics.trailingInset
         }
-        if metricsChanged, view.window != nil {
+        if metricsChanged || topSpacingChanged, view.window != nil {
             contentOffsetChanged()
             updateTableViewHeaderFrame(animated: false)
         }

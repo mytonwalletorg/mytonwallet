@@ -30,6 +30,7 @@ struct DappConfirmationHeaderView: ConfirmationContent {
                         .accessibilityHidden(true)
                 } else if !assets.isEmpty {
                     assetIcons
+                        .zIndex(1)
                 }
                 VStack(spacing: 12) {
                     summary
@@ -77,7 +78,9 @@ struct DappConfirmationHeaderView: ConfirmationContent {
             let step = min(preferredStep, max(0, (geometry.size.width - 80) / CGFloat(max(visibleAssets.count - 1, 1))))
             HStack(spacing: step - 80) {
                 ForEach(visibleAssets.indices, id: \.self) { index in
-                    assetIcon(visibleAssets[index])
+                    let showsDiamond = visibleAssets.count == 1 && isDiamond(visibleAssets[index])
+                    assetIcon(visibleAssets[index], allowsDiamond: visibleAssets.count == 1)
+                        .accessibilityHidden(!showsDiamond)
                         .overlay {
                             if visibleAssets.count > 1 {
                                 RoundedRectangle(cornerRadius: cornerRadius(for: visibleAssets[index]))
@@ -89,24 +92,18 @@ struct DappConfirmationHeaderView: ConfirmationContent {
             .frame(maxWidth: .infinity)
         }
         .frame(height: 80)
-        .accessibilityHidden(true)
+    }
+
+    private func isDiamond(_ asset: Asset) -> Bool {
+        if case .token(let amount) = asset { return TokenHeroView.showsDiamond(for: amount.token) }
+        return false
     }
 
     @ViewBuilder
-    private func assetIcon(_ asset: Asset) -> some View {
+    private func assetIcon(_ asset: Asset, allowsDiamond: Bool) -> some View {
         switch asset {
         case .token(let amount):
-            WUIIconViewToken(
-                token: amount.token,
-                isWalletView: false,
-                showldShowChain: false,
-                size: 80,
-                chainSize: 0,
-                chainBorderWidth: 0,
-                chainHorizontalOffset: 0,
-                chainVerticalOffset: 0
-            )
-            .frame(width: 80, height: 80)
+            TokenHeroView(token: amount.token, size: 80, shouldShowChain: false, allowsDiamond: allowsDiamond)
         case .nft(let payload):
             Group {
                 if let nft = payload.nft {

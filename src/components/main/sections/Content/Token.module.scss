@@ -115,23 +115,23 @@
 }
 
 .pinIcon {
-  overflow: hidden;
-
   width: 1rem;
-  max-width: 1.25rem;
-
   font-size: 1rem;
   line-height: 1;
   color: var(--color-gray-2);
 
   &_withTransition {
-    @include mixins.transition('transform 150ms, max-width 150ms, opacity 150ms', !important);
+    @include mixins.transition('transform 150ms, opacity 150ms', !important);
   }
 
   &:global(.not-open) {
     transform: scale(0.5);
-    max-width: 0;
     opacity: 0;
+  }
+
+  // The name moves into the space at once and the pin fades out over it
+  &:global(.closing) {
+    position: absolute;
   }
 }
 

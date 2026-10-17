@@ -104,3 +104,12 @@ export interface ApiSseOptions {
   secretKey: string;
   lastOutputId: number;
 }
+
+/** Where the TON Connect SSE stream resumes, and which bridge events past that point the wallet already settled */
+export interface ApiSseDeliveryState {
+  cursor?: string;
+  /** The last event received; `sseLastEventId` past it means an older build received events after this was written */
+  lastReceivedId?: string;
+  /** Pairs of bridge event id and the time it was settled */
+  settled: [string, number][];
+}

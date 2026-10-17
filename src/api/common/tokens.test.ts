@@ -58,7 +58,9 @@ function makeToken(
 }
 
 describe('token lookup', () => {
-  it.each([false, true])('does not resolve an address shared across chains (same-chain alias: %s)', (hasAlias) => {
+  it.each([false, true])('does not resolve an address shared across chains (same-chain alias: %s)', async (
+    hasAlias,
+  ) => {
     const cache = getTokensCache();
     const address = '0x00000000000000000000000000000000ABCDEF12';
     const ethereumSlug = buildTokenSlug('ethereum', address);
@@ -68,9 +70,11 @@ describe('token lookup', () => {
     const previousBaseToken = cache.bySlug[baseSlug];
     const previousAliasToken = cache.bySlug[aliasSlug];
 
-    cache.bySlug[ethereumSlug] = makeToken(ethereumSlug, 'ethereum', address.toLowerCase());
-    cache.bySlug[baseSlug] = makeToken(baseSlug, 'base', address.toUpperCase());
-    if (hasAlias) cache.bySlug[aliasSlug] = makeToken(aliasSlug, 'ethereum', address.toUpperCase());
+    await updateTokens([
+      makeToken(ethereumSlug, 'ethereum', address.toLowerCase()),
+      makeToken(baseSlug, 'base', address.toUpperCase()),
+      ...(hasAlias ? [makeToken(aliasSlug, 'ethereum', address.toUpperCase())] : []),
+    ]);
 
     try {
       expect(getTokenByAddress(address)).toBeUndefined();
@@ -97,28 +101,28 @@ describe('token lookup', () => {
     }
   });
 
-  it('resolves a token cached only under its full slug', () => {
+  it('resolves a token cached only under its full slug', async () => {
     const cache = getTokensCache();
-    const token = makeToken(SPAM_SLUG, 'ethereum', SPAM_ADDRESS);
-    cache.bySlug[SPAM_SLUG] = token;
+    await updateTokens([makeToken(SPAM_SLUG, 'ethereum', SPAM_ADDRESS)]);
 
     try {
-      expect(getTokenByAddress(SPAM_ADDRESS)).toBe(token);
+      expect(getTokenByAddress(SPAM_ADDRESS)).toBe(cache.bySlug[SPAM_SLUG]);
     } finally {
       delete cache.bySlug[SPAM_SLUG];
     }
   });
 
-  it.each([false, true])('chooses the canonical token among same-chain aliases (alias first: %s)', (isAliasFirst) => {
+  it.each([false, true])('chooses the canonical token among same-chain aliases (alias first: %s)', async (
+    isAliasFirst,
+  ) => {
     const cache = getTokensCache();
     const canonicalToken = makeToken(AUSD_SLUG, 'ethereum', SPAM_ADDRESS, { priceUsd: 2 });
     const aliasToken = makeToken(SPAM_SLUG, 'ethereum', SPAM_ADDRESS.toUpperCase(), { priceUsd: 1 });
-    const tokens = isAliasFirst ? [aliasToken, canonicalToken] : [canonicalToken, aliasToken];
-    for (const token of tokens) cache.bySlug[token.slug] = token;
+    await updateTokens(isAliasFirst ? [aliasToken, canonicalToken] : [canonicalToken, aliasToken]);
 
     try {
-      expect(getTokenByAddress(SPAM_ADDRESS)).toBe(canonicalToken);
-      expect(getTokenByAddress(SPAM_ADDRESS, 'ethereum')).toBe(canonicalToken);
+      expect(getTokenByAddress(SPAM_ADDRESS)).toBe(cache.bySlug[AUSD_SLUG]);
+      expect(getTokenByAddress(SPAM_ADDRESS, 'ethereum')).toBe(cache.bySlug[AUSD_SLUG]);
     } finally {
       delete cache.bySlug[AUSD_SLUG];
       delete cache.bySlug[SPAM_SLUG];
@@ -173,6 +177,10 @@ describe('token slugs', () => {
   });
 
   it('moves the token found first to its full slug when the catalog gives that slug to another token', async () => {
+    // An older copy under the full slug, from a launch where the catalog token held the backend slug
+    await updateTokens([makeToken(SPAM_SLUG, 'ethereum', SPAM_ADDRESS, {
+      symbol: 'OLD', tokenWalletAddress: '0xWallet',
+    })]);
     await updateTokens([makeToken(AUSD_SLUG, 'ethereum', SPAM_ADDRESS, {
       symbol: 'POL', priceUsd: 5, isPriceFromBackend: true,
     })]);
@@ -180,7 +188,11 @@ describe('token slugs', () => {
 
     expect(cache.bySlug[AUSD_SLUG]).toMatchObject({ tokenAddress: AUSD_ADDRESS, symbol: 'AUSD', decimals: 6 });
     expect(cache.bySlug[SPAM_SLUG]).toMatchObject({
-      tokenAddress: SPAM_ADDRESS, symbol: 'POL', decimals: 18, isPriceFromBackend: false,
+      tokenAddress: SPAM_ADDRESS,
+      symbol: 'POL',
+      decimals: 18,
+      isPriceFromBackend: false,
+      tokenWalletAddress: '0xWallet',
     });
     expect(tokenRepository.bulkPut).toHaveBeenLastCalledWith([
       expect.objectContaining({ slug: SPAM_SLUG }),
@@ -200,6 +212,26 @@ describe('token slugs', () => {
     expect(cache.bySlug[AUSD_SLUG]).toMatchObject({ tokenAddress: OTHER_SPAM_ADDRESS });
     expect(cache.bySlug[`ethereum-${AUSD_ADDRESS}`]).toMatchObject({ tokenAddress: AUSD_ADDRESS });
     delete cache.bySlug[`ethereum-${AUSD_ADDRESS}`];
+  });
+
+  it('keeps the holder of a slug the catalog gives to two tokens and lists on another chain too', async () => {
+    const onMove = jest.fn();
+    const removeMoveListener = onTokenSlugsMove(onMove);
+    const other = makeToken(AUSD_SLUG, 'ethereum', OTHER_SPAM_ADDRESS, { symbol: 'OTHER', isFromBackend: true });
+    const otherOnBase = makeToken('base-0x00000000', 'base', OTHER_SPAM_ADDRESS, { isFromBackend: true });
+
+    try {
+      await updateTokens([other]);
+      await updateTokens([ausd, other, otherOnBase]);
+    } finally {
+      removeMoveListener();
+      delete cache.bySlug[`ethereum-${AUSD_ADDRESS}`];
+      delete cache.bySlug[otherOnBase.slug];
+    }
+
+    expect(cache.bySlug[AUSD_SLUG]).toMatchObject({ tokenAddress: OTHER_SPAM_ADDRESS });
+    expect(cache.bySlug).not.toHaveProperty(OTHER_SPAM_SLUG);
+    expect(onMove).not.toHaveBeenCalled();
   });
 
   it('gives the slug to the token the catalog lists now when it no longer lists the holder', async () => {
@@ -224,6 +256,25 @@ describe('token slugs', () => {
 
     await updateTokens([makeToken(OTHER_SPAM_SLUG, 'ethereum', OTHER_SPAM_ADDRESS, { priceUsd: 7 })]);
     expect(cache.bySlug[OTHER_SPAM_SLUG]).toMatchObject({ priceUsd: 7 });
+  });
+
+  it('keeps the chain data of a catalog token that leaves its full slug, and reports that slug', async () => {
+    const onMove = jest.fn();
+    const removeMoveListener = onTokenSlugsMove(onMove);
+
+    try {
+      await updateTokens([makeToken(AUSD_SLUG, 'ethereum', SPAM_ADDRESS, { symbol: 'POL' })]);
+      await updateTokens([makeToken(`ethereum-${AUSD_ADDRESS}`, 'ethereum', AUSD_ADDRESS, {
+        tokenWalletAddress: '0xWallet', priceUsd: 1,
+      })]);
+      await updateTokens([{ ...ausd, priceUsd: undefined }]);
+    } finally {
+      removeMoveListener();
+      delete cache.bySlug[`ethereum-${AUSD_ADDRESS}`];
+    }
+
+    expect(cache.bySlug[AUSD_SLUG]).toMatchObject({ symbol: 'AUSD', tokenWalletAddress: '0xWallet', priceUsd: 1 });
+    expect(onMove).toHaveBeenCalledWith([AUSD_SLUG, `ethereum-${AUSD_ADDRESS}`]);
   });
 
   it('asks no details for a token whose backend slug belongs to another token', () => {
@@ -253,6 +304,26 @@ describe('token details payload', () => {
   it('keeps requesting every non-published token when the held ones are unknown', () => {
     expect(pickTokensForDetails(allTokens, { backendSlugs, maxCount: 100 }))
       .toEqual([held, abandoned, unclassifiedLp]);
+  });
+
+  it('requests a token on a slug the backend gave it, and its details reach that token alone', async () => {
+    const cache = getTokensCache();
+    // The backend gave AUSD a longer slug of its own, while a spam token holds the slug derived from the address
+    const ausdSlug = 'ethereum-0x00000000ef';
+    const ausd = makeToken(ausdSlug, 'ethereum', AUSD_ADDRESS, { symbol: 'AUSD' });
+    const spam = makeToken(AUSD_SLUG, 'ethereum', SPAM_ADDRESS, { symbol: 'POL', priceUsd: 0 });
+
+    try {
+      await updateTokens([ausd, spam]);
+      expect(pickTokensForDetails([ausd, spam], { backendSlugs, maxCount: 100 })).toEqual([ausd, spam]);
+
+      await updateTokens([], undefined, [{ slug: ausdSlug, priceUsd: 1, isPriceFromBackend: true }]);
+      expect(cache.bySlug[ausdSlug]).toMatchObject({ symbol: 'AUSD', priceUsd: 1 });
+      expect(cache.bySlug[AUSD_SLUG]).toMatchObject({ symbol: 'POL', priceUsd: 0 });
+    } finally {
+      delete cache.bySlug[ausdSlug];
+      delete cache.bySlug[AUSD_SLUG];
+    }
   });
 
   it('requests a token the backend used to publish but stopped', () => {

@@ -55,8 +55,9 @@ class AgentVM(
     private val client: AgentV2Client = LiveAgentV2Client()
 ) : WalletCore.UpdatesObserver,
     WalletCore.EventObserver {
-    private data class ClearIntent(
-        val fallbackMessages: List<AgentMessage>,
+    // A rating that settles while the clear hides the timeline updates [fallbackMessages]
+    private class ClearIntent(
+        var fallbackMessages: List<AgentMessage>,
         val fallbackScrollPosition: ScrollPosition?
     )
 
@@ -73,7 +74,7 @@ class AgentVM(
         fun onFollowupsChanged(messageId: String, animated: Boolean = false)
         fun onOutgoingMessageFailed(messageId: String)
         fun onPendingMessageActivated(messageId: String)
-        fun onActionUnavailable()
+        fun onActionUnavailable(reason: String? = null)
         fun onOpenDapp(site: MExploreSite)
         fun onError()
         fun onHintsUpdated(hints: List<AgentHint>)
@@ -128,6 +129,10 @@ class AgentVM(
     private var cancellationJob: Job? = null
     private var hostContextRecoveryJob: Job? = null
     private val problemReportJobs = mutableSetOf<Job>()
+
+    // The rating requests of each answer that have not all settled yet, by its server id: history
+    // restored after a failed clear keeps it, while presentation ids change
+    private val feedbackRequests = mutableMapOf<String, FeedbackRequests>()
     private var problemReportAvailabilityJob: Job? = null
     private var isProblemReportAvailable = false
     private var thread: AgentV2ThreadSummary? = null
@@ -348,6 +353,70 @@ class AgentVM(
         }
         problemReportJobs += job
         job.start()
+    }
+
+    /**
+     * Sets the rating of the complete answer shown as [presentationId], or withdraws it when [feedback] is null.
+     * The rating shows at once; a failed save shows the rating the server keeps again and calls [onFailure].
+     */
+    fun rateMessage(presentationId: String, feedback: AgentAnswerFeedback?, onFailure: () -> Unit) {
+        val threadId = thread?.id ?: return
+        val message = _messages.firstOrNull { it.matchesMessageId(presentationId) } ?: return
+        val messageId = message.sdkMessageId ?: return
+        if (!message.isComplete) return
+        val request = FeedbackRequest(feedback)
+        val requests = feedbackRequests.getOrPut(messageId) {
+            FeedbackRequests(latest = request, saved = message.feedback)
+        }
+        requests.latest = request
+        applyFeedback(messageId, feedback)
+        scope.launch {
+            val isSaved = try {
+                requests.saved = AgentAnswerFeedback.fromWireValue(
+                    client.setMessageFeedback(threadId, messageId, feedback?.wireValue).feedback
+                )
+                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Throwable) {
+                false
+            }
+            if (requests.latest !== request) return@launch
+            feedbackRequests.remove(messageId)
+            applyFeedback(messageId, requests.saved)
+            if (!isSaved) onFailure()
+        }
+    }
+
+    /**
+     * The rating requests of one answer: [latest] settles the rating, and the SDK sends an answer's requests in
+     * order, so it settles last. [saved] is the rating the server keeps after the requests settled so far.
+     */
+    private class FeedbackRequests(var latest: FeedbackRequest, var saved: AgentAnswerFeedback?)
+
+    private class FeedbackRequest(val feedback: AgentAnswerFeedback?)
+
+    /** History carries the rating the server keeps; a rating still being saved shows over it */
+    private fun withPendingFeedback(messages: List<AgentMessage>) = messages.map { message ->
+        val requests = message.sdkMessageId?.let(feedbackRequests::get)
+        requests?.let { message.copy(feedback = it.latest.feedback) } ?: message
+    }
+
+    /**
+     * Shows [feedback] on the answer with the server id [messageId], also in the history that a
+     * failed clear restores
+     */
+    private fun applyFeedback(messageId: String, feedback: AgentAnswerFeedback?) {
+        clearIntent?.let { intent ->
+            intent.fallbackMessages = intent.fallbackMessages.map { message ->
+                val isRated = message.sdkMessageId == messageId
+                if (isRated) message.copy(feedback = feedback) else message
+            }
+        }
+        val message = _messages.firstOrNull { it.matchesMessageId(messageId) } ?: return
+        if (message.feedback == feedback) return
+        replaceMessage(message.copy(feedback = feedback))
+        notifyDelegates { it.onStreamingUpdate(message.id) }
     }
 
     fun sendMessage(text: String, entryPoint: AgentV2EntryPoint = AgentV2EntryPoint()): Boolean {
@@ -654,7 +723,8 @@ class AgentVM(
         hydration.nextCursor?.let(seenHistoryCursors::add)
         if (clearIntent != null) return
         val hydratedMessages = nativeMessages(hydration.messages)
-        val reconciledMessages = reconcileAgentMessages(_messages, hydratedMessages)
+        val reconciledMessages =
+            withPendingFeedback(reconcileAgentMessages(_messages, hydratedMessages))
         _messages.clear()
         _messages.addAll(reconciledMessages)
         if (_messages.isEmpty()) scrollPosition = ScrollPosition(ScrollAnchor.Bottom)
@@ -1041,6 +1111,15 @@ class AgentVM(
                     return
                 }
                 finishMessageContent(update.messageId)
+                // An answer the agent finished without a client tool is still stored as complete
+                if (update.finishReason == "complete" ||
+                    update.finishReason == "tool_unavailable"
+                ) {
+                    val message = updateMessage(update.messageId) { it.copy(isComplete = true) }
+                    message?.let {
+                        notifyDelegates { delegate -> delegate.onStreamingUpdate(it.id) }
+                    }
+                }
             }
 
             is AgentV2Update.FollowupsAvailable -> {
@@ -1283,6 +1362,10 @@ class AgentVM(
             if (site != null) delegate.onOpenDapp(site) else notifyActionUnavailable()
             return
         }
+        if (action is AgentV2ResolvedAction.Inactive) {
+            notifyActionUnavailable(action.reason)
+            return
+        }
         if (action is AgentV2ResolvedAction.OpenSwap &&
             listOfNotNull(action.tokenInSlug, action.tokenOutSlug).any {
                 TokenStore.swapAssetsMap?.containsKey(it) != true
@@ -1319,17 +1402,17 @@ class AgentVM(
             return false
         }
         applyCanonicalHistoryPosition(history.thread)
-        val reconciledMessages = if (run.editedMessage != null ||
-            run.regenerationTargetId != null
-        ) {
-            val existingBySdkId = _messages.associateBy { it.sdkMessageId ?: it.id }
-            history.messages.map { message ->
-                val existing = existingBySdkId[message.sdkMessageId ?: message.id]
-                message.copy(id = existing?.id ?: message.id)
-            } + pendingMessages.map { it.message }
-        } else {
-            reconcileAgentMessages(_messages, history.messages)
-        }
+        val reconciledMessages = withPendingFeedback(
+            if (run.editedMessage != null || run.regenerationTargetId != null) {
+                val existingBySdkId = _messages.associateBy { it.sdkMessageId ?: it.id }
+                history.messages.map { message ->
+                    val existing = existingBySdkId[message.sdkMessageId ?: message.id]
+                    message.copy(id = existing?.id ?: message.id)
+                } + pendingMessages.map { it.message }
+            } else {
+                reconcileAgentMessages(_messages, history.messages)
+            }
+        )
         if (clearIntent == null && reconciledMessages != _messages) {
             _messages.clear()
             _messages.addAll(reconciledMessages)
@@ -1368,7 +1451,7 @@ class AgentVM(
 
     private fun restoreClearPresentation(intent: ClearIntent, messages: List<AgentMessage>) {
         _messages.clear()
-        _messages.addAll(messages)
+        _messages.addAll(withPendingFeedback(messages))
         scrollPosition = intent.fallbackScrollPosition
         clearIntent = null
         notifyLoaded()
@@ -1585,8 +1668,8 @@ class AgentVM(
         notifyDelegates { it.onError() }
     }
 
-    private fun notifyActionUnavailable() {
-        notifyDelegates { it.onActionUnavailable() }
+    private fun notifyActionUnavailable(reason: String? = null) {
+        notifyDelegates { it.onActionUnavailable(reason) }
     }
 
     private fun notifySessionIdle() {

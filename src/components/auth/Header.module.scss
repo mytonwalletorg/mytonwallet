@@ -79,6 +79,35 @@ $transformTransition: transform 200ms ease-out;
   @include mixins.rtl-mirror();
 }
 
+.actionButton {
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  inset-inline-end: 1rem;
+  transform: translateY(-100%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.5rem;
+  height: 3rem;
+
+  font-size: 1.5rem;
+  color: var(--color-accent);
+
+  visibility: hidden;
+  opacity: 0;
+
+  @include mixins.transition("#{$transformTransition}, opacity 200ms, visibility 200ms");
+
+  &Visible {
+    transform: translateY(0);
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
 .title {
   position: relative;
   z-index: 1;

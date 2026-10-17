@@ -76,6 +76,7 @@ const tonSdk: ChainSdk<'ton'> = {
   submitGaslessTransfer,
   buildOnchainSwapTransfer,
   submitOnchainSwapTransfer,
+  resolveSwapNeedsBatch: () => false,
   getAddressInfo: checkToAddress,
   getWalletBalance,
   getWalletAssets: fetchBalances,

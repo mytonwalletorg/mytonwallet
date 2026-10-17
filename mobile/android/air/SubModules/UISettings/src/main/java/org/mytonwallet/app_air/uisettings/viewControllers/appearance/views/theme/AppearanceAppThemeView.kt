@@ -9,6 +9,7 @@ import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.WView
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
+import org.mytonwallet.app_air.uisettings.R
 import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 import org.mytonwallet.app_air.walletbasecontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletbasecontext.theme.ViewConstants
@@ -37,15 +38,15 @@ class AppearanceAppThemeView(context: Context) :
     private val systemView = AppearanceAppThemeItemView(
         context,
         ThemeManager.THEME_SYSTEM
-    )
+    ).apply { id = R.id.appearance_theme_system }
     private val lightView = AppearanceAppThemeItemView(
         context,
         ThemeManager.THEME_LIGHT
-    )
+    ).apply { id = R.id.appearance_theme_light }
     private val darkView = AppearanceAppThemeItemView(
         context,
         ThemeManager.THEME_DARK
-    )
+    ).apply { id = R.id.appearance_theme_dark }
 
     private val themeView: WView by lazy {
         val v = WView(context)

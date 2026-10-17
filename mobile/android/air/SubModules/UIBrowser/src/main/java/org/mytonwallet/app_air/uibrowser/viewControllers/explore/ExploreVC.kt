@@ -165,6 +165,7 @@ class ExploreVC(context: Context) :
         navigationBar?.setTitleGravity(Gravity.START)
         updateTopOverlay(animated = false)
 
+        recyclerView.id = R.id.explore_list
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         view.setConstraints {
             allEdges(recyclerView)

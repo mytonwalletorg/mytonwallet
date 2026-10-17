@@ -73,6 +73,7 @@ final class TokenSendComposeViewController:
     private func setupContinueButton() {
         let button = addBottomButton(bottomConstraint: false)
         continueButton = button
+        button.accessibilityIdentifier = "send_continue"
         continueButtonPresenter = DraftButtonPresenter(button: button)
         button.setTitle(lang("Continue"), for: .normal)
         button.isEnabled = false

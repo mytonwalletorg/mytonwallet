@@ -9,6 +9,7 @@ import android.text.InputFilter
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -25,12 +26,14 @@ import androidx.core.view.doOnNextLayout
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.core.view.setPadding
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.lang.ref.WeakReference
 import java.util.Date
 import org.mytonwallet.app_air.uiagent.agentV2.AgentTextLinks
+import org.mytonwallet.app_air.uiagent.agentV2.agentActionUnavailableText
 import org.mytonwallet.app_air.uiagent.agentV2.agentUnavailableText
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.cells.AgentDateHeaderCell
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.cells.AgentHintsCell
@@ -471,12 +474,26 @@ class AgentVC(
             systemBarEndInset,
             0
         )
+        consentView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            val start = additionalTabletPadding + systemBarStartInset
+            leftMargin = if (LocaleController.isRTL) systemBarEndInset else start
+            rightMargin = if (LocaleController.isRTL) start else systemBarEndInset
+        }
         consentView.updateInsets(chatTopPadding(), viewport.currentBottom)
         topReversedCornerView?.setSideInsets(
             systemBarStartInset.toFloat(),
             systemBarEndInset.toFloat()
         )
         updateLayout()
+        updateBlurViews(chatRecyclerView)
+    }
+
+    override fun updateBlurViews(recyclerView: RecyclerView) {
+        if (window?.isWideLayout == true) {
+            topReversedCornerView?.setBlurAlpha(1f)
+            return
+        }
+        super.updateBlurViews(recyclerView)
     }
 
     private fun syncTopBlurAfterLayout() {
@@ -1543,12 +1560,8 @@ class AgentVC(
         }
     }
 
-    override fun onActionUnavailable() {
-        Toast.makeText(
-            context,
-            LocaleController.getString("This action is no longer available."),
-            Toast.LENGTH_SHORT
-        ).show()
+    override fun onActionUnavailable(reason: String?) {
+        Toast.makeText(context, agentActionUnavailableText(reason), Toast.LENGTH_SHORT).show()
     }
 
     override fun onOpenDapp(site: MExploreSite) {
@@ -1759,6 +1772,15 @@ class AgentVC(
                         cell.canEditMessage = { vm.canEditMessage(messageId) }
                         cell.canRegenerateMessage = { vm.canRegenerateMessage(messageId) }
                         cell.onRegenerate = { regenerateMessage(messageId) }
+                        cell.onRate = { feedback ->
+                            vm.rateMessage(messageId, feedback) {
+                                Toast.makeText(
+                                    context,
+                                    LocaleController.getString("\$agent_feedback_failed"),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
                         cell.onEdit = {
                             if (vm.canEditMessage(messageId)) {
                                 composerView.setDraftText(item.message.text)

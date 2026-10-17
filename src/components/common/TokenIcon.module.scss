@@ -38,26 +38,15 @@
   }
 }
 
-.withChainIcon .icon {
+.withChainIcon {
   // The badge center, measured inward from the icon's end and bottom edges
   --chain-icon-inset: calc(var(--chain-icon-size) / 2 - var(--chain-icon-overhang));
-  --chain-icon-cutout: calc(var(--chain-icon-size) / 2 + var(--chain-icon-gap));
 
-  mask-image: radial-gradient(
-    circle at calc(100% - var(--chain-icon-inset)) calc(100% - var(--chain-icon-inset)),
-    transparent var(--chain-icon-cutout),
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    #000 calc(var(--chain-icon-cutout) + 0.03125rem)
+  @include mixins.badgeCutout(
+    calc(100% - var(--chain-icon-inset)),
+    calc(100% - var(--chain-icon-inset)),
+    calc(var(--chain-icon-size) / 2 + var(--chain-icon-gap))
   );
-
-  :global(html[dir="rtl"]) & {
-    mask-image: radial-gradient(
-      circle at var(--chain-icon-inset) calc(100% - var(--chain-icon-inset)),
-      transparent var(--chain-icon-cutout),
-      /* stylelint-disable-next-line plugin/whole-pixel */
-      #000 calc(var(--chain-icon-cutout) + 0.03125rem)
-    );
-  }
 }
 
 .icon {

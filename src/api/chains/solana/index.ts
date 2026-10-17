@@ -56,6 +56,7 @@ const solanaSdk: ChainSdk<'solana'> = {
   submitGaslessTransfer,
   buildOnchainSwapTransfer,
   submitOnchainSwapTransfer,
+  resolveSwapNeedsBatch: () => false,
   getAddressInfo,
   getWalletBalance,
   getWalletAssets: fetchAccountAssets,

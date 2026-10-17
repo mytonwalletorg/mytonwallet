@@ -53,7 +53,7 @@ enum UniversalSearchAppEntries {
     static let all: [UniversalSearchAppEntry] = [
         action(.fund, title: "Fund", icon: "DepositIconLarge", aliases: ["Receive", "Add Crypto"], keywords: ["deposit"]),
         action(.send, title: "Send", icon: "SendIconLarge", keywords: ["transfer"]),
-        action(.swap, title: "Swap", icon: "SearchSwapIcon", aliases: ["Trade"], keywords: ["exchange", "convert"]),
+        action(.swap, title: "Trade", icon: "SearchSwapIcon", aliases: ["Swap"], keywords: ["exchange", "convert"]),
         action(.earn, title: "Earn", icon: "EarnIconLarge", aliases: ["Stake"], keywords: ["staking"]),
         action(.buyWithCard, title: "Buy with Card", icon: "BuyIconLarge", aliases: ["Buy"]),
         action(.sell, title: "Sell", icon: "SellIconLarge"),

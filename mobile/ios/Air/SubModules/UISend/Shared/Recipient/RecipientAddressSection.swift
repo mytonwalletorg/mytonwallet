@@ -11,13 +11,14 @@ struct RecipientAddressSection: View {
     var model: SendRecipientModel
     var validationState: SendRecipientValidationState? = nil
     var onPasteAction: (() -> Bool)? = nil
+    var addressIdentifier: String? = nil
     
     var body: some View {
         @Perception.Bindable var model = model
         WithPerceptionTracking {
             InsetSection {
                 InsetCell {
-                    Cell(model: model, onPasteAction: onPasteAction)
+                    Cell(model: model, onPasteAction: onPasteAction, addressIdentifier: addressIdentifier)
                 }
                 .contentShape(.rect)
                 .onTapGesture {
@@ -61,6 +62,7 @@ private struct Cell: View {
     
     var model: SendRecipientModel
     var onPasteAction: (() -> Bool)?
+    var addressIdentifier: String?
     
     var body: some View {
         WithPerceptionTracking {
@@ -72,6 +74,7 @@ private struct Cell: View {
                     onNext: onSubmit,
                     onPaste: onFieldPaste
                 )
+                .accessibilityIdentifier(ifPresent: addressIdentifier)
                 .offset(y: 1)
                 .background(alignment: .leading) {
                     if model.isEmpty {

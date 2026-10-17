@@ -3,7 +3,7 @@ import type { ApiInitArgs, OnApiUpdate } from '../types';
 import { initWindowConnector } from '../../util/windowProvider/connector';
 import { fetchBackendReferrer } from '../common/backend';
 import { connectUpdater, disconnectUpdater, isUpdaterAlive, tryMigrateStorage } from '../common/helpers';
-import { initClientId } from '../common/other';
+import { initClientId, isWebFunnelClient } from '../common/other';
 import { getProtocolManager, initProtocolManager } from '../dappProtocols';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
@@ -11,7 +11,9 @@ import { configureStorage, createStorage, withStorage } from '../storages';
 import { destroyAgentV2IfEnabled, initAgentV2IfEnabled } from './agentV2Lifecycle';
 import { claimInstallAttribution } from './attribution';
 import { initMfa, initStaking, initSwap } from './extra';
+import { reportInstallMetadata } from './installMetadata';
 import { destroyPolling } from './polling';
+import { startWebFirstLaunchReporting, stopWebFirstLaunchReporting } from './webFunnel';
 import * as methods from '.';
 
 export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
@@ -28,7 +30,7 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   }
 
   await withStorage(runtimeStorage, async () => {
-    await initClientId();
+    await initClientId(args);
     await tryMigrateStorage(onUpdate, args.accountIds);
   });
 
@@ -63,11 +65,16 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     onDappsChanged: protocolManager.resetupRemoteConnection.bind(protocolManager),
   });
 
+  if (isWebFunnelClient(args, runtimeStorage)) {
+    void startWebFirstLaunchReporting(runtimeStorage, () => isUpdaterAlive(onUpdate));
+  }
   void saveReferrer(args, runtimeStorage);
   void claimInstallAttribution(args, runtimeStorage);
+  if (environment.isAndroidApp) void reportInstallMetadata(runtimeStorage);
 }
 
 export function destroy() {
+  stopWebFirstLaunchReporting();
   void destroyPolling();
   if (process.env.NO_EXTRA_FEATURES !== '1') {
     void destroyAgentV2IfEnabled();

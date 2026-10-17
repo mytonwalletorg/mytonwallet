@@ -131,6 +131,7 @@ function TransactionModal({
 
   const {
     id,
+    traceId,
     isIncoming,
     slug,
     shouldLoadDetails,
@@ -171,7 +172,7 @@ function TransactionModal({
   const transactionUrl = chain
     ? getExplorerTransactionUrl(
       chain,
-      transactionHash,
+      { hash: transactionHash, traceId },
       isTestnet,
       selectedExplorerIds?.[chain],
     )

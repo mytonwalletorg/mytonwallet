@@ -23,7 +23,8 @@
     "stylelint-high-performance-animation",
     "stylelint-group-selectors",
     "@stylistic/stylelint-plugin",
-    "@mytonwallet/stylelint-whole-pixel"
+    "@mytonwallet/stylelint-whole-pixel",
+    "./dev/layoutAnimationPlugin.mjs"
   ],
   "rules": {
     "@stylistic/max-empty-lines": 1,
@@ -47,6 +48,7 @@
         "ignore": "paint-properties"
       }
     ],
+    "plugin/no-layout-animation-properties": true,
     "plugin/stylelint-group-selectors": [
       true,
       {

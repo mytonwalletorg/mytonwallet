@@ -1,4 +1,5 @@
 import { DEFAULT_PRICE_CURRENCY, IS_AIR_APP, IS_EXTENSION, IS_GRAM_WALLET } from '../../../config';
+import { captureBrowserWebFunnel, setupWebFunnelRetry } from '../../../util/captureWebFunnel';
 import { captureBrowserAttribution } from '../../../util/installAttribution';
 import { mapValues } from '../../../util/iteratees';
 import { logDebug } from '../../../util/logs';
@@ -24,6 +25,7 @@ addActionHandler('initApi', async (global, actions) => {
       ? captureBrowserAttribution()
       : { channel: new URLSearchParams(window.location.search).get('utm_source') ?? undefined }),
     accountIds,
+    webFunnel: await captureBrowserWebFunnel(accountIds.length > 0),
   }, () => {
     const currentGlobal = getGlobal();
     const accountId = selectCurrentAccountId(currentGlobal);
@@ -37,6 +39,10 @@ addActionHandler('initApi', async (global, actions) => {
       } : undefined,
       isLegacyCoreMigrationCompleted: currentGlobal.isLegacyCoreMigrationCompleted,
     };
+  });
+
+  setupWebFunnelRetry(() => {
+    void callApi('retryWebFirstLaunch');
   });
 
   // The repair clears broken auth tokens, the detection below flags accounts missing one.

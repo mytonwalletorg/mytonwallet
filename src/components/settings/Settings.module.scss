@@ -366,8 +366,6 @@ $createSubwalletPaddingBottom: 1rem;
 .chainRow {
   --separator-inline-start-offset: 4rem;
 
-  @include mixins.transition("top 200ms");
-
   @include mixins.separatorList(var(--separator-inline-start-offset));
 
   &_draggable {
@@ -391,7 +389,7 @@ $createSubwalletPaddingBottom: 1rem;
   padding-inline: 1rem 0.75rem;
   border-radius: 0 !important;
 
-  @include mixins.transition("padding-inline-start 200ms, opacity 200ms");
+  @include mixins.transition("opacity 200ms");
 
   .chainRow_draggable & {
     padding-inline-start: 3rem;
@@ -995,6 +993,9 @@ a.item:hover {
 }
 
 .passwordFormWithHeaderOffset {
+  width: 100%;
+  max-width: 35rem;
+  margin: 0 auto;
   padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom) + 1.5rem);
 
   @include mixins.respond-below(xs) {

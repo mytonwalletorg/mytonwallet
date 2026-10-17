@@ -1,6 +1,7 @@
 import { Contract, isError } from 'ethers';
 
 import type { QueryParams } from '../../../util/fetch';
+import type { FetchedToken } from '../../common/tokens';
 import type {
   ApiAddressInfo, ApiBalanceBySlug, ApiNetwork, ApiTokenWithMaybePrice, EVMChain, StampedBalances,
 } from '../../types';
@@ -24,7 +25,7 @@ import { getZerionFungibleImplementation, isZerionNativeFungible } from './util/
 import { untrackableRegistry } from './util/untrackable';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { getIsNegVerdictCacheEnabled } from '../../common/cache';
-import { buildTokenSlug, updateTokens, waitForTokenSlugResolver } from '../../common/tokens';
+import { buildTokenSlug, updateTokensFetchedTogether } from '../../common/tokens';
 import { ApiServerError } from '../../errors';
 import { isValidAddress } from './address';
 import { EVM_RPC_URLS, getApiChainByZerionChain, getEvmApiUrl, getZerionChainByApiChain } from './constants';
@@ -258,9 +259,9 @@ async function fetchAccountAssetsUncoalesced(
   }
   throwIfAborted(signal);
 
-  const resolveTokenSlugs = await waitForTokenSlugResolver(signal);
-  const tokenEntities: ApiTokenWithMaybePrice[] = [];
+  const tokenEntities: FetchedToken[] = [];
   const slugPairs: Record<string, bigint> = {};
+  const nativeBalances: Record<string, bigint> = {};
 
   const positions = response.data
     .filter((e) =>
@@ -283,21 +284,16 @@ async function fetchAccountAssetsUncoalesced(
 
       return address ? [{ e, assetChain, address, decimals: assetImplementation.decimals }] : [];
     });
-  const slugs = resolveTokenSlugs(positions.map(({ assetChain, address }) => ({ chain: assetChain, address })));
 
-  positions.forEach(({ e, assetChain, address, decimals }, i) => {
-    const slug = slugs[i];
+  positions.forEach(({ e, assetChain, address, decimals }) => {
     // An explicit zero clears quotes cached before the token was marked as trash.
     const priceUsd = e.attributes.flags.is_trash ? 0 : e.attributes.price;
-
-    slugPairs[slug] = BigInt(e.attributes.quantity.int ?? 0);
 
     tokenEntities.push({
       priceUsd: typeof priceUsd === 'number' ? priceUsd : undefined,
       percentChange24h: undefined,
       name: e.attributes.fungible_info.name,
       symbol: e.attributes.fungible_info.symbol,
-      slug,
       decimals,
       chain: assetChain,
       image: e.attributes.fungible_info.icon?.url,
@@ -318,7 +314,7 @@ async function fetchAccountAssetsUncoalesced(
 
     const nativeSlug = getChainConfig(balanceChain).nativeToken.slug;
 
-    slugPairs[nativeSlug] = BigInt(nativeAsset?.attributes.quantity.int ?? 0);
+    nativeBalances[nativeSlug] = BigInt(nativeAsset?.attributes.quantity.int ?? 0);
 
     tokenEntities.push({
       priceUsd: typeof nativeAsset?.attributes.price === 'number'
@@ -329,9 +325,16 @@ async function fetchAccountAssetsUncoalesced(
     });
   }
 
-  await updateTokens(tokenEntities, sendUpdateTokens, [], true);
+  const tokens = await updateTokensFetchedTogether(tokenEntities, {
+    signal,
+    sendUpdate: sendUpdateTokens,
+    shouldSendUpdate: true,
+  });
+  positions.forEach(({ e }, i) => {
+    slugPairs[tokens[i].slug] = BigInt(e.attributes.quantity.int ?? 0);
+  });
 
-  return { balances: slugPairs, asOf };
+  return { balances: { ...slugPairs, ...nativeBalances }, asOf };
 }
 
 // An untrackable address genuinely has no positions; return the same converged-empty shape a

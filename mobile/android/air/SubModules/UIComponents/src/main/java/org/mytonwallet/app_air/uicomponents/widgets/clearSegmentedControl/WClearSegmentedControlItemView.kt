@@ -85,10 +85,13 @@ open class WClearSegmentedControlItemView(context: Context) :
 
     private var trailingButton: TrailingButton = Arrow
 
+    private val defaultViewId: Int
+
     init {
         if (id == NO_ID) {
             id = generateViewId()
         }
+        defaultViewId = id
 
         textView = WLabel(context).apply {
             layoutParams = LayoutParams(
@@ -144,6 +147,12 @@ open class WClearSegmentedControlItemView(context: Context) :
         addView(badgeView)
         addView(trailingImageView)
 
+        constrainChildren()
+
+        updateTheme()
+    }
+
+    private fun constrainChildren() {
         setConstraints {
             toCenterX(textView)
             toEnd(badgeView)
@@ -151,8 +160,6 @@ open class WClearSegmentedControlItemView(context: Context) :
             toEnd(trailingImageView, 8f)
             toCenterY(trailingImageView)
         }
-
-        updateTheme()
     }
 
     var onRemove: (() -> Unit)? = null
@@ -169,6 +176,12 @@ open class WClearSegmentedControlItemView(context: Context) :
     ) {
         this.arrowVisibility = item.arrowVisibility
         this.item = item
+        // Item views are recycled, and children are anchored to the current id
+        val viewId = item.testViewId ?: defaultViewId
+        if (id != viewId) {
+            id = viewId
+            constrainChildren()
+        }
         textView.alpha = if (shouldRenderThumb) 1f else 0f
         textView.text = item.title
         this.onRemove = onRemove

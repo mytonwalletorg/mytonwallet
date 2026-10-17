@@ -26,6 +26,8 @@ public struct TokenAmountEntrySection: View {
     @Binding public var isFocused: Bool
     public var onTokenSelect: (() -> ())?
     public var onUseAll: () -> ()
+    public var amountIdentifier: String?
+    public var tokenPickerIdentifier: String?
     
     public init(
         amount: Binding<BigInt?>,
@@ -41,7 +43,9 @@ public struct TokenAmountEntrySection: View {
         explainedFee: ExplainedTransferFee?,
         isFocused: Binding<Bool>,
         onTokenSelect: (() -> Void)?,
-        onUseAll: @escaping () -> Void
+        onUseAll: @escaping () -> Void,
+        amountIdentifier: String? = nil,
+        tokenPickerIdentifier: String? = nil
     ) {
         self._amount = amount
         self.token = token
@@ -57,6 +61,8 @@ public struct TokenAmountEntrySection: View {
         self._isFocused = isFocused
         self.onTokenSelect = onTokenSelect
         self.onUseAll = onUseAll
+        self.amountIdentifier = amountIdentifier
+        self.tokenPickerIdentifier = tokenPickerIdentifier
     }
 
     public init(
@@ -79,7 +85,9 @@ public struct TokenAmountEntrySection: View {
         explainedFee: ExplainedTransferFee?,
         isFocused: Binding<Bool>,
         onTokenSelect: (() -> Void)?,
-        onUseAll: @escaping () -> Void
+        onUseAll: @escaping () -> Void,
+        amountIdentifier: String? = nil,
+        tokenPickerIdentifier: String? = nil
     ) {
         self.init(
             amount: Binding(
@@ -117,7 +125,9 @@ public struct TokenAmountEntrySection: View {
             explainedFee: explainedFee,
             isFocused: isFocused,
             onTokenSelect: onTokenSelect,
-            onUseAll: onUseAll
+            onUseAll: onUseAll,
+            amountIdentifier: amountIdentifier,
+            tokenPickerIdentifier: tokenPickerIdentifier
         )
     }
     
@@ -135,7 +145,9 @@ public struct TokenAmountEntrySection: View {
                             isFocused = false
                             onTokenSelect()
                         }
-                    }
+                    },
+                    amountIdentifier: amountIdentifier,
+                    tokenPickerIdentifier: tokenPickerIdentifier
                 )
             }
             .contentShape(.rect)
@@ -253,6 +265,8 @@ public struct TokenAmountEntry: View {
     public var isInputEnabled: Bool
     public var onInputTapped: (() -> ())?
     public var onAmountChanged: ((BigInt?) -> ())?
+    public var amountIdentifier: String?
+    public var tokenPickerIdentifier: String?
     
     public init(
         amount: Binding<BigInt?>,
@@ -265,7 +279,9 @@ public struct TokenAmountEntry: View {
         onTokenPickerTapped: (() -> ())?,
         isInputEnabled: Bool = true,
         onInputTapped: (() -> ())? = nil,
-        onAmountChanged: ((BigInt?) -> ())? = nil
+        onAmountChanged: ((BigInt?) -> ())? = nil,
+        amountIdentifier: String? = nil,
+        tokenPickerIdentifier: String? = nil
     ) {
         self._amount = amount
         self.token = token
@@ -278,6 +294,8 @@ public struct TokenAmountEntry: View {
         self.isInputEnabled = isInputEnabled
         self.onInputTapped = onInputTapped
         self.onAmountChanged = onAmountChanged
+        self.amountIdentifier = amountIdentifier
+        self.tokenPickerIdentifier = tokenPickerIdentifier
     }
 
     private var decimals: Int? {
@@ -342,10 +360,12 @@ public struct TokenAmountEntry: View {
             .frame(height: style == .large ? 42 : nil)
             .id(inBaseCurrency)
             .allowsHitTesting(isInputEnabled)
+            .accessibilityIdentifier(ifPresent: amountIdentifier)
         } else {
             Text(" ")
                 .textStyle(.amount, content: .technical)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier(ifPresent: amountIdentifier)
         }
     }
     
@@ -358,5 +378,6 @@ public struct TokenAmountEntry: View {
         )
         .offset(x: style == .large ? 0 : 8)
         .padding(.vertical, style == .large ? 0 : -1)
+        .accessibilityIdentifier(ifPresent: tokenPickerIdentifier)
     }
 }

@@ -8,9 +8,11 @@ import { callApi } from '../../api';
 
 import useFlag from '../../hooks/useFlag';
 import useKeyboardListNavigation from '../../hooks/useKeyboardListNavigation';
+import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useSuggestionsPosition from '../ui/hooks/useSuggestionsPosition';
 
+import Button from '../ui/Button';
 import SuggestionList, { SUGGESTION_ITEM_CLASS_NAME } from '../ui/SuggestionList';
 
 import styles from './InputMnemonic.module.scss';
@@ -28,9 +30,12 @@ type OwnProps = {
 
 const SUGGESTION_WORDS_COUNT = 5;
 
+let wordlistPromise: Promise<string[] | undefined> | undefined;
+
 function InputMnemonic({
   id, nextId, labelText, className, value = '', inputArg, onInput, onEnter,
 }: OwnProps) {
+  const lang = useLang();
   const wrapperRef = useRef<HTMLDivElement>();
 
   const [hasFocus, markFocus, unmarkFocus] = useFlag();
@@ -41,7 +46,7 @@ function InputMnemonic({
   const shouldRenderSuggestions = Boolean(areSuggestionsShown && value && filteredSuggestions.length > 0);
 
   useEffect(() => {
-    void callApi('getMnemonicWordList').then((words) => setWordlist(words ?? []));
+    void fetchWordlist().then((words) => setWordlist(words ?? []));
   }, []);
 
   const handleSelectWithEnter = useLastCallback((index: number) => {
@@ -160,10 +165,16 @@ function InputMnemonic({
     }
   });
 
+  const handleClear = useLastCallback(() => {
+    processSuggestions('');
+  });
+
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     processSuggestions(e.target.value);
     markFocus();
   };
+
+  const shouldRenderClearButton = hasFocus && value !== '';
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     // Remove focus from the input element to ensure correct blur handling, especially when triggered by window switching
@@ -182,7 +193,6 @@ function InputMnemonic({
       className={buildClassName(
         styles.wrapper,
         className,
-        hasFocus && styles.wrapper_focus,
         hasError && styles.wrapper_error,
       )}
     >
@@ -196,10 +206,14 @@ function InputMnemonic({
           onSelect={handleClick}
         />
       )}
-      <label className={styles.label} htmlFor={id}>{labelText}.</label>
+      <label className={styles.label} htmlFor={id}>{labelText}</label>
       <input
         id={id}
-        className={buildClassName(styles.input, value !== '' && styles.touched)}
+        className={buildClassName(
+          styles.input,
+          value !== '' && styles.touched,
+          shouldRenderClearButton && styles.input_withClearButton,
+        )}
         type="text"
         autoCapitalize="none"
         autoComplete="off"
@@ -214,8 +228,36 @@ function InputMnemonic({
         tabIndex={0}
         data-focus-scroll-position={suggestionsPosition === 'top' ? 'end' : 'start'}
       />
+      {shouldRenderClearButton && (
+        <Button
+          isSimple
+          className={styles.clearButton}
+          ariaLabel={lang('Clear')}
+          tabIndex={-1}
+          onMouseDown={preventFocusLoss}
+          onClick={handleClear}
+        >
+          <i className="icon-close-filled" aria-hidden />
+        </Button>
+      )}
     </div>
   );
+}
+
+// Keeps the focus in the input on press, otherwise the button hides before the click
+function preventFocusLoss(e: React.MouseEvent) {
+  e.preventDefault();
+}
+
+// One request for all inputs instead of a 2048-word copy for each
+function fetchWordlist() {
+  wordlistPromise ??= callApi('getMnemonicWordList').then((words) => {
+    // On failure the request is forgotten, so the next input tries again
+    if (!words) wordlistPromise = undefined;
+    return words;
+  });
+
+  return wordlistPromise;
 }
 
 function isCorrectMnemonic(mnemonic: string, wordlist: string[]) {

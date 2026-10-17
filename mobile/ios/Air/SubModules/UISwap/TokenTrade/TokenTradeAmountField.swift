@@ -152,6 +152,7 @@ final class TokenTradeTextField: UITextField, UITextFieldDelegate {
             (offset(from: beginningOfDocument, to: $0.start), offset(from: beginningOfDocument, to: $0.end))
         }
         let secondary: UIColor = hasAmount ? .air.secondaryLabel : .tertiaryLabel
+        let numberColor: UIColor = hasAmount ? .label : secondary
         let number = amountInput.text.replacingOccurrences(of: ".", with: separator)
         let visibleNumber = number.isEmpty ? "0" : number
 
@@ -159,10 +160,10 @@ final class TokenTradeTextField: UITextField, UITextFieldDelegate {
             [.font: UIFont.roundedNative(ofSize: size * scale, weight: .bold), .foregroundColor: color, .kern: -0.4 * scale]
         }
         func styledNumber(scale: CGFloat) -> NSAttributedString {
-            let value = NSMutableAttributedString(string: visibleNumber, attributes: attributes(72, hasAmount ? .label : secondary, scale: scale))
+            let value = NSMutableAttributedString(string: visibleNumber, attributes: attributes(72, numberColor, scale: scale))
             if let range = visibleNumber.range(of: separator) {
                 let fraction = NSRange(range.lowerBound..<visibleNumber.endIndex, in: visibleNumber)
-                value.addAttributes(attributes(56, secondary, scale: scale), range: fraction)
+                value.addAttributes(attributes(56, numberColor, scale: scale), range: fraction)
             }
             return value
         }

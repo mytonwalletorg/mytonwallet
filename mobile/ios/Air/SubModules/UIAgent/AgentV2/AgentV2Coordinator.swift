@@ -65,6 +65,27 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
         case standalone
     }
 
+    private final class FeedbackRequest {
+        let feedback: ApiAgentV2AnswerFeedback?
+
+        init(feedback: ApiAgentV2AnswerFeedback?) {
+            self.feedback = feedback
+        }
+    }
+
+    /// The rating requests of one answer that have not all settled yet
+    private final class FeedbackRequests {
+        /// Settles the rating; the SDK sends an answer's requests in order, so it settles last
+        var latest: FeedbackRequest
+        /// The rating the server keeps after the requests settled so far
+        var saved: ApiAgentV2AnswerFeedback?
+
+        init(latest: FeedbackRequest, saved: ApiAgentV2AnswerFeedback?) {
+            self.latest = latest
+            self.saved = saved
+        }
+    }
+
     let client: AgentV2Client
     private(set) var thread: ApiAgentV2ThreadSummary?
     var messages: [AgentV2NativeMessage] { conversation.messages }
@@ -138,6 +159,7 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
     private var isInBackground = false
     private var isChatActive = false
     private var chatActivityTask: Task<Void, Never>?
+    private var feedbackRequestsByMessageId: [String: FeedbackRequests] = [:]
     private let hostContextProvider: AgentV2HostContextProvider
     private let initialHostContextRetryDelay: Duration
 
@@ -344,6 +366,40 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
         }
     }
 
+    /// Sets the rating of the complete answer `messageId`, or withdraws it with `nil`. The rating shows at once, and
+    /// only the latest request of the answer settles it. Returns `false` when saving failed and the rating the server
+    /// keeps shows again.
+    func setFeedback(messageId: String, feedback: ApiAgentV2AnswerFeedback?) async -> Bool {
+        guard !isStopped,
+              let threadId = thread?.id,
+              let message = messages.first(where: { $0.id == messageId }),
+              message.isStoredAsComplete else { return false }
+        let request = FeedbackRequest(feedback: feedback)
+        let requests = feedbackRequestsByMessageId[messageId] ?? FeedbackRequests(latest: request, saved: message.feedback)
+        requests.latest = request
+        feedbackRequestsByMessageId[messageId] = requests
+        conversation.setFeedback(id: messageId, feedback: feedback)
+        notifyObservers(.messageUpdated(id: messageId))
+
+        let didSave: Bool
+        do {
+            requests.saved = try await client.setMessageFeedback(
+                threadId: threadId,
+                messageId: messageId,
+                feedback: feedback
+            )
+            didSave = true
+        } catch {
+            log.error("answer feedback failed error=\(agentFailureSummary(error), .public)")
+            didSave = false
+        }
+        guard requests.latest === request else { return true }
+        feedbackRequestsByMessageId.removeValue(forKey: messageId)
+        conversation.setFeedback(id: messageId, feedback: requests.saved)
+        notifyObservers(.messageUpdated(id: messageId))
+        return didSave
+    }
+
     func hydrate(preservingLiveActions: Bool = false) async {
         guard !Task.isCancelled, !isStopped, let threadId = thread?.id else { return }
         hydrationGeneration += 1
@@ -367,6 +423,7 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
                 hydratedMessages,
                 preservingLiveActions: preservingLiveActions
             )
+            applyPendingFeedback()
             nextMessageCursor = page.nextCursor
             hasHydratedMessages = true
             if limitRetry == nil {
@@ -396,6 +453,7 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
         guard (try? bindThread(page.thread, notify: false)) != nil else { return false }
         let hydratedMessages = page.messages.map(hydratedMessage)
         conversation.prependMessages(hydratedMessages)
+        applyPendingFeedback()
         nextMessageCursor = page.nextCursor
         refreshActionPresentations(in: hydratedMessages, threadId: threadId)
         AgentSearchProvider.shared.notifyConversationChanged()
@@ -681,10 +739,10 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
             runActivity = nil
             conversation.endMessageContent(id: messageId)
             change = .messageUpdated(id: messageId)
-        case .messageCompleted(let bound, let messageId, _):
+        case .messageCompleted(let bound, let messageId, let finishReason):
             guard acceptPayloadUpdate(bound) else { return }
             runActivity = nil
-            conversation.completeMessage(id: messageId)
+            conversation.completeMessage(id: messageId, finishReason: finishReason)
             change = .messageUpdated(id: messageId)
         case .actionAvailable(let bound, let messageId, let action):
             guard acceptPayloadUpdate(bound) else { return }
@@ -821,6 +879,13 @@ final class AgentV2Coordinator: WalletCoreData.EventsObserver, @unchecked Sendab
 
     private func hydratedMessage(_ persisted: ApiAgentV2PersistedMessage) -> AgentV2NativeMessage {
         AgentV2NativeMessage(persisted: persisted)
+    }
+
+    /// Keeps a rating still being saved over the stored one a history page brings
+    private func applyPendingFeedback() {
+        for (messageId, requests) in feedbackRequestsByMessageId {
+            conversation.setFeedback(id: messageId, feedback: requests.latest.feedback)
+        }
     }
 
     private func handleAuthorityContextInvalidation() {

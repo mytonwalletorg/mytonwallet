@@ -11,6 +11,7 @@ import WalletContext
 
 private let additionalSpacingToNavigationBar: CGFloat = 6
 private let topTabsAdditionalSpacingToNavigationBar: CGFloat = 4
+private let topTabsSpacingToScreenEdge: CGFloat = 16
 private let standardCollapsedHeight: CGFloat = 102.0
 
 @MainActor protocol BalanceHeaderViewDelegate: AnyObject {
@@ -39,15 +40,19 @@ final class BalanceHeaderView: WTouchPassView, Sendable {
     
     var lastStateChange: Date = .distantPast
     var cardLayoutMetrics: HomeCardLayoutMetrics = .screen
+    var isAtTopScreenEdge = false
     
     var calculatedHeight: CGFloat {
+        let topEdgeSpacing = isAtTopScreenEdge && headerViewModel.rootNavigationStyle.usesNavigationBarTopTabs
+            ? topTabsSpacingToScreenEdge - topTabsAdditionalSpacingToNavigationBar
+            : 0
         if headerViewModel.state == .expanded {
             let navigationBarSpacing = headerViewModel.rootNavigationStyle.usesNavigationBarTopTabs
                 ? topTabsAdditionalSpacingToNavigationBar
                 : additionalSpacingToNavigationBar
-            return cardLayoutMetrics.itemHeight - expansionInset + navigationBarSpacing
+            return cardLayoutMetrics.itemHeight - expansionInset + navigationBarSpacing + topEdgeSpacing
         } else if headerViewModel.rootNavigationStyle.usesNavigationBarTopTabs {
-            return headerViewModel.collapsedHeight
+            return headerViewModel.collapsedHeight + topEdgeSpacing
         } else {
             return standardCollapsedHeight + (IOS_26_MODE_ENABLED ? 0.0 : 12.0)
         }

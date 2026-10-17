@@ -17,7 +17,6 @@ interface OwnProps<T extends string> {
   suffix?: TeactNode;
   className?: string;
   iconClassName?: string;
-  iconOverlayClassName?: string;
   fontIconClassName?: string;
   itemClassName?: string;
   itemDescriptionClassName?: string;
@@ -32,7 +31,6 @@ function DropdownItemContent<T extends string>({
   suffix,
   className,
   iconClassName,
-  iconOverlayClassName,
   fontIconClassName,
   itemClassName,
   itemDescriptionClassName,
@@ -55,13 +53,17 @@ function DropdownItemContent<T extends string>({
 
     return (
       <span className={buildClassName('icon', styles.itemIcon, iconClassName)}>
-        <img src={item.icon} alt="" className={buildClassName(styles.itemMainIcon, item.iconClassName)} />
+        <img
+          src={item.icon}
+          alt=""
+          className={buildClassName(
+            styles.itemMainIcon,
+            item.overlayIcon && styles.withOverlayIcon,
+            item.iconClassName,
+          )}
+        />
         {item.overlayIcon && (
-          <img
-            src={item.overlayIcon}
-            alt=""
-            className={buildClassName('icon', styles.itemOverlayIcon, iconOverlayClassName)}
-          />
+          <img src={item.overlayIcon} alt="" className={buildClassName('icon', styles.itemOverlayIcon)} />
         )}
       </span>
     );

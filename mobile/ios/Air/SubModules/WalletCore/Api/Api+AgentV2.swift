@@ -108,6 +108,22 @@ extension Api {
         return try requireAgentV2OperationValue(result, methodName: "reportAgentV2Problem")
     }
 
+    /// Sets the user's rating of the complete answer `messageId`, or withdraws it without `feedback`
+    @concurrent public static func setAgentV2MessageFeedback(
+        threadId: String,
+        messageId: String,
+        feedback: ApiAgentV2AnswerFeedback?
+    ) async throws -> ApiAgentV2AnswerFeedbackResponse {
+        let result = try await bridge.callApi(
+            "setAgentV2MessageFeedback",
+            threadId,
+            messageId,
+            feedback,
+            decoding: ApiAgentV2MutationResult<ApiAgentV2AnswerFeedbackResponse>.self
+        )
+        return try requireAgentV2OperationValue(result, methodName: "setAgentV2MessageFeedback")
+    }
+
     @concurrent public static func getAgentV2ActionPresentation(
         messageId: String,
         actionId: String

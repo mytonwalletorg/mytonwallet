@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentAnswerFeedback
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentDeeplink
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentMessage
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentMessageRole
@@ -184,7 +185,9 @@ internal fun mapAgentV2Message(
         isStreaming = message.status == "streaming",
         deeplinks = actions.map { action ->
             AgentDeeplink(action.title, actionId = action.id)
-        }
+        },
+        isComplete = role == AgentMessageRole.ASSISTANT && message.status == "complete",
+        feedback = AgentAnswerFeedback.fromWireValue(message.feedback)
     )
     val error = message.error
     return if (error != null && message.content != null) {

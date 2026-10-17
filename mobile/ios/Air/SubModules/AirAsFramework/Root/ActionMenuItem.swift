@@ -26,6 +26,7 @@ struct ActionMenuItem: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(item.title)
         .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier(item.actionMenuAccessibilityIdentifier)
     }
 }
 
@@ -80,6 +81,18 @@ private struct ActionMenuGlyph: View {
 }
 
 private extension SplitHomeActionItem {
+    var actionMenuAccessibilityIdentifier: String {
+        switch self {
+        case .buy: "home_sheet_action_buy"
+        case .deposit: "home_sheet_action_fund"
+        case .swap: "home_sheet_action_trade"
+        case .sell: "home_sheet_action_sell"
+        case .send: "home_sheet_action_send"
+        case .earn: "home_sheet_action_earn"
+        case .scan: "home_sheet_action_scan"
+        }
+    }
+
     var actionMenuBackgroundAssetName: String {
         switch self {
         case .buy: "ActionMenuBuyBackground"

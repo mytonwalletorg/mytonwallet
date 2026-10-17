@@ -585,6 +585,63 @@ final class AgentV2ContractTests: XCTestCase {
     }
 
     @MainActor
+    func testClearChatEmptiesTheChatAtOnceAndRestoresItWhenClearingFails() async throws {
+        let client = FakeAgentV2Client(hydrationResult: try decodeHydration(threadId: "thread-a", messages: [[
+            "id": "question", "threadId": "thread-a", "role": "user", "status": "complete",
+            "content": ["kind": "markdown", "text": "Existing question"],
+            "createdAt": "2026-07-22T00:00:01.000Z"
+        ]]))
+        client.blocksClear = true
+        client.clearError = FakeAgentV2ClientError.unavailable
+        let model = AgentV2Model(client: client)
+        defer { model.stop() }
+        await model.waitForInitialLoad()
+        XCTAssertTrue(model.canClearChat)
+
+        model.clearChat(animated: false)
+        XCTAssertTrue(model.itemIDs.isEmpty)
+        XCTAssertFalse(model.canSendMessage(draftText: "Next question"))
+
+        await waitForRequest("clearThread", client: client)
+        client.resumeClear()
+        for _ in 0..<100 {
+            guard model.itemIDs.isEmpty else { break }
+            await Task.yield()
+        }
+        XCTAssertTrue(model.itemIDs.contains { id in
+            guard case .message(let message) = model.item(for: id) else { return false }
+            return message.text == "Existing question"
+        })
+        XCTAssertTrue(model.canSendMessage(draftText: "Next question"))
+    }
+
+    @MainActor
+    func testClearChatKeepsTheChatEmptyAndUnblocksSendingWhenClearingSucceeds() async throws {
+        let client = FakeAgentV2Client(hydrationResult: try decodeHydration(threadId: "thread-a", messages: [[
+            "id": "question", "threadId": "thread-a", "role": "user", "status": "complete",
+            "content": ["kind": "markdown", "text": "Existing question"],
+            "createdAt": "2026-07-22T00:00:01.000Z"
+        ]]))
+        client.blocksClear = true
+        let model = AgentV2Model(client: client)
+        defer { model.stop() }
+        await model.waitForInitialLoad()
+
+        model.clearChat(animated: false)
+        XCTAssertTrue(model.itemIDs.isEmpty)
+        XCTAssertFalse(model.canSendMessage(draftText: "Next question"))
+
+        await waitForRequest("clearThread", client: client)
+        client.resumeClear()
+        for _ in 0..<100 {
+            guard !model.canSendMessage(draftText: "Next question") else { break }
+            await Task.yield()
+        }
+        XCTAssertTrue(model.canSendMessage(draftText: "Next question"))
+        XCTAssertTrue(model.itemIDs.isEmpty)
+    }
+
+    @MainActor
     func testSearchQueryIsSentOnceAfterInitialHistoryLoads() async throws {
         let client = FakeAgentV2Client(
             hydrationResult: try decodeHydration(threadId: "thread-a", messages: []),
@@ -976,6 +1033,13 @@ final class AgentV2ContractTests: XCTestCase {
         )
         XCTAssertEqual(dapp.kind, .openDapp)
         XCTAssertEqual(dapp.url, "https://fragment.com/")
+
+        let viewOnly = try JSONDecoder().decode(
+            ApiAgentV2ResolvedAction.self,
+            from: Data(#"{"kind":"inactive","reason":"viewOnlyWallet"}"#.utf8)
+        )
+        XCTAssertEqual(viewOnly.inactiveReason, .viewOnlyWallet)
+        XCTAssertEqual(try JSONDecoder().decode(ApiAgentV2ResolvedAction.self, from: JSONEncoder().encode(viewOnly)), viewOnly)
     }
 
     @MainActor
@@ -1755,6 +1819,104 @@ final class AgentV2ContractTests: XCTestCase {
     }
 
     @MainActor
+    func testOnlyAnswersTheServerStoresAsCompleteCanBeRated() async throws {
+        let hydration = try decodeHydration(threadId: "thread-a", messages: [
+            [
+                "id": "question", "threadId": "thread-a", "role": "user", "status": "complete",
+                "content": ["kind": "markdown", "text": "What is my balance?"],
+                "createdAt": "2026-07-22T00:00:01.000Z"
+            ],
+            [
+                "id": "liked", "threadId": "thread-a", "role": "assistant", "status": "complete",
+                "content": ["kind": "markdown", "text": "You hold 5 TON."], "feedback": "like",
+                "createdAt": "2026-07-22T00:00:02.000Z"
+            ],
+            [
+                "id": "unknown-rating", "threadId": "thread-a", "role": "assistant", "status": "complete",
+                "content": ["kind": "markdown", "text": "You hold 6 TON."], "feedback": "love",
+                "createdAt": "2026-07-22T00:00:03.000Z"
+            ],
+            [
+                "id": "failed", "threadId": "thread-a", "role": "assistant", "status": "error",
+                "error": ["code": "internal_error", "retryable": false],
+                "createdAt": "2026-07-22T00:00:04.000Z"
+            ]
+        ])
+        let persistedMessages = hydration.messages.map(AgentV2NativeMessage.init(persisted:))
+        XCTAssertEqual(persistedMessages.map(\.isStoredAsComplete), [false, true, true, false])
+        XCTAssertEqual(persistedMessages.map(\.feedback), [nil, .like, nil, nil])
+
+        let coordinator = AgentV2Coordinator(client: FakeAgentV2Client())
+        defer { coordinator.stop() }
+        await coordinator.loadDefaultThread()
+        for (messageId, finishReason) in [
+            ("complete", "complete"),
+            ("tool-unavailable", "tool_unavailable"),
+            ("interrupted", "run_interrupted")
+        ] {
+            coordinator.walletCore(event: .agentV2(try decodeUpdate(
+                kind: "messageStarted", threadId: "thread-a", messageId: messageId
+            )))
+            coordinator.walletCore(event: .agentV2(try decodeUpdate(
+                kind: "messageCompleted", threadId: "thread-a", messageId: messageId, finishReason: finishReason
+            )))
+        }
+        XCTAssertEqual(coordinator.messages.map(\.isStoredAsComplete), [true, true, false])
+    }
+
+    @MainActor
+    func testRatingShowsAtOnceAndAFailedSaveRestoresThePreviousRating() async throws {
+        let client = FakeAgentV2Client(hydrationResult: try decodeRatedConversation(answerFeedback: "like"))
+        let model = AgentV2Model(client: client)
+        defer { model.stop() }
+        await model.waitForInitialLoad()
+        let questionID = try XCTUnwrap(presentedMessageID(in: model, role: .user))
+        let answerID = try XCTUnwrap(presentedMessageID(in: model, role: .assistant))
+        XCTAssertEqual(presentedMessage(answerID, in: model)?.canRate, true)
+        XCTAssertEqual(presentedMessage(answerID, in: model)?.feedback, .like)
+
+        let didRateQuestion = await model.rateMessage(messageID: questionID, feedback: .like)
+        XCTAssertFalse(didRateQuestion)
+        XCTAssertTrue(client.feedbackRequests.isEmpty)
+
+        let rating = Task { await model.rateMessage(messageID: answerID, feedback: .dislike) }
+        await waitForFeedbackRequest(client, count: 1)
+        XCTAssertEqual(presentedMessage(answerID, in: model)?.feedback, .dislike)
+
+        client.settleFeedbackRequest(at: 0, with: .failure(FakeAgentV2ClientError.unavailable))
+        let didSave = await rating.value
+        XCTAssertFalse(didSave)
+        XCTAssertEqual(presentedMessage(answerID, in: model)?.feedback, .like)
+        XCTAssertEqual(client.feedbackRequests.map(\.messageId), ["answer"])
+    }
+
+    @MainActor
+    func testTheLatestRatingRequestSettlesTheRatingAndAFailedOneShowsTheSavedRating() async throws {
+        let client = FakeAgentV2Client(hydrationResult: try decodeRatedConversation(answerFeedback: nil))
+        let model = AgentV2Model(client: client)
+        defer { model.stop() }
+        await model.waitForInitialLoad()
+        let answerID = try XCTUnwrap(presentedMessageID(in: model, role: .assistant))
+
+        let like = Task { await model.rateMessage(messageID: answerID, feedback: .like) }
+        await waitForFeedbackRequest(client, count: 1)
+        let withdrawal = Task { await model.rateMessage(messageID: answerID, feedback: nil) }
+        await waitForFeedbackRequest(client, count: 2)
+        XCTAssertNil(presentedMessage(answerID, in: model)?.feedback)
+
+        client.settleFeedbackRequest(at: 0, with: .success(.like))
+        let didLike = await like.value
+        XCTAssertNil(presentedMessage(answerID, in: model)?.feedback)
+        client.settleFeedbackRequest(at: 1, with: .failure(FakeAgentV2ClientError.unavailable))
+        let didWithdraw = await withdrawal.value
+
+        XCTAssertTrue(didLike)
+        XCTAssertFalse(didWithdraw)
+        XCTAssertEqual(presentedMessage(answerID, in: model)?.feedback, .like)
+        XCTAssertEqual(client.feedbackRequests.map(\.feedback), [.like, nil])
+    }
+
+    @MainActor
     func testFailedAnswerShowsItsErrorOnceWithoutAStatusRow() async throws {
         let initialHydration = try decodeHydration(threadId: "thread-a", messages: [])
         let failedHydration = try decodeHydration(threadId: "thread-a", messages: [[
@@ -1804,7 +1966,8 @@ final class AgentV2ContractTests: XCTestCase {
         messageId: String,
         delta: String? = nil,
         contentKind: ApiAgentV2ContentKind = .markdown,
-        code: ApiAgentV2ErrorCode? = nil
+        code: ApiAgentV2ErrorCode? = nil,
+        finishReason: String = "complete"
     ) throws -> ApiAgentV2ClientUpdate {
         var update: [String: Any] = [
             "kind": kind,
@@ -1815,7 +1978,7 @@ final class AgentV2ContractTests: XCTestCase {
         ]
         if let delta { update["delta"] = delta }
         if kind == "messageStarted" { update["contentKind"] = contentKind.rawValue }
-        if kind == "messageCompleted" { update["finishReason"] = "complete" }
+        if kind == "messageCompleted" { update["finishReason"] = finishReason }
         if let code {
             update["code"] = code.rawValue
             update["retryable"] = false
@@ -1980,6 +2143,42 @@ final class AgentV2ContractTests: XCTestCase {
         }
     }
 
+    private func decodeRatedConversation(answerFeedback: String?) throws -> ApiAgentV2ThreadHydration {
+        var answer: [String: Any] = [
+            "id": "answer", "threadId": "thread-a", "role": "assistant", "status": "complete",
+            "content": ["kind": "markdown", "text": "You hold 5 TON."],
+            "createdAt": "2026-07-22T00:00:02.000Z"
+        ]
+        answer["feedback"] = answerFeedback
+        return try decodeHydration(threadId: "thread-a", messages: [
+            [
+                "id": "question", "threadId": "thread-a", "role": "user", "status": "complete",
+                "content": ["kind": "markdown", "text": "What is my balance?"],
+                "createdAt": "2026-07-22T00:00:01.000Z"
+            ],
+            answer
+        ])
+    }
+
+    @MainActor
+    private func presentedMessageID(in model: AgentV2Model, role: AgentMessage.Role) -> AgentItemID? {
+        model.itemIDs.first { presentedMessage($0, in: model)?.role == role }
+    }
+
+    @MainActor
+    private func presentedMessage(_ id: AgentItemID, in model: AgentV2Model) -> AgentMessage? {
+        guard case .message(let message)? = model.item(for: id) else { return nil }
+        return message
+    }
+
+    @MainActor
+    private func waitForFeedbackRequest(_ client: FakeAgentV2Client, count: Int) async {
+        for _ in 0..<100 {
+            guard client.feedbackRequests.count < count else { return }
+            await Task.yield()
+        }
+    }
+
     @MainActor
     private func waitForProblemReportAvailabilityRequest(_ client: FakeAgentV2Client, count: Int) async {
         for _ in 0..<100 {
@@ -2090,6 +2289,11 @@ private final class FakeAgentV2Client: AgentV2Client {
             await withCheckedContinuation { consentAcceptanceContinuation = $0 }
         }
         if let consentAcceptanceError { throw consentAcceptanceError }
+    }
+    func resumeClear() {
+        blocksClear = false
+        clearContinuation?.resume()
+        clearContinuation = nil
     }
     func resumeConsentAcceptance() {
         blocksConsentAcceptance = false
@@ -2228,10 +2432,18 @@ private final class FakeAgentV2Client: AgentV2Client {
         )
     }
     func cancelRun(_ runId: String) async {}
+    var blocksClear = false
+    var clearError: Error?
+    private var clearContinuation: CheckedContinuation<Void, Never>?
     func clearThread(
         id: String,
         revision: Int
     ) async throws -> ApiAgentV2MutationResult<ApiAgentV2ThreadClearResponse> {
+        requestOrder.append("clearThread")
+        if blocksClear {
+            await withCheckedContinuation { clearContinuation = $0 }
+        }
+        if let clearError { throw clearError }
         let thread = makeThread(id: id, revision: revision + 1)
         return try JSONDecoder().decode(
             ApiAgentV2MutationResult<ApiAgentV2ThreadClearResponse>.self,
@@ -2247,6 +2459,19 @@ private final class FakeAgentV2Client: AgentV2Client {
     }
     func reportProblem(threadId: String, report: ApiAgentV2ProblemReport) async throws {
         problemReports.append((threadId, report))
+    }
+    private(set) var feedbackRequests: [(messageId: String, feedback: ApiAgentV2AnswerFeedback?)] = []
+    private var feedbackContinuations: [CheckedContinuation<Result<ApiAgentV2AnswerFeedback?, Error>, Never>] = []
+    func setMessageFeedback(
+        threadId: String,
+        messageId: String,
+        feedback: ApiAgentV2AnswerFeedback?
+    ) async throws -> ApiAgentV2AnswerFeedback? {
+        feedbackRequests.append((messageId, feedback))
+        return try await withCheckedContinuation { feedbackContinuations.append($0) }.get()
+    }
+    func settleFeedbackRequest(at index: Int, with result: Result<ApiAgentV2AnswerFeedback?, Error>) {
+        feedbackContinuations[index].resume(returning: result)
     }
     func actionPresentation(messageId: String, actionId: String) async throws -> ApiAgentV2ActionPresentation {
         actionPresentationRequestCount += 1

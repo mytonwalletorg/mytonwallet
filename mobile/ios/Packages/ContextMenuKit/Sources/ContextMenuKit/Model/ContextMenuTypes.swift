@@ -5,6 +5,9 @@ public struct ContextMenuConfiguration {
     public var backdrop: ContextMenuBackdropStyle
     public var backdropBlurPolicy: ContextMenuBackdropBlurPolicy
     public var style: ContextMenuStyle
+    /// A view over the source's top edge, which only the overlay presentation shows. With one, the panel attaches
+    /// clear of the source and the accessory, so `style.verticalPlacementBehavior` does not apply.
+    public var accessory: ContextMenuAccessory?
     /// An optional navigation host for handing the sheet over to another flow.
     public var sheetNavigationControllerProvider: (@MainActor (UIViewController) -> UINavigationController)?
 
@@ -13,12 +16,14 @@ public struct ContextMenuConfiguration {
         backdrop: ContextMenuBackdropStyle = .defaultBlurred(),
         backdropBlurPolicy: ContextMenuBackdropBlurPolicy = .enabled,
         style: ContextMenuStyle = .default,
+        accessory: ContextMenuAccessory? = nil,
         sheetNavigationControllerProvider: (@MainActor (UIViewController) -> UINavigationController)? = nil
     ) {
         self.rootPage = rootPage
         self.backdrop = backdrop
         self.backdropBlurPolicy = backdropBlurPolicy
         self.style = style
+        self.accessory = accessory
         self.sheetNavigationControllerProvider = sheetNavigationControllerProvider
     }
 
@@ -48,6 +53,21 @@ public struct ContextMenuPage {
         self.id = id
         self.items = items
         self.layout = layout
+    }
+
+    @MainActor
+    public func measuredSize(
+        maxWidth: CGFloat,
+        style: ContextMenuStyle,
+        layoutDirection: UIUserInterfaceLayoutDirection
+    ) -> CGSize {
+        let pageView = ContextMenuPageView(
+            page: self,
+            style: style,
+            sourceUserInterfaceLayoutDirection: layoutDirection,
+            customRowContext: ContextMenuCustomRowContext(dismissHandler: {})
+        )
+        return pageView.preferredSize(constrainedTo: CGSize(width: maxWidth, height: .greatestFiniteMagnitude))
     }
 }
 

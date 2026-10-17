@@ -85,6 +85,7 @@ public class AddStakeVC: WViewController {
 
         let continueButton = addBottomButton()
         continueButtonPresenter = DraftButtonPresenter(button: continueButton)
+        continueButton.accessibilityIdentifier = "stake_submit"
         continueButton.setTitle(stakeTitle, for: .normal)
         continueButton.addTarget(self, action: #selector(continuePressed), for: .touchUpInside)
         continueButton.isEnabled = false

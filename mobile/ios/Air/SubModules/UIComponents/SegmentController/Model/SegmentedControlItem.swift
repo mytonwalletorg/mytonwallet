@@ -10,6 +10,7 @@ public struct SegmentedControlItem: Identifiable, Equatable, Hashable, Sendable 
     var contextMenuProvider: SegmentedControlContextMenuProvider?
     var hidesMenuIcon: Bool
     var isDeletable: Bool
+    var accessibilityIdentifier: String?
     public let viewController: WSegmentedControllerContent
         
     public init(
@@ -18,6 +19,7 @@ public struct SegmentedControlItem: Identifiable, Equatable, Hashable, Sendable 
         contextMenuProvider: SegmentedControlContextMenuProvider? = nil,
         hidesMenuIcon: Bool = false,
         isDeletable: Bool = true,
+        accessibilityIdentifier: String? = nil,
         viewController: WSegmentedControllerContent
     ) {
         self.id = id
@@ -25,6 +27,7 @@ public struct SegmentedControlItem: Identifiable, Equatable, Hashable, Sendable 
         self.contextMenuProvider = contextMenuProvider
         self.hidesMenuIcon = hidesMenuIcon
         self.isDeletable = isDeletable
+        self.accessibilityIdentifier = accessibilityIdentifier
         self.viewController = viewController
     }
     

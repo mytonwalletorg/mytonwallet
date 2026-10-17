@@ -76,6 +76,7 @@ class UTXOChainSdk<T extends UTXOChain> implements ChainSdk<T> {
 
   buildOnchainSwapTransfer = notSupported;
   submitOnchainSwapTransfer = notSupported;
+  resolveSwapNeedsBatch = () => false;
 
   fetchPrivateKeyString = this.#bindChain(fetchPrivateKeyString);
 

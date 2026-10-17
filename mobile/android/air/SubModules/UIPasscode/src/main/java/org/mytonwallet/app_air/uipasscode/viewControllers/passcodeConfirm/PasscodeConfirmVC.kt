@@ -16,6 +16,7 @@ import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.extensions.setPaddingLocalized
 import org.mytonwallet.app_air.uipasscode.ProtectedActionAuth
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.views.PasscodeScreenView
+import org.mytonwallet.app_air.walletbasecontext.DEBUG_MODE
 import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 import org.mytonwallet.app_air.walletbasecontext.logger.Logger
 import org.mytonwallet.app_air.walletbasecontext.theme.ViewConstants
@@ -83,6 +84,12 @@ class PasscodeConfirmVC(
 
     private val bgDrawable = MotionBackgroundDrawable().apply {
         phase = random(0, 7)
+    }
+
+    fun enterPasscodeForTests(passcode: String) {
+        if (DEBUG_MODE && passcode.all { it in '0'..'9' }) {
+            passcode.forEach { passcodeScreenView.onNumberInput(it.digitToInt()) }
+        }
     }
 
     private val passcodeScreenView: PasscodeScreenView by lazy {

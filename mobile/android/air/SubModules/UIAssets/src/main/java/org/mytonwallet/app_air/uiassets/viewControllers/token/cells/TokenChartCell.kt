@@ -32,6 +32,7 @@ import java.util.Date
 import kotlin.math.min
 import kotlin.math.roundToInt
 import org.mytonwallet.app_air.uiassets.viewControllers.token.helpers.DatasetHelpers
+import org.mytonwallet.app_air.uiassets.viewControllers.token.helpers.TokenChartTransition
 import org.mytonwallet.app_air.uiassets.viewControllers.token.helpers.resolveTokenChartPercentChange
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
 import org.mytonwallet.app_air.uicomponents.commonViews.WAgentHintView
@@ -93,6 +94,9 @@ class TokenChartCell(
     private val hasAnalyzeButton = onAnalyze != null
     private var analyzeButtonHeightSpring: SpringAnimation? = null
     private var chartFadeAnimator: AnimatorSet? = null
+    private var dataTransitionAnimator: SpringAnimation? = null
+    private var displayedHistoryData: Array<Array<Double>>? = null
+    private var displayedPeriod: MHistoryTimePeriod? = null
     private var pendingAnimationToConfigure = false
     private var isAnimating = false
         set(value) {
@@ -309,8 +313,22 @@ class TokenChartCell(
                 collapsedChartView.y + (collapsedChartView.height - noDataLabelHeight) / 2f
             noDataMaxX = noDataLabel.x
             if (isExpanded) {
-                renderProgressView(expandedChartView, 1f)
-                renderNoDataLabel(expandedChartView, 1f)
+                val chartWidth = expandedChartView.width - 20.dp
+                val chartHeight = expandedChartView.height - 16.dp
+                renderProgressView(
+                    expandedChartView.x,
+                    expandedChartView.y,
+                    chartWidth,
+                    chartHeight,
+                    1f
+                )
+                renderNoDataLabel(
+                    expandedChartView.x,
+                    expandedChartView.y,
+                    chartWidth,
+                    chartHeight,
+                    1f
+                )
             }
             if (historyData.isNullOrEmpty()) {
                 progressTaskManager.startTask({
@@ -369,11 +387,6 @@ class TokenChartCell(
     override fun setupViews() {
         super.setupViews()
 
-        expandedChartView.layoutParams = expandedChartView.layoutParams.apply {
-            height =
-                ((((parent as? ViewGroup)?.width ?: 0).toFloat() - 20.dp) * 79f / 392f).toInt() +
-                28.dp
-        }
         if (isExpanded) {
             collapsedChartView.visibility = INVISIBLE
             expandedChartView.visibility = VISIBLE
@@ -384,6 +397,18 @@ class TokenChartCell(
             containerView.doOnPreDraw {
                 if (isExpanded && !isAnimating) settleAnalyzeButtonLayout()
             }
+        }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w == oldw) return
+        post {
+            val chartHeight = (width - 20.dp) * 79 / 392 + 28.dp
+            if (expandedChartView.layoutParams.height != chartHeight) {
+                expandedChartView.updateLayoutParams { height = chartHeight }
+            }
+            if (isExpanded && !isAnimating) settleAnalyzeButtonLayout()
         }
     }
 
@@ -453,8 +478,20 @@ class TokenChartCell(
         expandedChartImageView.layoutParams = expandedChartLayoutParams
         expandedChartImageView.x = collapsedChartImageView.x
         expandedChartImageView.y = collapsedChartImageView.y
-        renderProgressView(collapsedChartImageView, fraction)
-        renderNoDataLabel(collapsedChartImageView, fraction)
+        renderProgressView(
+            collapsedChartImageView.x,
+            collapsedChartImageView.y,
+            collapsedChartImageView.width,
+            collapsedChartImageView.height,
+            fraction
+        )
+        renderNoDataLabel(
+            collapsedChartImageView.x,
+            collapsedChartImageView.y,
+            collapsedChartImageView.width,
+            collapsedChartImageView.height,
+            fraction
+        )
 
         segmentedControlGroupContainer.alpha = max(0f, fraction - 0.7f) * 5
         chartTimeLineView.alpha = max(0f, fraction - 0.6f) * 5 / 2
@@ -466,28 +503,40 @@ class TokenChartCell(
             if (segmentedControlGroupContainer.alpha > 0) VISIBLE else INVISIBLE
     }
 
-    private fun renderProgressView(chartView: View, expandProgress: Float) {
-        if (chartView.width == 0) return
+    private fun renderProgressView(
+        chartX: Float,
+        chartY: Float,
+        chartWidth: Int,
+        chartHeight: Int,
+        expandProgress: Float
+    ) {
+        if (chartWidth <= 0) return
         val horizontalProgress = if (LocaleController.isRTL) expandProgress else 1f
         progressView.x =
-            chartView.x +
-            (chartView.width - progressViewWidth) * horizontalProgress / (1 + expandProgress) +
+            chartX +
+            (chartWidth - progressViewWidth) * horizontalProgress / (1 + expandProgress) +
             (expandProgress * 10.dp)
         progressView.y =
-            chartView.y + (chartView.height - progressViewWidth) / 2 +
-            (27.dp * expandProgress)
+            chartY + (chartHeight - progressViewWidth) / 2 +
+            (35.dp * expandProgress)
     }
 
-    private fun renderNoDataLabel(chartView: View, expandProgress: Float) {
-        if (chartView.width == 0) return
+    private fun renderNoDataLabel(
+        chartX: Float,
+        chartY: Float,
+        chartWidth: Int,
+        chartHeight: Int,
+        expandProgress: Float
+    ) {
+        if (chartWidth <= 0) return
         noDataLabel.x =
             lerp(
                 noDataMaxX,
-                chartView.x + (chartView.width - noDataLabelWidth) / 2 + 10.dp,
+                chartX + (chartWidth - noDataLabelWidth) / 2 + 10.dp,
                 expandProgress
             )
         noDataLabel.y =
-            chartView.y + (chartView.height - noDataLabelHeight) / 2 + (27.dp * expandProgress)
+            chartY + (chartHeight - noDataLabelHeight) / 2 + (35.dp * expandProgress)
     }
 
     private fun startSpringAnimation(startValue: Float, endValue: Float) {
@@ -846,29 +895,16 @@ class TokenChartCell(
         }
         setupTexts()
 
-        val dataSet = LineDataSet(entries, "")
-        dataSet.lineWidth = 2.0f
-        dataSet.color = WColor.Tint.color
-        dataSet.setDrawCircles(false)
-        dataSet.setDrawValues(false)
-        dataSet.setDrawHorizontalHighlightIndicator(false)
-        dataSet.setDrawVerticalHighlightIndicator(false)
-        dataSet.setDrawFilled(true)
-        val gradient = GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(WColor.Tint.color.colorWithAlpha(51), Color.TRANSPARENT)
-        )
-        gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT)
-        dataSet.fillDrawable = gradient
-        dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+        if (dataTransitionAnimator != null) {
+            if (historyData === displayedHistoryData && isFullRange()) return
+            endDataTransition()
+        }
 
-        val lineData = LineData(dataSet)
+        val gradient = createChartFill()
+        val lineData = createLineData(entries, gradient)
 
         fun setDataSet() {
-            collapsedChartView.data = lineData
-            collapsedChartView.invalidate()
-            expandedChartView.data = lineData
-            expandedChartView.invalidate()
+            setChartsData(lineData)
             val langCode = WGlobalStorage.getLangCode()
             val isDayFirst = WDateFormatter.isDayBeforeMonth(langCode)
             expandedChartView.dateFormat =
@@ -898,6 +934,8 @@ class TokenChartCell(
                 }
             }
             chartTimeLineView.configure(this.historyData)
+            displayedHistoryData = this.historyData
+            displayedPeriod = activePeriod
         }
         if (highlightedHistoryData == null) {
             if (!areChartsFadeOut) {
@@ -944,7 +982,9 @@ class TokenChartCell(
             progressView.fadeOut {
                 progressView.visibility = GONE
             }
+            val transition = dataTransition()
             setDataSet()
+            transition?.let { startDataTransition(it, lineData, gradient) }
             if (areChartsFadeOut) {
                 areChartsFadeOut = false
                 cancelChartFadeAnimation()
@@ -979,7 +1019,128 @@ class TokenChartCell(
         }
     }
 
+    private fun createChartFill() = GradientDrawable(
+        GradientDrawable.Orientation.TOP_BOTTOM,
+        intArrayOf(WColor.Tint.color.colorWithAlpha(51), Color.TRANSPARENT)
+    ).apply {
+        setGradientType(GradientDrawable.LINEAR_GRADIENT)
+    }
+
+    private fun createLineData(entries: List<Entry>, fill: GradientDrawable): LineData {
+        val dataSet = LineDataSet(entries, "")
+        dataSet.lineWidth = 2.0f
+        dataSet.color = WColor.Tint.color
+        dataSet.setDrawCircles(false)
+        dataSet.setDrawValues(false)
+        dataSet.setDrawHorizontalHighlightIndicator(false)
+        dataSet.setDrawVerticalHighlightIndicator(false)
+        dataSet.setDrawFilled(true)
+        dataSet.fillDrawable = fill
+        dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+        return LineData(dataSet)
+    }
+
+    private fun setChartsData(lineData: LineData) {
+        collapsedChartView.data = lineData
+        collapsedChartView.invalidate()
+        expandedChartView.data = lineData
+        expandedChartView.invalidate()
+    }
+
+    private fun isFullRange() = startPercentage == 0f && endPercentage == 1f
+
+    private fun dataTransition(): TokenChartTransition? {
+        val from = displayedHistoryData ?: return null
+        val to = historyData ?: return null
+        val fromEnd = from.lastOrNull()?.firstOrNull() ?: return null
+        val toEnd = to.lastOrNull()?.firstOrNull() ?: return null
+        if (toEnd <= fromEnd ||
+            areChartsFadeOut ||
+            isAnimating ||
+            highlight != null ||
+            displayedPeriod != activePeriod ||
+            !isFullRange() ||
+            !WGlobalStorage.getAreAnimationsActive()
+        ) {
+            return null
+        }
+        return TokenChartTransition.create(from, to, expandedChartView.axisLeft.spaceTop)
+    }
+
+    private fun startDataTransition(
+        transition: TokenChartTransition,
+        finalData: LineData,
+        fill: GradientDrawable
+    ) {
+        renderDataTransitionFrame(transition, 0f, fill)
+        val animator = SpringAnimation(FloatValueHolder()).apply {
+            setStartValue(0f)
+            minimumVisibleChange = 0.001f
+            spring = SpringForce(1f).apply {
+                stiffness = 500f
+                dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
+            }
+            addUpdateListener { _, value, _ ->
+                renderDataTransitionFrame(transition, value, fill)
+            }
+        }
+        dataTransitionAnimator = animator
+        animator.addEndListener { _, _, _, _ ->
+            WGlobalStorage.decDoNotSynchronize()
+            if (dataTransitionAnimator !== animator) return@addEndListener
+            dataTransitionAnimator = null
+            resetChartWindows()
+            setChartsData(finalData)
+            chartTimeLineView.configure(displayedHistoryData)
+        }
+        WGlobalStorage.incDoNotSynchronize()
+        animator.start()
+    }
+
+    private fun renderDataTransitionFrame(
+        transition: TokenChartTransition,
+        fraction: Float,
+        fill: GradientDrawable
+    ) {
+        val window = transition.window(fraction)
+        val entries = transition.entries(fraction)
+        val lineData = createLineData(entries, fill)
+        chartTimeLineView.renderTransitionFrame(
+            entries,
+            window.minX.toFloat(),
+            window.maxX.toFloat(),
+            window.minY.toFloat(),
+            window.maxY.toFloat()
+        )
+        for (chart in arrayOf(collapsedChartView, expandedChartView)) {
+            chart.xAxis.axisMinimum = window.minX.toFloat()
+            chart.xAxis.axisMaximum = window.maxX.toFloat()
+            chart.axisLeft.axisMinimum = window.minY.toFloat()
+            chart.axisLeft.axisMaximum = window.maxY.toFloat()
+            chart.data = lineData
+            chart.invalidate()
+        }
+    }
+
+    private fun endDataTransition() {
+        val animator = dataTransitionAnimator ?: return
+        dataTransitionAnimator = null
+        animator.cancel()
+        resetChartWindows()
+    }
+
+    private fun resetChartWindows() {
+        for (chart in arrayOf(collapsedChartView, expandedChartView)) {
+            chart.xAxis.resetAxisMinimum()
+            chart.xAxis.resetAxisMaximum()
+            chart.axisLeft.resetAxisMinimum()
+            chart.axisLeft.resetAxisMaximum()
+        }
+        chartTimeLineView.resetTransitionWindow()
+    }
+
     fun onDestroy() {
+        endDataTransition()
         cancelChartFadeAnimation()
         cancelAnalyzeButtonAnimation()
         onSelectedPeriodChanged = null

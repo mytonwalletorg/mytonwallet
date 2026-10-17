@@ -232,6 +232,7 @@ function buildMessagesResult(overrides: Partial<UseAgentV2MessagesResult> = {}):
     sendFollowup: jest.fn(),
     clearChat: jest.fn(),
     reportProblem: jest.fn(() => Promise.resolve('sent' as const)),
+    rateMessage: jest.fn(),
     acceptConsent: jest.fn(),
     retryMessage: jest.fn(),
     retryAdmission: jest.fn(),

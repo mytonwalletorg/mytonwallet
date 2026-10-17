@@ -63,6 +63,9 @@ import org.mytonwallet.app_air.uicomponents.widgets.WProtectedView
 import org.mytonwallet.app_air.uicomponents.widgets.WRecyclerView
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
+import org.mytonwallet.app_air.uicomponents.widgets.lockView
+import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
+import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState
 import org.mytonwallet.app_air.uireceive.ReceiveVC
 import org.mytonwallet.app_air.uisend.send.MultisendLauncher
 import org.mytonwallet.app_air.uisend.send.SellWithCardLauncher
@@ -79,15 +82,22 @@ import org.mytonwallet.app_air.walletbasecontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletbasecontext.theme.WColor
 import org.mytonwallet.app_air.walletbasecontext.theme.color
 import org.mytonwallet.app_air.walletbasecontext.utils.isSameDayAs
+import org.mytonwallet.app_air.walletcontext.WalletContextManager
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
+import org.mytonwallet.app_air.walletcontext.models.MBlockchainNetwork
 import org.mytonwallet.app_air.walletcontext.utils.IndexPath
+import org.mytonwallet.app_air.walletcore.WalletCore
+import org.mytonwallet.app_air.walletcore.WalletEvent
+import org.mytonwallet.app_air.walletcore.helpers.WalletCreationVM
 import org.mytonwallet.app_air.walletcore.models.MAccount
+import org.mytonwallet.app_air.walletcore.models.MBridgeError
 import org.mytonwallet.app_air.walletcore.models.MToken
 import org.mytonwallet.app_air.walletcore.models.blockchain.MBlockchain
 import org.mytonwallet.app_air.walletcore.moshi.MApiSwapAsset
 import org.mytonwallet.app_air.walletcore.moshi.MApiTransaction
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2AssetRef
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2EntryPoint
+import org.mytonwallet.app_air.walletcore.moshi.api.ApiMethod
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.BalanceStore
 import org.mytonwallet.app_air.walletcore.stores.ConfigStore
@@ -101,7 +111,8 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
     WRecyclerViewDataSource,
     TokenVM.Delegate,
     WThemedView,
-    WProtectedView {
+    WProtectedView,
+    WalletCreationVM.Delegate {
     @Suppress("PropertyName")
     override val TAG = "Token"
 
@@ -169,6 +180,114 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
             account = account,
             tokenSlug = tokenSlug
         )
+    }
+
+    private fun showUnsupportedChainAlertIfNeeded(): Boolean {
+        if (account.isChainSupported(token.chain)) return false
+        showAlert(
+            LocaleController.getString("Unsupported Chain"),
+            LocaleController.getStringWithKeyValues(
+                "\$token_chain_not_supported_by_wallet",
+                listOf(Pair("%chain%", token.mBlockchain?.displayName ?: token.chain))
+            ),
+            button = LocaleController.getString("Create Multichain Wallet"),
+            buttonPressed = { createMultichainWallet() },
+            secondaryButton = LocaleController.getString("Cancel")
+        )
+        return true
+    }
+
+    private val walletCreationVM by lazy {
+        WalletCreationVM(this)
+    }
+    private var creationPasscodeConfirmVC: PasscodeConfirmVC? = null
+
+    private fun createMultichainWallet() {
+        if (!WGlobalStorage.isPasscodeSet()) {
+            presentAddAccount()
+            return
+        }
+        val window = window ?: return
+        lateinit var passcodeConfirmVC: PasscodeConfirmVC
+        passcodeConfirmVC = PasscodeConfirmVC(
+            context,
+            PasscodeViewState.Default(
+                LocaleController.getString("Enter Passcode"),
+                "",
+                LocaleController.getString("Create Multichain Wallet"),
+                showNavigationSeparator = false,
+                startWithBiometrics = true
+            ),
+            task = { enclaveToken ->
+                createWallet(passcodeConfirmVC, enclaveToken)
+            }
+        )
+        passcodeConfirmVC.isTaskAsync = true
+        val nav = WNavigationController(
+            window,
+            WNavigationController.PresentationConfig.PreferredFullScreen
+        )
+        nav.setRoot(passcodeConfirmVC)
+        window.present(nav)
+    }
+
+    private fun createWallet(passcodeConfirmVC: PasscodeConfirmVC, enclaveToken: String) {
+        passcodeConfirmVC.view.lockView()
+        creationPasscodeConfirmVC = passcodeConfirmVC
+        WalletCore.call(ApiMethod.Auth.GenerateMnemonic(), callback = { words, err ->
+            val window = window
+            if (words == null || window == null) {
+                showError(err?.parsed)
+                return@call
+            }
+            walletCreationVM.finalizeAccount(
+                window,
+                MBlockchainNetwork.ofAccountId(account.accountId),
+                words,
+                0,
+                enclaveToken
+            )
+        })
+    }
+
+    override fun showError(error: MBridgeError?) {
+        val passcodeConfirmVC = creationPasscodeConfirmVC
+        if (passcodeConfirmVC != null && !passcodeConfirmVC.isDestroyed) {
+            passcodeConfirmVC.restartAuth()
+            passcodeConfirmVC.showError(error)
+            return
+        }
+        creationPasscodeConfirmVC = null
+        super.showError(error)
+    }
+
+    override fun finalizedCreation(createdAccount: MAccount, importedAccountsCount: Int) {
+        val passcodeConfirmVC = creationPasscodeConfirmVC
+        creationPasscodeConfirmVC = null
+        WalletCore.notifyEvent(WalletEvent.AddNewWalletCompletion)
+        val tokenSlug = token.slug
+        val openToken = { WalletCore.notifyEvent(WalletEvent.OpenToken(tokenSlug)) }
+        val passcodeWindow = passcodeConfirmVC?.takeUnless { it.isDestroyed }?.window
+        if (passcodeWindow != null) {
+            passcodeWindow.dismissLastNav(onCompletion = openToken)
+        } else {
+            openToken()
+        }
+    }
+
+    private fun presentAddAccount() {
+        val window = window ?: return
+        val addAccountVC = WalletContextManager.delegate?.get()
+            ?.getAddAccountVC(MBlockchainNetwork.ofAccountId(account.accountId))
+            as? WViewController ?: return
+        val nav = WNavigationController(
+            window,
+            WNavigationController.PresentationConfig(
+                style = WNavigationController.PresentationStyle.BottomSheet
+            )
+        )
+        nav.setRoot(addAccountVC)
+        window.present(nav)
     }
 
     @Volatile
@@ -393,13 +512,19 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
     private val buyButton = WButton(context, WButton.Type.PRIMARY).apply {
         text = LocaleController.getString("Buy")
         customTint = WColor.Buy.color
-        setOnClickListener { presentSwap(isBuying = true) }
+        setOnClickListener {
+            if (showUnsupportedChainAlertIfNeeded()) return@setOnClickListener
+            presentSwap(isBuying = true)
+        }
     }
 
     private val sellButton = WButton(context, WButton.Type.PRIMARY).apply {
         text = LocaleController.getString("Sell")
         customTint = WColor.Sell.color
-        setOnClickListener { presentSwap(isBuying = false) }
+        setOnClickListener {
+            if (showUnsupportedChainAlertIfNeeded()) return@setOnClickListener
+            presentSwap(isBuying = false)
+        }
     }
 
     private val tradeButtonsView = LinearLayout(context).apply {
@@ -565,6 +690,15 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
 
     private fun onClick(identifier: HeaderActionsView.Identifier) {
         val window = window ?: return
+        when (identifier) {
+            HeaderActionsView.Identifier.RECEIVE,
+            HeaderActionsView.Identifier.SEND,
+            HeaderActionsView.Identifier.SWAP,
+            HeaderActionsView.Identifier.SELL ->
+                if (showUnsupportedChainAlertIfNeeded()) return
+
+            else -> {}
+        }
         when (identifier) {
             HeaderActionsView.Identifier.RECEIVE -> {
                 val chain = MBlockchain.valueOfOrNull(token.chain) ?: return

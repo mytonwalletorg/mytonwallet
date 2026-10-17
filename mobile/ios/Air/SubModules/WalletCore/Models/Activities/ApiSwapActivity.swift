@@ -10,6 +10,8 @@ public struct ApiSwapActivity: BaseActivity, Codable, Equatable, Hashable, Senda
     public var kind: String = "swap"
     public var shouldHide: Bool?
     public let externalMsgHashNorm: String?
+    /** Hash of the root transaction of the trace (Toncenter `trace_id`). Only for TON. */
+    public var traceId: String?
     public var shouldReload: Bool?
     public var shouldLoadDetails: Bool?
     public var extra: BaseActivityExtra?
@@ -145,7 +147,7 @@ public extension ApiSwapActivity {
             let activity = ApiActivity.swap(self)
             // Match the web fallback: summary IDs identify swap records, not onchain transactions.
             let isSummary = activity.isBackendSwapId || activity.isLocal
-            hash = externalMsgHashNorm ?? hashes?.first ?? (isSummary ? nil : activity.parsedTxId.hash)
+            hash = traceId ?? externalMsgHashNorm ?? hashes?.first ?? (isSummary ? nil : activity.parsedTxId.hash)
         } else {
             hash = hashes?.first
         }

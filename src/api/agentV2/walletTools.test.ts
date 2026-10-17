@@ -599,8 +599,9 @@ describe('AgentV2 wallet tools and actions', () => {
     };
     actions.registerAction(THREAD_ID, MESSAGE_ID, action);
     if (isViewOnly) {
-      expect(actions.resolveAction(MESSAGE_ID, action.id)).toEqual({ kind: 'inactive' });
-      expect(actions.getActionPresentation(MESSAGE_ID, action.id)).toEqual({ kind: 'inactive' });
+      const inactive = { kind: 'inactive', reason: 'viewOnlyWallet' };
+      expect(actions.resolveAction(MESSAGE_ID, action.id)).toEqual(inactive);
+      expect(actions.getActionPresentation(MESSAGE_ID, action.id)).toEqual(inactive);
     } else {
       expect(actions.resolveAction(MESSAGE_ID, action.id)).toEqual({
         kind: 'sendForm', url: hasAsset ? 'mtw://send/ton:?token=toncoin' : 'mtw://send',
@@ -625,8 +626,9 @@ describe('AgentV2 wallet tools and actions', () => {
       localDraftRequired: false, requiresConfirmation: false,
     };
     actions.registerAction(THREAD_ID, MESSAGE_ID, action);
-    expect(actions.resolveAction(MESSAGE_ID, action.id)).toEqual({ kind: 'inactive' });
-    expect(actions.getActionPresentation(MESSAGE_ID, action.id)).toEqual({ kind: 'inactive' });
+    const inactive = { kind: 'inactive', reason: 'viewOnlyWallet' };
+    expect(actions.resolveAction(MESSAGE_ID, action.id)).toEqual(inactive);
+    expect(actions.getActionPresentation(MESSAGE_ID, action.id)).toEqual(inactive);
 
     host.activeAccountId = 'account-savings';
     session.update(host);

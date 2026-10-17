@@ -19,8 +19,7 @@ struct TransactionActivityHeader: View {
     }
 
     private var showsDiamond: Bool {
-        IS_GRAM_WALLET
-            && transaction.slug == TONCOIN_SLUG
+        TokenHeroView.showsDiamond(for: token)
             && transaction.type == nil
             && transaction.nft == nil
             && transaction.status != .failed
@@ -30,7 +29,7 @@ struct TransactionActivityHeader: View {
     var body: some View {
         VStack(spacing: 12) {
             iconView
-                .padding(.bottom, showsDiamond ? -20 : 0)
+                .zIndex(1)
             if amountDisplayMode != .hide {
                 amountView
             }
@@ -42,8 +41,7 @@ struct TransactionActivityHeader: View {
     var iconView: some View {
         ZStack {
             if showsDiamond {
-                BlueDiamondView()
-                    .frame(width: 120, height: 120)
+                TelegramDiamondView(size: 80)
             }
             ActivityIconView(activity: .transaction(transaction), size: 80, accessorySize: 30,
                              isTransactionConfirmation: isTransactionConfirmation, hideMainIcon: showsDiamond)

@@ -1,4 +1,5 @@
 import type { InstallAttributionCandidate } from '../../../util/installAttribution';
+import type { InstallMetadata } from '../../methods/installMetadata';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { MethodArgsWithMaybePrefix, MethodResponseWithMaybePrefix } from '../../types/methods';
 import { type AllMethods, recognizeDappMethod } from '../../types/methods';
@@ -7,12 +8,15 @@ import { normalizeAttributionCandidate } from '../../../util/installAttribution'
 import { getProtocolManager } from '../../dappProtocols';
 import { acceptInstallAttribution, setInstallChannel as claimLegacyInstallChannel } from '../../methods/attribution';
 import init from '../../methods/init';
+import { acceptInstallMetadata, normalizeInstallMetadata } from '../../methods/installMetadata';
 import { methods } from '../../methods/registry';
 import { createStorage, withStorage } from '../../storages';
 
 export function createDirectApiConnector() {
   let initPromise: Promise<void> | undefined;
   let attributionDrain: Promise<void> | undefined;
+  let metadataDrain: Promise<void> | undefined;
+  const pendingMetadata: InstallMetadata[] = [];
   const pendingAttribution: (
     { snapshot: InstallAttributionCandidate }
     | { channel: string; referrerDomain?: string; technicalKind?: 'referral' }
@@ -25,6 +29,32 @@ export function createDirectApiConnector() {
     runtimeStorage = createStorage(args.storage);
     initPromise = withStorage(runtimeStorage, () => init(onUpdate, args));
     flushAttribution();
+    flushMetadata();
+  }
+
+  function flushMetadata() {
+    if (!initPromise || metadataDrain === initPromise) return;
+    const ready = initPromise;
+    metadataDrain = ready;
+    const targetStorage = runtimeStorage;
+    let failed = false;
+    void ready.then(async () => {
+      while (pendingMetadata.length && initPromise === ready) {
+        const pending = pendingMetadata[0];
+        await acceptInstallMetadata(pending, targetStorage);
+        if (pendingMetadata[0] === pending) pendingMetadata.shift();
+      }
+    }).catch(() => { failed = true; }).finally(() => {
+      if (metadataDrain === ready) metadataDrain = undefined;
+      if (pendingMetadata.length && (!failed || initPromise !== ready)) flushMetadata();
+    });
+  }
+
+  function captureInstallMetadata(value: unknown) {
+    const metadata = normalizeInstallMetadata(value);
+    if (!metadata) return;
+    pendingMetadata.push(metadata);
+    flushMetadata();
   }
 
   function flushAttribution() {
@@ -98,9 +128,12 @@ export function createDirectApiConnector() {
     callApi,
     setInstallChannel,
     captureInstallAttribution,
+    captureInstallMetadata,
   };
 }
 
 const defaultConnector = createDirectApiConnector();
 
-export const { initApi, callApi, setInstallChannel, captureInstallAttribution } = defaultConnector;
+export const {
+  initApi, callApi, setInstallChannel, captureInstallAttribution, captureInstallMetadata,
+} = defaultConnector;

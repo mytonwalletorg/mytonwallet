@@ -171,7 +171,7 @@ public final class CrosschainToWalletVC: WViewController {
                 Text(lang(isExpired ? "Swap Expired" : "Swap"))
             } subtitle: {
                 if !isExpired && payment.showsPaymentInstructions(at: Date()) {
-                    Text(lang("Waiting for Payment").lowercased())
+                    Text(lang("Waiting for Payment"))
                 }
             }
         }

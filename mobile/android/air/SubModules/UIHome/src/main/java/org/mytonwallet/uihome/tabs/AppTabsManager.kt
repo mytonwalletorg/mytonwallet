@@ -1,6 +1,7 @@
 package org.mytonwallet.uihome.tabs
 
 import org.mytonwallet.app_air.icons.R
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.walletcontext.globalStorage.WGlobalStorage
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.WalletEvent
@@ -13,7 +14,9 @@ object AppTabsManager {
         val iconRes: Int,
         val filledIconRes: Int,
         val labelKey: String,
-        val isRequired: Boolean
+        val isRequired: Boolean,
+        // Stable resource id of the phone top tab, for UI automation
+        val testViewId: Int? = null
     )
 
     const val ID_HOME = 1
@@ -37,7 +40,8 @@ object AppTabsManager {
             R.drawable.ic_home_thin,
             R.drawable.ic_home_filled,
             "Wallet",
-            isRequired = true
+            isRequired = true,
+            testViewId = UIComponentsR.id.tab_wallet
         ),
         AppTab(
             TAB_MARKET,
@@ -45,7 +49,8 @@ object AppTabsManager {
             R.drawable.ic_market_thin,
             R.drawable.ic_market_filled,
             "Market",
-            isRequired = false
+            isRequired = false,
+            testViewId = UIComponentsR.id.tab_market
         ),
         AppTab(
             TAB_AGENT,
@@ -61,7 +66,8 @@ object AppTabsManager {
             R.drawable.ic_explore_thin,
             R.drawable.ic_explore_filled,
             "Explore",
-            isRequired = false
+            isRequired = false,
+            testViewId = UIComponentsR.id.tab_explore
         ),
         AppTab(
             TAB_SETTINGS,
@@ -77,7 +83,8 @@ object AppTabsManager {
             R.drawable.ic_portfolio_thin,
             R.drawable.ic_portfolio_filled,
             "Portfolio",
-            isRequired = false
+            isRequired = false,
+            testViewId = UIComponentsR.id.tab_portfolio
         )
     )
 

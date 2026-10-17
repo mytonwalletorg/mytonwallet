@@ -764,7 +764,8 @@ abstract class WViewController(val context: Context) :
                     (navigationController?.additionalRootTopInset ?: 0)
                 ).toFloat()
         val targetHeight = if (isRootTop) rootTopOverlayHeight(overlayView.isGradientMode) else 0
-        if (!force && overlayView.layoutParams?.height == targetHeight) return
+        val heightChanged = overlayView.layoutParams?.height != targetHeight
+        if (!force && !heightChanged) return
         overlayView.layoutParams?.let { params ->
             params.height = targetHeight
             overlayView.layoutParams = params
@@ -779,7 +780,12 @@ abstract class WViewController(val context: Context) :
                 bottomToBottom(overlayView, it, -ViewConstants.TOOLBAR_RADIUS)
             }
         }
-        if (isRootTop) overlayView.bringToFront()
+        if (isRootTop) {
+            overlayView.bringToFront()
+        } else if (heightChanged) {
+            topBlurViewGuideline?.bringToFront()
+            navigationBar?.bringToFront()
+        }
     }
 
     protected open fun onRootTopGradientModeChanged(enabled: Boolean) {}

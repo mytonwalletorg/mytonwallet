@@ -1,6 +1,7 @@
 import type { TeactNode } from '../lib/teact/teact';
 
 import type {
+  AgentAnswerFeedbackV2,
   AgentAnswerLinkV1,
   AgentAnswerTableReferenceV1,
   AgentAnswerTableV1,
@@ -64,6 +65,7 @@ import type {
   ApiSwapDexRouterLabel,
   ApiSwapHint,
   ApiSwapRoute,
+  ApiSwapRouteType,
   ApiSwapVersion,
   ApiTokenDetails,
   ApiTokenType,
@@ -467,6 +469,7 @@ export enum SettingsState {
   BackupWallet,
   Permissions,
   Chains,
+  Developer,
 }
 
 export enum MintCardState {
@@ -597,6 +600,9 @@ export interface AgentMessage {
   followups?: AgentPublicFollowUpV2[];
   error?: AgentV2MessageError;
   isRetryAvailable?: boolean;
+  /** The server stores the answer as complete, so the user can rate it */
+  isComplete?: boolean;
+  feedback?: AgentAnswerFeedbackV2;
 }
 
 export interface AgentHint {
@@ -717,6 +723,7 @@ export interface AccountState {
   invoiceTokenSlug?: string;
   /** The counter token the user picked by hand on the Buy / Sell screen, by direction */
   tradeCounterTokenSlugs?: Partial<Record<TradeDirection, string>>;
+  lastSwapPairsBySlug?: Record<string, { tokenInSlug: string; tokenOutSlug: string }>;
 
   dapps?: StoredDappConnection[];
   currentSiteCategoryId?: number;
@@ -891,6 +898,7 @@ export type GlobalState = {
     state: SwapState;
     swapId?: string;
     slippage: number;
+    route?: ApiSwapRouteType;
     tokenInSlug?: string;
     tokenOutSlug?: string;
     amountIn?: string;
@@ -927,10 +935,11 @@ export type GlobalState = {
     dieselStatus?: DieselStatus;
     dexLabel?: ApiSwapDexLabel;
     dexRouterLabel?: ApiSwapDexRouterLabel;
-    /** EVM Only: allowance is insufficient; EIP-7702 batching applies when supported. */
-    needsApprove?: boolean;
-    /** EVM Only: approve, delegation setup, and swap run as one batch user operation. */
-    isBatchTx?: boolean;
+    /**
+     * EVM only. The swap is sent as one batch user operation, so confirmation should warn that sending
+     * can take longer. Set when a Permit2 approve, a router permit, or an Alchemy delegate is missing.
+     */
+    needsBatch?: boolean;
     routes?: ApiSwapRoute[][];
     currentCexLabel?: ApiSwapCexLabel;
     currentCexProviderName?: string;
@@ -939,6 +948,8 @@ export type GlobalState = {
     currentCexAmlKycPolicyUrl?: string;
     maxAmountFromBackend?: string;
     swapHint?: ApiSwapHint;
+    /** Tester-only estimate fan-out summary from the backend `debug.summary` field. */
+    estimateDebugSummary?: string;
     // Fees. Undefined values mean that these fields are unknown.
     networkFee?: string;
     realNetworkFee?: string;
@@ -1642,7 +1653,7 @@ export interface ActionPayloads {
   closeBiometricSettings: undefined;
   openBiometricsTurnOffWarning: undefined;
   enableBiometrics: { isLoginFlow?: boolean } | undefined;
-  disableBiometrics: { newPassword?: string; isPasswordNumeric?: boolean } | undefined;
+  disableBiometrics: { newPassword?: string; isPasswordNumeric?: boolean; onError?: NoneToVoidFunction } | undefined;
   changePasscode: { passcode: string; onSuccess: NoneToVoidFunction };
   changeBaseCurrency: { currency: ApiBaseCurrency };
   copyStorageData: undefined;
@@ -1680,7 +1691,7 @@ export interface ActionPayloads {
   // TON Connect connection
   submitDappConnectRequestConfirm: { accountId: string; enclaveToken?: string };
   clearDappConnectRequestError: undefined;
-  cancelDappConnectRequestConfirm: undefined;
+  cancelDappConnectRequestConfirm: { promiseId?: string } | undefined;
   setDappConnectRequestState: { state: DappConnectState };
   apiUpdateDappConnect: ApiUpdateDappConnect;
 
@@ -1690,7 +1701,7 @@ export interface ActionPayloads {
   submitDappTransferConfirm: undefined;
   submitDappTransfer: { enclaveToken?: string } | undefined;
   clearDappTransferError: undefined;
-  cancelDappTransfer: undefined;
+  cancelDappTransfer: { promiseId?: string } | undefined;
   closeDappTransfer: undefined;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
 
@@ -1699,7 +1710,7 @@ export interface ActionPayloads {
   submitDappSignDataConfirm: undefined;
   submitDappSignData: { enclaveToken?: string } | undefined;
   clearDappSignDataError: undefined;
-  cancelDappSignData: undefined;
+  cancelDappSignData: { promiseId?: string } | undefined;
   closeDappSignData: undefined;
   apiUpdateDappSignData: ApiUpdateDappSignData;
 
@@ -1729,6 +1740,7 @@ export interface ActionPayloads {
   // Swap
   submitSwap: { enclaveToken: string };
   startTokenTrade: { tokenSlug: string; direction: TradeDirection };
+  startTokenSwap: { tokenSlug: string };
   /**
    * `amount` is in the screen token unless `isAmountIn` says it is the paying amount, which only differs
    * when buying. `isMaxAmount` marks the whole balance so the backend subtracts the fee itself.
@@ -1745,7 +1757,7 @@ export interface ActionPayloads {
   } | undefined;
   cancelSwap: { shouldReset?: boolean } | undefined;
   switchSwapAccount: { accountId: string };
-  setDefaultSwapParams: { tokenInSlug?: string; tokenOutSlug?: string; withResetAmount?: boolean } | undefined;
+  setDefaultSwapParams: { withResetAmount?: boolean } | undefined;
   switchSwapTokens: undefined;
   setSwapTokenIn: { tokenSlug: string };
   setSwapTokenOut: { tokenSlug: string };

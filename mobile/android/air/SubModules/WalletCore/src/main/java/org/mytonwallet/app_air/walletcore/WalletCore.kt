@@ -999,18 +999,21 @@ object WalletCore {
         }
     }
 
-    fun ensureAccountActivated(accountId: String, onCompletion: (accountChanged: Boolean) -> Unit) {
+    fun ensureAccountActivated(
+        accountId: String,
+        onFailure: (() -> Unit)? = null,
+        onCompletion: (accountChanged: Boolean) -> Unit
+    ) {
         if (AccountStore.activeAccountId == accountId) {
             onCompletion(false)
             return
         }
         WalletCore.activateAccount(
             accountId,
-            notifySDK = true
+            notifySDK = true,
+            onSkipped = onFailure
         ) { res, err ->
             if (res == null || err != null) {
-                // Should not happen! Continuing with a half-switched account context is
-                // unsafe, so fail (same as switchToDisplayedAccountId).
                 Logger.e(
                     Logger.LogTag.ACCOUNT,
                     LogMessage.Builder()
@@ -1019,7 +1022,13 @@ object WalletCore {
                             LogMessage.MessagePartPrivacy.PUBLIC
                         ).build()
                 )
-                throw Error("activateAccount failed: $err")
+                if (onFailure != null) {
+                    onFailure()
+                } else {
+                    // Should not happen! Continuing with a half-switched account context is
+                    // unsafe, so fail (same as switchToDisplayedAccountId).
+                    throw Error("activateAccount failed: $err")
+                }
             } else {
                 onCompletion(true)
             }

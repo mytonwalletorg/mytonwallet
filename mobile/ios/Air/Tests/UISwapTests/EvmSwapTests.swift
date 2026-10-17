@@ -7,7 +7,7 @@ import WalletContext
 @Suite("EVM Swaps")
 @MainActor
 struct EvmSwapTests {
-    @Test(arguments: [ApiChain.ethereum, .base, .bnb, .polygon, .arbitrum, .monad, .avalanche, .robinhood, .arc])
+    @Test(arguments: [ApiChain.ethereum, .base, .bnb, .arbitrum, .robinhood, .arc])
     func `same chain EVM pairs use DEX estimation and sell amount input`(chain: ApiChain) {
         let selling = chain.nativeToken
         let buyingSlug = "\(chain.rawValue)-0x1111111111111111111111111111111111111111"
@@ -20,12 +20,18 @@ struct EvmSwapTests {
     @Test
     func `unsupported and cross chain pairs keep CEX routing`() {
         #expect(!ApiChain.hyperliquid.isOnchainSwapSupported)
+        #expect(!ApiChain.polygon.isOnchainSwapSupported)
+        #expect(!ApiChain.avalanche.isOnchainSwapSupported)
+        #expect(!ApiChain.monad.isOnchainSwapSupported)
         #expect(getSwapType(from: HYPERLIQUID_SLUG, to: HYPERLIQUID_USDC_MAINNET_SLUG, accountChains: [.hyperliquid]) == .crosschainInsideWallet)
+        #expect(getSwapType(from: POLYGON_SLUG, to: "polygon-0x1111111111111111111111111111111111111111", accountChains: [.polygon]) == .crosschainInsideWallet)
+        #expect(getSwapType(from: AVALANCHE_SLUG, to: "avalanche-0x1111111111111111111111111111111111111111", accountChains: [.avalanche]) == .crosschainInsideWallet)
+        #expect(getSwapType(from: MONAD_SLUG, to: "monad-0x1111111111111111111111111111111111111111", accountChains: [.monad]) == .crosschainInsideWallet)
         #expect(getSwapType(from: ETH_SLUG, to: BASE_SLUG, accountChains: [.ethereum, .base]) == .crosschainInsideWallet)
     }
 
     @Test(arguments: [true, false])
-    func `Uniswap quote builds and submits with its approval requirement`(needsApprove: Bool) async throws {
+    func `Uniswap quote builds and submits with its batch requirement`(needsBatch: Bool) async throws {
         let response = try JSONDecoder().decode(ApiSwapEstimateResponse.self, from: Data("""
         {
           "route": "dex", "chain": "ethereum", "dexRouterLabel": "uniswap",
@@ -34,7 +40,7 @@ struct EvmSwapTests {
           "slippage": 1, "impact": 0.1, "dieselStatus": "not-available",
           "networkFee": "0.0001", "realNetworkFee": "0.0001",
           "swapFee": "0", "swapFeePercent": 0, "ourFee": "0.00008", "ourFeePercent": 0.8,
-          "needsApprove": \(needsApprove), "other": []
+          "needsBatch": \(needsBatch), "other": []
         }
         """.utf8))
         guard case .dex(let estimate) = response else {
@@ -43,7 +49,7 @@ struct EvmSwapTests {
         }
         #expect(estimate.dexLabel == nil)
         #expect(estimate.dexRouterLabel == "uniswap")
-        #expect(SwapBatchTxPolicy.isBatchTx(estimate: estimate, sellingToken: .ETH_USDC_MAINNET) == needsApprove)
+        #expect(SwapBatchTxPolicy.isBatchTx(estimate: estimate, sellingToken: .ETH_USDC_MAINNET) == needsBatch)
 
         let buildResponse = try JSONDecoder().decode(ApiSwapBuildResponse.self, from: Data("""
         {
@@ -67,7 +73,7 @@ struct EvmSwapTests {
                 #expect(request.fromAddress == account.getAddress(chain: .ethereum))
                 #expect(request.historyAddress == "ton-history-address")
                 #expect(request.dexRouterLabel == "uniswap")
-                #expect(request.needsApprove == needsApprove)
+                #expect(request.needsBatch == needsBatch)
                 #expect(request.swapMode == .exactIn)
                 return buildResponse
             },
@@ -81,7 +87,7 @@ struct EvmSwapTests {
                 #expect(isGasless == false)
                 #expect(transaction == "uniswap-payload")
                 #expect(calls == buildResponse.calls)
-                #expect(approval == needsApprove)
+                #expect(approval == needsBatch)
                 return try JSONDecoder().decode(ApiSwapSubmitResult.self, from: Data(#"{"swapId":"swap-id"}"#.utf8))
             }
         )

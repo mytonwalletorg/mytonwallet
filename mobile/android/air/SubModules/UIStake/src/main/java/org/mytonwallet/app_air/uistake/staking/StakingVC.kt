@@ -16,6 +16,7 @@ import java.math.BigInteger
 import kotlin.math.max
 import kotlin.math.roundToInt
 import org.mytonwallet.app_air.ledger.screens.ledgerConnect.LedgerConnectVC
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WViewControllerWithModelStore
 import org.mytonwallet.app_air.uicomponents.base.showAlert
@@ -96,7 +97,9 @@ class StakingVC(
                 stakingViewModel.onEquivalentClicked()
             },
             onClickMaxBalanceButton = { onMaxBalanceButtonClicked() }
-        )
+        ).apply {
+            amountEditText.id = UIComponentsR.id.stake_amount_input
+        }
     }
     private val spacerView = WView(context)
     private val detailHeader = WLabel(context).apply {
@@ -129,6 +132,7 @@ class StakingVC(
 
     private val stakeButton: WButton by lazy {
         val wButton = WButton(context, WButton.Type.PRIMARY)
+        wButton.id = UIComponentsR.id.stake_submit
         wButton.setOnClickListener {
             if (stakingViewModel.canProceedToConfirm()) {
                 if (AccountStore.activeAccount?.isHardware == true) {

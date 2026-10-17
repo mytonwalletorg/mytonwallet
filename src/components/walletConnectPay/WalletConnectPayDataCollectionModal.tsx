@@ -4,10 +4,12 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
+import getElectronIpcErrorMessage from '../../util/getElectronIpcErrorMessage';
 import {
   canEmbedWalletConnectPayCollect,
   checkIsKycUrlAllowed,
   getWalletConnectPayCollectOrigin,
+  isWalletConnectPayUserCancellation,
   listenWalletConnectPayDataCollectionMessages,
 } from '../../util/walletConnectPay';
 import { IS_ELECTRON } from '../../util/windowEnvironment';
@@ -82,8 +84,8 @@ function WalletConnectPayDataCollectionModal({ promiseId, url, isCompleting }: S
         return;
       }
 
-      const message = error instanceof Error ? error.message : String(error);
-      if (message !== 'Canceled by the user') {
+      const message = getElectronIpcErrorMessage(error);
+      if (!isWalletConnectPayUserCancellation(message)) {
         showError({ error: message });
       }
       closeWalletConnectPayDataCollection();

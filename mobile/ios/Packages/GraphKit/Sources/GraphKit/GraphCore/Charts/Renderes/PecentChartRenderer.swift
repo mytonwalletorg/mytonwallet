@@ -46,71 +46,70 @@ class PecentChartRenderer: BaseChartRenderer {
     }
     
     override func render(context: CGContext, bounds: CGRect, chartFrame: CGRect) {
-        guard isEnabled && verticalRange.current.distance > 0 && verticalRange.current.distance > 0 else { return }
+        guard isEnabled && horizontalRange.current.distance > 0 && verticalRange.current.distance > 0 else { return }
         let alpha = chartAlphaAnimator.current
         guard alpha > 0 else { return }
         
         let range = renderRange(bounds: bounds, chartFrame: chartFrame)
         
         let paths: [CGMutablePath] = percentageData.components.map { _ in CGMutablePath() }
+        let visibility = componentsAnimators.map { $0.current }
         var vertices: [CGFloat] = Array<CGFloat>(repeating: 0, count: percentageData.components.count)
+        var segmentIsOpen = false
+        let baseline = transform(toChartCoordinateVertical: 0, chartFrame: chartFrame)
+
+        func closeSegment(at x: CGFloat) {
+            guard segmentIsOpen else { return }
+            for (index, path) in paths.enumerated() {
+                path.addLine(to: CGPoint(x: x, y: transform(toChartCoordinateVertical: vertices[index], chartFrame: chartFrame)))
+                path.addLine(to: CGPoint(x: x, y: baseline))
+                path.closeSubpath()
+            }
+            segmentIsOpen = false
+        }
 
         if var locationIndex = percentageData.locations.firstIndex(where: { $0 > range.lowerBound }) {
             locationIndex = max(0, locationIndex - 1)
             
             var currentLocation = transform(toChartCoordinateHorizontal: percentageData.locations[locationIndex], chartFrame: chartFrame)
 
-            let startPoint = CGPoint(x: currentLocation,
-                                     y: transform(toChartCoordinateVertical: verticalRange.current.lowerBound, chartFrame: chartFrame))
-            
-            for path in paths {
-                path.move(to: startPoint)
-            }
-            paths.last?.addLine(to: CGPoint(x: currentLocation,
-                                            y: transform(toChartCoordinateVertical: verticalRange.current.upperBound, chartFrame: chartFrame)))
-
             while locationIndex < percentageData.locations.count {
                 currentLocation = transform(toChartCoordinateHorizontal: percentageData.locations[locationIndex], chartFrame: chartFrame)
-                var summ: CGFloat = 0
-                
+                var total: CGFloat = 0
                 for (index, component) in percentageData.components.enumerated() {
-                    let visibilityPercent = componentsAnimators[index].current
-                    
-                    let value = component.values[locationIndex] * visibilityPercent
-                    if index == 0 {
-                        vertices[index] = value
-                    } else {
-                        vertices[index] = value + vertices[index - 1]
-                    }
-                    summ += value
+                    total += component.values[locationIndex] * visibility[index]
                 }
-                
-                if summ > 0 {
-                    for (index, value) in vertices.dropLast().enumerated() {
-                        paths[index].addLine(to: CGPoint(x: currentLocation,
-                                                         y: transform(toChartCoordinateVertical: value / summ, chartFrame: chartFrame)))
+
+                if total > 0 {
+                    var cumulativeValue: CGFloat = 0
+                    for (index, component) in percentageData.components.enumerated() {
+                        if !segmentIsOpen {
+                            paths[index].move(to: CGPoint(x: currentLocation, y: baseline))
+                        }
+                        cumulativeValue += component.values[locationIndex] * visibility[index]
+                        vertices[index] = cumulativeValue / total
+                        paths[index].addLine(to: CGPoint(
+                            x: currentLocation,
+                            y: transform(toChartCoordinateVertical: vertices[index], chartFrame: chartFrame)
+                        ))
                     }
+                    segmentIsOpen = true
+                } else {
+                    // Shares are undefined at a zero total. End at this sample without bridging the gap.
+                    closeSegment(at: currentLocation)
                 }
-                
-                if currentLocation > range.upperBound {
+
+                if percentageData.locations[locationIndex] > range.upperBound {
                     break
                 }
                 
                 locationIndex += 1
             }
             
-            paths.last?.addLine(to: CGPoint(x: currentLocation,
-                                            y: transform(toChartCoordinateVertical: verticalRange.current.upperBound, chartFrame: chartFrame)))
-
-            let endPoint = CGPoint(x: currentLocation,
-                                   y: transform(toChartCoordinateVertical: verticalRange.current.lowerBound, chartFrame: chartFrame))
+            closeSegment(at: currentLocation)
             
             for (index, path) in paths.enumerated().reversed() {
-                let visibilityPercent = componentsAnimators[index].current
-                if visibilityPercent == 0 { continue }
-
-                path.addLine(to: endPoint)
-                path.closeSubpath()
+                if visibility[index] == 0 { continue }
                 
                 context.saveGState()
                 context.beginPath()

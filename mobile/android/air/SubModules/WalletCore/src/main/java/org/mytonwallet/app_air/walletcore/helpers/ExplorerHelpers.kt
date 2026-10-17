@@ -11,6 +11,7 @@ import org.mytonwallet.app_air.walletcore.models.InAppBrowserConfig
 import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.MMarketplace
 import org.mytonwallet.app_air.walletcore.models.blockchain.MBlockchain
+import org.mytonwallet.app_air.walletcore.models.blockchain.MBlockchainExplorer
 
 class ExplorerHelpers {
     companion object {
@@ -47,9 +48,10 @@ class ExplorerHelpers {
         fun createTransactionExplorerConfig(
             chain: MBlockchain,
             network: MBlockchainNetwork,
-            txHash: String
+            txHash: String,
+            isTraceId: Boolean
         ): InAppBrowserConfig? {
-            val explorers = chain.transactionExplorers()
+            val explorers = transactionExplorers(chain, isTraceId)
             val preferredExplorer = WGlobalStorage.getPreferredExplorer(chain.name)
             val selectedExplorer = explorers.firstOrNull { it.identifier == preferredExplorer }
                 ?: explorers.firstOrNull() ?: return null
@@ -71,6 +73,16 @@ class ExplorerHelpers {
                 selectedOption = selectedExplorer.identifier,
                 optionsOnTitle = true
             )
+        }
+
+        // A hash other than the trace ID may name the external message of a TON trace, which only some explorers find
+        fun transactionExplorers(
+            chain: MBlockchain,
+            isTraceId: Boolean
+        ): List<MBlockchainExplorer> {
+            val explorers = chain.transactionExplorers()
+            if (isTraceId) return explorers
+            return explorers.filter { it.isMessageHashSupported }.ifEmpty { explorers }
         }
 
         fun mtwScanUrl(network: MBlockchainNetwork, uriBuilder: Uri.Builder): String {

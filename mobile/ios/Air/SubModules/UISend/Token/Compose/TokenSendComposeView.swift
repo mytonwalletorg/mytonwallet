@@ -18,7 +18,8 @@ struct TokenSendComposeView: View {
                 RecipientAddressSection(
                     model: model.recipient,
                     validationState: model.recipientValidationState,
-                    onPasteAction: handleAddressPaste
+                    onPasteAction: handleAddressPaste,
+                    addressIdentifier: "send_address_input"
                 )
                 if !model.recipient.isFocused {
                     TokenSendFormSections(
@@ -125,7 +126,9 @@ private struct TokenSendAmountSection: View {
                 explainedFee: model.explainedFee,
                 isFocused: $isFocused,
                 onTokenSelect: onTokenSelect,
-                onUseAll: selectAll
+                onUseAll: selectAll,
+                amountIdentifier: "send_amount_input",
+                tokenPickerIdentifier: "send_token_selector"
             )
         }
     }
@@ -149,6 +152,7 @@ private struct TokenSendPayloadSection: View {
                         model.isEncryptedMessageAvailable,
                     binaryPayload: model.binaryPayload,
                     stateInit: model.configuration.stateInit,
+                    commentIdentifier: "send_comment_input",
                     isMessageEncrypted: $model.isMessageEncrypted,
                     comment: $model.comment
                 )

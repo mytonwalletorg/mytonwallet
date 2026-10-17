@@ -18,6 +18,7 @@ export {
   retryAgentV2Run,
   startAgentV2Run,
   setAgentV2ChatActive,
+  setAgentV2MessageFeedback,
   updateAgentV2HostContext,
 } from '../agentV2/service';
 export type {

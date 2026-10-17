@@ -113,6 +113,29 @@ describe('importNewWalletVersion', () => {
     });
   });
 
+  it.each([true, false])('imports the selected W5 subwallet ID (%s) on testnet', async (isTestnetSubwalletId) => {
+    const selectedWallet: ApiTonWallet = {
+      ...currentAccount.byChain.ton,
+      address: isTestnetSubwalletId ? 'testnet-subwallet-address' : 'legacy-subwallet-address',
+    };
+    mockGetOtherVersionWallet.mockReturnValue(selectedWallet);
+    jest.mocked(getNewAccountId).mockResolvedValue('1-testnet');
+
+    await expect(importNewWalletVersion('0-testnet', 'W5', isTestnetSubwalletId)).resolves.toEqual({
+      isNew: true,
+      accountId: '1-testnet',
+      byChain: { ton: selectedWallet },
+    });
+
+    expect(mockGetOtherVersionWallet).toHaveBeenCalledWith(
+      'testnet', currentAccount.byChain.ton, 'W5', isTestnetSubwalletId,
+    );
+    expect(setAccountValue).toHaveBeenCalledWith('1-testnet', 'accounts', {
+      ...currentAccount,
+      byChain: { ton: selectedWallet },
+    });
+  });
+
   it('rejects creating another wallet version from a Telegram Wallet source before writing an account', async () => {
     jest.mocked(fetchStoredChainAccount).mockResolvedValue({
       ...currentAccount,

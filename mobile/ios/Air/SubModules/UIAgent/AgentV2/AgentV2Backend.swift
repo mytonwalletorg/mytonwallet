@@ -205,28 +205,22 @@ private final class AgentV2Backend: AgentBackend, AgentV2CoordinatorObserver {
         )
     }
 
-    func clearConversation(completion: @escaping (Bool) -> Void) {
-        guard canClearConversation else {
-            completion(false)
-            return
-        }
+    func clearConversation() {
+        guard canClearConversation else { return }
         isClearing = true
         notifyStateChanged()
         Task { [weak self] in
             guard let self else { return }
             let didClear = await self.coordinator.clearThread()
-            guard !self.didStop else {
-                completion(false)
-                return
-            }
+            guard !self.didStop else { return }
             self.isClearing = false
             if didClear {
                 self.resetPresentationState()
             } else {
+                self.synchronizeMessages(forceTimelineReplacement: true)
                 AppActions.showError(error: DisplayError(text: lang("Agent is unavailable")))
             }
             self.notifyStateChanged()
-            completion(didClear)
         }
     }
 
@@ -242,8 +236,14 @@ private final class AgentV2Backend: AgentBackend, AgentV2CoordinatorObserver {
         return await coordinator.reportProblem(messageId: nativeMessageID, comment: comment)
     }
 
+    func rateMessage(messageID: AgentItemID, feedback: ApiAgentV2AnswerFeedback?) async -> Bool {
+        guard let nativeID = nativeIDByUIID[messageID] else { return false }
+        return await coordinator.setFeedback(messageId: nativeID, feedback: feedback)
+    }
+
     func loadOlderMessages() async -> Bool {
         guard didPresentInitialTimeline,
+              !isClearing,
               !isLoadingOlderMessages,
               coordinator.activeRun?.isRunning != true,
               coordinator.nextMessageCursor != nil else { return false }
@@ -313,12 +313,10 @@ private final class AgentV2Backend: AgentBackend, AgentV2CoordinatorObserver {
         let shouldForceTimelineReplacement = rollbackRejectedEditIfNeeded(outcome: terminalOutcome)
         let shouldRebuildTimelineForTimestampChanges = change == .messagesHydrated
         synchronizeHints()
-        if !(isClearing && coordinator.messages.isEmpty) {
-            synchronizeMessages(
-                forceTimelineReplacement: shouldForceTimelineReplacement,
-                shouldRebuildTimelineForTimestampChanges: shouldRebuildTimelineForTimestampChanges
-            )
-        }
+        synchronizeMessages(
+            forceTimelineReplacement: shouldForceTimelineReplacement,
+            shouldRebuildTimelineForTimestampChanges: shouldRebuildTimelineForTimestampChanges
+        )
         if terminalOutcome != nil {
             removeOrphanedTypingIndicatorIfNeeded()
         }
@@ -352,7 +350,7 @@ private final class AgentV2Backend: AgentBackend, AgentV2CoordinatorObserver {
         forceMessageUpdates: Bool = false,
         shouldRebuildTimelineForTimestampChanges: Bool = false
     ) {
-        guard let context, isTimelineReady || coordinator.error != nil else { return }
+        guard let context, !isClearing, isTimelineReady || coordinator.error != nil else { return }
         pruneEditingState()
 
         var nextInteractions: [AgentItemID: [String: Interaction]] = [:]
@@ -530,6 +528,8 @@ private final class AgentV2Backend: AgentBackend, AgentV2CoordinatorObserver {
                 links: nativeMessage.links
             )
         }
+        message.canRate = nativeMessage.isStoredAsComplete
+        message.feedback = nativeMessage.feedback
         return PresentedMessage(
             key: key,
             message: message,
@@ -715,6 +715,8 @@ private final class AgentV2Backend: AgentBackend, AgentV2CoordinatorObserver {
             && lhs.controls == rhs.controls
             && lhs.renderingPolicy == rhs.renderingPolicy
             && lhs.supplementaryErrorText == rhs.supplementaryErrorText
+            && lhs.canRate == rhs.canRate
+            && lhs.feedback == rhs.feedback
     }
 
     private let messagePresentationPrefix = "message:"

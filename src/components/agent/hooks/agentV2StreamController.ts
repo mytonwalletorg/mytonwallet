@@ -334,6 +334,8 @@ export function createAgentV2StreamController(
       ...(message.followups?.length ? { followups: message.followups } : {}),
       ...(message.error ? { error: message.error } : {}),
       ...(message.error?.retryable ? { isRetryAvailable: true } : {}),
+      ...(message.role === 'assistant' && message.status === 'complete' ? { isComplete: true } : {}),
+      ...(message.feedback ? { feedback: message.feedback } : {}),
     };
   }
 

@@ -13,6 +13,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.ScrollView
 import java.lang.ref.WeakReference
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.uicomponents.base.showAlert
 import org.mytonwallet.app_air.uicomponents.commonViews.AddressInputLayout
@@ -102,7 +103,7 @@ class ImportViewWalletVC(
                 view.hideKeyboard()
             }
         ).apply {
-            id = View.generateViewId()
+            id = UIComponentsR.id.view_address_input
             setMaxLines(2)
             setHint(LocaleController.getString("Address or Domain"))
             setPadding(0, 10.dp, 0, 0)
@@ -110,6 +111,7 @@ class ImportViewWalletVC(
     }
 
     private val continueButton = WButton(context).apply {
+        id = UIComponentsR.id.view_continue
         text =
             LocaleController.getString("Continue")
         isEnabled = false

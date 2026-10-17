@@ -26,8 +26,12 @@ import org.mytonwallet.app_air.walletbasecontext.theme.color
 import org.mytonwallet.app_air.walletbasecontext.utils.getDrawableCompat
 import org.mytonwallet.app_air.walletcore.moshi.IApiToken
 
-class SwapAssetInputView(context: Context) :
-    WCell(context),
+class SwapAssetInputView(
+    context: Context,
+    // Stable resource ids of the token selector and amount field, for UI automation
+    assetViewId: Int? = null,
+    amountEditTextId: Int? = null
+) : WCell(context),
     WThemedView {
     private val leftTopLabel = WLabel(context).apply {
         id = generateViewId()
@@ -45,14 +49,14 @@ class SwapAssetInputView(context: Context) :
     }
 
     val assetView = WTokenSymbolIconView(context).apply {
-        id = generateViewId()
+        id = assetViewId ?: generateViewId()
         drawable = context.getDrawableCompat(org.mytonwallet.app_air.icons.R.drawable.ic_arrows_18)
         defaultSymbol = LocaleController.getString("Select Token")
         layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
     }
 
     val amountEditText = WAmountEditText(context).apply {
-        id = generateViewId()
+        id = amountEditTextId ?: generateViewId()
         hint = "0"
         layoutParams = LayoutParams(0, 48.dp)
         gravity = Gravity.CENTER_VERTICAL or

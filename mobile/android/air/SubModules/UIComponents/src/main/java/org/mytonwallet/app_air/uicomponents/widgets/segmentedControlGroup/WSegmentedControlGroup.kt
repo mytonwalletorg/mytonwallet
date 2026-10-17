@@ -252,7 +252,13 @@ class WSegmentedControlGroup(context: Context) :
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        buttonWidth = getChildAt(0).width
+        val newButtonWidth = getChildAt(0).width
+        if (newButtonWidth != buttonWidth) {
+            buttonWidth = newButtonWidth
+            animator?.cancel()
+            sliderPosition = selectedButtonIndex * buttonWidth.toFloat()
+            invalidate()
+        }
         setSelectedIndexCallback?.invoke()
         setSelectedIndexCallback = null
     }

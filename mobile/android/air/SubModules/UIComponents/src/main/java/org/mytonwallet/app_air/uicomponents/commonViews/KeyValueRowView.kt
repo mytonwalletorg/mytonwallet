@@ -41,7 +41,9 @@ class KeyValueRowView(
     val key: String,
     private var value: CharSequence,
     val mode: Mode,
-    private var isLast: Boolean
+    private var isLast: Boolean,
+    // Stable resource id for UI automation, set before children are anchored to the row's id
+    viewId: Int? = null
 ) : WView(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)),
     WThemedView {
 
@@ -118,6 +120,7 @@ class KeyValueRowView(
         }
 
     init {
+        viewId?.let { id = it }
         background = ripple
         // workaround instead of minimumHeight property to manage cases inside another ConstraintLayout
         addView(minHeightSpace, LayoutParams(WRAP_CONTENT, 50.dp))

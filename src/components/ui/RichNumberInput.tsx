@@ -3,6 +3,7 @@ import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { toLatinDigits } from '../../util/nativeDigits';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 import { buildContentHtml } from './helpers/buildContentHtml';
 
@@ -231,9 +232,9 @@ function clearText(text?: string) {
   if (!text) return '';
 
   return (
-    text
+    toLatinDigits(text)
       .trim()
-      .replace(',', '.') // Replace comma to point
+      .replace(/[,٫]/, '.') // Replace comma or Arabic decimal separator with point
       .replace(/[^\d.]/g, '') // Remove incorrect symbols
       .replace(/^0+(?=([1-9]|0\.))/, '') // Trim extra zeros at beginning
       .replace(/^0+$/, '0') // Trim extra zeros (if only zeros are entered)

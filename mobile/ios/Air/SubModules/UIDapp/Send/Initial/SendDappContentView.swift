@@ -87,18 +87,35 @@ private struct SendDappContentView: View {
     }
     
     private var transfersSection: some View {
-        InsetSection {
+        let addressNames = previewAddressNames
+        return InsetSection {
             ForEach(sortedTransactions, id: \.self) { tx in
                 TransferRow(
                     transfer: tx,
                     chain: operationChain,
                     accountContext: accountContext,
+                    addressNames: addressNames,
                     action: onShowDetail
                 )
             }
         } header: {
             Text(L10n.manyTransactions(count: transactionsCount))
         }
+    }
+
+    private var previewAddressNames: [String: String] {
+        var names: [String: String] = [:]
+        for activity in request.emulation?.activities ?? [] {
+            guard let transaction = activity.transaction,
+                  getChainBySlug(transaction.slug) == operationChain,
+                  let name = transaction.metadata?.name?.nilIfEmpty,
+                  let address = transaction.peerAddress?.nilIfEmpty else { continue }
+            names[address] = name
+            if let normalizedAddress = transaction.normalizedAddress?.nilIfEmpty {
+                names[normalizedAddress] = name
+            }
+        }
+        return names
     }
     
     @ViewBuilder

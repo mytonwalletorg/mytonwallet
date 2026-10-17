@@ -27,6 +27,7 @@ final class SegmentedControlInteractionView: UIView, UIGestureRecognizerDelegate
         isSelected: Bool,
         itemId: String,
         title: String,
+        accessibilityIdentifier: String? = nil,
         contextMenuProvider: SegmentedControlContextMenuProvider?,
         segmentedControl: WSegmentedControl,
         allowsSimultaneousGlassInteraction: Bool = false,
@@ -35,6 +36,7 @@ final class SegmentedControlInteractionView: UIView, UIGestureRecognizerDelegate
         self.onSelect = onSelect
         self.allowsSimultaneousGlassInteraction = allowsSimultaneousGlassInteraction
         self.accessibilityLabel = title
+        self.accessibilityIdentifier = accessibilityIdentifier
         self.accessibilityTraits = isSelected ? [.button, .selected] : .button
         self.updateSelectionTap(isSelected: isSelected)
         self.updateContextMenuInteraction(

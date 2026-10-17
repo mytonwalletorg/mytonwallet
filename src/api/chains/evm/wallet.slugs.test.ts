@@ -3,6 +3,9 @@
 import type { ApiTokenWithPrice } from '../../types';
 import type { ZerionPosition } from './types';
 
+import { SECOND } from '../../../util/dateFormat';
+import Deferred from '../../../util/Deferred';
+
 jest.mock('../../../util/fetch', () => ({
   ...jest.requireActual('../../../util/fetch'),
   fetchWithRetry: jest.fn(),
@@ -125,6 +128,111 @@ describe('EVM token slugs', () => {
 
     expect(balances).toHaveProperty(SPAM_SLUG);
     expect(balances).not.toHaveProperty(AUSD.slug);
+  });
+
+  it('stops waiting for a catalog that is late by the timeout, which then moves the slug it gives', async () => {
+    jest.useFakeTimers();
+
+    try {
+      const { fetchWithRetry } = await import('../../../util/fetch');
+      const { callBackendGet } = await import('../../common/backend');
+      const tokens = await import('../../common/tokens');
+      const { onTokenSlugsMove } = await import('../../common/tokenSlugMoves');
+      const { fetchAccountAssets } = await import('./wallet');
+      const catalog = new Deferred<ApiTokenWithPrice[]>();
+      const onMove = jest.fn();
+      jest.mocked(callBackendGet).mockReturnValueOnce(catalog.promise);
+      onTokenSlugsMove(onMove);
+
+      await tokens.loadTokensCache();
+      tokens.pauseTokenUpdates();
+      const request = tokens.updateTokensFromBackend(jest.fn());
+      mockPositions(fetchWithRetry);
+
+      const assetsPromise = trackSettlement(fetchAccountAssets('ethereum', 'mainnet', WALLET_ADDRESS, jest.fn()));
+      await jest.advanceTimersByTimeAsync(4 * SECOND);
+      expect(assetsPromise.isSettled()).toBe(false);
+
+      await jest.advanceTimersByTimeAsync(SECOND);
+      const { balances } = await assetsPromise.promise;
+
+      // Without the catalog, the smaller address key takes the slug the catalog gives to AUSD
+      expect(balances).toEqual(expect.objectContaining({
+        [AUSD.slug]: 32000000000000000000n,
+        [SPAM_SLUG]: 400000000000000000000000000n,
+      }));
+
+      catalog.resolve([AUSD]);
+      await request;
+
+      expect(onMove).toHaveBeenCalledWith([AUSD.slug]);
+      expect(tokens.getTokenBySlug(AUSD.slug)).toMatchObject({ tokenAddress: AUSD.tokenAddress });
+      expect(tokens.getTokenBySlug(OTHER_SPAM_SLUG)).toMatchObject({ tokenAddress: OTHER_SPAM_ADDRESS });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('assigns the slugs after the cached tokens load when the catalog request fails first', async () => {
+    const { fetchWithRetry } = await import('../../../util/fetch');
+    const { callBackendGet } = await import('../../common/backend');
+    const { tokenRepository } = await import('../../db');
+    const tokens = await import('../../common/tokens');
+    const { fetchAccountAssets } = await import('./wallet');
+    const cachedTokens = new Deferred<ApiTokenWithPrice[]>();
+    jest.mocked(tokenRepository.all).mockReturnValueOnce(cachedTokens.promise);
+    jest.mocked(callBackendGet).mockRejectedValueOnce(new Error('Offline'));
+
+    void tokens.loadTokensCache();
+    tokens.pauseTokenUpdates();
+    await expect(tokens.updateTokensFromBackend(jest.fn())).rejects.toThrow('Offline');
+    mockPositions(fetchWithRetry);
+
+    const assetsPromise = trackSettlement(fetchAccountAssets('ethereum', 'mainnet', WALLET_ADDRESS, jest.fn()));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(assetsPromise.isSettled()).toBe(false);
+
+    cachedTokens.resolve([AUSD]);
+    const { balances } = await assetsPromise.promise;
+
+    expect(balances).toHaveProperty(SPAM_SLUG);
+    expect(balances).not.toHaveProperty(AUSD.slug);
+  });
+
+  it('counts the catalog timeout from the moment the cached tokens load', async () => {
+    jest.useFakeTimers();
+
+    try {
+      const { fetchWithRetry } = await import('../../../util/fetch');
+      const { callBackendGet } = await import('../../common/backend');
+      const { tokenRepository } = await import('../../db');
+      const tokens = await import('../../common/tokens');
+      const { fetchAccountAssets } = await import('./wallet');
+      const cachedTokens = new Deferred<ApiTokenWithPrice[]>();
+      const catalog = new Deferred<ApiTokenWithPrice[]>();
+      jest.mocked(tokenRepository.all).mockReturnValueOnce(cachedTokens.promise);
+      jest.mocked(callBackendGet).mockReturnValueOnce(catalog.promise);
+
+      void tokens.loadTokensCache();
+      tokens.pauseTokenUpdates();
+      const request = tokens.updateTokensFromBackend(jest.fn());
+      mockPositions(fetchWithRetry);
+
+      const assetsPromise = trackSettlement(fetchAccountAssets('ethereum', 'mainnet', WALLET_ADDRESS, jest.fn()));
+      await jest.advanceTimersByTimeAsync(6 * SECOND);
+      cachedTokens.resolve([]);
+      await jest.advanceTimersByTimeAsync(SECOND);
+      expect(assetsPromise.isSettled()).toBe(false);
+
+      catalog.resolve([AUSD]);
+      await request;
+      const { balances } = await assetsPromise.promise;
+
+      expect(balances).toHaveProperty(SPAM_SLUG);
+      expect(balances).not.toHaveProperty(AUSD.slug);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('caches the tokens whose metadata is fetched together under slugs of their own', async () => {

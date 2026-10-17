@@ -65,12 +65,12 @@ export default function useExplorerUrl({
 
     // For explorer URLs, apply conversion logic if user has a saved preference
     const savedExplorerId = selectedExplorerIds?.[explorerInfo.chain];
-    const nextUrl = savedExplorerId && savedExplorerId !== explorerInfo.explorerId
-      ? convertExplorerUrl(url, savedExplorerId) || url
-      : url;
+    const convertedUrl = savedExplorerId && savedExplorerId !== explorerInfo.explorerId
+      ? convertExplorerUrl(url, savedExplorerId, true)
+      : undefined;
 
-    setCurrentExplorerId(savedExplorerId || explorerInfo.explorerId);
-    setCurrentUrl(nextUrl);
+    setCurrentExplorerId(convertedUrl ? savedExplorerId : explorerInfo.explorerId);
+    setCurrentUrl(convertedUrl || url);
   }, [url, explorerInfo, selectedExplorerIds, explorers, isTestnet]);
 
   const dropdownItems = useMemo<DropdownItem<string>[]>(() => {

@@ -100,6 +100,7 @@ interface StateProps {
   legacyAuthConfig?: LegacyAuthConfig;
   authUsageCountRequest?: number;
   multichainUpgradeAccountIds?: string[];
+  isAppLocked?: boolean;
 }
 
 const STICKER_SIZE = 180;
@@ -168,6 +169,7 @@ function PasswordForm({
   legacyAuthConfig,
   authUsageCountRequest,
   multichainUpgradeAccountIds,
+  isAppLocked,
   extraAuthUsages,
   onUpdate,
   onCancel,
@@ -350,6 +352,7 @@ function PasswordForm({
     isAuthorizingRef.current = true;
 
     setLocalError('');
+    clearMigrationFailure();
 
     migrateLegacyBiometricAuth({
       legacyAuthConfig,
@@ -417,11 +420,12 @@ function PasswordForm({
     openLogOutModal();
   });
 
+  // Under the lock screen only the unlock form takes Enter; another form with a typed password would sign its request
   useEffect(() => {
-    return isSubmitDisabled || isLoading
+    return isSubmitDisabled || isLoading || (isAppLocked && operationType !== 'unlock')
       ? undefined
       : captureKeyboardListeners({ onEnter: () => handleSubmit() });
-  }, [handleSubmit, isLoading, isSubmitDisabled]);
+  }, [handleSubmit, isLoading, isSubmitDisabled, isAppLocked, operationType]);
 
   function getPinPadTitle() {
     switch (operationType) {
@@ -451,6 +455,7 @@ function PasswordForm({
   }
 
   const shouldRenderFullWidthButton = operationType === 'unlock';
+  const hasSubmitButton = !isBiometricAuthEnabled || withAutoConfirm;
   const footerButtonsClassName = buildClassName(
     modalStyles.footerButtons,
     shouldRenderFullWidthButton && modalStyles.footerButtonFullWidth,
@@ -471,8 +476,8 @@ function PasswordForm({
       <div className={footerButtonsClassName}>
         {onCancel && (
           <Button
-            isLoading={isLoading && isBiometricAuthEnabled}
-            isDisabled={isLoading && !isBiometricAuthEnabled}
+            isLoading={isLoading && !hasSubmitButton}
+            isDisabled={isLoading && hasSubmitButton}
             className={modalStyles.buttonHalfWidth}
             onClick={onCancel}
           >
@@ -493,7 +498,7 @@ function PasswordForm({
             {lang('Try Again')}
           </Button>
         )}
-        {(!isBiometricAuthEnabled || withAutoConfirm) && (
+        {hasSubmitButton && (
           <Button
             isPrimary
             isLoading={isLoading}
@@ -706,5 +711,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     legacyAuthConfig,
     authUsageCountRequest: selectAuthUsageCountRequest(global),
     multichainUpgradeAccountIds: global.multichainUpgradeAccountIds,
+    isAppLocked: global.isAppLockActive,
   };
 })(PasswordForm));

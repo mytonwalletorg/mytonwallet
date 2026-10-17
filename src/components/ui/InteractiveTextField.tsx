@@ -406,6 +406,7 @@ function InteractiveTextField({
           onInput={setSavedAddressName}
           value={savedAddressName}
           maxLength={SAVED_ADDRESS_NAME_MAX_LENGTH}
+          enterKeyHint="done"
           className={styles.nameInput}
         />
 

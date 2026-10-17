@@ -23,6 +23,7 @@ import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import org.mytonwallet.app_air.icons.R
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.uicomponents.commonViews.HeaderActionsView
 import org.mytonwallet.app_air.uicomponents.drawable.WRippleDrawable
@@ -65,6 +66,8 @@ class HomeActionsSheetVC(
         val identifier: HeaderActionsView.Identifier,
         val title: String,
         val icon: Drawable,
+        // Stable resource id for UI automation
+        val testViewId: Int,
         val background: () -> GradientDrawable
     )
 
@@ -72,37 +75,44 @@ class HomeActionsSheetVC(
         Action(
             HeaderActionsView.Identifier.BUY,
             LocaleController.getString("Buy"),
-            context.requireDrawableCompat(R.drawable.ic_action_buy)
+            context.requireDrawableCompat(R.drawable.ic_action_buy),
+            UIComponentsR.id.home_sheet_action_buy
         ) { GradientDrawables.orangeDrawable },
         Action(
             HeaderActionsView.Identifier.RECEIVE,
             LocaleController.getString("Fund"),
-            context.requireDrawableCompat(R.drawable.ic_action_fund)
+            context.requireDrawableCompat(R.drawable.ic_action_fund),
+            UIComponentsR.id.home_sheet_action_fund
         ) { GradientDrawables.greenDrawable },
         Action(
             HeaderActionsView.Identifier.SWAP,
             LocaleController.getString("Trade"),
-            context.requireDrawableCompat(R.drawable.ic_action_trade)
+            context.requireDrawableCompat(R.drawable.ic_action_trade),
+            UIComponentsR.id.home_sheet_action_trade
         ) { GradientDrawables.violetDrawable },
         Action(
             HeaderActionsView.Identifier.SELL,
             LocaleController.getString("Sell"),
-            context.requireDrawableCompat(R.drawable.ic_action_sell)
+            context.requireDrawableCompat(R.drawable.ic_action_sell),
+            UIComponentsR.id.home_sheet_action_sell
         ) { GradientDrawables.redDrawable },
         Action(
             HeaderActionsView.Identifier.SEND,
             LocaleController.getString("Send"),
-            context.requireDrawableCompat(R.drawable.ic_action_send)
+            context.requireDrawableCompat(R.drawable.ic_action_send),
+            UIComponentsR.id.home_sheet_action_send
         ) { GradientDrawables.blueDrawable },
         Action(
             HeaderActionsView.Identifier.EARN,
             LocaleController.getString("Earn"),
-            context.requireDrawableCompat(R.drawable.ic_action_earn)
+            context.requireDrawableCompat(R.drawable.ic_action_earn),
+            UIComponentsR.id.home_sheet_action_earn
         ) { GradientDrawables.purpleDrawable },
         Action(
             HeaderActionsView.Identifier.SCAN_QR,
             LocaleController.getString("Scan"),
-            context.requireDrawableCompat(R.drawable.ic_action_scan)
+            context.requireDrawableCompat(R.drawable.ic_action_scan),
+            UIComponentsR.id.home_sheet_action_scan
         ) { GradientDrawables.grayDrawable }
     ).filter { action ->
         val account = AccountStore.activeAccount
@@ -166,6 +176,7 @@ class HomeActionsSheetVC(
         val ripple = WRippleDrawable.create(ITEM_RADIUS.dp)
         ripples.add(ripple)
         return FrameLayout(context).apply {
+            id = action.testViewId
             background = ripple
             isClickable = true
             setOnClickListener { select(action.identifier) }

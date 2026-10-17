@@ -172,6 +172,7 @@ final class ActionsView: ButtonsToolbar {
                 AppActions.showReceive(accountContext: accountContext, chain: nil)
             }
         )
+        addButton.accessibilityIdentifier = "header_action_fund"
         addArrangedSubview(addButton)
         
         let sendButton = WScalableButton(
@@ -200,11 +201,12 @@ final class ActionsView: ButtonsToolbar {
         }
         sendMenuInteraction.attach(to: sendButton)
         self.sendMenuInteraction = sendMenuInteraction
+        sendButton.accessibilityIdentifier = "header_action_send"
         addArrangedSubview(sendButton)
         self.sendButton = sendButton
         
         swapButton = WScalableButton(
-            title: lang("Swap"),
+            title: lang("Trade"),
             image: .airBundle("SwapIconBold"),
             onTap: { [weak self] in
                 guard let accountContext = self?.accountContext else { return }
@@ -213,6 +215,7 @@ final class ActionsView: ButtonsToolbar {
                 }
             }
         )
+        swapButton.accessibilityIdentifier = "header_action_swap"
         addArrangedSubview(swapButton)
         
         earnButton = WScalableButton(
@@ -223,6 +226,7 @@ final class ActionsView: ButtonsToolbar {
                 AppActions.showEarn(accountContext: accountContext, tokenSlug: nil)
             }
         )
+        earnButton.accessibilityIdentifier = "header_action_earn"
         addArrangedSubview(earnButton)
     }
 

@@ -17,6 +17,9 @@ const TOKEN_TYPE_COLORS = {
   altcoins: '#10B853',
 } as const;
 
+const MAX_CHAIN_SEGMENTS = 10;
+const OTHER_CHAINS_COLOR = '#8E8E93';
+
 const STAKED_COLORS = {
   staked: '#6875E9',
   notStaked: '#2C92F0',
@@ -87,6 +90,7 @@ export function buildSegmentsByTokenKind(
 }
 
 export function buildSegmentsByChain(
+  lang: LangFn,
   tokens: UserToken[],
   baseCurrency: ApiBaseCurrency,
 ) {
@@ -114,7 +118,25 @@ export function buildSegmentsByChain(
     });
   }
 
-  return sortBottomHeavy(result);
+  const sorted = sortBottomHeavy(result);
+  if (sorted.length <= MAX_CHAIN_SEGMENTS) return sorted;
+
+  const topChains = sorted.slice(-(MAX_CHAIN_SEGMENTS - 1));
+  const otherAmount = sorted
+    .slice(0, sorted.length - topChains.length)
+    .reduce((sum, segment) => sum + segment.rawAmount, 0);
+
+  // "Other" stays on top regardless of its amount, as in the iOS and Android apps
+  return [
+    {
+      id: 'other',
+      title: lang('$portfolio_other_chains'),
+      rawAmount: otherAmount,
+      colorHex: OTHER_CHAINS_COLOR,
+      value: formatCurrency(otherAmount, shortSymbol),
+    },
+    ...topChains,
+  ];
 }
 
 export function buildSegmentsByStacked(

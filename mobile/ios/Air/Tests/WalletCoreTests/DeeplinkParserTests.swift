@@ -186,4 +186,29 @@ struct DeeplinkParserTests {
             return
         }
     }
+
+    #if DEBUG
+    @Test
+    func parsesE2EUnlockDeeplink() throws {
+        let url = try #require(URL(string: "mtw://e2e-unlock?passcode=1111"))
+        let deeplink = try #require(Deeplink(url: url))
+
+        guard case .e2eUnlock(let passcode) = deeplink else {
+            Issue.record("Expected e2eUnlock deeplink")
+            return
+        }
+
+        #expect(passcode == "1111")
+    }
+    #endif
+
+    @Test(arguments: [
+        "mtw://e2e-unlock",
+        "mtw://e2e-unlock?passcode=",
+        "https://my.tt/e2e-unlock?passcode=1111",
+    ])
+    func rejectsInvalidE2EUnlockDeeplink(value: String) throws {
+        let url = try #require(URL(string: value))
+        #expect(Deeplink(url: url) == nil)
+    }
 }

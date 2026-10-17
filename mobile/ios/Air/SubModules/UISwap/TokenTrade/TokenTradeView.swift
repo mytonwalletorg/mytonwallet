@@ -8,6 +8,7 @@ struct TokenTradeView: View {
     let model: TokenTradeModel
     let selectMethod: () -> Void
     let continueAction: () -> Void
+    var hasTopNavigationBar = true
     @State private var editor = TokenTradeEditor()
     @State private var footerHeight: CGFloat = 0
 
@@ -15,14 +16,14 @@ struct TokenTradeView: View {
         WithPerceptionTracking {
             GeometryReader { geometry in
                 let bottomInset = max(32, geometry.safeAreaInsets.bottom)
-                let preferredContentHeight: CGFloat = 320 + 84
+                let preferredContentHeight: CGFloat = 256 + navigationBarSpace + 84
                 let keypadHeight = min(256, max(176, geometry.size.height - preferredContentHeight - 88 - bottomInset))
                 let controlsHeight = 88 + keypadHeight + bottomInset
                 let contentHeight = max(0, geometry.size.height - controlsHeight)
                 VStack(spacing: 0) {
                     ScrollView(.vertical) {
                         VStack(spacing: 16) {
-                            amountCard(height: max(200, contentHeight - 84))
+                            amountCard(height: max(136 + navigationBarSpace, contentHeight - 84))
                             methodRow
                                 .padding(.horizontal, 16)
                         }
@@ -47,10 +48,14 @@ struct TokenTradeView: View {
         }
     }
 
+    private var navigationBarSpace: CGFloat { hasTopNavigationBar ? 64 : 0 }
+
     private func amountCard(height: CGFloat) -> some View {
-        let isCompact = height - footerHeight < 240
+        let hasNotice = model.hint != nil || model.displayImpactWarning != nil
+        let isCompact = height - footerHeight - (hasNotice ? 16 : 22) < 240
+        let footerBottomPadding: CGFloat = hasNotice ? 16 : (isCompact ? 12 : 22)
         let amountHeight: CGFloat = 26 + (isCompact ? 64 : 86)
-        let topInset = max(64, min(118, height - amountHeight - 18 - footerHeight))
+        let topInset = max(max(16, navigationBarSpace), min(54 + navigationBarSpace, height - amountHeight - 18 - footerHeight - footerBottomPadding))
         return VStack(alignment: .leading, spacing: 0) {
             Color.clear.frame(height: topInset)
                 .accessibilityHidden(true)
@@ -109,8 +114,9 @@ struct TokenTradeView: View {
                     .accessibilityIdentifier("tokenTrade.hint")
                 }
             }
-            .padding(.bottom, model.hint != nil || model.displayImpactWarning != nil ? 16 : (isCompact ? 12 : 22))
+            // Measure before adaptive padding so the compactness decision cannot oscillate.
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { footerHeight = $0 }
+            .padding(.bottom, footerBottomPadding)
         }
         .frame(minHeight: height)
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -8,6 +8,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.mytonwallet.app_air.walletcore.models.blockchain.MBlockchain
+import org.mytonwallet.app_air.walletcore.moshi.ApiConnectionType
 import org.mytonwallet.app_air.walletcore.moshi.MoshiBuilder
 
 class ApiUpdateDecodingTest {
@@ -24,6 +25,14 @@ class ApiUpdateDecodingTest {
         assertEquals("balance", update?.kind)
         assertEquals("0-ton", update?.accountId)
         assertEquals(true, update?.isUpdating)
+    }
+
+    @Test
+    fun dappCloseLoadingCarriesTheConnectionType() {
+        val update = decode<ApiUpdate.ApiUpdateDappCloseLoading>(
+            """{"type":"dappCloseLoading","connectionType":"signData"}"""
+        )
+        assertEquals(ApiConnectionType.SIGN_DATA, update?.connectionType)
     }
 
     @Test

@@ -268,6 +268,9 @@ export interface ChainSdk<T extends ApiChain> {
     onUpdate: OnApiUpdate,
   ): Promise<ApiSubmitOnchainSwapTransferResult>;
 
+  /** True when this DEX swap is submitted as a batch. */
+  resolveSwapNeedsBatch(accountId: string, needsApprove?: boolean): MaybePromise<boolean>;
+
   //
   // Wallet info
   //

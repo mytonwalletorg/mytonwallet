@@ -117,21 +117,35 @@ function getTokenExplorerBaseUrl(chain: ApiChain, isTestnet = false, explorerId?
   return getExplorer(chain, explorerId).token.replace('{base}', parsedBaseUrl) + parsedUrlParam;
 }
 
+type ExplorerTransactionIds = {
+  hash?: string;
+  /** Every explorer finds a TON trace by its trace id, while `hash` may be the hash of its external message */
+  traceId?: string;
+};
+
 export function getExplorerTransactionUrl(
   chain: ApiChain = DEFAULT_CHAIN,
-  transactionHash: string | undefined,
+  { hash, traceId }: ExplorerTransactionIds,
   isTestnet?: boolean,
   explorerId?: string,
 ) {
+  const transactionHash = traceId ?? hash;
   if (!transactionHash || transactionHash === EMPTY_HASH_VALUE) return undefined;
 
-  const explorer = getExplorer(chain, explorerId);
-  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet);
+  const explorer = traceId ? getExplorer(chain, explorerId) : getMessageHashExplorer(chain, explorerId);
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet, explorer.id);
 
   return explorer.transaction
     .replace('{base}', parsedBaseUrl)
     .replace('{hash}', explorer.doConvertHashFromBase64 ? base64ToHex(transactionHash) : transactionHash)
     + parsedUrlParam;
+}
+
+function getMessageHashExplorer(chain: ApiChain, explorerId?: string) {
+  const explorer = getExplorer(chain, explorerId);
+  if (explorer.isMessageHashSupported) return explorer;
+
+  return getAvailableExplorers(chain).find((e) => e.isMessageHashSupported) ?? explorer;
 }
 
 export function getExplorerAddressUrl(
@@ -142,7 +156,7 @@ export function getExplorerAddressUrl(
 ) {
   if (!address) return undefined;
 
-  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet);
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet, explorerId);
 
   return getExplorer(chain, explorerId).address
     .replace('{base}', parsedBaseUrl)
@@ -160,7 +174,7 @@ export function getExplorerNftCollectionUrl(
 
   const explorer = getExplorer(chain, explorerId);
   if (!explorer.nftCollection) return undefined;
-  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet);
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet, explorerId);
 
   return explorer.nftCollection
     .replace('{base}', parsedBaseUrl)
@@ -178,7 +192,7 @@ export function getExplorerNftUrl(
 
   const explorer = getExplorer(chain, explorerId);
   if (!explorer.nft) return undefined;
-  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet);
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', isTestnet, explorerId);
 
   return explorer.nft
     .replace('{base}', parsedBaseUrl)
@@ -210,7 +224,7 @@ export function getMarketplaceNftCollectionUrl(
 
   const marketplace = getMarketplace(chain, marketplaceId);
   if (!marketplace.nftCollection) return undefined;
-  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'marketplace', isTestnet);
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'marketplace', isTestnet, marketplaceId);
 
   return marketplace.nftCollection
     .replace('{base}', parsedBaseUrl)
@@ -229,7 +243,7 @@ export function getMarketplaceNftUrl(
 
   const marketplace = getMarketplace(chain, explorerId);
   if (!marketplace.nft) return undefined;
-  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'marketplace', isTestnet);
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'marketplace', isTestnet, explorerId);
 
   return marketplace.nft
     .replace('{base}', parsedBaseUrl)
@@ -347,7 +361,11 @@ export function getExplorerByUrl(url: string): { chain: ApiChain; explorerId: st
  * preserving the page type (address/transaction/nft) and identifier.
  * Returns the converted URL, or `undefined` if the source URL is not a known explorer.
  */
-export function convertExplorerUrl(url: string, toExplorerId: string): string | undefined {
+export function convertExplorerUrl(
+  url: string,
+  toExplorerId: string,
+  shouldKeepMessageHashExplorer = false,
+): string | undefined {
   const explorerInfo = getExplorerByUrl(url);
   if (!explorerInfo) return undefined;
 
@@ -361,10 +379,15 @@ export function convertExplorerUrl(url: string, toExplorerId: string): string | 
 
   if (!fromExplorer || !toExplorer) return undefined;
 
-  // Determine network by checking which base URL the input starts with
-  const isTestnet = url.startsWith(parseBaseUrl(chain, 'explorer', true, fromExplorerId).parsedBaseUrl);
-  const fromBaseUrl = parseBaseUrl(chain, 'explorer', isTestnet, fromExplorerId).parsedBaseUrl;
-  const toBaseUrl = parseBaseUrl(chain, 'explorer', isTestnet, toExplorer.id).parsedBaseUrl;
+  const isTestnet = getIsTestnetExplorerUrl(url, chain, fromExplorerId);
+  const {
+    parsedBaseUrl: fromBaseUrl,
+    parsedUrlParam: fromUrlParam,
+  } = parseBaseUrl(chain, 'explorer', isTestnet, fromExplorerId);
+  const {
+    parsedBaseUrl: toBaseUrl,
+    parsedUrlParam: toUrlParam,
+  } = parseBaseUrl(chain, 'explorer', isTestnet, toExplorer.id);
 
   // Extract path after base URL (e.g., "address/EQAbc..." or "EQAbc...?address")
   const pathAfterBase = url.slice(fromBaseUrl.length);
@@ -383,12 +406,51 @@ export function convertExplorerUrl(url: string, toExplorerId: string): string | 
 
     const identifier = extractIdentifier(pathAfterBase, from);
     if (identifier) {
-      return buildExplorerUrl(to, toBaseUrl, identifier);
+      if (
+        shouldKeepMessageHashExplorer
+        && from === fromExplorer.transaction
+        && fromExplorer.isMessageHashSupported
+        && !toExplorer.isMessageHashSupported
+      ) {
+        return undefined;
+      }
+
+      // An explorer that shows every kind of address on one page gives no hint of the kind,
+      // so its links convert to the plain address page
+      const toPattern = from === fromExplorer.address ? toExplorer.address : to;
+
+      return buildExplorerUrl(toPattern, toBaseUrl, identifier) + toUrlParam;
     }
   }
 
   // Simple base URL replacement as fallback solution
-  return toBaseUrl + pathAfterBase;
+  return replaceExplorerUrlParams(toBaseUrl + pathAfterBase, fromUrlParam, toUrlParam);
+}
+
+function replaceExplorerUrlParams(url: string, fromUrlParam: string, toUrlParam: string) {
+  const parsedUrl = safeParseUrl(url);
+  if (!parsedUrl) return url;
+
+  new URLSearchParams(fromUrlParam).forEach((_, key) => parsedUrl.searchParams.delete(key));
+  new URLSearchParams(toUrlParam).forEach((value, key) => parsedUrl.searchParams.set(key, value));
+
+  return parsedUrl.toString();
+}
+
+// Explorers that host both networks under one base URL mark testnet links with their testnet URL parameter,
+// so a link without it opens mainnet
+function getIsTestnetExplorerUrl(url: string, chain: ApiChain, explorerId: string) {
+  const mainnetBaseUrl = parseBaseUrl(chain, 'explorer', false, explorerId).parsedBaseUrl;
+  const { parsedBaseUrl, parsedUrlParam } = parseBaseUrl(chain, 'explorer', true, explorerId);
+
+  if (parsedBaseUrl !== mainnetBaseUrl) {
+    return url.startsWith(parsedBaseUrl);
+  }
+
+  const searchParams = safeParseUrl(url)?.searchParams;
+  if (!searchParams || !parsedUrlParam) return false;
+
+  return Array.from(new URLSearchParams(parsedUrlParam)).every(([key, value]) => searchParams.get(key) === value);
 }
 
 // Extracts the identifier ({address} or {hash}) from a path using an explorer pattern.

@@ -595,6 +595,13 @@ Are you sure you want to disable biometrics?: Biyometrik korumayı devre dışı
 "Yes": Evet
 Biometric confirmation failed: Biyometrik doğrulama başarısız oldu
 No Activity: Etkinlik yok
+Loading Activity: Etkinlik yükleniyor
+Loading More Activity: Daha fazla etkinlik yükleniyor
+Your activity history is loading.: Etkinlik geçmişiniz yükleniyor.
+Taking Longer Than Usual: Normalden uzun sürüyor
+Activity history is taking longer to load. Please check back shortly.: Etkinlik geçmişinin yüklenmesi normalden uzun sürüyor. Lütfen kısa bir süre sonra tekrar kontrol edin.
+Activity Unavailable: Etkinlik kullanılamıyor
+Activity history is temporarily unavailable. We’ll try again shortly.: Etkinlik geçmişi geçici olarak kullanılamıyor. Kısa bir süre sonra tekrar deneyeceğiz.
 Fund: Yükleme
 Buy with Card: Kart ile Satın Al
 Buy with Crypto: Kripto ile Satın Al
@@ -627,6 +634,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Ayrıca %action% yapabilirsiniz.
 $wallet_switch_version_2: başka bir cüzdan versiyonuna geçiş yap
 or import from: veya şuradan içe aktar
+or enter manually: veya elle girin
 Insufficient fee: Yetersiz ücret
 $insufficient_fee: "Yetersiz ücret: %fee%"
 $dapp_insufficient_network_fee_warning: Ağ ücretini karşılamak için yeterli %token% yok
@@ -683,6 +691,7 @@ $transfer_link_expired: Transfer bağlantısının süresi doldu
 $transfer_text_and_bin_exclusive: Metin ve ikili veri parametreleri birlikte kullanılamaz
 $unsupported_deeplink_parameter: Bu derin bağlantı desteklenmeyen parametreler içeriyor.
 $unsupported_chain: Desteklenmeyen blok zinciri.
+$token_chain_not_supported_by_wallet: "Mevcut cüzdanınız %chain% desteklemiyor. Bu tokeni kullanmak için çok zincirli bir cüzdan oluşturun."
 Successfully: Başarıyla
 Estimated Time: Tahmini Süre
 $utxo_confirmations:
@@ -1304,6 +1313,7 @@ $agent_connection_interrupted: Asistan bağlantısı kesildi. Tekrar deneyin.
 $agent_history_unavailable: Sohbet geçmişi yüklenemedi. Tekrar deneyin.
 $agent_secret_words_removed: "[gizli kelimeler kaldırıldı ve gönderilmedi]"
 $agent_activity_analyzing_request: İsteğiniz analiz ediliyor…
+$agent_analyzing: Analiz ediliyor
 $agent_activity_wallet: Cüzdan verileri okunuyor…
 $agent_activity_transactions: Cüzdan hareketleri inceleniyor…
 $agent_activity_portfolio: Portföy verileri yükleniyor…
@@ -1411,6 +1421,9 @@ $agent_report_problem_description: Bu sohbetin son mesajları, sorunu çözmemiz
 $agent_report_problem_sent: Teşekkürler! Bildiriminiz gönderildi.
 $agent_report_problem_failed: Bildirim gönderilemedi. Lütfen tekrar deneyin.
 $agent_report_problem_rate_limited: Son zamanlarda birkaç bildirim gönderdiniz. Lütfen daha sonra tekrar deneyin.
+Like: Beğen
+Dislike: Beğenme
+$agent_feedback_failed: Değerlendirmeniz kaydedilemedi. Lütfen tekrar deneyin.
 $unknown_swap_token: Swap bağlantısında bilinmeyen token. Varsayılan tokenlar kullanıldı.
 $action_not_available_view_mode: Bu işlem Görüntüleme Cüzdanları için kullanılamaz
 Deposit: Yatır
@@ -2049,4 +2062,5 @@ Ruble: Ruble
 $token_price_value: "Fiyat: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: Bu tür takaslar genellikle birkaç dakika sürer. Nadir durumlarda iki saate kadar sürebilir.
 3D Gram Diamond: 3B Gram Elması
+Hold to enlarge. Drag to rotate.: Büyütmek için basılı tutun. Döndürmek için sürükleyin.
 "Max": "Maks."

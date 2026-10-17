@@ -18,8 +18,15 @@
 }
 
 .testnetWarning {
-  padding: 0.5rem;
+  cursor: var(--custom-cursor, pointer);
 
+  display: block;
+
+  width: 100%;
+  padding: 0.5rem;
+  border: 0;
+
+  font-family: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1rem;
@@ -27,6 +34,15 @@
   text-align: center;
 
   background-color: var(--color-accent-button-background);
+
+  &:focus-visible {
+    outline: 0.125rem solid currentColor;
+    outline-offset: -0.25rem;
+  }
+
+  &:disabled {
+    cursor: auto;
+  }
 }
 
 .wrapper {

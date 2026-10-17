@@ -240,7 +240,10 @@ sealed class ApiUpdate {
     data class ApiUpdateDappDisconnected(val url: String? = null) : ApiUpdate()
 
     @JsonClass(generateAdapter = true)
-    data class ApiUpdateDappCloseLoading(val type: String? = null) : ApiUpdate()
+    data class ApiUpdateDappCloseLoading(
+        val type: String? = null,
+        val connectionType: ApiConnectionType? = null
+    ) : ApiUpdate()
 
     @JsonClass(generateAdapter = true)
     data class ApiUpdateDappRequestSettled(

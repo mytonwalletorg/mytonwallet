@@ -151,6 +151,7 @@ class TokensVC(
     private var thereAreMoreToShow: Boolean = false
     private var effectiveHomeLimit = Int.MAX_VALUE
     private var isScreenFullyVisible = false
+    private var isWideLayoutDisplayed = false
     private var emptyTokensViewHeight = 0
     private var isEmptyStateVisible = false
     private var currentHeight: Int = initialHomeHeightFromCache()
@@ -300,6 +301,7 @@ class TokensVC(
 
     override fun setupViews() {
         super.setupViews()
+        isWideLayoutDisplayed = window?.isWideLayout == true
 
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         if (mode == Mode.HOME) {
@@ -595,6 +597,14 @@ class TokensVC(
                 dataUpdated(forceUpdate = true)
             }
 
+            WalletEvent.WideLayoutChanged -> {
+                val isWide = window?.isWideLayout == true
+                if (isWide == isWideLayoutDisplayed) return
+                isWideLayoutDisplayed = isWide
+                updateShowAllPosition()
+                rvAdapter.reloadData()
+            }
+
             else -> {}
         }
     }
@@ -602,7 +612,7 @@ class TokensVC(
     override fun recyclerViewNumberOfSections(rv: RecyclerView): Int = 1
 
     private val displayedTokensCount: Int
-        get() = if (mode == Mode.HOME && window?.isWideLayout != true) {
+        get() = if (mode == Mode.HOME && !isWideLayoutDisplayed) {
             min(walletTokens.size, homeVisibleRowCount())
         } else {
             walletTokens.size

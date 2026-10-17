@@ -23,7 +23,9 @@ data class SwapEstimateResponse(
     val fee: BigInteger?,
     val realFee: BigInteger?,
     val error: MBridgeError?,
-    val hint: MApiSwapHint? = null
+    val hint: MApiSwapHint? = null,
+    /** Tester-only estimate fan-out summary from the backend `debug.summary` field. */
+    val debugSummary: String? = null
 ) {
     private val fromAmountDec = cex?.fromAmount ?: dex?.fromAmount
     private val toAmountDec = cex?.toAmount ?: dex?.toAmount
@@ -167,4 +169,7 @@ data class SwapEstimateResponse(
 
     val isBatchTx: Boolean
         get() = SwapHelpers.isBatchSwapTx(dex, request.tokenToSend)
+
+    val reservesBatchKeyRead: Boolean
+        get() = SwapHelpers.reservesBatchKeyRead(dex, request.tokenToSend)
 }

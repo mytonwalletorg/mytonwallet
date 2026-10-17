@@ -32,6 +32,7 @@ final class AirRuntimeCoordinator: NSObject {
     override init() {
         super.init()
         lockCoordinator.onUnlock = { [weak self] in
+            TonConnectTrace.record("app unlocked")
             self?.flushPendingActionsIfPossible()
             self?.presentStartupImportErrorIfNeeded()
         }
@@ -77,6 +78,7 @@ final class AirRuntimeCoordinator: NSObject {
     // before `soarIntoAir` resets the coordinator (e.g. a cold-start deeplink) and must survive
     // until the wallet is ready and unlocked.
     func reset() {
+        TonConnect.shared.suspendRequests(discardingQueued: true)
         _isWalletReady = false
         AgentEntryPoint.setWalletReady(false)
         universalSearchIndexService?.setWalletReady(false)
@@ -94,7 +96,16 @@ final class AirRuntimeCoordinator: NSObject {
     }
 
     func handle(url: URL, source: DeeplinkOpenSource = .generic) -> Bool {
-        deeplinkHandler.handle(url, source: source)
+        handleUrl(url, source: source)
+    }
+
+    private func handleUrl(_ url: URL, source: DeeplinkOpenSource) -> Bool {
+        TonConnectTrace.record("url received \(url.scheme ?? "?")://\(url.host ?? "") source=\(source)")
+        let isHandled = deeplinkHandler.handle(url, source: source)
+        if !isHandled {
+            TonConnectTrace.record("url not handled")
+        }
+        return isHandled
     }
 
     func handle(notification: UNNotification) {
@@ -112,8 +123,14 @@ final class AirRuntimeCoordinator: NSObject {
     private func flushPendingActionsIfPossible() {
         guard _isWalletReady, lockCoordinator.isAppUnlocked else { return }
 
+        // Before the queued deeplink, so a request that arrived while locked is shown before its wake placeholder
+        TonConnect.shared.resumeRequests()
+
         if let nextDeeplink {
             self.nextDeeplink = nil
+            if nextDeeplink.deeplink.tonConnectRequestLink != nil {
+                TonConnectTrace.record("dispatches the queued TON Connect deeplink")
+            }
             DispatchQueue.main.async {
                 self.handle(deeplink: nextDeeplink.deeplink, source: nextDeeplink.source)
             }
@@ -314,7 +331,11 @@ extension AirRuntimeCoordinator: WalletContextDelegate {
     }
 
     func walletIsReady(isReady: Bool) {
+        TonConnectTrace.record("wallet ready=\(isReady)")
         _isWalletReady = isReady
+        if !isReady {
+            TonConnect.shared.suspendRequests()
+        }
         AgentEntryPoint.setWalletReady(isReady)
         if isReady {
             let indexService = universalSearchIndexService
@@ -348,13 +369,14 @@ extension AirRuntimeCoordinator: WalletContextDelegate {
         universalSearchIndexService?.stop()
         AgentEntryPoint.setWalletReady(false)
         WalletCoreData.removeObservers()
+        TonConnect.shared.suspendRequests()
         _isWalletReady = false
         StartupTrace.reset(flow: "restart-app")
         startupCoordinator.restart()
     }
 
     func handleDeeplink(url: URL, source: DeeplinkOpenSource) -> Bool {
-        deeplinkHandler.handle(url, source: source)
+        handleUrl(url, source: source)
     }
 
     var isWalletReady: Bool {
@@ -368,8 +390,22 @@ extension AirRuntimeCoordinator: WalletContextDelegate {
 
 extension AirRuntimeCoordinator: DeeplinkNavigator {
     func handle(deeplink: Deeplink, source: DeeplinkOpenSource) {
+        // Exists to unlock the app, so it cannot wait for the unlock like other links.
+        if case .e2eUnlock(let passcode) = deeplink {
+            // Only from outside the app: not from a QR scan or the in-app browser.
+            if source == .generic {
+                lockCoordinator.e2eUnlock(passcode: passcode)
+            }
+            return
+        }
+        if let requestLink = deeplink.tonConnectRequestLink {
+            TonConnectTrace.record("deeplink \(TonConnectTrace.describeLink(requestLink)) walletReady=\(isWalletReady) unlocked=\(isAppUnlocked)")
+        }
         if isWalletReady, isAppUnlocked {
             guard AccountStore.account != nil else {
+                if deeplink.tonConnectRequestLink != nil {
+                    TonConnectTrace.record("drops the TON Connect deeplink: no current account")
+                }
                 nextDeeplink = nil
                 return
             }
@@ -469,8 +505,17 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
 
             case .settings(let section):
                 AppActions.showSettings(section: section)
+
+            case .e2eUnlock:
+                break
             }
         } else {
+            if nextDeeplink?.deeplink.tonConnectRequestLink != nil {
+                TonConnectTrace.record("the queued TON Connect deeplink is replaced by a newer deeplink")
+            }
+            if deeplink.tonConnectRequestLink != nil {
+                TonConnectTrace.record("queues the TON Connect deeplink until the wallet is ready and unlocked")
+            }
             nextDeeplink = (deeplink, source)
         }
     }
@@ -618,5 +663,14 @@ extension AirRuntimeCoordinator: UNUserNotificationCenterDelegate {
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         handleNotification(response.notification)
+    }
+}
+
+private extension Deeplink {
+    var tonConnectRequestLink: String? {
+        if case .tonConnect2(let requestLink) = self {
+            return requestLink
+        }
+        return nil
     }
 }

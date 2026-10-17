@@ -11,7 +11,6 @@ import {
   selectAccountStakingStateForToken,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
-  selectCurrentAccountState,
   selectCurrentAccountTokenBalance,
   selectDefaultOffRampChain,
   selectDefaultOnRampChain,
@@ -54,6 +53,8 @@ interface ActionButtonProps {
 }
 
 interface OwnProps {
+  /** Not taken from the global state, so a screen fading out keeps its own actions */
+  tokenSlug?: string;
   className?: string;
 }
 
@@ -91,6 +92,7 @@ function TopActions({
   const {
     startTransfer,
     startSwap,
+    startTokenSwap,
     startTokenTrade,
     openReceiveModal,
     openOnRampWidgetModal,
@@ -129,7 +131,11 @@ function TopActions({
 
   const handleTradeClick = useLastCallback(() => {
     vibrate();
-    startSwap();
+    if (tradeTokenSlug) {
+      startTokenSwap({ tokenSlug: tradeTokenSlug });
+    } else {
+      startSwap();
+    }
   });
 
   const handleEarnClick = useLastCallback(() => {
@@ -224,21 +230,20 @@ function TopActions({
 
 export default memo(
   withGlobal<OwnProps>(
-    (global): StateProps => {
+    (global, { tokenSlug }): StateProps => {
       const accountId = selectCurrentAccountId(global);
       const stakingState = accountId ? selectAccountStakingState(global, accountId) : undefined;
-      const currentTokenSlug = selectCurrentAccountState(global)?.currentTokenSlug;
-      const tokenChain = currentTokenSlug ? getChainBySlug(currentTokenSlug) : undefined;
+      const tokenChain = tokenSlug ? getChainBySlug(tokenSlug) : undefined;
       const receiveChain = getIsSupportedChain(tokenChain) ? tokenChain : undefined;
-      const currentStakingState = accountId && currentTokenSlug !== undefined
-        ? selectAccountStakingStateForToken(global, accountId, currentTokenSlug)
+      const tokenStakingState = accountId && tokenSlug !== undefined
+        ? selectAccountStakingStateForToken(global, accountId, tokenSlug)
         : undefined;
       const isEarnHidden = selectIsStakingDisabled(global)
-        || (currentTokenSlug !== undefined && !currentStakingState)
+        || (tokenSlug !== undefined && !tokenStakingState)
         || Boolean(
-          currentStakingState
-          && !getIsNewStakeAllowed(currentTokenSlug)
-          && !getIsActiveStakingState(currentStakingState),
+          tokenStakingState
+          && !getIsNewStakeAllowed(tokenSlug)
+          && !getIsActiveStakingState(tokenStakingState),
         );
 
       // Neither button carries a chain of its own, so each is answered for the very chain its click will open
@@ -246,11 +251,11 @@ export default memo(
       const isSwapDisabled = selectIsSwapDisabled(global);
 
       // On a token screen, Buy and Sell trade that token; LP tokens and tokens the swap does not know stay with the card widgets
-      const canTradeToken = currentTokenSlug !== undefined
+      const canTradeToken = tokenSlug !== undefined
         && !isSwapDisabled
-        && global.tokenInfo.bySlug[currentTokenSlug]?.type !== 'lp_token'
-        && Boolean(global.swapTokenInfo.bySlug[currentTokenSlug]);
-      const tradeTokenSlug = canTradeToken ? currentTokenSlug : undefined;
+        && global.tokenInfo.bySlug[tokenSlug]?.type !== 'lp_token'
+        && Boolean(global.swapTokenInfo.bySlug[tokenSlug]);
+      const tradeTokenSlug = canTradeToken ? tokenSlug : undefined;
 
       return {
         isViewMode: selectIsCurrentAccountViewMode(global),

@@ -19,6 +19,7 @@ public struct SwapOverviewView: View {
     public var body: some View {
         VStack(spacing: 0) {
             iconsView
+                .zIndex(1)
                 .padding(.bottom, 24)
             minusView
                 .padding(.bottom, 4)
@@ -35,32 +36,31 @@ public struct SwapOverviewView: View {
         let fromToken = fromAmount.type
         let toToken = toAmount.type
         HStack(spacing: 0) {
-            Button {
-                onTokenTapped?(fromToken)
-            } label: {
-                WUIIconViewToken(token: fromToken, isWalletView: false, showldShowChain: true, size: 60,
-                                 chainSize: 22, chainBorderWidth: 1.5, chainHorizontalOffset: 6, chainVerticalOffset: 2)
-                    .frame(width: 64, height: 60, alignment: .leading)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
+            hero(for: fromToken)
+                .frame(width: 64, height: 60, alignment: .leading)
             Image(systemName: "chevron.forward")
                 .textStyle(.body, content: .technical)
                 .foregroundStyle(Color.air.secondaryLabel)
                 .frame(width: 32, height: 32)
-            Button {
-                onTokenTapped?(toToken)
-            } label: {
-                WUIIconViewToken(token: toToken, isWalletView: false, showldShowChain: true, size: 60,
-                                 chainSize: 22, chainBorderWidth: 1.5, chainHorizontalOffset: 6, chainVerticalOffset: 2)
-                    .frame(width: 64, height: 60, alignment: .leading)
-                    .padding(.leading, 4)
+            hero(for: toToken)
+                .frame(width: 64, height: 60, alignment: .leading)
+                .padding(.leading, 4)
+        }
+    }
+
+    @ViewBuilder
+    private func hero(for token: ApiToken) -> some View {
+        if TokenHeroView.showsDiamond(for: token) {
+            TokenHeroView(token: token, size: 60)
+        } else {
+            Button { onTokenTapped?(token) } label: {
+                TokenHeroView(token: token, size: 60)
                     .contentShape(.rect)
             }
             .buttonStyle(.plain)
         }
     }
-    
+
     @ViewBuilder
     var minusView: some View {
         let fromToken = fromAmount.type

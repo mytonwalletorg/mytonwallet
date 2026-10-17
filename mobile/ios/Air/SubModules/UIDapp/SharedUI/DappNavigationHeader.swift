@@ -117,14 +117,14 @@ private struct DappNavigationHeaderContent: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .frame(height: 16)
-                    .skeletonPlaceholder(surface: .dark)
+                    .skeletonPlaceholder(surface: .colored)
                 HStack(spacing: 4) {
                     Text(dapp.displayUrl)
                         .textStyle(.caption, content: .technical)
                         .foregroundStyle(Color.air.secondaryLabel)
                         .lineLimit(1)
                         .truncationMode(.middle)
-                        .skeletonPlaceholder(surface: .dark)
+                        .skeletonPlaceholder(surface: .colored)
                     if self.dapp != nil, dapp.shouldShowUrlTrustStatusWarning {
                         Image(systemName: "exclamationmark.circle.fill")
                             .font(.system(size: 10, weight: .bold))
@@ -137,7 +137,7 @@ private struct DappNavigationHeaderContent: View {
             DappIcon(iconUrl: dapp.iconUrl)
                 .frame(width: 32, height: 32)
                 .clipShape(.circle)
-                .skeletonPlaceholder(surface: .dark, cornerRadius: 16)
+                .skeletonPlaceholder(surface: .colored, cornerRadius: 16)
                 .accessibilityHidden(true)
         }
         .padding(.leading, 14)

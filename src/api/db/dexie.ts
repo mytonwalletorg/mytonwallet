@@ -11,7 +11,7 @@ const DB_NAME = 'tables';
 export class ApiDb extends Dexie {
   nfts!: Table<ApiDbNft>;
 
-  tokens!: Table<ApiTokenWithPrice>;
+  tokensBySlug!: Table<ApiTokenWithPrice>;
 
   constructor() {
     super(DB_NAME);
@@ -45,16 +45,26 @@ export class ApiDb extends Dexie {
         if (token.chain === 'ton' && !token.isFromBackend) delete token.image;
       });
     });
+    // One address may hold a token on several chains, and the cache keeps each under its own slug, so the rows are
+    // keyed by slug. IndexedDB cannot change the key of a table, so they move to a new one.
+    this.version(8).stores({
+      // eslint-disable-next-line no-null/no-null
+      tokens: null,
+      tokensBySlug: 'slug, tokenAddress, chain',
+    }).upgrade(async (tx) => {
+      const tokens = await tx.table<ApiTokenWithPrice>('tokens').toArray();
+      await tx.table<ApiTokenWithPrice>('tokensBySlug').bulkPut(tokens);
+    });
   }
 }
 
 // Air never reads this cache, and its build must be able to drop this module together with the `dexie`
 // package. `/* @__PURE__ */` lets the bundler delete the call below when `tokenRepository` is unused, but
 // only the call itself: its arguments would still run. Written inline as
-// `new DbRepository(new ApiDb().tokens)`, the database construction would stay in the bundle, so it lives
+// `new DbRepository(new ApiDb().tokensBySlug)`, the database construction would stay in the bundle, so it lives
 // inside a function that takes no arguments.
 export const tokenRepository = /* @__PURE__ */ createTokenRepository();
 
 function createTokenRepository() {
-  return new DbRepository(new ApiDb().tokens);
+  return new DbRepository(new ApiDb().tokensBySlug);
 }

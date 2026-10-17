@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiActivity, ApiBaseCurrency } from '../../api/types';
+import type { ApiActivity, ApiBaseCurrency, ApiSwapRouteType } from '../../api/types';
 import type { Account, GlobalState, UserSwapToken, UserToken } from '../../global/types';
 import { SwapState, SwapType } from '../../global/types';
 
@@ -12,6 +12,7 @@ import {
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectHasMultipleAccounts,
+  selectSwapRoute,
   selectSwapTokens,
   selectSwapType,
   selectTradeCardCurrencies,
@@ -47,6 +48,7 @@ import styles from './Swap.module.scss';
 interface StateProps {
   currentSwap: GlobalState['currentSwap'];
   swapType: SwapType;
+  swapRoute?: ApiSwapRouteType;
   swapTokens?: UserSwapToken[];
   activityById?: Record<string, ApiActivity>;
   accountChains?: Account['byChain'];
@@ -72,11 +74,12 @@ function SwapModal({
     payinExtraId,
     isManualDepositRequired,
     currentCexLabel,
-    isBatchTx,
+    needsBatch,
     tradeDirection,
     tradeAmount,
   },
   swapType,
+  swapRoute,
   swapTokens,
   activityById,
   accountChains,
@@ -148,7 +151,7 @@ function SwapModal({
     setRenderedTransactionTokenOut(tokenOut);
     setRenderedSwapType(swapType);
 
-    if (swapType === SwapType.OnChain) {
+    if (swapRoute === 'dex') {
       submitSwap({ enclaveToken });
       return;
     }
@@ -320,7 +323,7 @@ function SwapModal({
           <SwapPassword
             isActive={isActive}
             isLoading={isLoading}
-            isBatchTx={isBatchTx}
+            needsBatch={needsBatch}
             error={error}
             onAuthorize={handleTransferSubmit}
             onBack={handleBackClick}
@@ -415,6 +418,7 @@ export default memo(withGlobal((global): StateProps => {
   return {
     currentSwap: global.currentSwap,
     swapType: selectSwapType(global),
+    swapRoute: selectSwapRoute(global),
     swapTokens: selectSwapTokens(global),
     activityById,
     accountChains: account?.byChain,

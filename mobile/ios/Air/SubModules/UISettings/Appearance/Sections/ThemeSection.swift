@@ -83,6 +83,7 @@ struct ThemeOption: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("appearance_theme_\(theme.rawValue)")
         .padding(.horizontal, 4)
     }
 }

@@ -20,6 +20,8 @@ type BaseActivity = {
   shouldHide?: boolean;
   /** Trace external message hash normalized. Not unique but doesn't change in pending activities. Only for TON. */
   externalMsgHashNorm?: string;
+  /** Hash of the root transaction of the trace (Toncenter `trace_id`), unknown until the trace exists. Only for TON. */
+  traceId?: string;
   /** Whether the activity data should be re-loaded to get the necessary data before showing in the activity list */
   shouldReload?: boolean;
   /**

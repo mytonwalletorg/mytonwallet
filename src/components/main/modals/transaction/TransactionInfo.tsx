@@ -407,7 +407,15 @@ function TransactionInfo({
         />
       )}
 
-      {nft && <NftInfo nft={nft} withMediaViewer={doesNftExist} withTonExplorer />}
+      {nft && (
+        <NftInfo
+          nft={nft}
+          chain={chain}
+          selectedExplorerId={chain && selectedExplorerIds?.[chain]}
+          withMediaViewer={doesNftExist}
+          withExplorer
+        />
+      )}
 
       {isTransactionWithPoisoning && renderTransactionWithPoisoningWarning()}
 

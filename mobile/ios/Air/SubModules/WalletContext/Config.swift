@@ -293,6 +293,6 @@ public var SELF_PROTOCOL_SCHEME: String { IS_GRAM_WALLET ? "gramwallet" : "mtw" 
 public var TONCONNECT_PROTOCOL_SCHEME: String { IS_GRAM_WALLET ? "gramwallet-tc" : "mytonwallet-tc" }
 public var SELF_PROTOCOL: String { "\(SELF_PROTOCOL_SCHEME)://" }
 public var TONCONNECT_UNIVERSAL_URL: String { IS_GRAM_WALLET ? "https://connect.gramwallet.io" : "https://connect.mytonwallet.org" }
-public var SHORT_UNIVERSAL_URL: String { IS_GRAM_WALLET ? "https://go.gramwallet.io/" : "https://my.tt/" }
-public var SELF_UNIVERSAL_URLS: [String] { IS_GRAM_WALLET ? [SHORT_UNIVERSAL_URL] : [SHORT_UNIVERSAL_URL, "https://go.mytonwallet.org/"] }
-public var SELF_UNIVERSAL_URL_HOSTS: Set<String> { IS_GRAM_WALLET ? ["go.gramwallet.io"] : ["go.mytonwallet.org", "my.tt"] }
+public var SHORT_UNIVERSAL_URL: String { "https://my.tt/" }
+public var SELF_UNIVERSAL_URLS: [String] { [SHORT_UNIVERSAL_URL, IS_GRAM_WALLET ? "https://go.gramwallet.io/" : "https://go.mytonwallet.org/"] }
+public var SELF_UNIVERSAL_URL_HOSTS: Set<String> { ["my.tt", IS_GRAM_WALLET ? "go.gramwallet.io" : "go.mytonwallet.org"] }

@@ -170,6 +170,10 @@
 }
 
 .itemIcon {
+  --overlay-icon-top: 0.9375rem;
+  --overlay-icon-start: 0.875rem;
+  --overlay-icon-size: 0.75rem;
+
   position: relative;
   width: 1.375rem;
   height: 1.375rem;
@@ -188,16 +192,22 @@
   border-radius: 50%;
 }
 
+.withOverlayIcon {
+  @include mixins.badgeCutout(
+    calc(var(--overlay-icon-start) + var(--overlay-icon-size) / 2),
+    calc(var(--overlay-icon-top) + var(--overlay-icon-size) / 2),
+    calc(var(--overlay-icon-size) / 2 + 0.1rem)
+  );
+}
+
 .itemOverlayIcon {
   position: absolute;
-  top: 0.9375rem;
-  inset-inline-start: 0.875rem;
+  top: var(--overlay-icon-top);
+  inset-inline-start: var(--overlay-icon-start);
 
-  width: 0.75rem !important;
-  height: 0.75rem !important;
+  width: var(--overlay-icon-size) !important;
+  height: var(--overlay-icon-size) !important;
   border-radius: 50%;
-
-  box-shadow: 0 0 0 0.1rem var(--color-background-first);
 }
 
 .fontIcon {

@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import org.mytonwallet.app_air.icons.R
 import org.mytonwallet.app_air.uiassets.viewControllers.CollectionsMenuHelpers
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WActionBar
 import org.mytonwallet.app_air.uicomponents.base.WActionBar.TitleAnimationMode
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
@@ -83,6 +84,7 @@ class StickyHeaderView(
 
     private val lockButton: WImageButton by lazy {
         val v = WImageButton(context)
+        v.id = UIComponentsR.id.home_lock_button
         v.setImageDrawable(context.getDrawableCompat(R.drawable.ic_header_lock))
         v.setOnClickListener {
             onActionClick(HeaderActionsView.Identifier.LOCK_APP)
@@ -92,6 +94,7 @@ class StickyHeaderView(
 
     private val eyeButton: WImageButton by lazy {
         val v = WImageButton(context)
+        v.id = UIComponentsR.id.home_eye_button
         v.setOnClickListener {
             onActionClick(HeaderActionsView.Identifier.TOGGLE_SENSITIVE_DATA_PROTECTION)
             updateEyeIcon()
@@ -101,6 +104,7 @@ class StickyHeaderView(
 
     private val scanButton: WImageButton by lazy {
         val v = WImageButton(context)
+        v.id = UIComponentsR.id.home_scan_button
         v.setImageDrawable(
             context.getDrawableCompat(
                 org.mytonwallet.app_air.icons.R.drawable.ic_qr_code_scan_18_24

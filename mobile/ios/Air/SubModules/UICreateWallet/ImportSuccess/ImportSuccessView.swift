@@ -38,6 +38,7 @@ struct ImportSuccessView: View {
                 Text(lang("Open Wallet"))
             }
             .buttonStyle(.airPrimary)
+            .accessibilityIdentifier("wallet_added_open")
             .padding(.bottom, 32)
         }
         .padding(.horizontal, 32)

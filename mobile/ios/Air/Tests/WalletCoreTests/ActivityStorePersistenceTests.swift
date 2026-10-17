@@ -4,6 +4,28 @@ import Testing
 
 @Suite("Activity Store Persistence")
 struct ActivityStorePersistenceTests {
+    @Test(arguments: [false, true], [ApiTransactionStatus.pending, .pendingTrusted])
+    func `BTC history without ETA preserves the websocket estimate`(isIncoming: Bool, status: ApiTransactionStatus) {
+        let existing = activity(id: "btc", status: status, slug: "btc", isIncoming: isIncoming, etaSeconds: 600)
+        let incoming = activity(id: "btc", status: .pending, slug: "btc", isIncoming: isIncoming)
+
+        let result = preserveActivityStatusProgress(existingActivity: existing, incomingActivity: incoming)
+
+        #expect(result.transaction?.etaSeconds == 600)
+        #expect(result.transaction?.status == status)
+    }
+
+    @Test(arguments: [300, 0])
+    func `explicit BTC estimates replace the previous ETA`(etaSeconds: Int) {
+        let existing = activity(id: "btc", status: .pendingTrusted, slug: "btc", etaSeconds: 600)
+        let incoming = activity(id: "btc", status: .pending, slug: "btc", etaSeconds: etaSeconds)
+
+        let result = preserveActivityStatusProgress(existingActivity: existing, incomingActivity: incoming)
+
+        #expect(result.transaction?.etaSeconds == etaSeconds)
+        #expect(result.transaction?.status == .pendingTrusted)
+    }
+
     @Test
     func `pending provider history does not revive a failed deposit`() throws {
         func swap(status: String, cexStatus: String) throws -> ApiActivity {
@@ -58,7 +80,13 @@ struct ActivityStorePersistenceTests {
     }
 }
 
-private func activity(id: String, status: ApiTransactionStatus) -> ApiActivity {
+private func activity(
+    id: String,
+    status: ApiTransactionStatus,
+    slug: String = "toncoin",
+    isIncoming: Bool = false,
+    etaSeconds: Int? = nil
+) -> ApiActivity {
     .transaction(
         ApiTransactionActivity(
             id: id,
@@ -71,13 +99,14 @@ private func activity(id: String, status: ApiTransactionStatus) -> ApiActivity {
             comment: nil,
             encryptedComment: nil,
             fee: 0,
-            slug: "toncoin",
-            isIncoming: false,
+            slug: slug,
+            isIncoming: isIncoming,
             normalizedAddress: nil,
             type: nil,
             metadata: nil,
             nft: nil,
-            status: status
+            status: status,
+            etaSeconds: etaSeconds
         )
     )
 }

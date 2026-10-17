@@ -242,7 +242,10 @@ export type AgentV2ResolvedAction =
   }
   | { kind: 'sendForm'; url: string; isMaxAmount?: true }
   | { kind: 'openDapp'; url: string }
-  | { kind: 'inactive' };
+  | AgentV2InactiveAction;
+
+/** An action that does not open; the host tells the user its `reason`, or that the action is no longer available */
+export type AgentV2InactiveAction = { kind: 'inactive'; reason?: 'viewOnlyWallet' };
 
 export type AgentV2ActionPresentation =
   | {
@@ -259,7 +262,7 @@ export type AgentV2ActionPresentation =
     warningCodes: Array<'scam_suspected' | 'memo_required' | 'new_address'>;
     expiresAt?: string;
   }
-  | { kind: 'inactive' };
+  | AgentV2InactiveAction;
 
 type AgentV2BoundRunUpdate<T> = T & {
   clientRunId: string;

@@ -1,3 +1,5 @@
+import { toLatinDigits } from './nativeDigits';
+
 export function saveCaretPosition(context: HTMLElement, prefixLength: number, decimals: number) {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) {
@@ -6,8 +8,9 @@ export function saveCaretPosition(context: HTMLElement, prefixLength: number, de
 
   const range = selection.getRangeAt(0);
   range.setStart(context, 0);
-  const clearedValue = range.toString().match(new RegExp(`(\\d+(?:[.,]\\d{0,${decimals}})?)`));
-  const len = prefixLength + (clearedValue?.[0]?.length || range.toString().length || 0);
+  const textBeforeCaret = range.toString();
+  const clearedValue = toLatinDigits(textBeforeCaret).match(new RegExp(`(\\d+(?:[.,٫]\\d{0,${decimals}})?)`));
+  const len = prefixLength + (clearedValue?.[0]?.length || textBeforeCaret.length || 0);
 
   return function restore() {
     try {

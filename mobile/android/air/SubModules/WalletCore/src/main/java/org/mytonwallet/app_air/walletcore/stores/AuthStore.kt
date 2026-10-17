@@ -2,6 +2,7 @@ package org.mytonwallet.app_air.walletcore.stores
 
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,6 +29,11 @@ class AuthCooldownError(val cooldownDate: Long) : Exception()
 object AuthStore : IStore {
     @Volatile
     private var cachedMultichainUpgradeAccountIds: List<String>? = null
+
+    private class MultichainUpgrade(val accountIds: List<String>, val job: Job)
+
+    @Volatile
+    private var multichainUpgrade: MultichainUpgrade? = null
 
     private var failedLoginAttempts: Int
         get() {
@@ -345,6 +351,16 @@ object AuthStore : IStore {
         }
     }
 
+    // Short sessions keep unspent reads until they run out; time-based sessions are left as they are.
+    fun releaseAuthUsages(enclaveToken: String, count: Int) {
+        EnclaveManager.sharedInstance.releaseSessionUsages(enclaveToken, count)
+    }
+
+    // The upgrade saves a missing backend auth token from the key read budgeted for it, so a flow that waits spends none
+    suspend fun awaitMultichainUpgrade(accountId: String) {
+        multichainUpgrade?.takeIf { accountId in it.accountIds }?.job?.join()
+    }
+
     private fun startMultichainUpgradeIfNeeded(enclaveToken: String, accountIds: List<String>) {
         if (accountIds.isEmpty()) {
             return
@@ -361,7 +377,7 @@ object AuthStore : IStore {
         }
 
         cachedMultichainUpgradeAccountIds = emptyList()
-        WalletCore.scope.launch {
+        val job = WalletCore.scope.launch {
             try {
                 WalletCore.call(
                     ApiMethod.Auth.UpgradeMultichainAccounts(enclaveToken, upgradableAccountIds)
@@ -379,6 +395,7 @@ object AuthStore : IStore {
                 )
             }
         }
+        multichainUpgrade = MultichainUpgrade(upgradableAccountIds, job)
     }
 
     private fun cooldownForNumberOfFailedAttempts(attempts: Int): Long = when (attempts) {

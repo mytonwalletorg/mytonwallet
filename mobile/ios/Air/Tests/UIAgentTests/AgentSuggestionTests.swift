@@ -190,7 +190,7 @@ private final class SuggestionTestBackend: AgentBackend {
     func prepareForEditing(_ editContext: AgentBackendEditContext) {}
     func didSendUserMessage(_ text: String, userMessageID: AgentItemID, source: AgentBackendSendSource,
                             editContext: AgentBackendEditContext?) { sentTexts.append(text) }
-    func clearConversation(completion: @escaping (Bool) -> Void) { completion(true) }
+    func clearConversation() {}
     func performControl(messageID: AgentItemID, controlID: String) { performedControls.append(controlID) }
 }
 

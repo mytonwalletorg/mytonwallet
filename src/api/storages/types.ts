@@ -36,12 +36,15 @@ export type StorageKey = 'accounts'
   | 'stateVersion'
   | 'currentAccountId'
   | 'clientId'
+  | 'webFirstLaunch'
+  | 'webFunnelHandoff'
   | 'referrer'
   | 'langCode'
   // For install attribution
   | 'attributionClaimed'
   | 'attributionChannel'
   | 'installAttribution'
+  | 'installMetadata'
   | 'attributionTechnicalClaimed'
   // For extension
   | 'dapps'
@@ -54,6 +57,7 @@ export type StorageKey = 'accounts'
   | 'legacyCoreMigrationCompleted'
   // For TonConnect SSE
   | 'sseLastEventId'
+  | 'sseDelivery'
   // For Agent
   | 'agentMessages'
   | 'agentConversationId'

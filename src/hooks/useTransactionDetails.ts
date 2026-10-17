@@ -36,6 +36,7 @@ export default function useTransactionDetails({
     comment,
     fee,
     id,
+    traceId,
     isIncoming,
     slug,
     nft,
@@ -65,7 +66,7 @@ export default function useTransactionDetails({
 
   const addressName = localAddressName || transaction?.metadata?.name;
   const transactionUrl = chain
-    ? getExplorerTransactionUrl(chain, transactionHash, isTestnet, selectedExplorerIds?.[chain])
+    ? getExplorerTransactionUrl(chain, { hash: transactionHash, traceId }, isTestnet, selectedExplorerIds?.[chain])
     : undefined;
 
   return {

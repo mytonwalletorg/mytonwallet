@@ -17,6 +17,11 @@ let package = Package(
         .target(
             name: "ContextMenuKit",
             path: "Sources/ContextMenuKit"
+        ),
+        .testTarget(
+            name: "ContextMenuKitTests",
+            dependencies: ["ContextMenuKit"],
+            path: "Tests/ContextMenuKitTests"
         )
     ]
 )

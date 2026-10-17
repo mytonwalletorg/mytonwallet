@@ -39,6 +39,7 @@ import org.mytonwallet.app_air.uibrowser.viewControllers.explore.ExploreVC
 import org.mytonwallet.app_air.uibrowser.viewControllers.search.SearchBestMatchAction
 import org.mytonwallet.app_air.uibrowser.viewControllers.search.SearchBestMatchOutcome
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WNavigationController
 import org.mytonwallet.app_air.uicomponents.base.WNavigationController.PresentationConfig
@@ -84,7 +85,6 @@ import org.mytonwallet.app_air.uisettings.viewControllers.settings.SettingsVC
 import org.mytonwallet.app_air.walletbasecontext.DEBUG_MODE
 import org.mytonwallet.app_air.walletbasecontext.R as BaseR
 import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
-import org.mytonwallet.app_air.walletbasecontext.theme.ThemeManager
 import org.mytonwallet.app_air.walletbasecontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletbasecontext.theme.WColor
 import org.mytonwallet.app_air.walletbasecontext.theme.color
@@ -218,8 +218,7 @@ class PhoneTabsVC(context: Context) :
 
     private var updateFloatingButton: WLabel? = null
     private var updateFloatingButtonBackground: WRippleDrawable? = null
-    private var stickyBackgroundColor =
-        if (ThemeManager.isDark) WColor.SecondaryBackground.color else WColor.Background.color
+    private var stickyBackgroundColor = WColor.SecondaryBackground.color
 
     override val minimizedBlurRootView: ViewGroup?
         get() = contentView
@@ -310,7 +309,7 @@ class PhoneTabsVC(context: Context) :
                 }
             })
             (getChildAt(0) as? RecyclerView)?.itemAnimator = null
-            setupSpringFling { it }
+            setupSpringFling { target -> target.coerceIn(currentItem - 1, currentItem + 1) }
         }
     }
 
@@ -418,6 +417,7 @@ class PhoneTabsVC(context: Context) :
     private var topAvatarAccountId: String? = null
     private val topAvatarView by lazy {
         WFrameLayout(context).apply {
+            id = UIComponentsR.id.tab_settings_button
             setBackgroundColor(Color.TRANSPARENT, TOP_AVATAR_SIZE.dp / 2f, clipToBounds = true)
             foreground = topAvatarRipple
             addView(topAvatarRingView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
@@ -455,7 +455,8 @@ class PhoneTabsVC(context: Context) :
                 WClearSegmentedControl.Item(
                     title = LocaleController.getString(it.labelKey),
                     onRemove = null,
-                    onClick = null
+                    onClick = null,
+                    testViewId = it.testViewId
                 )
             },
             selectedIndex,
@@ -781,6 +782,7 @@ class PhoneTabsVC(context: Context) :
     }
     private val actionsButton by lazy {
         WFrameLayout(context).apply {
+            id = UIComponentsR.id.home_more_actions_button
             alpha = 0f
             visibility = View.INVISIBLE
             isClickable = true
@@ -1372,10 +1374,10 @@ class PhoneTabsVC(context: Context) :
                 }
             }
             stickyBackgroundColor =
-                if (ThemeManager.isDark && selectedItemId != AppTabsManager.ID_AGENT) {
-                    WColor.SecondaryBackground.color
-                } else {
+                if (selectedItemId == AppTabsManager.ID_AGENT) {
                     WColor.Background.color
+                } else {
+                    WColor.SecondaryBackground.color
                 }
             val drawable = StickyBottomGradientDrawable(
                 intArrayOf(

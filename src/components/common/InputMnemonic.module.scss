@@ -1,3 +1,5 @@
+@use "../../styles/mixins";
+
 .wrapper {
   position: relative;
 
@@ -8,11 +10,7 @@
 
   background-color: var(--color-background-first);
 
-  transition: box-shadow 150ms;
-
-  &_focus {
-    box-shadow: inset 0 0 0 2px var(--color-accent);
-  }
+  @include mixins.transition(box-shadow 150ms);
 
   &_error {
     box-shadow: inset 0 0 0 2px var(--color-red);
@@ -21,10 +19,6 @@
       color: var(--color-red);
     }
   }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
 }
 
 .input {
@@ -32,16 +26,22 @@
 
   width: 100%;
   height: 3rem;
-  padding: 0.5rem 0.75rem;
+  padding-block: 0;
+  padding-inline: 1rem 0.75rem;
   border: none;
 
   font-size: 1rem;
+  font-weight: 600;
   line-height: 1.25;
   color: var(--color-black);
 
   appearance: none;
   background: transparent !important;
   outline: none;
+
+  &_withClearButton {
+    padding-inline-end: 2.5rem;
+  }
 
   &::placeholder {
     color: var(--color-gray-3);
@@ -63,20 +63,40 @@
   cursor: text;
 
   display: block;
+  flex-shrink: 0;
 
-  min-width: 2em;
-  margin: 0;
-  padding-block: 0;
-  padding-inline: 0.75rem 0;
+  width: 1.5rem;
+  margin-block: 0;
+  margin-inline: 0.75rem 0;
+  padding: 0;
 
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-gray-3);
-  text-align: end;
+  text-align: center;
 
   :global(html:not(.is-ios)) & {
     position: relative;
     top: 0.0625rem;
     font-size: 0.9375rem;
+  }
+}
+
+.clearButton {
+  position: absolute;
+  inset-inline-end: 0.5rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2rem;
+  height: 2rem;
+
+  font-size: 1rem;
+  color: var(--color-gray-2);
+
+  &:active {
+    opacity: 0.85;
   }
 }

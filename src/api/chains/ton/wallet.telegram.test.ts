@@ -8,6 +8,12 @@ const mockGetWalletInfos = jest.fn();
 
 jest.mock('./util/tonCore', () => ({
   ...jest.requireActual('./util/tonCore'),
+  walletClassMap: {
+    ...(jest.requireActual('./util/tonCore').walletClassMap ?? {}),
+    // Keep the 12-word import test on the real wallet-discovery seam while avoiding a circular mock gap in tonCore.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    W5: require('@ton/ton/dist/wallets/WalletContractV5R1').WalletContractV5R1,
+  },
   getTonClient: () => ({
     getAddressInfo: mockGetAddressInfo,
     runMethodWithError: mockRunMethodWithError,
@@ -15,6 +21,10 @@ jest.mock('./util/tonCore', () => ({
 }));
 
 jest.mock('./toncenter', () => ({ getWalletInfos: (...args: unknown[]) => mockGetWalletInfos(...args) }));
+jest.mock('./constants', () => ({
+  ...jest.requireActual('./constants'),
+  ALL_WALLET_VERSIONS: ['W5', 'telegram'],
+}));
 
 import { ApiTransactionError } from '../../types';
 
@@ -22,11 +32,12 @@ import * as HDKey from '../../../lib/ed25519-hd-key';
 import {
   getTelegramWalletTrampolineCode,
 } from './contracts/TelegramWallet';
-import { getWalletFromTelegramRotationMnemonic } from './auth';
+import { getWalletFromBip39Mnemonic, getWalletFromTelegramRotationMnemonic } from './auth';
 import { TON_BIP39_PATH } from './constants';
 import {
   getTelegramWalletInfo,
   getWalletVersionInfos,
+  pickBestWallet,
   publicKeyToAddress,
 } from './wallet';
 
@@ -135,10 +146,32 @@ describe('getWalletVersionInfos Telegram filtering', () => {
     mockTelegramGetters();
   });
 
-  it('filters out the Telegram candidate when its trampoline contract is not deployed', async () => {
+  it('filters out an untouched uninitialized Telegram candidate', async () => {
     mockGetAddressInfo.mockResolvedValue({ code: '', state: 'uninitialized' });
 
     await expect(getWalletVersionInfos('mainnet', PUBLIC_KEY, ['telegram'])).resolves.toEqual([]);
+  });
+
+  it('keeps a funded uninitialized Telegram candidate for first-send deployment', async () => {
+    mockGetAddressInfo.mockResolvedValue({ code: '', state: 'uninitialized' });
+    mockGetWalletInfos.mockResolvedValue({
+      [TELEGRAM_ADDRESS]: {
+        address: TELEGRAM_ADDRESS,
+        balance: 1_000_000_000n,
+        isInitialized: false,
+        lastTxId: 'funding-tx',
+        seqno: 0,
+      },
+    });
+
+    await expect(getWalletVersionInfos('mainnet', PUBLIC_KEY, ['telegram'])).resolves.toMatchObject([
+      {
+        address: TELEGRAM_ADDRESS,
+        balance: 1_000_000_000n,
+        isInitialized: false,
+        version: 'telegram',
+      },
+    ]);
   });
 
   it('filters out the Telegram candidate when the on-chain key mismatches the imported key', async () => {
@@ -171,6 +204,65 @@ describe('getWalletVersionInfos Telegram filtering', () => {
   });
 });
 
+describe('getWalletFromBip39Mnemonic Telegram discovery', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetAddressInfo.mockResolvedValue({ code: '', state: 'uninitialized' });
+  });
+
+  it('imports a funded uninitialized 12-word Telegram candidate for first-send deployment', async () => {
+    const publicKey = bip39HalfToTonPublicKey(ROTATION_ANCHOR_HALF);
+    const address = publicKeyToAddress('mainnet', publicKey, 'telegram', undefined);
+    mockGetWalletInfos.mockImplementation((_network, addresses: string[]) => Promise.resolve(Object.fromEntries(
+      addresses.map((itemAddress) => [itemAddress, {
+        address: itemAddress,
+        balance: itemAddress === address ? 1_000_000_000n : 0n,
+        isInitialized: false,
+        lastTxId: itemAddress === address ? 'funding-tx' : undefined,
+        seqno: 0,
+      }]),
+    )));
+
+    await expect(getWalletFromBip39Mnemonic(
+      'mainnet',
+      ROTATION_ANCHOR_HALF.split(' '),
+      { path: TON_BIP39_PATH, index: 0 },
+    )).resolves.toMatchObject([{
+      address,
+      publicKey: Buffer.from(publicKey).toString('hex'),
+      version: 'telegram',
+      isInitialized: false,
+    }]);
+  });
+});
+
+describe('pickBestWallet Telegram discovery', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    telegramPublicKey = PUBLIC_KEY;
+    telegramSubwalletId = TELEGRAM_MAINNET_SUBWALLET_ID;
+    mockTelegramGetters();
+  });
+
+  it('propagates initialized state through the TON-native single-key route', async () => {
+    mockGetAddressInfo.mockResolvedValue({ code: TELEGRAM_CODE, state: 'active' });
+    mockGetWalletInfos.mockImplementation((_network, addresses: string[]) => Promise.resolve(Object.fromEntries(
+      addresses.map((address) => [address, {
+        address,
+        balance: address === TELEGRAM_ADDRESS ? 1_000_000_000n : 0n,
+        isInitialized: address === TELEGRAM_ADDRESS,
+        lastTxId: address === TELEGRAM_ADDRESS ? 'telegram-tx' : undefined,
+        seqno: 0,
+      }]),
+    )));
+
+    await expect(pickBestWallet('mainnet', [{ publicKey: PUBLIC_KEY }])).resolves.toMatchObject({
+      version: 'telegram',
+      isInitialized: true,
+    });
+  });
+});
+
 describe('getWalletFromTelegramRotationMnemonic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -191,6 +283,30 @@ describe('getWalletFromTelegramRotationMnemonic', () => {
       version: 'telegram',
       index: 0,
       derivation: { path: TON_BIP39_PATH, index: 0 },
+      isInitialized: true,
+    });
+  });
+
+  it('imports a duplicated pre-rotation half when its Telegram address is funded but not deployed yet', async () => {
+    const anchorPublicKey = bip39HalfToTonPublicKey(ROTATION_ANCHOR_HALF);
+    const mnemonic = `${ROTATION_ANCHOR_HALF} ${ROTATION_ANCHOR_HALF}`.split(' ');
+    const address = publicKeyToAddress('mainnet', anchorPublicKey, 'telegram', undefined);
+    mockGetAddressInfo.mockResolvedValue({ code: '', state: 'uninitialized' });
+    mockGetWalletInfos.mockResolvedValue({
+      [address]: {
+        address,
+        balance: 1_000_000_000n,
+        isInitialized: false,
+        lastTxId: 'funding-tx',
+        seqno: 0,
+      },
+    });
+
+    await expect(getWalletFromTelegramRotationMnemonic('mainnet', mnemonic)).resolves.toMatchObject({
+      address,
+      publicKey: Buffer.from(anchorPublicKey).toString('hex'),
+      version: 'telegram',
+      isInitialized: false,
     });
   });
 

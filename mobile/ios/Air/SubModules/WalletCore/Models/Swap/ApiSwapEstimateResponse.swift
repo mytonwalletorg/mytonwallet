@@ -7,6 +7,10 @@
 
 import Foundation
 
+public struct ApiSwapEstimateDebug: Equatable, Hashable, Codable, Sendable {
+    public var summary: String
+}
+
 public enum ApiSwapEstimateResponse: Equatable, Decodable, Sendable {
     case dex(ApiSwapDexEstimateResponse)
     case cex(ApiSwapCexEstimateResponse)
@@ -17,6 +21,15 @@ public enum ApiSwapEstimateResponse: Equatable, Decodable, Sendable {
         case .dex(let estimate): estimate.hint
         case .cex(let estimate): estimate.hint
         case .error(let response): response.hint
+        }
+    }
+
+    /// Tester-only estimate fan-out summary from the backend `debug.summary` field.
+    public var debugSummary: String? {
+        switch self {
+        case .dex(let estimate): estimate.debug?.summary
+        case .cex(let estimate): estimate.debug?.summary
+        case .error(let response): response.debug?.summary
         }
     }
 
@@ -54,12 +67,14 @@ public enum ApiSwapEstimateResponse: Equatable, Decodable, Sendable {
 public struct ApiSwapEstimateErrorResponse: Equatable, Decodable, Sendable, LocalizedError {
     public var error: String
     public var hint: ApiSwapHint?
+    public var debug: ApiSwapEstimateDebug?
 
     public var errorDescription: String? { error }
 }
 
 public struct ApiSwapDexEstimateResponse: Equatable, Decodable, Sendable {
     public var hint: ApiSwapHint?
+    public var debug: ApiSwapEstimateDebug?
     public var from: String
     public var to: String
     public var slippage: Double?
@@ -82,10 +97,11 @@ public struct ApiSwapDexEstimateResponse: Equatable, Decodable, Sendable {
     public var ourFee: MDouble
     public var ourFeePercent: Double
     public var dieselFee: MDouble?
-    public var needsApprove: Bool?
+    public var needsBatch: Bool?
 
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         lhs.hint == rhs.hint &&
+        lhs.debug == rhs.debug &&
         lhs.from == rhs.from &&
         lhs.to == rhs.to &&
         lhs.slippage == rhs.slippage &&
@@ -105,6 +121,6 @@ public struct ApiSwapDexEstimateResponse: Equatable, Decodable, Sendable {
         lhs.ourFee == rhs.ourFee &&
         lhs.ourFeePercent == rhs.ourFeePercent &&
         lhs.dieselFee == rhs.dieselFee &&
-        lhs.needsApprove == rhs.needsApprove
+        lhs.needsBatch == rhs.needsBatch
     }
 }

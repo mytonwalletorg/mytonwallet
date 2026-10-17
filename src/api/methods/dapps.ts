@@ -4,6 +4,7 @@ import type { DappProofRequest, UnifiedSignDataPayload } from '../dappProtocols/
 import type {
   ApiDappTransfer,
   ApiNetwork,
+  ApiSseDeliveryState,
   OnApiUpdate,
 } from '../types';
 
@@ -181,6 +182,14 @@ export function getSseLastEventId(): Promise<string | undefined> {
 
 export function setSseLastEventId(lastEventId: string) {
   return storage.setItem('sseLastEventId', lastEventId);
+}
+
+export function getSseDelivery(): Promise<ApiSseDeliveryState | undefined> {
+  return storage.getItem('sseDelivery');
+}
+
+export function setSseDelivery(state: ApiSseDeliveryState) {
+  return storage.setItem('sseDelivery', state);
 }
 
 export async function signDappProof(

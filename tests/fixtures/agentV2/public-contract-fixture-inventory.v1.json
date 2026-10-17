@@ -10,6 +10,7 @@
     "public-wire.v1.json",
     "run-origin-bindings.v1.json",
     "send-amount-normalization.v1.json",
-    "terminal-structured-output-stream.v1.json"
+    "terminal-structured-output-stream.v1.json",
+    "wallet-asset-symbol-matching.v1.json"
   ]
 }

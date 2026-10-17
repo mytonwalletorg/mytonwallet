@@ -96,6 +96,19 @@ public class ReceiveVC: WViewController {
         hostingController.view.clipsToBounds = true
         
         view.bringSubviewToFront(segmentedController)
+
+        if IS_GRAM_WALLET {
+            let diamondTouchView = TelegramReceiveDiamondTouchView()
+            diamondTouchView.sourceView = hostingController.view
+            diamondTouchView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(diamondTouchView)
+            NSLayoutConstraint.activate([
+                diamondTouchView.topAnchor.constraint(equalTo: view.topAnchor),
+                diamondTouchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                diamondTouchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                diamondTouchView.heightAnchor.constraint(equalToConstant: headerHeight),
+            ])
+        }
         
         configureNavigationItemWithTransparentBackground()
         setNavigationControlsAppearance()
@@ -202,13 +215,13 @@ public class ReceiveVC: WViewController {
             segmentedController.segmentedControl.embed(in: navigationItem)
         } else {
             segmentedController.segmentedControl.removeFromSuperview()
-            navigationItem.titleView = HostingView {
-                NavigationHeader {
-                    Text(lang("Add Crypto"))
-                        .textStyle(.bodyStrong)
-                        .foregroundStyle(.white)
-                }
-            }
+            let header = NavigationHeader2()
+            let title = NavigationHeader2.makeTitleLabel(lang("Add Crypto"), fixedColor: true)
+            title.textColor = .white
+            header.accessibilityElementsHidden = false
+            header.accessibilityLabel = title.text
+            header.setContentView(title)
+            navigationItem.titleView = header
         }
     }
 

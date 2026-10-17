@@ -5,15 +5,12 @@ import { ApiCommonError } from '../../../api/types';
 import { AppState, AuthState } from '../../types';
 
 import {
-  DEFAULT_SWAP_FIRST_TOKEN_SLUG,
-  DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   DEFAULT_TRANSFER_TOKEN_SLUG,
   IS_EXPLORER,
   IS_EXTENSION,
   IS_TELEGRAM_APP,
   TEST_MNEMONIC,
   TEST_PASSWORD,
-  TONCOIN,
 } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
@@ -56,11 +53,11 @@ import {
 import { createAccountsFromGlobal, updateAuth } from '../../reducers/misc';
 import {
   selectCurrentAccountId,
+  selectCurrentAccountState,
   selectCurrentNetwork,
   selectNetworkAccounts,
   selectNetworkAccountsMemoized,
   selectNewestActivityTimestamps,
-  selectSwapTokens,
 } from '../../selectors';
 
 const ANIMATION_DELAY_MS = 320;
@@ -202,40 +199,24 @@ addActionHandler('dismissDialog', (global) => {
 });
 
 addActionHandler('selectToken', (global, actions, { slug } = {}) => {
-  if (slug) {
-    const isToncoin = slug === TONCOIN.slug;
-    const tokens = selectSwapTokens(global);
+  const currentAccountId = selectCurrentAccountId(global);
+  if (!currentAccountId) return;
 
-    if (isToncoin || tokens?.some((token) => token.slug === slug)) {
-      if (isToncoin) {
-        actions.setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
-      } else {
-        actions.setDefaultSwapParams({ tokenOutSlug: slug });
-      }
-    }
+  const currentActivityToken = selectCurrentAccountState(global)?.currentTokenSlug;
+  const { tokenInSlug, tokenOutSlug } = global.currentSwap;
+
+  // The pair of a swap opened from a token screen must not carry over to a swap opened elsewhere
+  if (
+    currentActivityToken
+    && currentActivityToken !== slug
+    && (tokenInSlug === currentActivityToken || tokenOutSlug === currentActivityToken)
+  ) {
+    actions.setDefaultSwapParams({ withResetAmount: true });
+  }
+
+  if (slug) {
     actions.changeTransferToken({ tokenSlug: slug });
   } else {
-    const currentAccountId = selectCurrentAccountId(global);
-    if (!currentAccountId) return;
-
-    const currentActivityToken = global.byAccountId[currentAccountId].currentTokenSlug;
-
-    const isDefaultFirstTokenOutSwap = global.currentSwap.tokenOutSlug === DEFAULT_SWAP_FIRST_TOKEN_SLUG
-      && global.currentSwap.tokenInSlug === DEFAULT_SWAP_SECOND_TOKEN_SLUG;
-
-    const shouldResetSwap = global.currentSwap.tokenOutSlug === currentActivityToken
-      && (
-        (
-          global.currentSwap.tokenInSlug === DEFAULT_SWAP_FIRST_TOKEN_SLUG
-          && global.currentSwap.tokenOutSlug !== DEFAULT_SWAP_SECOND_TOKEN_SLUG
-        )
-        || isDefaultFirstTokenOutSwap
-      );
-
-    if (shouldResetSwap) {
-      actions.setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined, withResetAmount: true });
-    }
-
     const shouldResetTransfer = (
       global.currentTransfer.tokenSlug === currentActivityToken
       && global.currentTransfer.tokenSlug !== DEFAULT_TRANSFER_TOKEN_SLUG

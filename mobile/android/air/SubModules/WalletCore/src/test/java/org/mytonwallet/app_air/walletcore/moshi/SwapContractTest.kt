@@ -95,13 +95,13 @@ class SwapContractTest {
                   "slippage": 1, "impact": 0.1, "dieselStatus": "not-available",
                   "networkFee": "0.0001", "realNetworkFee": "0.0001",
                   "swapFee": "0", "swapFeePercent": 0, "ourFee": "0.00008", "ourFeePercent": 0.8,
-                  "needsApprove": true, "other": []
+                  "needsBatch": true, "other": []
                 }
                 """.trimIndent()
             )
         )
         assertEquals("uniswap", quote.dexRouterLabel)
-        assertEquals(true, quote.needsApprove)
+        assertEquals(true, quote.needsBatch)
         assertNull(quote.dexLabel)
     }
 

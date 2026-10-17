@@ -590,6 +590,13 @@ Are you sure you want to disable biometrics?: Sei sicuro di voler disattivare la
 "Yes": "Sì"
 Biometric confirmation failed: Conferma biometrica non riuscita
 No Activity: Nessuna attività
+Loading Activity: Caricamento attività
+Loading More Activity: Caricamento di altre attività
+Your activity history is loading.: La cronologia delle tue attività è in fase di caricamento.
+Taking Longer Than Usual: Ci vuole più tempo del solito
+Activity history is taking longer to load. Please check back shortly.: Il caricamento della cronologia delle attività sta richiedendo più tempo del solito. Ricontrolla tra poco.
+Activity Unavailable: Attività non disponibile
+Activity history is temporarily unavailable. We’ll try again shortly.: La cronologia delle attività è temporaneamente non disponibile. Riproveremo tra poco.
 Activity Failed to Load: Impossibile caricare le attività
 Fund: Ricarica
 Buy with Card: Acquista con carta
@@ -625,6 +632,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Puoi anche %action%.
 $wallet_switch_version_2: passare a un'altra versione del wallet
 or import from: o importa da
+or enter manually: o inserisci manualmente
 Insufficient fee: Commissione insufficiente
 $insufficient_fee: "Commissione insufficiente: %fee%"
 $dapp_insufficient_network_fee_warning: "%token% insufficiente per coprire la commissione di rete"
@@ -680,6 +688,7 @@ $transfer_link_expired: Il link di trasferimento è scaduto
 $transfer_text_and_bin_exclusive: Impossibile utilizzare contemporaneamente i parametri text e bin
 $unsupported_deeplink_parameter: Questo deeplink contiene parametri non supportati.
 $unsupported_chain: Blockchain non supportata.
+$token_chain_not_supported_by_wallet: "Il tuo wallet attuale non supporta %chain%. Crea un wallet multichain per usare questo token."
 Successfully: Operazione riuscita
 Estimated Time: Tempo stimato
 $utxo_confirmations:
@@ -1345,6 +1354,7 @@ $agent_connection_interrupted: La connessione con Agent è stata interrotta. Rip
 $agent_history_unavailable: Impossibile caricare la cronologia chat. Riprova.
 $agent_secret_words_removed: "[parole segrete rimosse e non inviate]"
 $agent_activity_analyzing_request: Analisi della richiesta in corso…
+$agent_analyzing: Analisi in corso
 $agent_activity_wallet: Lettura dei dati del wallet…
 $agent_activity_transactions: Verifica dell'attività del wallet…
 $agent_activity_portfolio: Caricamento dei dati del portafoglio…
@@ -1452,6 +1462,9 @@ $agent_report_problem_description: I messaggi recenti di questa chat verranno in
 $agent_report_problem_sent: Grazie! La tua segnalazione è stata inviata.
 $agent_report_problem_failed: Impossibile inviare la segnalazione. Riprova.
 $agent_report_problem_rate_limited: Hai inviato diverse segnalazioni di recente. Riprova più tardi.
+Like: Mi piace
+Dislike: Non mi piace
+$agent_feedback_failed: Impossibile salvare la valutazione. Riprova.
 $unknown_swap_token: Token sconosciuto nel link di scambio. Sono stati usati i token predefiniti.
 $action_not_available_view_mode: Questa azione non è disponibile per i wallet di sola visualizzazione
 Deposit: Deposita
@@ -2049,4 +2062,5 @@ Ruble: Rublo
 $token_price_value: "Prezzo: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: Uno scambio come questo richiede di solito alcuni minuti. In rari casi, fino a due ore.
 3D Gram Diamond: Diamante Gram 3D
+Hold to enlarge. Drag to rotate.: Tieni premuto per ingrandire. Trascina per ruotare.
 "Max": "Max"

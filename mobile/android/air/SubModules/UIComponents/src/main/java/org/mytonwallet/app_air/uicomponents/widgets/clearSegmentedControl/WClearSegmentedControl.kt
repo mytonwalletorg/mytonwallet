@@ -75,7 +75,9 @@ class WClearSegmentedControl(
         var onClick: ((v: View) -> Unit)?,
         var arrowVisibility: Float? = null,
         var badge: String? = null,
-        val color: Int? = null
+        val color: Int? = null,
+        // Stable resource id of the item view, for UI automation
+        val testViewId: Int? = null
     )
 
     var horizontalFadingEdge: Boolean

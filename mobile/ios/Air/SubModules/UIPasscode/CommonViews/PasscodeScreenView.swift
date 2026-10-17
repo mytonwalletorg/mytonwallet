@@ -35,6 +35,27 @@ public class PasscodeScreenView: UIView {
     private let canShowSignOutWhenEmpty: Bool
     private var showsSignOutWhenEmpty: Bool
     private weak var delegate: PasscodeScreenViewDelegate? = nil
+
+    private var safeAreaCenterYConstraint: NSLayoutConstraint?
+    private var viewCenterYConstraint: NSLayoutConstraint?
+    private var signOutSpacingConstraint: NSLayoutConstraint?
+
+    var centersContentVerticallyInView = false {
+        didSet {
+            guard centersContentVerticallyInView != oldValue else { return }
+            safeAreaCenterYConstraint?.isActive = !centersContentVerticallyInView
+            viewCenterYConstraint?.isActive = centersContentVerticallyInView
+            signOutSpacingConstraint?.isActive = centersContentVerticallyInView && showsSignOutWhenEmpty
+        }
+    }
+
+    private func constrainContentHorizontally(_ content: UIView) {
+        NSLayoutConstraint.activate([
+            content.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
+            content.leadingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            content.trailingAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
+        ])
+    }
         
     init(
         title: String,
@@ -134,15 +155,13 @@ public class PasscodeScreenView: UIView {
         unlockView.axis = .vertical
         unlockView.alignment = .center
         addSubview(unlockView)
+        constrainContentHorizontally(unlockView)
         
         // placement of entire stack
         if compactLayout {
             NSLayoutConstraint.activate([
                 unlockView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 8),
                 unlockView.topAnchor.constraint(equalTo: topAnchor, constant: 32).withPriority(.init(748)),
-                unlockView.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
-                unlockView.leadingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                unlockView.trailingAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
                 unlockView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
             ])
         } else {
@@ -152,10 +171,9 @@ public class PasscodeScreenView: UIView {
             // centerYConstraint is optional and should be breaked first of all.
             let centerYConstraint = unlockView.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor, constant: -32)
             centerYConstraint.priority = UILayoutPriority(748)
+            safeAreaCenterYConstraint = centerYConstraint
+            viewCenterYConstraint = unlockView.centerYAnchor.constraint(equalTo: centerYAnchor).withPriority(.init(748))
             NSLayoutConstraint.activate([
-                unlockView.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
-                unlockView.leadingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                unlockView.trailingAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
                 unlockView.bottomAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
                 topConstraint,
                 centerYConstraint
@@ -302,6 +320,7 @@ public class PasscodeScreenView: UIView {
                     buttonTitleLabel.text = "\(num)"
                     button.isAccessibilityElement = true
                     button.accessibilityLabel = buttonTitleLabel.text
+                    button.accessibilityIdentifier = "passcode_key_\(num)"
                     button.accessibilityTraits.insert(.keyboardKey)
                     button.addSubview(buttonTitleLabel)
                     NSLayoutConstraint.activate([
@@ -335,6 +354,7 @@ public class PasscodeScreenView: UIView {
                             hideButton(button)
                         }
                         image = UIImage(named: imageName, in: AirBundle, compatibleWith: nil)!
+                        button.accessibilityIdentifier = "passcode_key_biometric"
                         switch biometryType {
                         case .face:
                             button.isAccessibilityElement = true
@@ -350,6 +370,7 @@ public class PasscodeScreenView: UIView {
                         image = UIImage(named: "BackspaceIcon", in: AirBundle, compatibleWith: nil)!
                         button.isAccessibilityElement = true
                         button.accessibilityLabel = lang("Delete")
+                        button.accessibilityIdentifier = "passcode_key_delete"
                     }
                     button.accessibilityTraits.insert(.keyboardKey)
                     let buttonImageView = UIImageView(image: image.withRenderingMode(.alwaysTemplate))
@@ -391,11 +412,10 @@ public class PasscodeScreenView: UIView {
             signOutPromptView.isHidden = !showsSignOutWhenEmpty
             self.signOutPromptView = signOutPromptView
             addSubview(signOutPromptView)
+            constrainContentHorizontally(signOutPromptView)
+            signOutSpacingConstraint = unlockView.bottomAnchor.constraint(lessThanOrEqualTo: signOutPromptView.topAnchor, constant: -16)
             NSLayoutConstraint.activate([
-                signOutPromptView.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
                 signOutPromptView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
-                signOutPromptView.leadingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                signOutPromptView.trailingAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
             ])
         }
     }
@@ -457,6 +477,7 @@ public class PasscodeScreenView: UIView {
         guard canShowSignOutWhenEmpty else { return }
         showsSignOutWhenEmpty = value
         signOutPromptView?.isHidden = !value
+        signOutSpacingConstraint?.isActive = centersContentVerticallyInView && value
     }
     
     @objc func buttonPressed(button: UIButton) {
@@ -504,6 +525,24 @@ public class PasscodeScreenView: UIView {
         }
         return handled
     }
+    #if DEBUG
+    /// Enters a whole passcode as if typed, for UI tests (`mtw://e2e-unlock`, see
+    /// AirAppLockCoordinator.e2eUnlock).
+    /// Digits go in one by one, the way keypad taps do, so the passcode reaches the
+    /// same check. Returns false while the keypad does not accept input or when the
+    /// passcode does not fit this screen.
+    public func enterPasscodeForUITests(_ passcode: String) -> Bool {
+        guard isUserInteractionEnabled, !biometricInProgress,
+              passcodeInputView.currentPasscode.isEmpty,
+              passcode.count == passcodeInputView.passcodeLength,
+              passcode.allSatisfy({ $0.isASCII && $0.isNumber }) else { return false }
+        for digit in passcode {
+            passcodeInputView.currentPasscode += String(digit)
+        }
+        return true
+    }
+    #endif
+
     func tryBiometric() {
         guard effectiveBiometryType != nil, !biometricInProgress else {
             return

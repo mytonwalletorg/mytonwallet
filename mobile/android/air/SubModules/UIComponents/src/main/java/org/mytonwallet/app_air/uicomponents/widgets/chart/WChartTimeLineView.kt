@@ -295,18 +295,34 @@ class WChartTimeLineView(
             entries.add(Entry(timestamp, value))
         }
 
-        val dataSet = LineDataSet(entries, "")
-        dataSet.lineWidth = 1.0f
-        dataSet.color = WColor.Tint.color
-        dataSet.setDrawCircles(false)
-        dataSet.setDrawValues(false)
-        dataSet.setDrawHorizontalHighlightIndicator(false)
-        dataSet.setDrawVerticalHighlightIndicator(false)
-        dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
-        val lineData = LineData(dataSet)
-        chartView.data = lineData
+        chartView.data = LineData(createDataSet(entries, isFilled = false))
         chartView.invalidate()
         setFilledDataset()
+    }
+
+    fun renderTransitionFrame(
+        entries: List<Entry>,
+        minX: Float,
+        maxX: Float,
+        minY: Float,
+        maxY: Float
+    ) {
+        chartView.xAxis.axisMinimum = minX
+        chartView.xAxis.axisMaximum = maxX
+        chartView.axisLeft.axisMinimum = minY
+        chartView.axisLeft.axisMaximum = maxY
+        chartView.data = LineData(
+            createDataSet(entries, isFilled = false),
+            createDataSet(entries, isFilled = true)
+        )
+        chartView.invalidate()
+    }
+
+    fun resetTransitionWindow() {
+        chartView.xAxis.resetAxisMinimum()
+        chartView.xAxis.resetAxisMaximum()
+        chartView.axisLeft.resetAxisMinimum()
+        chartView.axisLeft.resetAxisMaximum()
     }
 
     fun periodChanged() {
@@ -330,24 +346,33 @@ class WChartTimeLineView(
                 filledEntries.add(Entry(timestamp, value))
             }
         }
-        val dataSet = LineDataSet(filledEntries, "")
+        val lineData = LineData(
+            chartView.lineData.dataSets.first(),
+            createDataSet(filledEntries, isFilled = true)
+        )
+        chartView.data = lineData
+        chartView.invalidate()
+    }
+
+    private fun createDataSet(entries: List<Entry>, isFilled: Boolean): LineDataSet {
+        val dataSet = LineDataSet(entries, "")
         dataSet.lineWidth = 1.0f
         dataSet.color = WColor.Tint.color
         dataSet.setDrawCircles(false)
         dataSet.setDrawValues(false)
         dataSet.setDrawHorizontalHighlightIndicator(false)
         dataSet.setDrawVerticalHighlightIndicator(false)
-        dataSet.setDrawFilled(true)
-        val gradient = GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(WColor.Tint.color.colorWithAlpha(51), Color.TRANSPARENT)
-        )
-        gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT)
-        dataSet.fillDrawable = gradient
+        if (isFilled) {
+            dataSet.setDrawFilled(true)
+            val gradient = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(WColor.Tint.color.colorWithAlpha(51), Color.TRANSPARENT)
+            )
+            gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT)
+            dataSet.fillDrawable = gradient
+        }
         dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
-        val lineData = LineData(chartView.lineData.dataSets.first(), dataSet)
-        chartView.data = lineData
-        chartView.invalidate()
+        return dataSet
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

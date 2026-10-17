@@ -9,10 +9,12 @@ public struct TappableTransactionId: View {
     
     var chain: ApiChain
     var txId: String
+    var isTraceId: Bool
     
-    public init(chain: ApiChain, txId: String) {
+    public init(chain: ApiChain, txId: String, isTraceId: Bool) {
         self.chain = chain
         self.txId = txId
+        self.isTraceId = isTraceId
     }
     
     public var body: some View {
@@ -52,7 +54,7 @@ public struct TappableTransactionId: View {
                         title: lang("Open in Explorer"),
                         icon: .airBundle("SendGlobe"),
                         handler: {
-                            let url = ExplorerHelper.txUrl(chain: chain, txHash: txId)
+                            let url = ExplorerHelper.txUrl(chain: chain, txHash: txId, isTraceId: isTraceId)
                             AppActions.openInBrowser(url)
                         }
                     )

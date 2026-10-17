@@ -47,7 +47,7 @@ private final class DebugDisplayLogOverlayViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        heightConstraint?.constant = view.bounds.height / 5
+        heightConstraint?.constant = view.bounds.height / 3
     }
 
     func setLines(_ newLines: [String]) {
@@ -77,10 +77,13 @@ private final class DebugDisplayLogOverlayViewController: UIViewController {
 
     let formatter: DateFormatter
     let maxLines = 500
+    /// SDK console lines can carry whole request payloads; the overlay only needs their start.
+    let maxLineLength = 400
     var buffer: [String] = []
     var window: UIWindow?
     var viewController: DebugDisplayLogOverlayViewController?
     var isEnabled = false
+    var sceneActivationObserver: (any NSObjectProtocol)?
 
     init() {
         let formatter = DateFormatter()
@@ -97,8 +100,9 @@ private final class DebugDisplayLogOverlayViewController: UIViewController {
         }
     }
 
-    func append(_ message: String) {
-        let line = "\(formatter.string(from: .now)) \(message)"
+    func append(_ message: String, at date: Date) {
+        let message = message.count > maxLineLength ? String(message.prefix(maxLineLength)) + "…" : message
+        let line = "\(formatter.string(from: date)) \(message)"
         buffer.append(line)
         if buffer.count > maxLines {
             buffer.removeFirst(buffer.count - maxLines)
@@ -108,24 +112,26 @@ private final class DebugDisplayLogOverlayViewController: UIViewController {
     }
 
     func show() {
-        guard !isEnabled else { return }
         isEnabled = true
 
         let vc = viewController ?? DebugDisplayLogOverlayViewController()
         viewController = vc
 
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }) else { return }
-
-        let window = window ?? UIWindow(windowScene: scene)
-        window.rootViewController = vc
-        window.windowLevel = UIWindow.Level(rawValue: UIWindow.Level.statusBar.rawValue + 1)
-        window.backgroundColor = .clear
-        window.isUserInteractionEnabled = false
-        window.frame = scene.screen.bounds
-        window.isHidden = false
-        self.window = window
+        if window == nil {
+            // A cold launch enables the overlay before its scene is in the foreground, so it attaches on activation.
+            guard let scene = Self.foregroundScene() else {
+                attachOnSceneActivation()
+                return
+            }
+            let window = UIWindow(windowScene: scene)
+            window.rootViewController = vc
+            window.windowLevel = UIWindow.Level(rawValue: UIWindow.Level.statusBar.rawValue + 1)
+            window.backgroundColor = .clear
+            window.isUserInteractionEnabled = false
+            window.frame = scene.screen.bounds
+            self.window = window
+        }
+        window?.isHidden = false
 
         vc.setLines(buffer)
     }
@@ -133,6 +139,30 @@ private final class DebugDisplayLogOverlayViewController: UIViewController {
     func hide() {
         isEnabled = false
         window?.isHidden = true
+    }
+
+    private static func foregroundScene() -> UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        return scenes.first { $0.activationState == .foregroundActive }
+            ?? scenes.first { $0.activationState == .foregroundInactive }
+    }
+
+    private func attachOnSceneActivation() {
+        guard sceneActivationObserver == nil else { return }
+        sceneActivationObserver = NotificationCenter.default.addObserver(
+            forName: UIScene.didActivateNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, let observer = self.sceneActivationObserver else { return }
+                NotificationCenter.default.removeObserver(observer)
+                self.sceneActivationObserver = nil
+                if self.isEnabled {
+                    self.show()
+                }
+            }
+        }
     }
 }
 
@@ -142,9 +172,11 @@ public func setDisplayLogOverlayEnabled(_ enabled: Bool) {
     }
 }
 
+/// The line is stamped when it is logged, not when the main actor gets to draw it.
 public func displayLog(_ message: String) {
+    let date = Date.now
     Task { @MainActor in
-        DebugDisplayLogOverlay.shared.append(message)
+        DebugDisplayLogOverlay.shared.append(message, at: date)
     }
 }
 #else

@@ -24,6 +24,8 @@ final class SplitRootViewController: UISplitViewController, VisibleContentProvid
 
     private let sidebarViewController: SplitRootSidebarViewController
     private let sidebarNavigationController: SplitRootSidebarNavigationController
+    private var sideToolbar: UIView?
+    private var usesSideToolbar = false
     private var sidebarEdgeCoverEntries: [SidebarEdgeCoverEntry] = []
 
     /// All live navigation controllers keyed by their tab id.
@@ -135,6 +137,23 @@ final class SplitRootViewController: UISplitViewController, VisibleContentProvid
             let selectedTab = viewModel.selectedTab
             onTabSelect(tab: selectedTab)
         }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updateNavigationPlacement),
+            name: DuoNavigationSettings.didChangeNotification,
+            object: nil
+        )
+        if #available(iOS 27.1, *) {
+            registerForTraitChanges(UITraitCollection.systemTraitsAffectingVerticalBarEdge + [UITraitLayoutDirection.self]) {
+                (self: SplitRootViewController, _: UITraitCollection) in
+                self.updateNavigationPlacement()
+            }
+        }
+        observe { [weak self] in
+            guard let self, #available(iOS 27.1, *) else { return }
+            let account = AccountStore.account
+            (sideToolbar as? SplitRootToolbarView)?.accountButton.configure(account: account)
+        }
         viewModel.onCurrentTabTap = { [weak self] tab in
             guard let self else { return }
             if let nc = navControllersByTabId[tab] {
@@ -147,6 +166,66 @@ final class SplitRootViewController: UISplitViewController, VisibleContentProvid
         super.viewDidLayoutSubviews()
         updatePrimaryColumnWidthFraction()
         updateSidebarEdgeCoverFrames()
+        updateNavigationPlacement()
+        sideToolbar?.setNeedsLayout()
+    }
+
+    @objc private func updateNavigationPlacement() {
+        guard #available(iOS 27.1, *) else { return }
+        usesSideToolbar = DuoNavigationSettings.usesToolbar && traitCollection.verticalBarEdge != .unspecified
+        sidebarViewController.hiddenTabIds = usesSideToolbar
+            ? Set(SplitRootToolbarView.tabIds + [.settings]) : []
+        guard usesSideToolbar else {
+            (sideToolbar as? SplitRootToolbarView)?.tabBar.cancelInteraction()
+            sideToolbar?.removeFromSuperview()
+            for nc in navControllersByTabId.values { nc.hidesRootNavigationBar = false }
+            updateSidebarNavigationActions()
+            return
+        }
+        guard let nc = navControllersByTabId[selectedTab], let root = nc.viewControllers.first else { return }
+        let toolbar: SplitRootToolbarView
+        if let existing = sideToolbar as? SplitRootToolbarView {
+            toolbar = existing
+        } else {
+            toolbar = SplitRootToolbarView()
+            toolbar.accountButton.addAction(UIAction { [weak self] _ in
+                self?.showSettings(path: [])
+            }, for: .touchUpInside)
+            toolbar.tabBar.onSelect = { [weak self] index, repeated in
+                self?.select(tab: SplitRootToolbarView.tabIds[index], popToRoot: repeated)
+            }
+            toolbar.onLayout = { [weak self] in self?.updateSidebarNavigationActions() }
+            sideToolbar = toolbar
+        }
+        if toolbar.superview !== root.view {
+            toolbar.tabBar.cancelInteraction()
+            toolbar.removeFromSuperview()
+            toolbar.frame = root.view.bounds
+            root.view.addSubview(toolbar)
+        }
+        toolbar.navigationContainer = nc.view
+        toolbar.accountButton.configure(account: AccountStore.account)
+        toolbar.tabBar.showsSelection = SplitRootToolbarView.tabIds.contains(selectedTab)
+        if let index = SplitRootToolbarView.tabIds.firstIndex(of: selectedTab) {
+            toolbar.tabBar.select(index, animated: false)
+        }
+        let isEditing = (root as? SplitHomeVC)?.editingNavigator?.state.editingState != nil
+        toolbar.isHidden = isEditing || searchController.isSearchVisible
+        nc.hidesRootNavigationBar = !isEditing && !(root is SplitHomeVC)
+        toolbar.setNeedsLayout()
+        updateSidebarNavigationActions()
+    }
+
+    private func updateSidebarNavigationActions() {
+        let nc = navControllersByTabId[selectedTab]
+        let root = nc?.viewControllers.first
+        let showsActions = usesSideToolbar && nc?.hidesRootNavigationBar == true && nc?.topViewController === root
+        // Leave the trailing side to UIKit's sidebar toggle.
+        let actions = showsActions
+            ? (root?.navigationItem.leadingItemGroups ?? []) + (root?.navigationItem.trailingItemGroups ?? [])
+            : []
+        let item = sidebarViewController.navigationItem
+        if item.leadingItemGroups != actions { item.leadingItemGroups = actions }
     }
 
     func applyTabConfiguration(_ orderedIds: [AppTabId]) {
@@ -227,9 +306,11 @@ final class SplitRootViewController: UISplitViewController, VisibleContentProvid
         if let home = nc.viewControllers.first as? SplitHomeVC {
             home.onWalletAssetsEditingStateChange = { [weak self] in
                 self?.searchController.updatePresentation()
+                self?.updateNavigationPlacement()
             }
         }
         searchController.attach(to: self)
+        updateNavigationPlacement()
     }
 
     @discardableResult
@@ -442,6 +523,7 @@ final class SplitRootViewController: UISplitViewController, VisibleContentProvid
 extension SplitRootViewController: RootSearchToolbarHost {
     func setSearchVisible(_ isVisible: Bool, coordinator: (any UIViewControllerTransitionCoordinator)?) {
         sidebarNavigationController.setSearchVisible(isVisible, coordinator: coordinator)
+        updateNavigationPlacement()
     }
 
     var searchNavigationController: WNavigationController? { navControllersByTabId[selectedTab] }

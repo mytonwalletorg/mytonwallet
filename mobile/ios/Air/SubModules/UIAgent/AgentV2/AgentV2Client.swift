@@ -18,6 +18,12 @@ protocol AgentV2Client: AnyObject, Sendable {
     func cancelRun(_ runId: String) async
     func clearThread(id: String, revision: Int) async throws -> ApiAgentV2MutationResult<ApiAgentV2ThreadClearResponse>
     func reportProblem(threadId: String, report: ApiAgentV2ProblemReport) async throws
+    /// Returns the rating the server keeps for the answer
+    func setMessageFeedback(
+        threadId: String,
+        messageId: String,
+        feedback: ApiAgentV2AnswerFeedback?
+    ) async throws -> ApiAgentV2AnswerFeedback?
     func actionPresentation(messageId: String, actionId: String) async throws -> ApiAgentV2ActionPresentation
     func resolveAction(messageId: String, actionId: String) async throws -> ApiAgentV2ResolvedAction
 }
@@ -82,6 +88,14 @@ final class LiveAgentV2Client: AgentV2Client {
 
     func reportProblem(threadId: String, report: ApiAgentV2ProblemReport) async throws {
         _ = try await Api.reportAgentV2Problem(threadId: threadId, report: report)
+    }
+
+    func setMessageFeedback(
+        threadId: String,
+        messageId: String,
+        feedback: ApiAgentV2AnswerFeedback?
+    ) async throws -> ApiAgentV2AnswerFeedback? {
+        try await Api.setAgentV2MessageFeedback(threadId: threadId, messageId: messageId, feedback: feedback).feedback
     }
 
     func actionPresentation(messageId: String, actionId: String) async throws -> ApiAgentV2ActionPresentation {

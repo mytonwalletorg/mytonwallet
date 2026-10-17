@@ -171,6 +171,7 @@ class SettingsItemCell: UICollectionViewCell {
     
     func configure(with item: SettingsItem, value: String?) {
         self.item = item
+        accessibilityIdentifier = item.id.accessibilityIdentifier
         iconImageView.setSize(30)
         iconImageView.config(with: item.icon, tintColor: .tintColor)
         valueContainer.isDisabled = true

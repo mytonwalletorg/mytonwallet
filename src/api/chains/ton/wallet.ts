@@ -22,7 +22,7 @@ import { extractKey, findLast } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { findKnownContract } from './util/knownContracts';
 import {
-  getTonClient, toBase64Address, walletClassMap,
+  getTonClient, toBase64Address, toRawAddress, walletClassMap,
 } from './util/tonCore';
 import {
   getTelegramWalletSubwalletId as getTelegramWalletDefaultSubwalletId,
@@ -205,6 +205,7 @@ type BestWalletVersion = {
   wallet: TonWallet;
   version: ApiTonWalletVersion;
   balance: bigint;
+  isInitialized?: boolean;
   lastTxId?: string;
   withJettonBalances?: boolean;
 };
@@ -267,12 +268,15 @@ export async function pickBestWallet(
   const bestWalletsByKey: (
     BestWalletVersion & { derivation?: { path: string; index: number } }
   )[] = await Promise.all(variants.map(async ({ publicKey, derivation }) => {
-    const { wallet, version, balance, lastTxId, withJettonBalances } = await pickBestWalletVersion(network, publicKey);
+    const {
+      wallet, version, balance, isInitialized, lastTxId, withJettonBalances,
+    } = await pickBestWalletVersion(network, publicKey);
 
     return {
       wallet,
       version,
       balance,
+      isInitialized,
       lastTxId,
       withJettonBalances,
       derivation,
@@ -325,7 +329,13 @@ export async function getWalletVersionInfos(
       return walletInfo;
     }
 
-    const telegramInfo = await getTelegramWalletInfo(network, item.address, publicKey, item.isTestnetSubwalletId);
+    const telegramInfo = await getTelegramWalletInfo(
+      network,
+      item.address,
+      publicKey,
+      item.isTestnetSubwalletId,
+      walletInfo,
+    );
     if (!telegramInfo.isTelegramWallet || telegramInfo.isPublicKeyMismatch) {
       return undefined;
     }
@@ -458,20 +468,41 @@ export async function getTelegramWalletInfo(
   address: string,
   expectedPublicKey?: Uint8Array,
   isTestnetSubwalletId?: boolean,
+  walletInfo?: Pick<ApiWalletInfo, 'balance' | 'lastTxId'>,
 ) {
-  const [{ codeHash, isInitialized }, publicKey, subwalletId] = await Promise.all([
-    getContractInfo(network, address),
+  const { codeHash, isInitialized } = await getContractInfo(network, address);
+
+  const expectedSubwalletId = getTelegramWalletDefaultSubwalletId(isTestnetSubwalletId);
+
+  if (!isInitialized) {
+    const resolvedWalletInfo = walletInfo ?? await getWalletInfo(network, address);
+    const expectedAddress = expectedPublicKey
+      ? publicKeyToAddress(network, expectedPublicKey, 'telegram', isTestnetSubwalletId)
+      : undefined;
+    const hasOnChainPresence = resolvedWalletInfo.balance > 0n || !!resolvedWalletInfo.lastTxId;
+    const isExpectedTelegramAddress = !!expectedAddress && toRawAddress(expectedAddress) === toRawAddress(address);
+    const isTelegramWallet = hasOnChainPresence && isExpectedTelegramAddress;
+
+    return {
+      isTelegramWallet,
+      isInitialized,
+      publicKey: isTelegramWallet ? expectedPublicKey : undefined,
+      subwalletId: isTelegramWallet ? expectedSubwalletId : undefined,
+      isPublicKeyMismatch: false,
+    };
+  }
+
+  const [publicKey, subwalletId] = await Promise.all([
     getTelegramWalletPublicKey(network, address),
     getTelegramWalletSubwalletId(network, address),
   ]);
-
-  const expectedSubwalletId = getTelegramWalletDefaultSubwalletId(isTestnetSubwalletId);
 
   return {
     isTelegramWallet: isInitialized
       && codeHash === TELEGRAM_WALLET_TRAMPOLINE_CODE_HASH
       && subwalletId === expectedSubwalletId
       && !!publicKey,
+    isInitialized,
     publicKey,
     subwalletId,
     isPublicKeyMismatch: !!expectedPublicKey

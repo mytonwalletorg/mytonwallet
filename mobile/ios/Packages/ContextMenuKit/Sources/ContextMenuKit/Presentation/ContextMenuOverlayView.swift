@@ -14,6 +14,8 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
         let panelSize: CGSize
         let panelOrigin: CGPoint
         let verticalDirection: VerticalDirection
+        /// The rect whose top or bottom edge the panel attaches to: the source, or the source with its accessory
+        let attachmentRect: CGRect
     }
 
     private let configuration: ContextMenuConfiguration
@@ -30,6 +32,8 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
     private let dimmingView = UIView()
     private var blurView: UIVisualEffectView?
     private var portalView: ContextMenuPortalView?
+    private var accessoryView: ContextMenuAccessoryView?
+    private(set) var accessoryFrame: CGRect?
     private var hasAnimatedIn = false
     private var isDismissingMenu = false
     private var pendingExternalSelectionPoint: CGPoint?
@@ -129,9 +133,33 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
         self.navigationView.alpha = 0.0
         self.addSubview(self.navigationView)
 
+        if let accessory = self.configuration.accessory {
+            let accessoryContext = ContextMenuAccessoryContext(dismissHandler: { [weak self] in
+                self?.dismissMenu()
+            })
+            let accessoryView = ContextMenuAccessoryView(
+                capsules: accessory.backgroundCapsules,
+                contentView: accessory.makeContentView(accessoryContext),
+                glassTint: self.configuration.style.glassTint,
+                sourceUserInterfaceLayoutDirection: self.sourceUserInterfaceLayoutDirection
+            )
+            accessoryView.alpha = 0.0
+            self.addSubview(accessoryView)
+            self.accessoryView = accessoryView
+        }
+
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.handleOutsideTap(_:)))
         tapGestureRecognizer.cancelsTouchesInView = false
         self.addGestureRecognizer(tapGestureRecognizer)
+
+        // VoiceOver stays inside the open menu, as with the system context menu, and skips the source's mirror
+        self.accessibilityViewIsModal = true
+        self.portalView?.accessibilityElementsHidden = true
+    }
+
+    override func accessibilityPerformEscape() -> Bool {
+        self.dismissMenu()
+        return true
     }
 
     override func layoutSubviews() {
@@ -149,6 +177,7 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
 
         self.layoutMenu()
         self.animateIn()
+        UIAccessibility.post(notification: .screenChanged, argument: nil)
     }
 
     func beginExternalSelection(at pointInWindow: CGPoint) {
@@ -231,6 +260,7 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
         self.sourceUserInterfaceStyle = userInterfaceStyle
         self.overrideUserInterfaceStyle = userInterfaceStyle
         self.navigationView.updateUserInterfaceStyle(userInterfaceStyle)
+        self.accessoryView?.setNeedsLayout()
         self.layoutMenu()
     }
 
@@ -242,13 +272,21 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
         self.dismissMenu()
     }
 
+    var panelFrame: CGRect? {
+        self.currentPanelPlacement.map { CGRect(origin: $0.panelOrigin, size: $0.panelSize) }
+    }
+
     func shouldDismissMenu(at point: CGPoint) -> Bool {
-        guard let currentPanelPlacement else {
+        guard let panelFrame else {
             return true
         }
-        let panelFrame = CGRect(origin: currentPanelPlacement.panelOrigin, size: currentPanelPlacement.panelSize)
+        let isInsidePanel = panelFrame
             .insetBy(dx: -Self.panelDismissalSafetyMargin, dy: -Self.panelDismissalSafetyMargin)
-        return !panelFrame.contains(point)
+            .contains(point)
+        let isInsideAccessory = self.accessoryFrame?
+            .insetBy(dx: -Self.panelDismissalSafetyMargin, dy: -Self.panelDismissalSafetyMargin)
+            .contains(point) == true
+        return !isInsidePanel && !isInsideAccessory
     }
 
     private func layoutMenu() {
@@ -264,7 +302,15 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
             right: self.configuration.style.screenInsets.right
         ))
 
-        let placement = self.panelPlacement(in: safeFrame)
+        let placement: PanelPlacement
+        if let accessory = self.configuration.accessory, let accessoryView {
+            let accessoryFrame = self.accessoryFrame(for: accessory, in: safeFrame)
+            accessoryView.frame = accessoryFrame
+            self.accessoryFrame = accessoryFrame
+            placement = self.panelPlacement(in: safeFrame, clearOf: accessoryFrame)
+        } else {
+            placement = self.panelPlacement(in: safeFrame)
+        }
         let navigationFrame = CGRect(
             x: placement.panelOrigin.x - self.configuration.style.panelInset,
             y: placement.panelOrigin.y - self.configuration.style.panelInset,
@@ -304,7 +350,12 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
                 safeFrame: safeFrame,
                 sourceRect: sourceRect
             )
-            return PanelPlacement(panelSize: panelSize, panelOrigin: panelOrigin, verticalDirection: direction)
+            return PanelPlacement(
+                panelSize: panelSize,
+                panelOrigin: panelOrigin,
+                verticalDirection: direction,
+                attachmentRect: sourceRect
+            )
         case .screenBottom:
             let availableHeight = max(
                 1.0,
@@ -327,7 +378,8 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
             return PanelPlacement(
                 panelSize: panelSize,
                 panelOrigin: panelOrigin,
-                verticalDirection: .above
+                verticalDirection: .above,
+                attachmentRect: sourceRect
             )
         case .sourceAttached:
             let idealPanelSize = self.navigationView.preferredPanelSize(
@@ -350,8 +402,72 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
                 safeFrame: safeFrame,
                 sourceRect: sourceRect
             )
-            return PanelPlacement(panelSize: panelSize, panelOrigin: panelOrigin, verticalDirection: direction)
+            return PanelPlacement(
+                panelSize: panelSize,
+                panelOrigin: panelOrigin,
+                verticalDirection: direction,
+                attachmentRect: sourceRect
+            )
         }
+    }
+
+    /// Attaches the panel below the source and its accessory, or above them when only that side has room. When
+    /// neither side has room, as for a source taller than the screen, the panel overlaps the source at the bottom.
+    private func panelPlacement(in safeFrame: CGRect, clearOf accessoryFrame: CGRect) -> PanelPlacement {
+        let sourceRect = self.convert(self.sourceRectInWindow, from: nil)
+        let attachmentRect = sourceRect.union(accessoryFrame)
+        let maxPanelWidth = min(self.configuration.style.maxWidth, safeFrame.width)
+        let idealPanelSize = self.navigationView.preferredPanelSize(
+            constrainedTo: CGSize(width: maxPanelWidth, height: max(1.0, safeFrame.height))
+        )
+        let availableBelow = self.availableHeight(for: .below, safeFrame: safeFrame, sourceRect: attachmentRect)
+        let availableAbove = self.availableHeight(for: .above, safeFrame: safeFrame, sourceRect: attachmentRect)
+        let fitsOnlyAbove = idealPanelSize.height > availableBelow && idealPanelSize.height <= availableAbove
+        let direction = self.lockedVerticalDirection(preferred: fitsOnlyAbove ? .above : .below)
+        let availableHeight = direction == .below ? availableBelow : availableAbove
+        let maxPanelHeight = idealPanelSize.height <= availableHeight
+            ? availableHeight
+            : max(availableHeight, safeFrame.height * self.configuration.style.maximumHeightRatio)
+        let panelSize = self.navigationView.preferredPanelSize(
+            constrainedTo: CGSize(width: maxPanelWidth, height: max(1.0, maxPanelHeight))
+        )
+        let x = min(max(sourceRect.midX - panelSize.width * 0.5, safeFrame.minX), safeFrame.maxX - panelSize.width)
+        let y: CGFloat
+        switch direction {
+        case .below:
+            y = min(attachmentRect.maxY + self.configuration.style.sourceSpacing, safeFrame.maxY - panelSize.height)
+        case .above:
+            y = max(safeFrame.minY, attachmentRect.minY - self.configuration.style.sourceSpacing - panelSize.height)
+        }
+        // The panel of a source taller than the screen grows from the screen's edge
+        let visibleAttachmentRect = attachmentRect.intersection(self.bounds)
+        return PanelPlacement(
+            panelSize: panelSize,
+            panelOrigin: CGPoint(x: x, y: y),
+            verticalDirection: direction,
+            attachmentRect: visibleAttachmentRect.isNull ? attachmentRect : visibleAttachmentRect
+        )
+    }
+
+    private func accessoryFrame(for accessory: ContextMenuAccessory, in safeFrame: CGRect) -> CGRect {
+        let sourceRect = self.convert(self.sourceRectInWindow, from: nil)
+        let allowedFrame = safeFrame.inset(by: UIEdgeInsets(
+            top: 0.0,
+            left: self.safeAreaInsets.left,
+            bottom: 0.0,
+            right: self.safeAreaInsets.right
+        ))
+        let size = accessory.size
+        let x = self.sourceUserInterfaceLayoutDirection.contextMenuIsRightToLeft
+            ? sourceRect.minX - accessory.topTrailingOffset.dx
+            : sourceRect.maxX + accessory.topTrailingOffset.dx - size.width
+        let y = sourceRect.minY + accessory.topTrailingOffset.dy
+        return CGRect(
+            x: min(max(x, allowedFrame.minX), allowedFrame.maxX - size.width),
+            y: min(max(y, allowedFrame.minY), allowedFrame.maxY - size.height),
+            width: size.width,
+            height: size.height
+        )
     }
 
     private func lockedVerticalDirection(preferred: VerticalDirection) -> VerticalDirection {
@@ -486,8 +602,8 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
         let sourcePoint = CGPoint(
             x: min(max(sourceRect.midX, panelFrame.minX), panelFrame.maxX),
             y: placement.verticalDirection == .below
-                ? sourceRect.maxY + animationSourceSpacing
-                : sourceRect.minY - animationSourceSpacing
+                ? placement.attachmentRect.maxY + animationSourceSpacing
+                : placement.attachmentRect.minY - animationSourceSpacing
         )
         let navigationFrame = self.navigationView.frame
         let anchorPoint = self.navigationView.layer.anchorPoint
@@ -546,6 +662,23 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
         self.blurView?.layer.addContextMenuAlphaAnimation(from: 0.0, to: 1.0, duration: 0.2)
         self.dimmingView.layer.addContextMenuAlphaAnimation(from: 0.0, to: targetBackdropAlpha, duration: 0.2)
         self.portalView?.layer.addContextMenuAlphaAnimation(from: 0.0, to: 1.0, duration: 0.2)
+
+        if let accessoryView {
+            accessoryView.alpha = 1.0
+            accessoryView.layer.addContextMenuAlphaAnimation(
+                from: 0.0,
+                to: 1.0,
+                duration: ContextMenuAnimationSupport.appearAlphaDuration
+            )
+            accessoryView.layer.addContextMenuSpringAnimation(
+                keyPath: "transform.scale",
+                from: ContextMenuAnimationSupport.collapsedScale as NSNumber,
+                to: 1.0 as NSNumber,
+                duration: ContextMenuAnimationSupport.appearDuration,
+                damping: ContextMenuAnimationSupport.appearDamping,
+                additive: false
+            )
+        }
     }
 
     private func dismissMenu(completion: (() -> Void)? = nil) {
@@ -595,6 +728,20 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
             removeOnCompletion: false
         )
 
+        self.accessoryView?.layer.addContextMenuAlphaAnimation(
+            from: 1.0,
+            to: 0.0,
+            duration: ContextMenuAnimationSupport.disappearDuration,
+            removeOnCompletion: false
+        )
+        self.accessoryView?.layer.addContextMenuBasicAnimation(
+            keyPath: "transform.scale",
+            from: 1.0 as NSNumber,
+            to: ContextMenuAnimationSupport.collapsedScale as NSNumber,
+            duration: ContextMenuAnimationSupport.disappearDuration,
+            timingFunction: .easeInEaseOut,
+            removeOnCompletion: false
+        )
         self.blurView?.layer.addContextMenuAlphaAnimation(from: 1.0, to: 0.0, duration: 0.2, removeOnCompletion: false)
         self.portalView?.layer.addContextMenuAlphaAnimation(from: 1.0, to: 0.0, duration: 0.2, removeOnCompletion: false)
         self.dimmingView.layer.addContextMenuAlphaAnimation(
@@ -608,8 +755,24 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate, C
 
     private func removeFromPresentationHost(completion: (() -> Void)? = nil) {
         self.removeFromSuperview()
+        // VoiceOver returns to the source; a screen that the chosen action presents takes it on afterwards
+        if let sourceView = self.appearanceSourceView, sourceView.window != nil,
+           let focusTarget = Self.firstAccessibilityElement(in: sourceView) {
+            UIAccessibility.post(notification: .screenChanged, argument: focusTarget)
+        }
         self.onDidDismiss?()
         completion?()
+    }
+
+    /// The view itself when VoiceOver reads it, or the first view inside it that VoiceOver reads, such as a bubble's text
+    private static func firstAccessibilityElement(in view: UIView) -> UIView? {
+        guard !view.isHidden, !view.accessibilityElementsHidden else {
+            return nil
+        }
+        if view.isAccessibilityElement {
+            return view
+        }
+        return view.subviews.lazy.compactMap { self.firstAccessibilityElement(in: $0) }.first
     }
 
     private func layoutPortalView() {

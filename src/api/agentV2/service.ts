@@ -1,5 +1,6 @@
 import type { ApiChain, OnApiUpdate } from '../types';
 import type { ClientTimingEvent } from './developmentTelemetry';
+import type { AgentAnswerFeedbackV2 } from './protocol/types';
 import type {
   AgentV2HostContextSnapshot,
   AgentV2ProblemReport,
@@ -231,6 +232,10 @@ export function clearAgentV2Thread(threadId: string, expectedRevision: number) {
 
 export function reportAgentV2Problem(threadId: string, report: AgentV2ProblemReport) {
   return runSafeAgentV2Operation(() => getAgentV2Runtime().reportProblem(threadId, report));
+}
+
+export function setAgentV2MessageFeedback(threadId: string, messageId: string, feedback?: AgentAnswerFeedbackV2) {
+  return runSafeAgentV2Operation(() => getAgentV2Runtime().setMessageFeedback(threadId, messageId, feedback));
 }
 
 export function resolveAgentV2Action(messageId: string, actionId: string) {

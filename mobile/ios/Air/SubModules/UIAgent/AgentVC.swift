@@ -1,3 +1,4 @@
+import ContextMenuKit
 import UIKit
 import UIComponents
 import WalletContext
@@ -490,6 +491,9 @@ public final class AgentVC: WViewController {
             cell.onStreamingRevealCompleted = { [weak self] in
                 self?.handleStreamingRevealCompleted(itemID: itemID)
             }
+            cell.contextMenuConfigurationProvider = { [weak self] trigger in
+                self?.makeContextMenuConfiguration(for: itemID, trigger: trigger)
+            }
             cell.configure(
                 with: message,
                 onURLTap: { [weak self] url in
@@ -505,6 +509,9 @@ public final class AgentVC: WViewController {
             guard let self,
                   let item = self.model.item(for: itemID),
                   case .message(let message) = item else { return }
+            cell.contextMenuConfigurationProvider = { [weak self] trigger in
+                self?.makeContextMenuConfiguration(for: itemID, trigger: trigger)
+            }
             cell.configure(with: message)
         }
 
@@ -1416,23 +1423,54 @@ public final class AgentVC: WViewController {
         return parts.isEmpty ? nil : parts.joined(separator: "\n\n")
     }
 
-    private func contextMenuPreview(for itemID: AgentItemID) -> UITargetedPreview? {
-        guard let indexPath = messageIndexPath(for: itemID),
-              let cell = collectionView.cellForItem(at: indexPath) as? AgentContextMenuPresentingCell else {
-            return nil
+    /// A long press opens the menu of any message; a tap opens it for a finished answer, with its rating when it can
+    /// be rated
+    private func makeContextMenuConfiguration(
+        for itemID: AgentItemID,
+        trigger: ContextMenuInteractionTriggers
+    ) -> ContextMenuConfiguration? {
+        guard case .message(let message)? = model.item(for: itemID) else { return nil }
+        guard trigger != .tap || (message.role == .assistant && !message.isStreaming) else { return nil }
+
+        var items: [ContextMenuItem] = []
+        if let copyText = copyText(for: itemID) {
+            items.append(.action(ContextMenuAction(title: lang("Copy"), icon: .system("doc.on.doc")) {
+                UIPasteboard.general.string = copyText
+            }))
         }
-        return cell.contextMenuPreview()
+        if message.role == .user {
+            items.append(.action(ContextMenuAction(title: lang("Edit"), icon: .system("pencil")) { [weak self] in
+                self?.editMessage(message)
+            }))
+        }
+        // An answer still being written has no stored message to report yet
+        if message.role == .assistant, !message.isStreaming, model.canReportProblem {
+            items.append(.action(ContextMenuAction(title: lang("Report a Problem"), icon: .system("flag")) { [weak self] in
+                self?.reportProblem(messageID: itemID)
+            }))
+        }
+        guard !items.isEmpty else { return nil }
+
+        let accessory = message.canRate
+            ? AgentFeedbackPillView.makeMenuAccessory(feedback: message.feedback) { [weak self] feedback in
+                self?.rateMessage(itemID, feedback: feedback)
+            }
+            : nil
+        return ContextMenuConfiguration(rootPage: ContextMenuPage(items: items), accessory: accessory)
+    }
+
+    private func rateMessage(_ messageID: AgentItemID, feedback: ApiAgentV2AnswerFeedback?) {
+        Task { [model] in
+            let didFail = await !model.rateMessage(messageID: messageID, feedback: feedback)
+            guard didFail else { return }
+            AppActions.showError(error: DisplayError(text: lang("$agent_feedback_failed")))
+        }
     }
 
     private var lastItemIndexPath: IndexPath? {
         guard collectionView.numberOfSections > 0 else { return nil }
         let itemCount = collectionView.numberOfItems(inSection: 0)
         return itemCount > 1 ? IndexPath(item: itemCount - 2, section: 0) : nil
-    }
-
-    private func itemID(from configuration: UIContextMenuConfiguration) -> AgentItemID? {
-        guard let identifier = configuration.identifier as? NSUUID else { return nil }
-        return UUID(uuidString: identifier.uuidString)
     }
 
     @objc private func handleCollectionViewTap() {
@@ -1549,6 +1587,11 @@ extension AgentVC: AgentModelDelegate {
             return
         }
 
+        // A timeline that fills an emptied chat, as when a failed clear brings the conversation back, opens at its
+        // latest message, like the first one
+        if snapshotMessageIDs().isEmpty {
+            hasPerformedInitialScroll = false
+        }
         let hasStreaming = lastStreamingAssistantID != nil
         let crossfade = hasStreaming
         if let pinnedUserMessageID, !model.itemIDs.contains(pinnedUserMessageID) {
@@ -1755,78 +1798,6 @@ extension AgentVC: AgentModelDelegate {
 extension AgentVC: UICollectionViewDelegate, UIGestureRecognizerDelegate {
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         !isTouchInsideControl(touch.view)
-    }
-
-    public func collectionView(
-        _ collectionView: UICollectionView,
-        contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point: CGPoint
-    ) -> UIContextMenuConfiguration? {
-        guard collectionView === self.collectionView,
-              let itemID = messageItemID(at: indexPath),
-              let item = model.item(for: itemID),
-              case .message = item else {
-            return nil
-        }
-
-        return UIContextMenuConfiguration(identifier: itemID as NSUUID, previewProvider: nil) { [weak self] _ in
-            guard let self,
-                  let item = self.model.item(for: itemID),
-                  case .message(let message) = item else {
-                return nil
-            }
-
-            var children: [UIMenuElement] = []
-
-            if let copyText = self.copyText(for: itemID) {
-                children.append(
-                    UIAction(title: lang("Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
-                        UIPasteboard.general.string = copyText
-                    }
-                )
-            }
-
-            if message.role == .user {
-                children.append(
-                    UIAction(title: lang("Edit"), image: UIImage(systemName: "pencil")) { [weak self] _ in
-                        self?.editMessage(message)
-                    }
-                )
-            }
-
-            // An answer still being written has no stored message to report yet
-            if message.role == .assistant, !message.isStreaming, self.model.canReportProblem {
-                children.append(
-                    UIAction(title: lang("Report a Problem"), image: UIImage(systemName: "flag")) { [weak self] _ in
-                        self?.reportProblem(messageID: itemID)
-                    }
-                )
-            }
-
-            return children.isEmpty ? nil : UIMenu(children: children)
-        }
-    }
-
-    public func collectionView(
-        _ collectionView: UICollectionView,
-        previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
-    ) -> UITargetedPreview? {
-        guard collectionView === self.collectionView,
-              let itemID = itemID(from: configuration) else {
-            return nil
-        }
-        return contextMenuPreview(for: itemID)
-    }
-
-    public func collectionView(
-        _ collectionView: UICollectionView,
-        previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
-    ) -> UITargetedPreview? {
-        guard collectionView === self.collectionView,
-              let itemID = itemID(from: configuration) else {
-            return nil
-        }
-        return contextMenuPreview(for: itemID)
     }
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {

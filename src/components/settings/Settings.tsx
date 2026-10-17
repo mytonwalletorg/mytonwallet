@@ -136,7 +136,7 @@ const SUPPORT_ACCOUNTS_COUNT_DEFAULT = 1;
 
 function Settings({
   settings: {
-    state: renderingKey,
+    state: settingsState,
     theme,
     animationLevel,
     isTestnet,
@@ -175,13 +175,14 @@ function Settings({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
+  const isDeveloperModalOpen = settingsState === SettingsState.Developer;
+  const renderingKey = isDeveloperModalOpen ? SettingsState.Initial : settingsState;
 
   const transitionRef = useRef<HTMLDivElement>();
   const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isOpen);
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
   const prevRenderingKeyRef = useStateRef(usePrevious2(renderingKey));
 
-  const [isDeveloperModalOpen, openDeveloperModal, closeDeveloperModal] = useFlag();
   const [withAllWalletVersions, markWithAllWalletVersions] = useFlag();
 
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
@@ -237,7 +238,7 @@ function Settings({
   useHideBottomBar(isOpen && !isInitialScreen);
 
   const handlCloseDeveloperModal = useLastCallback(() => {
-    closeDeveloperModal();
+    setSettingsState({ state: SettingsState.Initial });
   });
 
   const handleConnectedDappsOpen = useLastCallback(() => {
@@ -366,7 +367,7 @@ function Settings({
 
   const handleMultipleClick = () => {
     if (clicksAmount + 1 >= AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE) {
-      openDeveloperModal();
+      setSettingsState({ state: SettingsState.Developer });
     } else {
       setClicksAmount(clicksAmount + 1);
     }

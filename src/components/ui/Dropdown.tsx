@@ -38,7 +38,6 @@ interface OwnProps<T extends string> {
   itemClassName?: string;
   buttonClassName?: string;
   buttonIconClassName?: string;
-  buttonIconOverlayClassName?: string;
   menuClassName?: string;
   theme?: 'light' | 'inherit';
   arrow?: 'caret' | 'chevron' | 'expand';
@@ -69,7 +68,6 @@ function Dropdown<T extends string>({
   itemClassName,
   buttonClassName,
   buttonIconClassName,
-  buttonIconOverlayClassName,
   menuClassName,
   theme,
   arrow = DEFAULT_ARROW,
@@ -146,7 +144,6 @@ function Dropdown<T extends string>({
           shouldUseSelectedName
           className={buttonFullClassName}
           iconClassName={buttonIconClassName}
-          iconOverlayClassName={buttonIconOverlayClassName}
           itemClassName={buildClassName('itemName', itemClassName)}
           onClick={!isFullyInteractive && withMenu ? openMenu : undefined}
         />

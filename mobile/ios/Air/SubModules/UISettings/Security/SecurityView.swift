@@ -57,6 +57,7 @@ struct SecurityView: View {
                     .foregroundStyle(Color.air.primaryLabel)
                     .frame(height: 44)
                 }
+                .accessibilityIdentifier("security_back_up")
             } header: {
                 Text(lang("$back_up_auth"))
             }
@@ -115,6 +116,7 @@ struct SecurityView: View {
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .disabled(isUpdatingBiometrics)
+                .accessibilityIdentifier("security_biometric_auth")
         }
         .onChange(of: biometrics) { isOn in
             guard !isUpdatingBiometrics else { return }
@@ -161,6 +163,7 @@ struct SecurityView: View {
         InsetButtonCell(alignment: .leading, action: onChangePasscode) {
             Text(lang("Change Passcode"))
         }
+        .accessibilityIdentifier("security_change_passcode")
     }
     
     func onChangePasscode() {
@@ -201,6 +204,7 @@ struct SecurityView: View {
                     .foregroundStyle(Color.air.primaryLabel)
                     .frame(height: 52)
                 }
+                .accessibilityIdentifier("settings_item_mfa")
             } footer: {
                 Text(lang("Confirm operations in Telegram as a second step."))
             }
@@ -229,7 +233,8 @@ struct SecurityView: View {
             InsetPickerCell(
                 lang("Lock the app after"),
                 selection: $autolockOption,
-                value: autolockOption.displayName
+                value: autolockOption.displayName,
+                accessibilityIdentifier: "security_auto_lock"
             ) {
                 ForEach(MAutolockOption.allCases) { option in
                     Text(option.displayName).tag(option)
@@ -251,6 +256,7 @@ struct SecurityView: View {
                 Toggle(lang("Remember Passcode"), isOn: $rememberPasscode)
                     .tint(.air.tint)
                     .disabled(isUpdatingRememberPasscode)
+                    .accessibilityIdentifier("security_remember_passcode")
             }
         } footer: {
             Text(L10n.appWillNotAskForSignatureForMinutesMinutesAfterLastEntry(minutes: 5))
@@ -285,6 +291,7 @@ struct SecurityView: View {
                 )
                 .toggleStyle(.switch)
                 .labelsHidden()
+                .accessibilityIdentifier("security_allow_suspicious_actions")
             }
         } footer: {
             Text(lang("$allow_suspicious_actions_description"))

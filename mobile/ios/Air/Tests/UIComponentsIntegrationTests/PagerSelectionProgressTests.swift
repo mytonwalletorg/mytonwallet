@@ -6,9 +6,17 @@ import WalletResources
 @MainActor
 final class PagerSelectionProgressTests: XCTestCase {
     func testRootPagingProgressPerformance() {
+        measurePagingProgress(style: .compactRootHeader)
+    }
+
+    func testWalletAssetsPagingProgressPerformance() {
+        measurePagingProgress(style: .regular)
+    }
+
+    private func measurePagingProgress(style: SegmentedControlStyle) {
         _ = WalletResourcesBundle.bundle.load()
-        let model = SegmentedControlModel(items: makeItems(), selection: .init(item1: "0"), style: .compactRootHeader)
-        let control = WSegmentedControl(model: model, isGlassInteractive: true)
+        let model = SegmentedControlModel(items: makeItems(), selection: .init(item1: "0"), style: style)
+        let control = WSegmentedControl(model: model, isGlassInteractive: style == .compactRootHeader)
         let window = host(UIViewController(), control: control)
         defer { window.isHidden = true }
         control.layoutIfNeeded()

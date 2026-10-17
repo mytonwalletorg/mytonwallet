@@ -31,3 +31,16 @@ export async function readClipboardContent() {
     return { text, type: 'text/plain' };
   }
 }
+
+// Only Chromium remembers that the user denied access. Safari and Firefox ask again on every read
+// and don't support this permission, so the query throws there.
+export async function getIsClipboardReadDenied() {
+  try {
+    // `clipboard-read` is missing from the DOM typings
+    const { state } = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName });
+
+    return state === 'denied';
+  } catch {
+    return false;
+  }
+}

@@ -1,7 +1,6 @@
 import type { ZerionPositionsResponse } from './types';
 
 import { fetchWithRetry } from '../../../util/fetch';
-import { updateTokens } from '../../common/tokens';
 import { fetchAccountAssets, fetchCrosschainAccountAssets } from './wallet';
 
 jest.mock('../../../util/fetch', () => ({
@@ -10,11 +9,13 @@ jest.mock('../../../util/fetch', () => ({
 }));
 
 jest.mock('../../common/tokens', () => ({
-  updateTokens: jest.fn(),
   buildTokenSlug: jest.fn((chain: string, address: string) => `${chain}-${address}`),
-  waitForTokenSlugResolver: jest.fn().mockResolvedValue(
-    (tokens: { chain: string; address: string }[]) => tokens.map(({ chain, address }) => `${chain}-${address}`),
-  ),
+  updateTokensFetchedTogether: jest.fn((tokens: { chain: string; slug?: string; tokenAddress?: string }[]) => (
+    Promise.resolve(tokens.map((token) => ({
+      ...token,
+      slug: token.tokenAddress ? `${token.chain}-${token.tokenAddress}` : token.slug,
+    })))
+  )),
 }));
 
 const mockedFetch = jest.mocked(fetchWithRetry);
@@ -28,7 +29,6 @@ function positionsResponse(body: ZerionPositionsResponse, snapshotAt?: string, d
     json: () => Promise.resolve(body),
   } as unknown as Response;
 }
-const mockedUpdateTokens = jest.mocked(updateTokens);
 
 const NETWORK = 'mainnet';
 const ADDRESS_A = '0x5819e5Ff34198F315322e1863Be6C3dC927cC5C3';
@@ -53,7 +53,6 @@ function createDeferred<T>() {
 describe('fetchAccountAssets in-flight coalescing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUpdateTokens.mockResolvedValue(undefined);
   });
 
   it('coalesces two concurrent identical fetches into a single request', async () => {
@@ -170,7 +169,6 @@ describe('fetchAccountAssets in-flight coalescing', () => {
 describe('fetchAccountAssets provenance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUpdateTokens.mockResolvedValue(undefined);
   });
 
   // A test that fails mid-way must not leave fake timers behind for the next one.

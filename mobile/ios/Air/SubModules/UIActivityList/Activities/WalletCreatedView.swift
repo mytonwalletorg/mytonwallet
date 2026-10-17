@@ -32,6 +32,7 @@ public class WalletCreatedView: WTouchPassView {
         titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.applyTextStyle(.bodyEmphasized)
+        titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
         addSubview(titleLabel)
         NSLayoutConstraint.activate([
@@ -43,7 +44,7 @@ public class WalletCreatedView: WTouchPassView {
         subtitleLabel = UILabel()
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.applyTextStyle(.supporting)
-        subtitleLabel.numberOfLines = 2
+        subtitleLabel.numberOfLines = 0
         subtitleLabel.textAlignment = .center
         addSubview(subtitleLabel)
         NSLayoutConstraint.activate([
@@ -53,16 +54,20 @@ public class WalletCreatedView: WTouchPassView {
             subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
         
+        configure(title: lang("No Activity"), subtitle: lang("There is no activity history for this wallet yet."))
+    }
+
+    func configure(title: String, subtitle: String) {
         titleLabel.attributedText = NSAttributedString(
-            string: lang("No Activity"),
+            string: title,
             attributes: [
                 .kern: -0.26,
                 .font: titleLabel.font!,
-                .foregroundColor: UIColor.label
+                .foregroundColor: UIColor.air.secondaryLabel
             ]
         )
         subtitleLabel.attributedText = NSAttributedString(
-            string: lang("There is no activity history for this wallet yet."),
+            string: subtitle,
             attributes: [
                 .kern: -0.09,
                 .font: subtitleLabel.font!,

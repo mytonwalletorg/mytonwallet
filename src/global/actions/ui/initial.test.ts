@@ -2,9 +2,8 @@ import './initial';
 
 import type { GlobalState } from '../../types';
 
-import { BASE_USDC_MAINNET } from '../../../config';
+import { BASE, BASE_USDC_MAINNET } from '../../../config';
 import { addActionHandler } from '../../index';
-import { selectSwapTokens } from '../../selectors';
 
 jest.mock('../../index', () => ({
   addActionHandler: jest.fn(),
@@ -17,11 +16,6 @@ jest.mock('../../../util/notificationSound', () => ({
   initializeSounds: jest.fn(),
 }));
 
-jest.mock('../../selectors', () => ({
-  ...jest.requireActual('../../selectors'),
-  selectSwapTokens: jest.fn(),
-}));
-
 type ActionHandler = (global: GlobalState, actions: AnyLiteral, payload: AnyLiteral) => void;
 
 const ACCOUNT_ID = '0-mainnet';
@@ -32,9 +26,7 @@ function getHandler(name: string): ActionHandler {
 }
 
 describe('selectToken', () => {
-  it('sends the selected token even when swap does not offer it', () => {
-    (selectSwapTokens as jest.Mock).mockReturnValue([]);
-
+  it('sends the selected token and leaves the swap as is', () => {
     const actions = {
       changeTransferToken: jest.fn(),
       setDefaultSwapParams: jest.fn(),
@@ -43,11 +35,50 @@ describe('selectToken', () => {
       currentAccountId: ACCOUNT_ID,
       accounts: { byId: { [ACCOUNT_ID]: {} } },
       byAccountId: { [ACCOUNT_ID]: {} },
+      currentSwap: {},
     };
 
     getHandler('selectToken')(global as unknown as GlobalState, actions, { slug: BASE_USDC_MAINNET.slug });
 
     expect(actions.changeTransferToken).toHaveBeenCalledWith({ tokenSlug: BASE_USDC_MAINNET.slug });
     expect(actions.setDefaultSwapParams).not.toHaveBeenCalled();
+  });
+
+  it('selects a token of an account whose state is not created yet', () => {
+    const actions = {
+      changeTransferToken: jest.fn(),
+      setDefaultSwapParams: jest.fn(),
+    };
+    const global = {
+      currentAccountId: ACCOUNT_ID,
+      accounts: { byId: { [ACCOUNT_ID]: {} } },
+      byAccountId: {},
+      currentSwap: {},
+    };
+
+    getHandler('selectToken')(global as unknown as GlobalState, actions, { slug: BASE_USDC_MAINNET.slug });
+
+    expect(actions.changeTransferToken).toHaveBeenCalledWith({ tokenSlug: BASE_USDC_MAINNET.slug });
+  });
+
+  it.each([
+    ['closing', {}],
+    ['switching to another token', { slug: BASE.slug }],
+  ])('resets a swap that carries the token of the screen it is %s', (_, payload) => {
+    const actions = {
+      changeTransferToken: jest.fn(),
+      setDefaultSwapParams: jest.fn(),
+    };
+    const global = {
+      currentAccountId: ACCOUNT_ID,
+      accounts: { byId: { [ACCOUNT_ID]: {} } },
+      byAccountId: { [ACCOUNT_ID]: { currentTokenSlug: BASE_USDC_MAINNET.slug } },
+      currentSwap: { tokenInSlug: BASE.slug, tokenOutSlug: BASE_USDC_MAINNET.slug },
+      currentTransfer: {},
+    };
+
+    getHandler('selectToken')(global as unknown as GlobalState, actions, payload);
+
+    expect(actions.setDefaultSwapParams).toHaveBeenCalledWith({ withResetAmount: true });
   });
 });

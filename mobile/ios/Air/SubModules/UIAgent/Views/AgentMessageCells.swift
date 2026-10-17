@@ -1,3 +1,4 @@
+import ContextMenuKit
 import UIKit
 import UIComponents
 import WalletContext
@@ -77,7 +78,6 @@ private final class AgentMessageTextView: UITextView {
 
 protocol AgentContextMenuPresentingCell: UICollectionViewCell {
     var contextMenuCopyText: String? { get }
-    func contextMenuPreview() -> UITargetedPreview?
 }
 
 private extension UICollectionViewCell {
@@ -124,6 +124,8 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
     var onPreferredHeightChanged: ((_ animated: Bool) -> Void)?
     var onStreamingRevealCompleted: (() -> Void)?
     var minimumHeightProvider: (() -> CGFloat)?
+    /// Builds the message's menu when a tap or a long press on the bubble opens it, or returns `nil` to keep it closed
+    var contextMenuConfigurationProvider: ((ContextMenuInteractionTriggers) -> ContextMenuConfiguration?)?
 
     var isRevealingStreamedText: Bool {
         wasStreamingMessage
@@ -157,6 +159,13 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
     private var lastAppliedSemanticContent: AppliedSemanticContent?
     private var lastAppliedTextLayoutMaxWidth: CGFloat = 0
     private var suppressesSizeCallbacks = false
+    private lazy var tapMenuInteraction = makeContextMenuInteraction(trigger: .tap)
+    private lazy var longPressMenuInteraction = makeContextMenuInteraction(trigger: .longPress)
+    private lazy var menuAccessibilityAction = UIAccessibilityCustomAction(name: lang("More actions")) { [weak self] _ in
+        guard let self else { return false }
+        longPressMenuInteraction.present()
+        return true
+    }
 
     private lazy var leadingConstraint = bubbleStackView.leadingAnchor.constraint(equalTo: contentLayoutGuide.leadingAnchor, constant: AgentMessageCellMetrics.horizontalInset)
     private lazy var trailingConstraint = bubbleStackView.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor, constant: -AgentMessageCellMetrics.horizontalInset)
@@ -371,6 +380,7 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
         onPreferredHeightChanged = nil
         onStreamingRevealCompleted = nil
         minimumHeightProvider = nil
+        contextMenuConfigurationProvider = nil
         userMessageTextView.layer.removeAllAnimations()
         userMessageTextView.attributedText = nil
         userMessageTextView.isSelectable = false
@@ -420,6 +430,7 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        offerMenuToAccessibility(in: bubbleStackView)
         updateFollowupMaxWidth()
         guard userMessageTextView.isHidden, lastAssistantConfiguration != nil else { return }
         let layoutMaxWidth = currentTextLayoutMaxWidth(isOutgoing: false)
@@ -483,6 +494,8 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
         actionBackgroundView.translatesAutoresizingMaskIntoConstraints = false
         bubbleStackView.addArrangedSubview(actionBackgroundView)
         actionBackgroundView.isHidden = true
+        tapMenuInteraction.attach(to: bubbleStackView)
+        longPressMenuInteraction.attach(to: bubbleStackView)
 
         userMessageTextView.translatesAutoresizingMaskIntoConstraints = false
         userMessageTextView.backgroundColor = .clear
@@ -1019,21 +1032,61 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
         return parts.isEmpty ? nil : parts.joined(separator: "\n\n")
     }
 
-    func contextMenuPreview() -> UITargetedPreview? {
-        layoutIfNeeded()
+    private func makeContextMenuInteraction(trigger: ContextMenuInteractionTriggers) -> ContextMenuInteraction {
+        ContextMenuInteraction(
+            triggers: trigger,
+            sourcePortal: ContextMenuSourcePortal(
+                mask: .customAttachmentPath { [weak self] attachmentRect in
+                    self?.bubblePath(in: attachmentRect) ?? CGPath(rect: attachmentRect, transform: nil)
+                }
+            ),
+            activationHitTestProvider: { [weak self] sourceView, point in
+                self?.canOpenMenu(at: point, in: sourceView, trigger: trigger) == true
+            }
+        ) { [weak self] _ in
+            self?.contextMenuConfigurationProvider?(trigger)
+        }
+    }
+
+    /// A touch on a link keeps the link's own action, and so does a tap on a control in the bubble, while a long press on
+    /// a control opens the menu. Link views take touches on links only.
+    private func canOpenMenu(at point: CGPoint, in sourceView: UIView, trigger: ContextMenuInteractionTriggers) -> Bool {
+        var view = sourceView.hitTest(point, with: nil)
+        while let currentView = view, currentView !== sourceView {
+            if currentView is UITextView || currentView is AgentStreamingTextView {
+                return false
+            }
+            if currentView is UIControl, trigger == .tap {
+                return false
+            }
+            view = currentView.superview
+        }
+        return true
+    }
+
+    /// VoiceOver finds the message's menu as an action on every element in the bubble (text, tables, semantic content
+    /// and action rows), as it did on the system context menu. Layout reaches the views rich content adds later.
+    private func offerMenuToAccessibility(in view: UIView) {
+        let actions = view.accessibilityCustomActions ?? []
+        if !actions.contains(where: { $0 === menuAccessibilityAction }) {
+            view.accessibilityCustomActions = actions + [menuAccessibilityAction]
+        }
+        for subview in view.subviews {
+            offerMenuToAccessibility(in: subview)
+        }
+    }
+
+    /// The bubble with its action rows, in the coordinates of `attachmentRect`, which frames `bubbleStackView`
+    private func bubblePath(in attachmentRect: CGRect) -> CGPath {
         bubbleStackView.layoutIfNeeded()
 
-        let combinedPreviewPath = UIBezierPath()
-        combinedPreviewPath.append(previewPath(for: bubbleView))
-
+        let path = UIBezierPath()
+        path.append(previewPath(for: bubbleView))
         if !actionBackgroundView.isHidden {
-            combinedPreviewPath.append(previewPath(for: actionBackgroundView))
+            path.append(previewPath(for: actionBackgroundView))
         }
-
-        let parameters = UIPreviewParameters()
-        parameters.backgroundColor = .clear
-        parameters.visiblePath = combinedPreviewPath
-        return UITargetedPreview(view: bubbleStackView, parameters: parameters)
+        path.apply(CGAffineTransform(translationX: attachmentRect.minX, y: attachmentRect.minY))
+        return path.cgPath
     }
 
     private func previewPath(for backgroundView: AgentBubbleBackgroundView) -> UIBezierPath {
@@ -1064,10 +1117,23 @@ final class AgentMessageCell: UICollectionViewCell, AgentContextMenuPresentingCe
 }
 
 final class AgentSystemMessageCell: UICollectionViewCell, AgentContextMenuPresentingCell {
+    /// Builds the row's menu when a long press opens it
+    var contextMenuConfigurationProvider: ((ContextMenuInteractionTriggers) -> ContextMenuConfiguration?)?
+
     private let contentLayoutGuide = UILayoutGuide()
     private let label = UILabel()
     private lazy var bottomConstraint = label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
     private var configuredMessage: AgentMessage?
+    private lazy var contextMenuInteraction = ContextMenuInteraction(
+        triggers: .longPress,
+        sourcePortal: ContextMenuSourcePortal(
+            mask: .customAttachmentPath { [weak self] attachmentRect in
+                self?.labelPath(in: attachmentRect) ?? CGPath(rect: attachmentRect, transform: nil)
+            }
+        )
+    ) { [weak self] _ in
+        self?.contextMenuConfigurationProvider?(.longPress)
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -1094,6 +1160,7 @@ final class AgentSystemMessageCell: UICollectionViewCell, AgentContextMenuPresen
     override func prepareForReuse() {
         super.prepareForReuse()
         configuredMessage = nil
+        contextMenuConfigurationProvider = nil
         label.attributedText = nil
     }
 
@@ -1102,8 +1169,9 @@ final class AgentSystemMessageCell: UICollectionViewCell, AgentContextMenuPresen
         return text.isEmpty ? nil : text
     }
 
-    func contextMenuPreview() -> UITargetedPreview? {
-        layoutIfNeeded()
+    /// The rounded label, in the coordinates of `attachmentRect`, which frames `contentView`
+    private func labelPath(in attachmentRect: CGRect) -> CGPath {
+        contentView.layoutIfNeeded()
 
         let previewRect = label.frame.inset(
             by: UIEdgeInsets(
@@ -1112,14 +1180,11 @@ final class AgentSystemMessageCell: UICollectionViewCell, AgentContextMenuPresen
                 bottom: -AgentMessageCellMetrics.systemPreviewInsets.bottom,
                 right: -AgentMessageCellMetrics.systemPreviewInsets.right
             )
-        )
-        let parameters = UIPreviewParameters()
-        parameters.backgroundColor = .clear
-        parameters.visiblePath = UIBezierPath(
+        ).offsetBy(dx: attachmentRect.minX, dy: attachmentRect.minY)
+        return UIBezierPath(
             roundedRect: previewRect,
             cornerRadius: AgentMessageCellMetrics.systemPreviewCornerRadius
-        )
-        return UITargetedPreview(view: contentView, parameters: parameters)
+        ).cgPath
     }
 
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
@@ -1148,6 +1213,15 @@ final class AgentSystemMessageCell: UICollectionViewCell, AgentContextMenuPresen
         label.textAlignment = .center
         label.numberOfLines = 0
         contentView.addSubview(label)
+        contextMenuInteraction.attach(to: contentView)
+        // VoiceOver finds the row's menu as an action on its text, as it did on the system context menu
+        label.accessibilityCustomActions = [
+            UIAccessibilityCustomAction(name: lang("More actions")) { [weak self] _ in
+                guard let self else { return false }
+                contextMenuInteraction.present()
+                return true
+            }
+        ]
 
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: contentView.topAnchor),

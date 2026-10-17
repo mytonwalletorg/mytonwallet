@@ -235,17 +235,20 @@ export async function prepareAlchemyCalls(
   from: string,
   chainId: bigint,
   transactions: EvmMetaTransaction[],
+  shouldDelegate = true,
 ): Promise<AlchemyPrepareCallsResult> {
   return alchemyWalletRpc<AlchemyPrepareCallsResult>(apiUrl, 'wallet_prepareCalls', [{
     calls: toAlchemyCalls(transactions),
     from,
     chainId: `0x${chainId.toString(16)}`,
-    capabilities: {
-      eip7702Auth: {
-        delegation: 'ModularAccountV2',
-        version: 'v1.1.0',
+    ...(shouldDelegate ? {
+      capabilities: {
+        eip7702Auth: {
+          delegation: 'ModularAccountV2',
+          version: 'v1.1.0',
+        },
       },
-    },
+    } : undefined),
   }]);
 }
 

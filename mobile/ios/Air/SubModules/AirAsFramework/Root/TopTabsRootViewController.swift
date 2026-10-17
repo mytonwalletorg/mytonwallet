@@ -49,6 +49,18 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
     private var pager: WPagerViewController!
     private var segmentedControl: WSegmentedControl!
     private let tabControlContainer = UIView()
+    private var headerContentView: UIView?
+    private var horizontalHeaderConstraints: [NSLayoutConstraint] = []
+    private var sideHeaderConstraints: [NSLayoutConstraint] = []
+    private var sideHeaderCenterConstraint: NSLayoutConstraint?
+    private var sideHeaderTopConstraint: NSLayoutConstraint?
+    private enum SideTabEdge { case left, right }
+    private var sideTabEdge: SideTabEdge?
+    private var sideTabBar: UIView?
+
+    override var hideNavigationBar: Bool {
+        sideTabEdge != nil && (selectedPage != .wallet || homeVC.walletAssetsEditingNavigator?.state.editingState == nil)
+    }
     private var navigationBarTitleWidthConstraint: NSLayoutConstraint?
     private let accountSwitcherButton = TopTabsAccountButton()
     let searchController: RootSearchToolbarController
@@ -139,10 +151,27 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
         observeHomeWalletAssetsEditingState()
         observeAccountSwitcher()
         observeHomeUpdateStatus()
+        if #available(iOS 27.1, *) {
+            registerForTraitChanges(UITraitCollection.systemTraitsAffectingVerticalBarEdge + [UITraitLayoutDirection.self]) { (controller: TopTabsRootViewController, _: UITraitCollection) in
+                controller.updateTabBarPlacement()
+            }
+        }
+        updateTabBarPlacement()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateTabBarPlacement()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if #available(iOS 26.0, *) { (sideTabBar as? WVerticalTabBar)?.cancelInteraction() }
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        updateTabBarPlacement()
         let availableWidth = max(0, view.bounds.width - 32)
         if navigationBarTitleWidthConstraint?.constant != availableWidth {
             navigationBarTitleWidthConstraint?.constant = availableWidth
@@ -238,6 +267,7 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
             sharedNavigationPaths[page] = []
         }
         pager.select(index: page.rawValue, animated: animated)
+        if #available(iOS 26.0, *) { (sideTabBar as? WVerticalTabBar)?.select(page.rawValue, animated: animated) }
         installSharedNavigationPath(for: page)
         return true
     }
@@ -288,18 +318,21 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
                 id: AppTabId.wallet.rawValue,
                 title: lang("Wallet"),
                 isDeletable: false,
+                accessibilityIdentifier: "tab_wallet",
                 viewController: walletPage
             ),
             SegmentedControlItem(
                 id: AppTabId.market.rawValue,
                 title: lang("Market"),
                 isDeletable: false,
+                accessibilityIdentifier: "tab_market",
                 viewController: marketPage
             ),
             SegmentedControlItem(
                 id: AppTabId.explore.rawValue,
                 title: lang("Explore"),
                 isDeletable: false,
+                accessibilityIdentifier: "tab_explore",
                 viewController: explorePage
             ),
         ]
@@ -343,8 +376,8 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
         accountSwitcherButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         let accountSwitcherMenuInteraction = ContextMenuInteraction(
             triggers: [.longPress],
-            configurationProvider: { _ in
-                SwitchAccountMenu.makeConfiguration()
+            configurationProvider: { sourceView in
+                SwitchAccountMenu.makeConfiguration(sourceView: sourceView)
             }
         )
         accountSwitcherMenuInteraction.attach(to: accountSwitcherButton)
@@ -368,6 +401,7 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
         } else {
             contentView = tabControlContainer
         }
+        headerContentView = contentView
         contentView.addSubview(accountSwitcherButton)
         contentView.addSubview(segmentedControl)
         navigationItem.titleView = tabControlContainer
@@ -377,7 +411,7 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
         )
         navigationBarTitleWidthConstraint = titleWidthConstraint
 
-        NSLayoutConstraint.activate([
+        horizontalHeaderConstraints = [
             titleWidthConstraint,
             tabControlContainer.heightAnchor.constraint(equalToConstant: topTabsNavigationBarHeight),
 
@@ -393,7 +427,102 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
             ),
             segmentedControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             segmentedControl.heightAnchor.constraint(equalToConstant: topTabsSegmentedControlHeight),
-        ])
+        ]
+        NSLayoutConstraint.activate(horizontalHeaderConstraints)
+    }
+
+    private func updateTabBarPlacement() {
+        guard segmentedControl != nil else { return }
+        let edge: SideTabEdge?
+        if #available(iOS 27.1, *) {
+            switch traitCollection.verticalBarEdge {
+            case .leading: edge = view.effectiveUserInterfaceLayoutDirection == .leftToRight ? .left : .right
+            case .trailing: edge = view.effectiveUserInterfaceLayoutDirection == .leftToRight ? .right : .left
+            default: edge = nil
+            }
+        } else {
+            edge = nil
+        }
+        guard sideTabEdge != edge else {
+            updateSideHeaderGeometry()
+            return
+        }
+        if #available(iOS 26.0, *) { (sideTabBar as? WVerticalTabBar)?.cancelInteraction() }
+        sideTabEdge = edge
+        NSLayoutConstraint.deactivate(sideHeaderConstraints)
+        sideHeaderConstraints = []
+        sideHeaderCenterConstraint = nil
+        sideHeaderTopConstraint = nil
+        if let edge, #available(iOS 27.1, *) {
+            if sideTabBar == nil {
+                let ids: [AppTabId] = [.wallet, .market, .explore]
+                let items = ids.compactMap { id -> WVerticalTabBar.Item? in
+                    guard let registration = AppTabManager.shared.registration(for: id) else { return nil }
+                    return .init(id: id.rawValue, title: registration.titleProvider(), image: registration.compactIcon)
+                }
+                let bar = WVerticalTabBar(items: items)
+                bar.tintColor = .tintColor
+                bar.onSelect = { [weak self] index, repeated in
+                    guard ids.indices.contains(index) else { return }
+                    self?.selectTab(ids[index], popToRoot: repeated)
+                    if repeated { self?.scrollToTop() }
+                }
+                bar.translatesAutoresizingMaskIntoConstraints = false
+                sideTabBar = bar
+                view.addSubview(bar)
+            }
+            (sideTabBar as? WVerticalTabBar)?.isOnLeftEdge = edge == .left
+            (sideTabBar as? WVerticalTabBar)?.select(selectedPage.rawValue, animated: false)
+            NSLayoutConstraint.deactivate(horizontalHeaderConstraints)
+            accountSwitcherButton.removeFromSuperview()
+            accountSwitcherButton.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(accountSwitcherButton)
+            navigationItem.titleView = nil
+            if let bar = sideTabBar {
+                let center = accountSwitcherButton.centerXAnchor.constraint(equalTo: view.leftAnchor)
+                let top = accountSwitcherButton.topAnchor.constraint(equalTo: view.topAnchor)
+                sideHeaderCenterConstraint = center
+                sideHeaderTopConstraint = top
+                sideHeaderConstraints = [
+                    center,
+                    top,
+                    accountSwitcherButton.widthAnchor.constraint(equalToConstant: 48),
+                    accountSwitcherButton.heightAnchor.constraint(equalToConstant: 48),
+                    bar.centerXAnchor.constraint(equalTo: accountSwitcherButton.centerXAnchor),
+                    bar.topAnchor.constraint(equalTo: accountSwitcherButton.bottomAnchor, constant: 12),
+                    bar.widthAnchor.constraint(equalToConstant: bar.intrinsicContentSize.width),
+                    bar.heightAnchor.constraint(equalToConstant: bar.intrinsicContentSize.height),
+                ]
+                NSLayoutConstraint.activate(sideHeaderConstraints)
+                updateSideHeaderGeometry()
+            }
+        } else {
+            sideTabBar?.isHidden = true
+            accountSwitcherButton.removeFromSuperview()
+            accountSwitcherButton.translatesAutoresizingMaskIntoConstraints = false
+            headerContentView?.addSubview(accountSwitcherButton)
+            NSLayoutConstraint.activate(horizontalHeaderConstraints)
+        }
+        segmentedControl.accessibilityElementsHidden = edge != nil
+        [walletPage, marketPage, explorePage].compactMap(\.loadedContentViewController).forEach(applyChromeInsets)
+        updateHomeWalletAssetsNavigationChrome()
+    }
+
+    private func updateSideHeaderGeometry() {
+        guard #available(iOS 27.1, *), let edge = sideTabEdge, let bar = sideTabBar,
+              let container = navigationController?.view, view.isDescendant(of: container) else { return }
+        // The navigation container owns the bar region. Its content already has
+        // the side-bar safe-area inset, which would move a content-local region inward.
+        let region = container.layoutGuide(for: .bar(
+            onEdge: edge == .left ? UIRectEdge.left : .right,
+            extent: bar.intrinsicContentSize.width
+        )).layoutFrame
+        guard !region.isEmpty else { return }
+        // Native vertical navigation groups have a 24 pt minimum outer margin.
+        let origin = view.convert(CGPoint(x: region.midX, y: max(region.minY, container.bounds.minY + 24)), from: container)
+        // Local constraints survive the root view being detached on a navigation push.
+        sideHeaderCenterConstraint?.constant = origin.x - view.bounds.minX
+        sideHeaderTopConstraint?.constant = origin.y - view.bounds.minY
     }
 
     private func observeAccountSwitcher() {
@@ -441,7 +570,15 @@ final class TopTabsRootViewController: WViewController, VisibleContentProviding 
         let editingState = navigator?.state.editingState
 
         pager?.isPagingEnabled = editingState == nil
-        navigationItem.titleView = editingState == nil ? tabControlContainer : UIView()
+        navigationItem.titleView = editingState == nil && sideTabEdge == nil ? tabControlContainer : UIView()
+        if editingState != nil, #available(iOS 26.0, *) {
+            (sideTabBar as? WVerticalTabBar)?.cancelInteraction()
+        }
+        sideTabBar?.isHidden = sideTabEdge == nil || editingState != nil
+        accountSwitcherButton.isHidden = sideTabEdge != nil && editingState != nil
+        if sharedMainNavigationController?.topViewController === self {
+            sharedMainNavigationController?.setNavigationBarHidden(hideNavigationBar, animated: false)
+        }
 
         switch editingState {
         case .reordering:
@@ -651,6 +788,7 @@ extension TopTabsRootViewController {
     private func pagerDidSelect(_ index: Int) {
         segmentedControl.setPagingProgress(CGFloat(index))
         let page = selectedPage
+        if #available(iOS 26.0, *) { (sideTabBar as? WVerticalTabBar)?.select(page.rawValue) }
         if page != activePage {
             captureSharedNavigationPath(for: activePage)
             activePage = page
@@ -663,7 +801,7 @@ extension TopTabsRootViewController {
 }
 
 @MainActor
-private final class TopTabsAccountButton: UIControl {
+final class TopTabsAccountButton: UIControl {
     private let iconView = IconView(size: topTabsAccountAvatarSize)
     private let activityIndicator = UIView()
     private let activityIndicatorImage = UIImageView(image: .airBundle("AccountActivityIndicator"))
@@ -691,7 +829,7 @@ private final class TopTabsAccountButton: UIControl {
         translatesAutoresizingMaskIntoConstraints = false
         isAccessibilityElement = true
         accessibilityTraits = .button
-        accessibilityIdentifier = "top-tabs.account"
+        accessibilityIdentifier = "tab_settings_button"
 
         glassView.translatesAutoresizingMaskIntoConstraints = false
         glassView.isAccessibilityElement = false

@@ -468,7 +468,7 @@ struct ActivityView: View {
     @ViewBuilder
     var estimatedTime: some View {
         if case .transaction(let transaction) = activity,
-           transaction.isPendingUtxo,
+           transaction.status != .completed,
            let etaSeconds = transaction.etaSeconds,
            etaSeconds > 0 {
             InsetDetailCell {
@@ -533,21 +533,26 @@ struct ActivityView: View {
                 .foregroundStyle(Color.air.secondaryLabel)
                 .fixedSize()
         } value: {
-            TappableTransactionId(chain: transactionId.chain, txId: transactionId.hash)
+            TappableTransactionId(
+                chain: transactionId.chain,
+                txId: transactionId.hash,
+                isTraceId: transactionId.hash == activity.swap?.traceId
+            )
                 .fixedSize()
         }
     }
 
     @ViewBuilder
     var transactionId: some View {
-        let txId = activity.parsedTxId.hash
+        let traceId = activity.transaction?.traceId
+        let txId = traceId ?? activity.parsedTxId.hash
         if activity.transaction != nil && txId.count > 20 {
             InsetDetailCell {
                 Text(lang("Transaction ID"))
                     .foregroundStyle(Color.air.secondaryLabel)
                     .fixedSize()
             } value: {
-                TappableTransactionId(chain: self.chain, txId: txId)
+                TappableTransactionId(chain: self.chain, txId: txId, isTraceId: traceId != nil)
                     .fixedSize()
             }
         }

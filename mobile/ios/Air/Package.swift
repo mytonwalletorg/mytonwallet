@@ -251,9 +251,15 @@ let package = Package(
             path: "SubModules/WalletCoreTypes",
             swiftSettings: sharedSwiftSettings
         ),
+        .target(
+            name: "UIComponentsRuntime",
+            path: "SubModules/UIComponentsRuntime",
+            publicHeadersPath: "include"
+        ),
         airTarget(
             "UIComponents",
             dependencies: [
+                "UIComponentsRuntime",
                 contextMenuKitDependency,
                 "WReachability",
                 "WalletContext",
@@ -269,10 +275,8 @@ let package = Package(
                 .product(name: "SwiftUIIntrospect", package: "swiftui-introspect"),
             ],
             resources: [
-                .process("Resources/CardBackgrounds"),
-                .process("Resources/DefaultCards.xcassets"),
-                .copy("Resources/BlueDiamond"),
-                .process("BlueDiamond/BlueDiamond.metal"),
+                .process("Resources"),
+                .process("TelegramDiamond/GramDiamond.metal"),
             ]
         ),
         airTarget(
@@ -449,6 +453,7 @@ let package = Package(
         airTarget(
             "UITransaction",
             dependencies: [
+                contextMenuKitDependency,
                 "UIComponents",
                 "UIActivityList",
                 "WalletContext",
@@ -514,6 +519,7 @@ let package = Package(
         airTarget(
             "UIAgent",
             dependencies: [
+                contextMenuKitDependency,
                 "UIComponents",
                 "WalletContext",
                 "WalletCore",
@@ -602,6 +608,8 @@ let package = Package(
                 "UISettings",
                 "UISwap",
                 "UITransaction",
+                "UIReceive",
+                "UIToken",
                 "UIUniversalSearch",
                 "UIHome",
                 "WalletContext",
@@ -777,6 +785,7 @@ let package = Package(
             dependencies: [
                 "UIPortfolio",
                 "WalletCore",
+                .product(name: "GraphKit", package: "GraphKit"),
             ]
         ),
         airTestTarget(
@@ -808,6 +817,7 @@ let package = Package(
         airTestTarget(
             "UITokenTests",
             dependencies: [
+                .product(name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay"),
                 "UIToken",
                 "WalletContext",
                 "WalletCore",

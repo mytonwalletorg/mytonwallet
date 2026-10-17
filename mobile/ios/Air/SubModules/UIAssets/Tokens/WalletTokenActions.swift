@@ -132,7 +132,7 @@ final class WalletTokenActions {
                 if isSwapAvailable {
                     primaryItems.append(.action(
                         ContextMenuAction(
-                            title: lang("Swap"),
+                            title: lang("Trade"),
                             icon: .system("arrow.left.arrow.right"),
                             handler: { [weak self] in
                                 guard let self else { return }

@@ -1,8 +1,11 @@
 package org.mytonwallet.app_air.uicomponents.diamond
 
 import android.content.res.AssetManager
+import android.graphics.Bitmap
+import android.graphics.RectF
 import android.opengl.GLES30.GL_ARRAY_BUFFER
 import android.opengl.GLES30.GL_BLEND
+import android.opengl.GLES30.GL_CLAMP_TO_EDGE
 import android.opengl.GLES30.GL_COLOR_BUFFER_BIT
 import android.opengl.GLES30.GL_COMPILE_STATUS
 import android.opengl.GLES30.GL_CULL_FACE
@@ -11,14 +14,23 @@ import android.opengl.GLES30.GL_DEPTH_TEST
 import android.opengl.GLES30.GL_FLOAT
 import android.opengl.GLES30.GL_FRAGMENT_SHADER
 import android.opengl.GLES30.GL_LEQUAL
+import android.opengl.GLES30.GL_LINEAR
 import android.opengl.GLES30.GL_LINK_STATUS
 import android.opengl.GLES30.GL_ONE
 import android.opengl.GLES30.GL_ONE_MINUS_SRC_ALPHA
 import android.opengl.GLES30.GL_STATIC_DRAW
+import android.opengl.GLES30.GL_TEXTURE0
+import android.opengl.GLES30.GL_TEXTURE_2D
+import android.opengl.GLES30.GL_TEXTURE_MAG_FILTER
+import android.opengl.GLES30.GL_TEXTURE_MIN_FILTER
+import android.opengl.GLES30.GL_TEXTURE_WRAP_S
+import android.opengl.GLES30.GL_TEXTURE_WRAP_T
 import android.opengl.GLES30.GL_TRIANGLES
 import android.opengl.GLES30.GL_VERTEX_SHADER
+import android.opengl.GLES30.glActiveTexture
 import android.opengl.GLES30.glAttachShader
 import android.opengl.GLES30.glBindBuffer
+import android.opengl.GLES30.glBindTexture
 import android.opengl.GLES30.glBindVertexArray
 import android.opengl.GLES30.glBlendFunc
 import android.opengl.GLES30.glBufferData
@@ -28,6 +40,7 @@ import android.opengl.GLES30.glCompileShader
 import android.opengl.GLES30.glCreateProgram
 import android.opengl.GLES30.glCreateShader
 import android.opengl.GLES30.glDeleteShader
+import android.opengl.GLES30.glDeleteTextures
 import android.opengl.GLES30.glDepthFunc
 import android.opengl.GLES30.glDisable
 import android.opengl.GLES30.glDrawArrays
@@ -35,6 +48,7 @@ import android.opengl.GLES30.glDrawArraysInstanced
 import android.opengl.GLES30.glEnable
 import android.opengl.GLES30.glEnableVertexAttribArray
 import android.opengl.GLES30.glGenBuffers
+import android.opengl.GLES30.glGenTextures
 import android.opengl.GLES30.glGenVertexArrays
 import android.opengl.GLES30.glGetProgramInfoLog
 import android.opengl.GLES30.glGetProgramiv
@@ -43,6 +57,8 @@ import android.opengl.GLES30.glGetShaderiv
 import android.opengl.GLES30.glGetUniformLocation
 import android.opengl.GLES30.glLinkProgram
 import android.opengl.GLES30.glShaderSource
+import android.opengl.GLES30.glTexParameteri
+import android.opengl.GLES30.glUniform1i
 import android.opengl.GLES30.glUniform1ui
 import android.opengl.GLES30.glUniform4f
 import android.opengl.GLES30.glUniform4fv
@@ -50,6 +66,8 @@ import android.opengl.GLES30.glUniformMatrix4fv
 import android.opengl.GLES30.glUseProgram
 import android.opengl.GLES30.glVertexAttribPointer
 import android.opengl.GLES30.glViewport
+import android.opengl.GLUtils
+import android.opengl.Matrix
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.PI
@@ -75,10 +93,20 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
     private val model = FloatArray(16)
     private val inverseModel = FloatArray(16)
     private val projection = buildProjection()
+    private val scaledProjection = FloatArray(16)
     private val horizontalScale = projection[0]
     private val diamondProgram = createProgram("diamond")
     private val sparkleProgram = createProgram("sparkle")
-    private val diamond = createMesh("vertices", 3)
+    private val diamondVertices = loadFloats("vertices")
+    private val diamond = createMesh(diamondVertices, 3)
+    private val lens = BlueDiamondLens(diamondVertices)
+    private val lensProgram by lazy {
+        val stone = readShader("diamondFragment").substringBefore("out vec4 fragColor;")
+        createProgram("diamond", stone + readShader("diamondLens")).also(::setupProgram)
+    }
+    private val lensTransform = FloatArray(16)
+    private var lensTexture = 0
+    private val lensRect = RectF()
     private val mainSparkle = createMesh("main", 2)
     private val smallSparkles = createMesh("small", 2)
     private var lastYaw: Float? = null
@@ -90,19 +118,51 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
         glClearColor(0f, 0f, 0f, 0f)
         glDepthFunc(GL_LEQUAL)
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-        for (program in listOf(diamondProgram, sparkleProgram)) {
-            glUseProgram(program.id)
-            glUniform4f(program.uniform("u.appearance"), 0f, 0f, 0f, 0f)
-            glUniform4fv(program.uniform("planes[0]"), 17, planes, 0)
-            glUniform4fv(program.uniform("u.facetProjection"), 1, facetProjection, 0)
-            for (i in 0 until 8) {
-                glUniform4fv(program.uniform("anchors[$i].position"), 1, anchors, i * 8)
-                glUniform4fv(program.uniform("anchors[$i].normal"), 1, anchors, i * 8 + 4)
-            }
+        setupProgram(diamondProgram)
+        setupProgram(sparkleProgram)
+    }
+
+    /** [rect] is the source's frame in points, relative to the canvas center. */
+    fun setLensSource(mask: Bitmap?, rect: RectF) {
+        if (lensTexture != 0) {
+            glDeleteTextures(1, intArrayOf(lensTexture), 0)
+            lensTexture = 0
+        }
+        lensRect.set(rect)
+        mask ?: return
+        lensProgram
+        val texture = IntArray(1)
+        glGenTextures(1, texture, 0)
+        lensTexture = texture[0]
+        glBindTexture(GL_TEXTURE_2D, lensTexture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        GLUtils.texImage2D(GL_TEXTURE_2D, 0, mask, 0)
+    }
+
+    private fun setupProgram(program: Program) {
+        glUseProgram(program.id)
+        glUniform4f(program.uniform("u.appearance"), 0f, 0f, 0f, 0f)
+        glUniform4fv(program.uniform("planes[0]"), 17, planes, 0)
+        glUniform4fv(program.uniform("u.facetProjection"), 1, facetProjection, 0)
+        for (i in 0 until 8) {
+            glUniform4fv(program.uniform("anchors[$i].position"), 1, anchors, i * 8)
+            glUniform4fv(program.uniform("anchors[$i].normal"), 1, anchors, i * 8 + 4)
         }
     }
 
-    fun draw(size: Int, time: Float, frameTime: Float, yaw: Float, pitch: Float) {
+    fun draw(
+        size: Int,
+        time: Float,
+        frameTime: Float,
+        yaw: Float,
+        pitch: Float,
+        scale: Float,
+        lensStrength: Float,
+        pixelsPerPoint: Float
+    ) {
         val position = (time * 240) % 1440
         val index = position.toInt()
         val fraction = position - index
@@ -113,6 +173,9 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
         updateModel(tilt, yaw)
         val widthScale = getWidthScale(yaw, tilt)
         projection[0] = horizontalScale * widthScale
+        for (i in projection.indices) {
+            scaledProjection[i] = if (i % 4 < 2) projection[i] * scale else projection[i]
+        }
         var anchor = 0f
         var maxFacing = -1f
         for (i in 0 until 4) {
@@ -150,7 +213,13 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
 
         glViewport(0, 0, size, size)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-        applyUniforms(diamondProgram, size, time, anchor, widthScale, visibility)
+        val refractingProgram = if (lensTexture != 0 && lensStrength > 0.001f) {
+            applyLens(size, yaw, lensStrength, pixelsPerPoint)
+        } else {
+            null
+        }
+        val stoneProgram = refractingProgram ?: diamondProgram
+        applyUniforms(stoneProgram, size, time, anchor, widthScale, visibility)
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
@@ -166,6 +235,34 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
         glBindVertexArray(smallSparkles.vao)
         glUniform1ui(sparkleProgram.uniform("baseInstance"), 1)
         glDrawArraysInstanced(GL_TRIANGLES, 0, smallSparkles.count, 7)
+    }
+
+    private fun applyLens(size: Int, yaw: Float, strength: Float, pixelsPerPoint: Float): Program? {
+        Matrix.multiplyMM(lensTransform, 0, scaledProjection, 0, model, 0)
+        if (!lens.update(lensTransform, size / (2 * pixelsPerPoint))) return null
+        val program = lensProgram
+        glUseProgram(program.id)
+        glUniform4f(
+            program.uniform("lensRect"),
+            lensRect.left,
+            lensRect.top,
+            lensRect.width(),
+            lensRect.height()
+        )
+        glUniform4f(
+            program.uniform("lensViewport"),
+            size / 2f,
+            size / 2f,
+            pixelsPerPoint,
+            lens.edgeCount.toFloat()
+        )
+        glUniform4f(program.uniform("lensParameters"), min(1f, strength), yaw, lens.radius, 0f)
+        glUniform4f(program.uniform("lensCenter"), lens.centerX, lens.centerY, 1f, 0f)
+        glUniform4fv(program.uniform("lensEdges[0]"), lens.edgeCount, lens.edges, 0)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, lensTexture)
+        glUniform1i(program.uniform("lensSource"), 0)
+        return program
     }
 
     private fun updateModel(tilt: Float, turn: Float) {
@@ -199,7 +296,7 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
         glUniform4f(program.uniform("u.viewport"), size.toFloat(), size.toFloat(), 17f, 0f)
         glUniformMatrix4fv(program.uniform("u.model"), 1, false, model, 0)
         glUniformMatrix4fv(program.uniform("u.inverseModel"), 1, false, inverseModel, 0)
-        glUniformMatrix4fv(program.uniform("u.projection"), 1, false, projection, 0)
+        glUniformMatrix4fv(program.uniform("u.projection"), 1, false, scaledProjection, 0)
         glUniform4f(program.uniform("u.parameters"), time, 0.72f, 1f, 1f)
         glUniform4fv(program.uniform("u.sparkleShape"), 1, frame, 36)
         glUniform4f(program.uniform("u.sparkleHalo"), frame[40], anchor, widthScale, visibility)
@@ -254,17 +351,20 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
         return FloatArray(buffer.remaining()).also { buffer.get(it) }
     }
 
-    private fun createProgram(name: String): Program {
+    private fun readShader(name: String): String =
+        assets.open("blue_diamond/shaders/$name.glsl").bufferedReader().use { it.readText() }
+
+    private fun createProgram(name: String, fragmentSource: String? = null): Program {
         val program = glCreateProgram()
         for ((suffix, type) in listOf(
             "Vertex" to GL_VERTEX_SHADER,
             "Fragment" to GL_FRAGMENT_SHADER
         )) {
             val shader = glCreateShader(type)
-            val source = assets.open(
-                "blue_diamond/shaders/$name$suffix.glsl"
-            ).bufferedReader().use {
-                it.readText()
+            val source = if (type == GL_FRAGMENT_SHADER && fragmentSource != null) {
+                fragmentSource
+            } else {
+                readShader("$name$suffix")
             }
             glShaderSource(shader, source)
             glCompileShader(shader)
@@ -281,8 +381,10 @@ internal class BlueDiamondScene(private val assets: AssetManager) {
         return Program(program)
     }
 
-    private fun createMesh(name: String, attributeCount: Int): Mesh {
-        val values = loadFloats(name)
+    private fun createMesh(name: String, attributeCount: Int): Mesh =
+        createMesh(loadFloats(name), attributeCount)
+
+    private fun createMesh(values: FloatArray, attributeCount: Int): Mesh {
         val data = ByteBuffer.allocateDirect(
             values.size * 4
         ).order(ByteOrder.nativeOrder()).asFloatBuffer()

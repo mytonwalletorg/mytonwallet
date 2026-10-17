@@ -58,6 +58,7 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
     private var emptyView: EmptyEarnView!
     private var indicatorView: WActivityIndicator!
     private var belowSafeAreaView: UIView!
+    private let historyBackgroundView = UIView()
     private lazy var claimRewardsViewModel = ClaimRewardsModel(accountContext: accountContext)
     private var claimRewardsView: HostingView!
     
@@ -76,6 +77,16 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
         let tokenSlug = self.tokenSlug
         title = config.displayTitle
 
+        // Continue the history background to the bottom, but leave the side safe areas gray.
+        historyBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(historyBackgroundView)
+        NSLayoutConstraint.activate([
+            historyBackgroundView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            historyBackgroundView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            historyBackgroundView.topAnchor.constraint(equalTo: view.topAnchor),
+            historyBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
         self.collectionView = collectionView
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -83,7 +94,7 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
         collectionView.alwaysBounceVertical = true
         collectionView.allowsSelection = true
         collectionView.delaysContentTouches = false
-        collectionView.backgroundColor = .air.groupedItem
+        collectionView.backgroundColor = .clear
         view.addSubview(collectionView)
         NSLayoutConstraint.activate([
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -217,8 +228,9 @@ public class EarnVC: WViewController, WSegmentedControllerContent, WSensitiveDat
     }
     
     private func updateTheme() {
+        view.backgroundColor = .air.sheetBackground
         belowSafeAreaView.backgroundColor = .air.sheetBackground
-        collectionView.backgroundColor = .air.groupedItem
+        historyBackgroundView.backgroundColor = .air.groupedItem
     }
     
     func updateClaimRewardsButton() {

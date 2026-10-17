@@ -1,9 +1,11 @@
-import React, { memo, useState } from '../../lib/teact/teact';
+import React, { memo, useRef, useState } from '../../lib/teact/teact';
 
 import type { TokenChartMode, UserToken } from '../../global/types';
-import type { TokenPricePoint } from './sections/Chart';
+import type { TokenBalanceChange } from './helpers/resolveBalanceChange';
 
 import buildClassName from '../../util/buildClassName';
+
+import useHeightChange from '../../hooks/useHeightChange';
 
 import TopActions from '../main/sections/Actions/TopActions';
 import Balance from './sections/Balance';
@@ -14,31 +16,39 @@ import styles from './Summary.module.scss';
 
 interface OwnProps {
   token: UserToken;
+  isActive?: boolean;
   className?: string;
+  onHeightChange: (prevHeight: number, nextHeight: number) => void;
 }
 
-function Summary({ token, className }: OwnProps) {
+function Summary({
+  token, isActive, className, onHeightChange,
+}: OwnProps) {
+  const rootRef = useRef<HTMLDivElement>();
   const [chartMode, setChartMode] = useState<TokenChartMode>('price');
-  // The balance follows the point under the cursor, so the chart reports the point up to here
-  const [pricePoint, setPricePoint] = useState<TokenPricePoint>();
+  // The balance follows the point under the cursor, so the chart reports the change up to here
+  const [balanceChange, setBalanceChange] = useState<TokenBalanceChange>();
 
   const { slug } = token;
 
-  return (
-    <div className={buildClassName(styles.root, className)}>
-      <Balance token={token} pricePoint={pricePoint} />
+  useHeightChange(rootRef, onHeightChange);
 
-      <TopActions className={styles.actions} />
+  return (
+    <div ref={rootRef} className={buildClassName(styles.root, className)}>
+      <Balance token={token} change={balanceChange} />
+
+      <TopActions tokenSlug={slug} className={styles.actions} />
 
       <div className={styles.panels}>
         <Chart
           token={token}
           chartMode={chartMode}
+          isActive={isActive}
           className={styles.panel}
           onChartModeChange={setChartMode}
-          onPricePointChange={setPricePoint}
+          onBalanceChangeUpdate={setBalanceChange}
         />
-        <Info tokenSlug={slug} className={styles.panel} />
+        <Info tokenSlug={slug} isActive={isActive} className={styles.panel} />
       </div>
     </div>
   );

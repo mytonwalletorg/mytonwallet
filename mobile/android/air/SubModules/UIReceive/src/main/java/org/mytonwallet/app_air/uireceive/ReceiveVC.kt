@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider
 import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WViewControllerWithModelStore
 import org.mytonwallet.app_air.uicomponents.commonViews.AccountSelectorView
@@ -181,7 +182,7 @@ class ReceiveVC private constructor(
                     val vc = qrCodeVCs[chain] ?: continue
                     val progress = (currentOffset - i).let { kotlin.math.abs(it) }.coerceIn(0f, 1f)
                     val direction = if (currentOffset > i) -1 else 1
-                    animateQrView(vc.qrCodeView, vc.ornamentView, direction, progress)
+                    animateQrView(vc, direction, progress)
                 }
 
                 if (chainCount > 1) {
@@ -298,6 +299,7 @@ class ReceiveVC private constructor(
 
     private val buyWithCardView: WView by lazy {
         val v = WView(context)
+        v.id = UIComponentsR.id.receive_buy_card
         v.isGone = AccountStore.activeAccount?.supportsBuyWithCard != true
         if (v.isVisible) {
             v.addView(buyWithCardLabel)
@@ -322,6 +324,7 @@ class ReceiveVC private constructor(
 
     private val buyWithCryptoView: WView by lazy {
         val v = WView(context)
+        v.id = UIComponentsR.id.receive_buy_crypto
         v.isGone = AccountStore.activeAccount?.supportsBuyWithCrypto != true
         if (v.isVisible) {
             v.addView(buyWithCryptoLabel)
@@ -711,14 +714,12 @@ class ReceiveVC private constructor(
             return
         }
         buyWithCardView.isClickable = false
-        BuyWithCardLauncher.buyWithCardUrl(chain, baseCurrency, { url ->
+        BuyWithCardLauncher.buyWithCardUrl(chain, baseCurrency) { url, error ->
             buyWithCardView.isClickable = true
             url?.let {
                 CustomTabsBrowser.open(context, it)
-            } ?: run {
-                if (!WalletCore.isConnected()) showError(MBridgeError.Type.SERVER_ERROR)
-            }
-        })
+            } ?: showError(error)
+        }
     }
 
     override fun viewWillAppear() {
@@ -806,12 +807,9 @@ class ReceiveVC private constructor(
         }
     }
 
-    private fun animateQrView(
-        qrCodeView: View,
-        ornamentView: View,
-        direction: Int,
-        progress: Float
-    ) {
+    private fun animateQrView(vc: QRCodeVC, direction: Int, progress: Float) {
+        val qrCodeView = vc.qrCodeView
+        val ornamentView = vc.ornamentView
         val rotation = -10 * progress * direction
         qrCodeView.rotationY = rotation
         ornamentView.rotationY = rotation
@@ -828,6 +826,9 @@ class ReceiveVC private constructor(
         val translation = progress * 100.dp * -direction
         qrCodeView.translationX = translation
         ornamentView.translationX = translation
+
+        vc.syncDiamondTransform()
+        vc.diamondView?.isRenderingEnabled = progress == 0f
     }
 
     override fun onDestroy() {

@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.LinearGradient
+import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.drawable.BitmapDrawable
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -17,6 +19,7 @@ import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.uicomponents.commonViews.cells.HeaderCell
+import org.mytonwallet.app_air.uicomponents.diamond.WBlueDiamondView
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.extensions.unspecified
 import org.mytonwallet.app_air.uicomponents.helpers.SpannableHelpers
@@ -33,6 +36,7 @@ import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 import org.mytonwallet.app_air.walletbasecontext.theme.ViewConstants
 import org.mytonwallet.app_air.walletbasecontext.theme.WColor
 import org.mytonwallet.app_air.walletbasecontext.theme.color
+import org.mytonwallet.app_air.walletbasecontext.utils.ApplicationContextHolder
 import org.mytonwallet.app_air.walletbasecontext.utils.getDrawableCompat
 import org.mytonwallet.app_air.walletcontext.helpers.AddressHelpers
 import org.mytonwallet.app_air.walletcore.WalletCore
@@ -72,10 +76,21 @@ class QRCodeVC(
         private const val QR_TOP_MARGIN = 16
         private const val QR_CODE_SIZE = 252
         private const val ADDRESS_HEADER_MARGIN = 39
+        private const val DIAMOND_SIZE = 86
+        private const val DIAMOND_MAX_GROW = 2.3f
         const val HEIGHT = QR_TOP_MARGIN + QR_CODE_SIZE + ADDRESS_HEADER_MARGIN
     }
 
     private val qrCodeSize = QR_CODE_SIZE.dp
+    private val showsDiamond = ApplicationContextHolder.isGramApp && chain == MBlockchain.ton
+    internal val diamondView = if (showsDiamond) {
+        WBlueDiamondView(
+            context,
+            DIAMOND_MAX_GROW
+        )
+    } else {
+        null
+    }
     internal val qrCodeView: WQRCodeView by lazy {
         val qrContent = if (chain == MBlockchain.ton) {
             AddressHelpers.walletInvoiceUrl(walletAddress)
@@ -87,7 +102,7 @@ class QRCodeVC(
             qrContent,
             qrCodeSize,
             qrCodeSize,
-            chain.qrIcon,
+            if (showsDiamond) null else chain.qrIcon,
             56.dp,
             chain.qrGradientColors?.let {
                 LinearGradient(
@@ -103,6 +118,15 @@ class QRCodeVC(
         ).apply {
             setPadding(1, 1, 1, 1)
             generate {
+                syncDiamondTransform()
+                diamondView?.let { diamond ->
+                    val left = -qrCodeSize / 2f - logoCenterOffsetX
+                    val top = -qrCodeSize / 2f - logoCenterOffsetY
+                    diamond.setRefractionSource(
+                        (drawable as? BitmapDrawable)?.bitmap,
+                        RectF(left, top, left + qrCodeSize, top + qrCodeSize)
+                    )
+                }
                 view.fadeIn()
                 onQrLoaded?.invoke()
             }
@@ -226,6 +250,10 @@ class QRCodeVC(
             qrCodeView,
             LayoutParams(qrCodeSize, qrCodeSize)
         )
+        diamondView?.let {
+            val canvasSize = (DIAMOND_SIZE * DIAMOND_MAX_GROW).dp.toInt()
+            view.addView(it, LayoutParams(canvasSize, canvasSize))
+        }
         view.addView(
             titleLabel,
             LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
@@ -237,6 +265,10 @@ class QRCodeVC(
 
         view.setConstraints {
             toCenterX(qrCodeView)
+            diamondView?.let {
+                centerXToCenterX(it, qrCodeView)
+                centerYToCenterY(it, qrCodeView)
+            }
             centerYToCenterY(ornamentView, qrCodeView, 16f.dp)
             toCenterX(ornamentView)
             topToBottom(titleLabel, qrCodeView, ADDRESS_HEADER_MARGIN.toFloat())
@@ -253,6 +285,7 @@ class QRCodeVC(
         super.updateTheme()
 
         view.setBackgroundColor(Color.TRANSPARENT)
+        diamondView?.updatePlayback()
         addressLabel.setTextColor(WColor.PrimaryText.color)
         explorerButton.imageTintList = ColorStateList.valueOf(WColor.Tint.color)
         titleLabel.updateTheme()
@@ -289,6 +322,18 @@ class QRCodeVC(
             toStartPx(addressView, systemBarStartInset)
             toEndPx(addressView, systemBarEndInset)
         }
+    }
+
+    fun syncDiamondTransform() {
+        val diamondView = diamondView ?: return
+        diamondView.rotationY = qrCodeView.rotationY
+        diamondView.scaleX = qrCodeView.scaleX
+        diamondView.scaleY = qrCodeView.scaleY
+        diamondView.alpha = qrCodeView.alpha
+        diamondView.translationX =
+            qrCodeView.translationX + qrCodeView.logoCenterOffsetX * qrCodeView.scaleX
+        diamondView.translationY =
+            qrCodeView.translationY + qrCodeView.logoCenterOffsetY * qrCodeView.scaleY
     }
 
     fun getHeight(): Int = (addressView.y + addressView.height).toInt()

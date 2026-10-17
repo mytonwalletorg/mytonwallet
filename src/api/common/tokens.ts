@@ -10,10 +10,12 @@ import {
 import { raceWithAbortSignal } from '../../util/abortSignal';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { getChainConfig, getSupportedChains, getTokenInfo } from '../../util/chain';
+import { SECOND } from '../../util/dateFormat';
 import Deferred from '../../util/Deferred';
 import isEmptyObject from '../../util/isEmptyObject';
 import { buildCollectionByKey, omitUndefined } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
+import { pause } from '../../util/schedulers';
 import { tokenRepository } from '../db';
 import { callBackendGet, callBackendPost } from './backend';
 import { getHeldSlugs } from './heldTokens';
@@ -21,6 +23,8 @@ import { notifyTokenSlugsMove } from './tokenSlugMoves';
 
 /** A backstop for the token details payload, which is normally bounded by the number of the tokens on the device */
 const MAX_POST_TOKENS = 1500;
+/** Bounds the time the first balances wait for the token catalog, so that a slow `GET /assets` does not hold them */
+const CATALOG_WAIT_TIMEOUT = 5 * SECOND;
 
 export type TokenDetailsOptions = {
   langCode?: string;
@@ -29,6 +33,8 @@ export type TokenDetailsOptions = {
 };
 
 type TokenDetailsUpdate = Partial<ApiTokenPriceDetails> & Pick<ApiTokenWithPrice, 'slug' | 'isPriceFromBackend'>;
+/** A token found on a wallet or by its address, which needs a slug of its own only when it has no address */
+export type FetchedToken = Omit<ApiTokenWithMaybePrice, 'slug'> & Partial<Pick<ApiTokenWithMaybePrice, 'slug'>>;
 
 export const tokensPreload = new Deferred();
 /**
@@ -38,6 +44,11 @@ export const tokensPreload = new Deferred();
  */
 const catalogPreload = new Deferred();
 let isCatalogRequested = false;
+/**
+ * The wait of the balances: the cached tokens, then the catalog or `CATALOG_WAIT_TIMEOUT`. A token found after the
+ * timeout or a failed request may take the backend slug of a catalog token, which the catalog moves once it arrives.
+ */
+let catalogWait: Promise<unknown> | undefined;
 /** Slugs of the last `GET /assets` response, reused when the details are requested outside `updateTokensFromBackend` */
 let backendTokenSlugs = new Set<string>();
 let isTokenUpdatePaused = false;
@@ -51,6 +62,12 @@ const tokensCache: {
 } = {
   bySlug: { ...getTokenInfo() },
 };
+/**
+ * The slugs of the cached tokens by address key, so that a lookup without a chain does not scan the whole cache. A slug
+ * stays listed after another address takes it, so the lookup checks the address of every token it finds.
+ */
+const slugsByAddressKey = new Map<string, Set<string>>();
+Object.values(tokensCache.bySlug).forEach(indexTokenAddress);
 // getTokenInfo fills absent prices with zero; retain which values are placeholders before that conversion.
 const unpricedSlugs = new Set(getSupportedChains().flatMap((chain) => (
   getChainConfig(chain).tokenInfo.filter((token) => token.priceUsd === undefined).map((token) => token.slug)
@@ -102,7 +119,8 @@ export function pickTokensForDetails(tokens: ApiTokenWithPrice[], options: {
   for (const token of tokens) {
     if (!token.tokenAddress || backendSlugs.has(token.slug)) continue;
     // The details come back under the backend slug of the address, which another token holds for a token with a full slug
-    if (token.slug !== buildBackendTokenSlug(token.chain, token.tokenAddress)) continue;
+    if (token.slug !== buildBackendTokenSlug(token.chain, token.tokenAddress)
+      && token.slug === buildFullTokenSlug(token.chain, token.tokenAddress)) continue;
     // `type` arrives from this very endpoint, so an unclassified LP token is still requested once. Afterwards it is
     // dropped: an LP token has no price of its own and the UI treats it as a service token.
     if (token.type === 'lp_token') continue;
@@ -208,28 +226,30 @@ export async function updateTokens(
         ...details,
         ...(details.priceUsd !== undefined && { isPriceFromBackend: true }),
       };
-      tokensCache.bySlug[slug] = token;
+      cacheToken(token);
       tokensForDb.push(token);
       if (details.priceUsd !== undefined) unpricedSlugs.delete(slug);
     }
   }
 
-  // A cached `isFromBackend` may come from an earlier catalog, so only the tokens listed here count as the catalog's
-  const catalogAddressKeys = new Set<string>();
-  for (const { isFromBackend, tokenAddress } of tokens) {
-    if (isFromBackend && tokenAddress) catalogAddressKeys.add(buildTokenAddressKey(tokenAddress));
+  // A cached `isFromBackend` may come from an earlier catalog, so only the tokens listed here count as the catalog's.
+  // They are keyed by the full slug, as the catalog may list one address on several chains.
+  const catalogSlugByFullSlug = new Map<string, string>();
+  for (const { isFromBackend, chain, tokenAddress, slug } of tokens) {
+    if (isFromBackend && tokenAddress) catalogSlugByFullSlug.set(buildFullTokenSlug(chain, tokenAddress), slug);
   }
   const movedSlugs: string[] = [];
 
   for (let token of tokens) {
     let cachedToken = tokensCache.bySlug[token.slug] as ApiTokenWithPrice | undefined;
-    // The catalog gives the slug to its own token, and the token that held it moves to its full slug. The moved row
-    // goes to the database first, as the slug is unique there. Of two tokens this catalog lists under one slug, the
-    // one with the smaller address key keeps it, so the order of the catalog does not move them back and forth.
+    // The catalog gives the slug to its own token, and the token that held it moves to its full slug. Of two tokens
+    // this catalog lists under one slug, the one with the smaller address key keeps it, so the order of the catalog
+    // does not move them back and forth.
     if (cachedToken?.tokenAddress && token.isFromBackend && token.tokenAddress
       && !getIsSameTokenAddress(cachedToken.tokenAddress, token.tokenAddress)) {
       const holderAddressKey = buildTokenAddressKey(cachedToken.tokenAddress);
-      if (catalogAddressKeys.has(holderAddressKey) && holderAddressKey < buildTokenAddressKey(token.tokenAddress)) {
+      if (catalogSlugByFullSlug.get(buildFullTokenSlug(cachedToken.chain, cachedToken.tokenAddress)) === token.slug
+        && holderAddressKey < buildTokenAddressKey(token.tokenAddress)) {
         token = { ...token, slug: buildFullTokenSlug(token.chain, token.tokenAddress) };
         cachedToken = tokensCache.bySlug[token.slug];
       } else {
@@ -238,16 +258,22 @@ export async function updateTokens(
         cachedToken = undefined;
       }
     }
+    // A catalog token that leaves its full slug for this one keeps the data its chain gave it there, and the balances
+    // stored under the full slug are refetched
+    const aliasToken = !cachedToken && token.isFromBackend && token.tokenAddress
+      ? tokensCache.bySlug[buildFullTokenSlug(token.chain, token.tokenAddress)] as ApiTokenWithPrice | undefined
+      : undefined;
+    if (aliasToken) movedSlugs.push(aliasToken.slug);
     const { slug } = token;
-    const mergedToken = mergeTokenWithCache(token, detailsBySlug, cachedToken);
+    const mergedToken = mergeTokenWithCache(token, detailsBySlug, cachedToken ?? aliasToken);
 
     if (cachedToken === undefined) {
       shouldSendUpdate = true;
-      unpricedSlugs.add(slug);
+      if (!aliasToken || unpricedSlugs.has(aliasToken.slug)) unpricedSlugs.add(slug);
     }
     if (token.priceUsd !== undefined || detailsBySlug[slug]?.priceUsd !== undefined) unpricedSlugs.delete(slug);
 
-    tokensCache.bySlug[token.slug] = mergedToken;
+    cacheToken(mergedToken);
     if (token.tokenAddress) {
       tokensForDb.push(mergedToken);
     }
@@ -301,10 +327,31 @@ function mergeTokenWithCache(
 /** The moved token gets no more backend details, so its last backend price no longer outranks provider prices */
 function moveTokenToFullSlug(token: ApiTokenWithPrice) {
   const slug = buildFullTokenSlug(token.chain, token.tokenAddress!);
-  tokensCache.bySlug[slug] ??= { ...token, slug, isPriceFromBackend: false };
+  // The token under the backend slug got every update since it took that slug, so it outranks an older full-slug copy,
+  // which fills in only what that token lacks
+  const movedToken = { ...tokensCache.bySlug[slug], ...omitUndefined(token), slug, isPriceFromBackend: false };
+  cacheToken(movedToken);
+  unpricedSlugs.delete(slug);
   if (unpricedSlugs.delete(token.slug)) unpricedSlugs.add(slug);
 
-  return tokensCache.bySlug[slug];
+  return movedToken;
+}
+
+function cacheToken(token: ApiTokenWithPrice) {
+  tokensCache.bySlug[token.slug] = token;
+  indexTokenAddress(token);
+}
+
+function indexTokenAddress({ slug, tokenAddress }: ApiTokenWithPrice) {
+  if (!tokenAddress) return;
+
+  const addressKey = buildTokenAddressKey(tokenAddress);
+  const slugs = slugsByAddressKey.get(addressKey);
+  if (slugs) {
+    slugs.add(slug);
+  } else {
+    slugsByAddressKey.set(addressKey, new Set([slug]));
+  }
 }
 
 export function getTokensCache() {
@@ -320,8 +367,9 @@ export function getTokenByAddress(tokenAddress: string, chain?: ApiChain) {
   if (chain) return getTokenBySlug(buildTokenSlug(chain, tokenAddress));
 
   const addressKey = buildTokenAddressKey(tokenAddress);
-  const matches = Object.values(tokensCache.bySlug).filter((token) => {
-    return token.tokenAddress && buildTokenAddressKey(token.tokenAddress) === addressKey;
+  const matches = [...slugsByAddressKey.get(addressKey) ?? []].flatMap((slug) => {
+    const token = getTokenBySlug(slug);
+    return token?.tokenAddress && buildTokenAddressKey(token.tokenAddress) === addressKey ? [token] : [];
   });
 
   const matchedToken = matches[0];
@@ -411,9 +459,40 @@ export function resumeTokenUpdates() {
  * token. The resolver must assign the slugs in the same synchronous run that writes the tokens to the cache.
  */
 export async function waitForTokenSlugResolver(signal?: AbortSignal) {
-  if (isCatalogRequested) await raceWithAbortSignal(catalogPreload.promise, signal);
+  if (isCatalogRequested) {
+    catalogWait ??= tokensPreload.promise.then(() => Promise.race([
+      catalogPreload.promise,
+      pause(CATALOG_WAIT_TIMEOUT),
+    ]));
+    await raceWithAbortSignal(catalogWait, signal);
+  }
 
   return resolveTokenSlugs;
+}
+
+/**
+ * Caches the tokens fetched together and returns them, in the same order, with their slugs. They may share a backend
+ * slug, so the slugs of the tokens with an address are assigned together, right before the cache gets them. A token
+ * without an address keeps its own slug.
+ */
+export async function updateTokensFetchedTogether(tokens: FetchedToken[], options: {
+  signal?: AbortSignal;
+  sendUpdate?: NoneToVoidFunction;
+  shouldSendUpdate?: boolean;
+} = {}) {
+  const { signal, sendUpdate, shouldSendUpdate } = options;
+  const resolveSlugs = await waitForTokenSlugResolver(signal);
+  const slugs = resolveSlugs(tokens.flatMap(({ chain, tokenAddress }) => (
+    tokenAddress ? [{ chain, address: tokenAddress }] : []
+  )));
+  let slugIndex = 0;
+  const tokensWithSlugs = tokens.map((token): ApiTokenWithMaybePrice => ({
+    ...token,
+    slug: token.tokenAddress ? slugs[slugIndex++] : token.slug!,
+  }));
+  await updateTokens(tokensWithSlugs, sendUpdate, undefined, shouldSendUpdate);
+
+  return tokensWithSlugs;
 }
 
 /**

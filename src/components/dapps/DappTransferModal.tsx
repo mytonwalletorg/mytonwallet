@@ -1,4 +1,6 @@
-import React, { memo, useMemo } from '../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useRef,
+} from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiToken } from '../../api/types';
@@ -32,6 +34,7 @@ interface StateProps {
   currentDappTransfer: GlobalState['currentDappTransfer'];
   tokensBySlug: Record<string, ApiToken>;
   isMediaViewerOpen?: boolean;
+  isAppLocked?: boolean;
 }
 
 function DappTransferModal({
@@ -39,6 +42,7 @@ function DappTransferModal({
     isLoading,
     viewTransactionOnIdx,
     state,
+    promiseId,
     transactions,
     dapp,
     shouldHideTransfers,
@@ -46,6 +50,7 @@ function DappTransferModal({
   },
   tokensBySlug,
   isMediaViewerOpen,
+  isAppLocked,
 }: StateProps) {
   const {
     setDappTransferScreen,
@@ -58,6 +63,18 @@ function DappTransferModal({
   const lang = useLang();
 
   const isOpen = state !== TransferState.None;
+
+  // The close animation can end after a newer request opened, so it cancels the request this modal showed when the
+  // close began, snapshotted at that moment
+  const shownPromiseIdRef = useRef<string>();
+  const closingPromiseIdRef = useRef<string>();
+  useEffect(() => {
+    if (isOpen) {
+      shownPromiseIdRef.current = promiseId;
+    } else {
+      closingPromiseIdRef.current = shownPromiseIdRef.current;
+    }
+  }, [isOpen, promiseId]);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
@@ -81,7 +98,7 @@ function DappTransferModal({
   });
 
   const handleResetTransfer = useLastCallback(() => {
-    cancelDappTransfer();
+    cancelDappTransfer({ promiseId: closingPromiseIdRef.current });
     updateNextKey();
   });
 
@@ -168,6 +185,7 @@ function DappTransferModal({
     <Modal
       hasCloseButton
       isOpen={isOpen && !isMediaViewerOpen}
+      isKeyboardDisabled={isAppLocked}
       noBackdropClose
       dialogClassName={styles.modalDialog}
       onClose={closeDappTransfer}
@@ -192,5 +210,6 @@ export default memo(withGlobal((global): StateProps => {
     currentDappTransfer: global.currentDappTransfer,
     tokensBySlug: global.tokenInfo.bySlug,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
+    isAppLocked: global.isAppLockActive,
   };
 })(DappTransferModal));

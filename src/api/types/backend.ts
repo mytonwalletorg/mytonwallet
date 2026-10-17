@@ -60,6 +60,8 @@ export type ApiSwapDexRouterLabel = 'dedust-router-v2' | 'omniston' | 'jupiter' 
 
 export type ApiSwapDexLabel = 'dedust' | 'ston';
 export type ApiSwapCexLabel = 'changelly' | 'near-intents';
+/** Which venue priced the swap. Independent of whether the two tokens share a chain. */
+export type ApiSwapRouteType = 'dex' | 'cex';
 export type ApiSwapFeeMode = 'extra' | 'included';
 
 export type ApiSwapEstimateRequest = {
@@ -144,6 +146,8 @@ export type ApiSwapDexEstimateResponse = {
   dieselFee?: string;
   /** EVM: Uniswap allowance is insufficient and approve is required before swap. */
   needsApprove?: boolean;
+  /** The swap is submitted as an EIP-7702 batch. Set by `swapEstimate`. */
+  needsBatch?: boolean;
 };
 
 export type ApiSwapCexEstimateResponse = {
@@ -169,11 +173,16 @@ export type ApiSwapHint =
   | { type: 'intermediate'; token: string }
   | { type: 'external'; providerName: string; url: string };
 
+/** Present only for tester wallets; backend may attach more fields. */
+export type ApiSwapEstimateDebug = {
+  summary: string;
+};
+
 export type ApiSwapEstimateResponse = (
   | ApiSwapDexEstimateResponse
   | ApiSwapCexEstimateResponse
   | { error: string }
-) & { hint?: ApiSwapHint };
+) & { hint?: ApiSwapHint; debug?: ApiSwapEstimateDebug };
 
 export type ApiSwapBuildTransactionRequest = {
   from: string;
@@ -206,7 +215,7 @@ export type ApiSwapBuildTransactionRequest = {
   /** Client-side only: used by validateDexSwapTransfers, not consumed by the backend */
   ourFee?: string;
   /** Client-side only: from estimate; gates EIP-7702 approve+swap batching on EVM. */
-  needsApprove?: boolean;
+  needsBatch?: boolean;
 };
 
 export type ApiSwapTransfer = {
