@@ -1,4 +1,4 @@
-
+import ContextMenuKit
 import SwiftUI
 import UIKit
 import UIComponents
@@ -9,7 +9,7 @@ import Perception
 struct ActionsRow: View {
 
     var model: ActivityDetailsViewModel
-    
+
     var shouldShowRepeat: Bool {
         let account = model.accountContext.account
         guard account.type != .view else { return false }
@@ -55,9 +55,19 @@ struct ActionsRow: View {
             
             let shareUrl = self.shareUrl
             let toolbarModel = ActivityDetailsActionsToolbar.Model(
+                showWear: model.wearableNft != nil,
                 showDetails: model.detailsCollapseEnabled,
                 showRepeat: shouldShowRepeat,
                 showShare: shareUrl != nil,
+                onWearMenu: {
+                    model.refreshWearableNft()
+                    guard let nft = model.wearableNft else { return nil }
+                    return MtwCardWearMenu.makeConfiguration(
+                        accountId: model.accountContext.accountId,
+                        nft: nft,
+                        source: "activityDetails"
+                    )
+                },
                 onDetailsExpanded: { model.onDetailsExpanded() },
                 onRepeat: { AppActions.repeatActivity(accountContext: model.accountContext, model.activity) },
                 onShare: {
@@ -90,21 +100,25 @@ struct ActionsRow: View {
 }
 
 private final class ActivityDetailsActionsToolbar: ButtonsToolbar {
+    var wearButton: WScalableButton!
     var detailsButton: WScalableButton!
     var repeatButton: WScalableButton!
     var shareButton: WScalableButton!
     private var model: Model!
+    private var wearMenuInteraction: ContextMenuInteraction?
 
     struct Model {
+        let showWear: Bool
         let showDetails: Bool
         let showRepeat: Bool
         let showShare: Bool
+        let onWearMenu: () -> ContextMenuConfiguration?
         let onDetailsExpanded: () -> Void
         let onRepeat: () -> Void
         let onShare: () -> Void
 
         @MainActor var visibleCount: Int {
-            [showDetails, showRepeat, showShare].filter { $0 }.count
+            [showWear, showDetails, showRepeat, showShare].filter { $0 }.count
         }
 
         @MainActor func width(constrainedTo availableWidth: CGFloat) -> CGFloat {
@@ -129,6 +143,7 @@ private final class ActivityDetailsActionsToolbar: ButtonsToolbar {
         if detailsButton == nil {
             setupButtons()
         }
+        wearButton.isHidden = !model.showWear
         detailsButton.isHidden = !model.showDetails
         repeatButton.isHidden = !model.showRepeat
         shareButton.isHidden = !model.showShare
@@ -136,6 +151,26 @@ private final class ActivityDetailsActionsToolbar: ButtonsToolbar {
     }
 
     private func setupButtons() {
+        let wear = WScalableButton(title: lang("Wear"), image: UIImage.airBundle("WearIconBold"), onTap: {})
+        let interaction = ContextMenuInteraction(
+            triggers: [.tap, .longPress],
+            longPressDuration: 0.25,
+            sourcePortal: ContextMenuSourcePortal(
+                mask: .roundedAttachmentRect(
+                    cornerRadius: WScalableButton.preferredCornerRadius,
+                    cornerCurve: .continuous
+                )
+            )
+        ) { [weak self] _ in
+            guard var configuration = self?.model?.onWearMenu() else { return nil }
+            configuration.style.glassTint = .subtle
+            return configuration
+        }
+        interaction.attach(to: wear)
+        wearMenuInteraction = interaction
+        addArrangedSubview(wear)
+        wearButton = wear
+
         let details = WScalableButton(title: lang("Details"), image: UIImage.airBundle("DetailsIconBold"), onTap: { [weak self] in self?.model?.onDetailsExpanded() })
         addArrangedSubview(details)
         detailsButton = details

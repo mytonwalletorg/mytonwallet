@@ -23,7 +23,6 @@ import useLastCallback from '../../../hooks/useLastCallback';
 import useScrolledState from '../../../hooks/useScrolledState';
 
 import Button from '../../ui/Button';
-import Collapsible from '../../ui/Collapsible';
 import Dropdown, { type DropdownItem } from '../../ui/Dropdown';
 import ModalHeader from '../../ui/ModalHeader';
 import Switcher from '../../ui/Switcher';
@@ -207,7 +206,7 @@ function SecurityMain({
                 checked={isAppLockEnabled}
               />
             </div>
-            <Collapsible isShown={!!isAppLockEnabled}>
+            {isAppLockEnabled && (
               <Dropdown
                 label={lang('Auto-Lock')}
                 items={AUTOLOCK_OPTIONS_LIST as unknown as DropdownItem<AutolockValueType>[]}
@@ -218,7 +217,7 @@ function SecurityMain({
                 labelClassName={styles.itemAutoLockLabel}
                 onChange={onAutolockChange}
               />
-            </Collapsible>
+            )}
           </div>
           <p className={styles.blockDescription}>{lang('$app_lock_description', { app_name: APP_NAME })}</p>
 

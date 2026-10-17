@@ -16,7 +16,8 @@ export interface AddressMenuItem {
   domain?: string;
   icon: string;
   title: string;
-  label: string;
+  actionIcon: string;
+  actionLabel: string;
 }
 
 interface OwnProps {
@@ -24,8 +25,8 @@ interface OwnProps {
   withDelimiter?: boolean;
   onClick: (e: React.UIEvent<HTMLElement>, item: AddressMenuItem) => void;
   onMouseEnter?: (e: React.MouseEvent<HTMLElement>, item: AddressMenuItem, rowEl: HTMLElement) => void;
-  onExplorerMouseEnter?: NoneToVoidFunction;
-  onExplorerClick: (e: React.UIEvent<HTMLElement>, item: AddressMenuItem) => void;
+  onActionMouseEnter?: NoneToVoidFunction;
+  onActionClick: (e: React.UIEvent<HTMLElement>, item: AddressMenuItem) => void;
 }
 
 const SUBTITLE_DOMAIN_MAX_LENGTH = 10;
@@ -36,8 +37,8 @@ function MenuItem({
   withDelimiter,
   onClick,
   onMouseEnter,
-  onExplorerMouseEnter,
-  onExplorerClick,
+  onActionMouseEnter,
+  onActionClick,
 }: OwnProps) {
   const rowRef = useRef<HTMLDivElement>();
   const hasDomain = Boolean(item.domain);
@@ -84,15 +85,15 @@ function MenuItem({
       <i
         tabIndex={0}
         role="button"
-        className={buildClassName('icon-explorer-small', styles.itemExplorerIcon)}
-        aria-label={item.label}
-        onMouseEnter={onExplorerMouseEnter}
-        onClick={(e: React.MouseEvent<HTMLElement>) => { onExplorerClick(e, item); }}
+        className={buildClassName(item.actionIcon, styles.itemActionButton)}
+        aria-label={item.actionLabel}
+        onMouseEnter={onActionMouseEnter}
+        onClick={(e: React.MouseEvent<HTMLElement>) => { onActionClick(e, item); }}
         onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
           if (e.code !== 'Enter' && e.code !== 'Space') return;
           // Space scrolls the page by default
           if (e.code === 'Space') e.preventDefault();
-          onExplorerClick(e, item);
+          onActionClick(e, item);
         }}
       />
     </div>

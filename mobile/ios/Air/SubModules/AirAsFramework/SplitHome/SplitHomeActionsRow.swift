@@ -6,10 +6,39 @@ import SwiftNavigation
 import UIAssets
 
 @MainActor
+struct SplitHomeActionsLayout: Equatable {
+    let itemSize: CGSize
+    let titleFont: UIFont
+
+    init(windowHeight: CGFloat, traitCollection: UITraitCollection) {
+        // Includes the 744 pt landscape mini and short Duo/resized windows.
+        let isCompact = windowHeight > 0 && windowHeight <= 800
+        let sideLength: CGFloat = isCompact ? 90 : WActionTileButton.sideLength
+        let style: WTextStyle = isCompact ? .supportingEmphasized : .calloutEmphasized
+        let titleFont = UIFontMetrics(forTextStyle: .callout).scaledFont(
+            for: WTypography.uiFont(style),
+            compatibleWith: traitCollection
+        )
+        self.titleFont = titleFont
+        let titleSizes = SplitHomeActionItem.allCases.map {
+            ($0.title as NSString).size(withAttributes: [.font: titleFont])
+        }
+        let titleWidth = titleSizes.map(\.width).max() ?? 0
+        let titleHeight = max(titleFont.lineHeight, titleSizes.map(\.height).max() ?? 0)
+        // Preserve the full localized title; wider tiles can scroll horizontally.
+        itemSize = CGSize(
+            width: max(sideLength, ceil(titleWidth) + 16 + 6),
+            height: max(sideLength, 12 + 32 + 8 + ceil(titleHeight) + 12)
+        )
+    }
+}
+
+@MainActor
 final class SplitHomeActionsSectionCell: UICollectionViewCell {
     static let bottomSpacing: CGFloat = 8
 
     private let actionsRowView = SplitHomeActionsRowView()
+    private var rowHeightConstraint: NSLayoutConstraint!
     
     override class var layerClass: AnyClass { Layer.self }
     
@@ -40,17 +69,23 @@ final class SplitHomeActionsSectionCell: UICollectionViewCell {
         
         contentView.addSubview(actionsHostView)
         
+        rowHeightConstraint = actionsHostView.heightAnchor.constraint(equalToConstant: WActionTileButton.sideLength)
         NSLayoutConstraint.activate([
             actionsHostView.topAnchor.constraint(equalTo: contentView.topAnchor),
             actionsHostView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             actionsHostView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            actionsHostView.heightAnchor.constraint(equalToConstant: SplitHomeActionsRowView.rowHeight),
+            rowHeightConstraint,
             actionsHostView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Self.bottomSpacing),
         ])
     }
     
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
+
+    func configure(layout: SplitHomeActionsLayout) {
+        rowHeightConstraint.constant = layout.itemSize.height
+        actionsRowView.configure(layout: layout)
+    }
     
     override func didMoveToWindow() {
         super.didMoveToWindow()
@@ -153,8 +188,8 @@ private class Layer: CALayer {
 
 @MainActor
 final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
-    static let rowHeight: CGFloat = WActionTileButton.sideLength
     static let itemSpacing: CGFloat = 16
+    private var actionsLayout = SplitHomeActionsLayout(windowHeight: 0, traitCollection: UITraitCollection())
     
     private enum Section: Hashable {
         case main
@@ -185,7 +220,7 @@ final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
                 return UICollectionViewCell()
             }
             if let accountContext = self.accountContext {
-                cell.configure(item: action, accountContext: accountContext)
+                cell.configure(item: action, accountContext: accountContext, titleFont: self.actionsLayout.titleFont)
             }
             return cell
         }
@@ -199,7 +234,6 @@ final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: Self.rowHeight),
         ])
     }
     
@@ -209,6 +243,18 @@ final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
     
     private weak var accountContext: AccountContext?
     private var viewModel: SplitHomeActionsViewModel?
+
+    func configure(layout: SplitHomeActionsLayout) {
+        guard actionsLayout != layout else { return }
+        actionsLayout = layout
+        if let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            flowLayout.itemSize = layout.itemSize
+            flowLayout.invalidateLayout()
+        }
+        var snapshot = dataSource.snapshot()
+        snapshot.reconfigureItems(snapshot.itemIdentifiers)
+        dataSource.apply(snapshot, animatingDifferences: false)
+    }
     
     func configure(accountContext: AccountContext) {
         guard self.accountContext !== accountContext || viewModel == nil else { return }
@@ -237,7 +283,7 @@ final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
     private func makeLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: WActionTileButton.sideLength, height: WActionTileButton.sideLength)
+        layout.itemSize = actionsLayout.itemSize
         layout.minimumInteritemSpacing = Self.itemSpacing
         layout.minimumLineSpacing = Self.itemSpacing
         layout.sectionInset = .zero
@@ -302,7 +348,7 @@ private final class SplitHomeActionCollectionCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configure(item: SplitHomeActionItem, accountContext: AccountContext) {
+    func configure(item: SplitHomeActionItem, accountContext: AccountContext, titleFont: UIFont) {
         if actionButton == nil {
             let actionButton = WActionTileButton(title: item.title, image: item.image)
             actionButton.translatesAutoresizingMaskIntoConstraints = false
@@ -317,6 +363,7 @@ private final class SplitHomeActionCollectionCell: UICollectionViewCell {
         }
 
         self.accountContext = accountContext
+        actionButton?.titleLabel.font = titleFont
 
         guard self.item != item else { return }
 

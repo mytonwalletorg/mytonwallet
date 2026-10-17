@@ -97,17 +97,24 @@ function CardAddress({
     const hiddenChains = (orderedChains ?? EMPTY_CHAINS).filter((chain) => !chains.includes(chain));
 
     return {
-      menuItems: chains.map((chain) => buildMenuItem(lang, chain, byChain[chain]!)),
-      hiddenMenuItems: hiddenChains.map((chain) => buildMenuItem(lang, chain, byChain[chain]!)),
+      menuItems: chains.map((chain) => buildMenuItem(
+        lang, chain, byChain[chain]!, isTemporary, selectedExplorerIds?.[chain],
+      )),
+      hiddenMenuItems: hiddenChains.map((chain) => buildMenuItem(
+        lang, chain, byChain[chain]!, isTemporary, selectedExplorerIds?.[chain],
+      )),
     };
-  }, [byChain, chains, orderedChains, lang]);
+  }, [byChain, chains, orderedChains, lang, isTemporary, selectedExplorerIds]);
 
-  const handleExplorerClick = useLastCallback((chain: ApiChain, address: string) => {
-    void openUrl(getExplorerAddressUrl(chain, address, isTestnet, selectedExplorerIds?.[chain])!);
-    closeMenu();
+  const { showToast, openReceiveModal } = getActions();
+
+  const handleActionClick = useLastCallback((chain: ApiChain, address: string) => {
+    if (isTemporary) {
+      void openUrl(getExplorerAddressUrl(chain, address, isTestnet, selectedExplorerIds?.[chain])!);
+    } else {
+      openReceiveModal({ chain });
+    }
   });
-
-  const { showToast } = getActions();
 
   const handleLongPress = useLastCallback((chain: ApiChain, address: string, domain?: string) => {
     void copyTextToClipboard(domain ?? address);
@@ -141,7 +148,7 @@ function CardAddress({
           menuRef={menuRef}
           isTestnet={isTestnet}
           onClose={closeMenu}
-          onExplorerClick={handleExplorerClick}
+          onActionClick={handleActionClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           getTriggerElement={getTriggerElement}
@@ -176,6 +183,8 @@ function buildMenuItem(
   lang: LangFn,
   chain: ApiChain,
   wallet: NonNullable<Account['byChain'][ApiChain]>,
+  isTemporary?: boolean,
+  explorerId?: string,
 ): AddressMenuItem {
   return {
     chain,
@@ -184,9 +193,12 @@ function buildMenuItem(
     ...(wallet.domain && { domain: wallet.domain }),
     icon: getChainNetworkIcon(chain),
     title: getChainTitle(chain),
-    label: (lang('View address on %explorer_name%', {
-      explorer_name: getExplorerName(chain),
-    }) as string[]
-    ).join(''),
+    // A temporary account is someone else's wallet being viewed, so its rows lead to the explorer instead of Fund
+    actionIcon: isTemporary ? 'icon-explorer-small' : 'icon-qr-code',
+    actionLabel: isTemporary
+      ? (lang('View address on %explorer_name%', {
+        explorer_name: getExplorerName(chain, explorerId),
+      }) as string[]).join('')
+      : lang('Receive'),
   };
 }

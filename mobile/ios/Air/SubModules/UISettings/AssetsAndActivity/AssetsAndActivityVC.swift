@@ -180,6 +180,7 @@ public class AssetsAndActivityVC: WViewController {
         let baseCurrencyReg = UICollectionView.CellRegistration<SimpleGroupCell, Item> { [weak self] cell, _, _ in
             guard let self else { return }
             cell.title = lang("Base Currency")
+            cell.accessibilityIdentifier = "assets_base_currency"
             cell.accessoryView = SimpleGroupCell.TitledDisclosureAccessory(text: baseCurrency.symbol)
         }
 

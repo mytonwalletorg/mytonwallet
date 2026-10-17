@@ -84,7 +84,7 @@ class TokenActionsView: WTouchPassStackView {
         buttons += sendButton
 
         swapButton = makeButton(
-            title: lang("Swap"),
+            title: lang("Trade"),
             image: .airBundle(usesSplitHomeActionStyle ? "SwapIconLarge" : "SwapIconBold"),
             onTap: { [weak self] in self?.swapPressed() },
         )
@@ -141,6 +141,7 @@ class TokenActionsView: WTouchPassStackView {
             return !addButton.isHidden
         }
         set {
+            guard fundAvailable != newValue else { return }
             addButton.isHidden = !newValue
             updateSpacing()
         }
@@ -150,6 +151,7 @@ class TokenActionsView: WTouchPassStackView {
             return !swapButton.isHidden
         }
         set {
+            guard swapAvailable != newValue else { return }
             swapButton.isHidden = !newValue
             updateSpacing()
         }
@@ -159,6 +161,7 @@ class TokenActionsView: WTouchPassStackView {
             return !sendButton.isHidden
         }
         set {
+            guard sendAvailable != newValue else { return }
             sendButton.isHidden = !newValue
             updateSpacing()
         }
@@ -168,6 +171,7 @@ class TokenActionsView: WTouchPassStackView {
             return !earnButton.isHidden
         }
         set {
+            guard earnAvailable != newValue else { return }
             earnButton.isHidden = !newValue
             updateSpacing()
         }

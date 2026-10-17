@@ -110,16 +110,21 @@ func compareActivityIds(_ idA: String, _ idB: String, byId: [String: ApiActivity
 
 func preserveActivityStatusProgress(existingActivity: ApiActivity?, incomingActivity: ApiActivity) -> ApiActivity {
     guard let existingActivity,
-          existingActivity.kind == incomingActivity.kind,
-          activityStatusRank(existingActivity) > activityStatusRank(incomingActivity) else {
+          existingActivity.kind == incomingActivity.kind else {
         return incomingActivity
     }
 
+    let shouldPreserveStatus = activityStatusRank(existingActivity) > activityStatusRank(incomingActivity)
+
     switch (existingActivity, incomingActivity) {
     case (.transaction(let existingTransaction), .transaction(var incomingTransaction)):
-        incomingTransaction.status = existingTransaction.status
+        incomingTransaction.etaSeconds = incomingTransaction.etaSeconds ?? existingTransaction.etaSeconds
+        if shouldPreserveStatus {
+            incomingTransaction.status = existingTransaction.status
+        }
         return .transaction(incomingTransaction)
     case (.swap(let existingSwap), .swap(var incomingSwap)):
+        guard shouldPreserveStatus else { return incomingActivity }
         incomingSwap.status = existingSwap.status
         if let cexStatus = existingSwap.cex?.status {
             incomingSwap.cex?.status = cexStatus

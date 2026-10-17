@@ -5,7 +5,7 @@ import type { AbstractWebsocketClient, BalanceUpdate, NewActivitiesCallback, Wal
 
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { createCallbackManager } from '../../../util/callbacks';
-import { getChainConfig, getSupportedChains } from '../../../util/chain';
+import { getChainConfig, getChainsByStandard, getSupportedChains } from '../../../util/chain';
 import Deferred from '../../../util/Deferred';
 import { pick } from '../../../util/iteratees';
 import { logDebug } from '../../../util/logs';
@@ -122,6 +122,14 @@ export class BalanceStream {
   ) => Promise<void>);
 
   #isDestroyed = false;
+  /** The chains whose slugs the running poll assigns, `undefined` between the polls */
+  #pollChains?: readonly ApiChain[];
+  /**
+   * A moved slug of another chain asks the next poll to fetch every chain of the standard together, as the first poll
+   * does. Only the stream that fetches them together holds such slugs. Kept until that poll starts, as the throttled
+   * poll runs with the arguments of its last request.
+   */
+  #isCrosschainRefetchPending = false;
   #removeSlugMoveListener: NoneToVoidFunction;
 
   #ensureIsPollingNeeded?: () => Promise<boolean>;
@@ -248,15 +256,28 @@ export class BalanceStream {
 
   /**
    * The balances already sent under a slug that passed to another token are amounts of the previous holder, which the
-   * UI now shows with the new holder's decimals and price. A stream that has sent nothing yet assigns the new slugs in
-   * its pending poll.
+   * UI would show with the new holder's decimals and price. They are dropped at once, before the UI gets the new
+   * holder, and fetched again. A poll yet to start assigns the new slugs itself, while a running one may have assigned
+   * the old ones, so it is followed by another and cannot bring the dropped balances back. A stream holding the slugs of
+   * other chains fetches them all again.
    */
   #handleTokenSlugsMove = (slugs: string[]) => {
-    if (!this.#balances && !crosschainAssetsByChain.has(this.#chain)) return;
+    const crosschainBalances = crosschainAssetsByChain.get(this.#chain);
+    const affectedSlugs = slugs.filter((slug) => {
+      const chain = getChainBySlug(slug);
+      if (this.#pollChains?.includes(chain)) return true;
 
-    if (slugs.some((slug) => getChainBySlug(slug) === this.#chain)) {
-      this.#fallbackPollingScheduler?.forceImmediatePoll();
+      return this.#balances
+        ? slug in this.#balances
+        : chain === this.#chain && crosschainBalances !== undefined && slug in crosschainBalances;
+    });
+    if (!affectedSlugs.length) return;
+
+    this.#dropBalances(affectedSlugs);
+    if (affectedSlugs.some((slug) => getChainBySlug(slug) !== this.#chain)) {
+      this.#isCrosschainRefetchPending = true;
     }
+    this.#fallbackPollingScheduler?.forceImmediatePoll();
   };
 
   #handleSocketBalanceUpdate: OnSocketBalancesUpdate = async (newBalances) => {
@@ -306,6 +327,7 @@ export class BalanceStream {
   /** Fetches all balances when the socket is not connected or has just connected */
   #poll = async (isInitial?: boolean) => {
     try {
+      this.#pollChains = [this.#chain];
       this.#loadingListeners.runCallbacks(true);
 
       // True when a socket/activity wake flipped the stream to active while this precheck was
@@ -330,13 +352,15 @@ export class BalanceStream {
         return;
       }
 
-      if (isInitial && this.#fetchCrosschainBalancesCb) {
+      if ((isInitial || this.#isCrosschainRefetchPending) && this.#fetchCrosschainBalancesCb) {
         const config = getChainConfig(this.#chain);
         if (!config.chainStandard || config.chainStandard !== this.#chain) {
           if (!wasWokenDuringPrecheck) {
             return;
           }
         } else {
+          this.#isCrosschainRefetchPending = false;
+          this.#pollChains = getChainsByStandard(this.#chain);
           // Capture the freshness version before awaiting, so a socket delta that arrives during the
           // fetch is recognised as newer than this snapshot.
           const pollVersion = ++this.#clock;
@@ -380,6 +404,7 @@ export class BalanceStream {
       this.#setAllBalances(newBalances, pollVersion, asOf);
       this.#balancesDeferred.resolve();
     } finally {
+      this.#pollChains = undefined;
       if (!this.#isDestroyed) {
         this.#loadingListeners.runCallbacks(false);
       }
@@ -460,8 +485,9 @@ export class BalanceStream {
         } else {
           this.#balanceAsOfBySlug.set(slug, snapshotAsOf);
         }
-      } else {
-        merged[slug] = this.#balances![slug];
+      } else if (this.#balances && slug in this.#balances) {
+        // A slug the stream dropped after this snapshot started stays dropped
+        merged[slug] = this.#balances[slug];
       }
     }
 
@@ -515,6 +541,24 @@ export class BalanceStream {
       ...changedBySlug,
     };
     this.#updateListeners.runCallbacks(this.#balances, 'socket');
+  }
+
+  /** Removes the balances of the slugs, stamped as newer than any snapshot already fetched, so none brings them back */
+  #dropBalances(slugs: string[]) {
+    const version = ++this.#clock;
+    for (const slug of slugs) {
+      this.#balanceVersionBySlug.set(slug, version);
+      this.#balanceAsOfBySlug.delete(slug);
+    }
+
+    if (!this.#balances || !slugs.some((slug) => slug in this.#balances!)) return;
+
+    const balances = { ...this.#balances };
+    for (const slug of slugs) {
+      delete balances[slug];
+    }
+    this.#balances = balances;
+    this.#updateListeners.runCallbacks(this.#balances, 'poll');
   }
 }
 

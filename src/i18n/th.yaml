@@ -595,6 +595,13 @@ Are you sure you want to disable biometrics?: คุณแน่ใจหรื�
 "Yes": ใช่
 Biometric confirmation failed: การยืนยันข้อมูลชีวภาพล้มเหลว
 No Activity: ไม่มีกิจกรรม
+Loading Activity: กำลังโหลดกิจกรรม
+Loading More Activity: กำลังโหลดกิจกรรมเพิ่มเติม
+Your activity history is loading.: กำลังโหลดประวัติกิจกรรมของคุณ
+Taking Longer Than Usual: ใช้เวลานานกว่าปกติ
+Activity history is taking longer to load. Please check back shortly.: การโหลดประวัติกิจกรรมใช้เวลานานกว่าปกติ โปรดกลับมาตรวจสอบอีกครั้งในอีกสักครู่
+Activity Unavailable: ไม่สามารถแสดงกิจกรรมได้
+Activity history is temporarily unavailable. We’ll try again shortly.: ประวัติกิจกรรมไม่พร้อมใช้งานชั่วคราว เราจะลองอีกครั้งในอีกสักครู่
 Fund: เติมเงิน
 Buy with Card: ซื้อด้วยบัตร
 Buy with Crypto: ซื้อด้วยคริปโต
@@ -627,6 +634,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: คุณสามารถ %action% ได้.
 $wallet_switch_version_2: สับเปลี่ยนเวอร์ชั่นของวอลเล็ต
 or import from: หรือนำเข้า
+or enter manually: หรือป้อนด้วยตนเอง
 Insufficient fee: ค่าธรรมเนียมไม่เพียงพอ
 $insufficient_fee: "ค่าธรรมเนียมไม่เพียงพอ: %fee%"
 $dapp_insufficient_network_fee_warning: มี %token% ไม่เพียงพอสำหรับค่าธรรมเนียมเครือข่าย
@@ -682,6 +690,7 @@ $transfer_link_expired: ลิงก์การโอนหมดอายุ�
 $transfer_text_and_bin_exclusive: ไม่สามารถใช้พารามิเตอร์ข้อความและข้อมูลไบนารีร่วมกันได้
 $unsupported_deeplink_parameter: ลิงก์นี้มีพารามิเตอร์ที่ไม่รองรับ.
 $unsupported_chain: บล็อกเชนที่ไม่รองรับ.
+$token_chain_not_supported_by_wallet: "กระเป๋าเงินปัจจุบันของคุณไม่รองรับ %chain% สร้างกระเป๋าเงินแบบมัลติเชนเพื่อใช้โทเค็นนี้"
 Successfully: สำเร็จแล้ว
 Estimated Time: เวลาโดยประมาณ
 $utxo_confirmations:
@@ -1298,6 +1307,7 @@ $agent_connection_interrupted: การเชื่อมต่อผู้ช�
 $agent_history_unavailable: ไม่สามารถโหลดประวัติการแชทได้ โปรดลองอีกครั้ง
 $agent_secret_words_removed: "[ลบคำลับแล้วและไม่ได้ส่ง]"
 $agent_activity_analyzing_request: กำลังวิเคราะห์คำขอของคุณ…
+$agent_analyzing: กำลังวิเคราะห์
 $agent_activity_wallet: กำลังอ่านข้อมูลกระเป๋าเงิน…
 $agent_activity_transactions: กำลังตรวจสอบกิจกรรมในกระเป๋าเงิน…
 $agent_activity_portfolio: กำลังโหลดข้อมูลพอร์ตโฟลิโอ…
@@ -1405,6 +1415,9 @@ $agent_report_problem_description: ข้อความล่าสุดใน
 $agent_report_problem_sent: ขอบคุณ! ส่งรายงานของคุณแล้ว
 $agent_report_problem_failed: ไม่สามารถส่งรายงานได้ โปรดลองอีกครั้ง
 $agent_report_problem_rate_limited: คุณส่งรายงานหลายครั้งเมื่อเร็วๆ นี้ โปรดลองอีกครั้งในภายหลัง
+Like: ถูกใจ
+Dislike: ไม่ถูกใจ
+$agent_feedback_failed: ไม่สามารถบันทึกการให้คะแนนของคุณได้ โปรดลองอีกครั้ง
 $unknown_swap_token: ไม่รู้จักโทเค็นในลิงก์สวอป ใช้โทเค็นเริ่มต้นแทน
 $action_not_available_view_mode: การดำเนินการนี้ไม่สามารถใช้ได้สำหรับวอลเล็ตสำหรับดู
 Deposit: ฝากเงิน
@@ -2043,4 +2056,5 @@ Ruble: รูเบิล
 $token_price_value: "ราคา: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: การสับเปลี่ยนลักษณะนี้มักใช้เวลาไม่กี่นาที ในกรณีที่พบได้น้อยอาจใช้เวลาถึงสองชั่วโมง
 3D Gram Diamond: เพชร Gram 3 มิติ
+Hold to enlarge. Drag to rotate.: กดค้างไว้เพื่อขยาย ลากเพื่อหมุน
 "Max": "สูงสุด"

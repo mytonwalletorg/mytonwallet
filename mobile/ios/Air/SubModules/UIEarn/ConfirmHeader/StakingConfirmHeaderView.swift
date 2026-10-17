@@ -21,6 +21,7 @@ struct StakingConfirmHeaderView: ConfirmationContent {
     var body: some View {
         VStack(spacing: 0) {
             iconView
+                .zIndex(1)
                 .padding(.bottom, 16)
             amountView
                 .padding(.bottom, 12)
@@ -62,17 +63,7 @@ struct StakingConfirmHeaderView: ConfirmationContent {
     
     @ViewBuilder
     var iconView: some View {
-        WUIIconViewToken(
-            token: tokenAmount.token,
-            isWalletView: false,
-            showldShowChain: true,
-            size: 60,
-            chainSize: 24,
-            chainBorderWidth: 1.5,
-            chainHorizontalOffset: 6,
-            chainVerticalOffset: 2
-        )
-            .frame(width: 60, height: 60)
+        TokenHeroView(token: tokenAmount.token, size: 60)
     }
     
     @ViewBuilder

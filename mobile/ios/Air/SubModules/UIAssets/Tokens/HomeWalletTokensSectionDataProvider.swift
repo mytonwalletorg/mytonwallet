@@ -137,7 +137,7 @@ public final class HomeWalletTokensSectionDataProvider: ActivityListViewControll
         cachedAccountOrder.removeAll()
     }
 
-    isolated deinit { preloadTask?.cancel() }
+    nonisolated deinit { preloadTask?.cancel() }
 
     // A bounded set of pools preserves warm hosts. An item's registration must stay
     // stable when UIKit reconfigures it, including after moves or an account switch.

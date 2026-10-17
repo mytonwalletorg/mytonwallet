@@ -65,6 +65,11 @@ export type UtcTimestampMs = string;
 export type AgentActionKind = 'send' | 'receive' | 'stake' | 'swap' | 'openDapp';
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentAnswerFeedbackV2".
+ */
+export type AgentAnswerFeedbackV2 = 'like' | 'dislike';
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
  * via the `definition` "AgentDisplayTableV1".
  */
 export type AgentDisplayTableV1 = {
@@ -122,6 +127,11 @@ export type AgentAvailabilityResponseV2 =
  */
 export type AgentClientFeature = 'followups' | 'walletDirectory' | 'sendRecipientWithoutAsset' | 'walletChainLookup';
 export type AgentApiChainList1 = AgentApiChain[];
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadTitleV2".
+ */
+export type AgentThreadTitleV2 = string;
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
  * via the `definition` "UuidInput".
@@ -759,6 +769,7 @@ export type AgentPersistedMessageV2 = {
    * @maxItems 3
    */
   followups?: AgentPublicFollowUpV2[];
+  feedback?: AgentAnswerFeedbackV2;
 };
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
@@ -995,6 +1006,11 @@ export type AgentWalletValueSeriesArgs = {
   maxPoints: number;
 };
 export type AgentApiChainList11 = AgentApiChain[];
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadListCursorV2".
+ */
+export type AgentThreadListCursorV2 = string;
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
  * via the `definition` "AgentToolError".
@@ -1534,6 +1550,26 @@ export interface AgentOpenDappActionV1 {
   requiresConfirmation: true;
 }
 /**
+ * Sets the user's rating of a complete answer; `null` withdraws it
+ *
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentAnswerFeedbackRequestV2".
+ */
+export interface AgentAnswerFeedbackRequestV2 {
+  protocolVersion: 3;
+  feedback: AgentAnswerFeedbackV2 | null;
+}
+/**
+ * The answer's rating after the request; without `feedback` the answer has none
+ *
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentAnswerFeedbackResponseV2".
+ */
+export interface AgentAnswerFeedbackResponseV2 {
+  protocolVersion: 3;
+  feedback?: AgentAnswerFeedbackV2;
+}
+/**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
  * via the `definition` "AgentAnswerLinkV1".
  */
@@ -1646,6 +1682,9 @@ export interface AgentThreadSummaryV2 {
   lastActivityAt: UtcTimestampMs;
   clearedAt?: UtcTimestampMs;
   messageCount: number;
+  title?: AgentThreadTitleV2;
+  hasCustomTitle?: true;
+  isPinned?: true;
 }
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
@@ -2472,6 +2511,60 @@ export interface AgentThreadClearResponseV2 {
 }
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadCreateRequestV2".
+ */
+export interface AgentThreadCreateRequestV2 {
+  protocolVersion: 3;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadCreateResponseV2".
+ */
+export interface AgentThreadCreateResponseV2 {
+  protocolVersion: 3;
+  thread: AgentThreadSummaryV2;
+  created: boolean;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadDeleteRequestV2".
+ */
+export interface AgentThreadDeleteRequestV2 {
+  protocolVersion: 3;
+  clientOperationId: UuidInput;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadDeleteResponseV2".
+ */
+export interface AgentThreadDeleteResponseV2 {
+  protocolVersion: 3;
+  threadId: Uuid;
+  duplicate: boolean;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadListRequestV2".
+ */
+export interface AgentThreadListRequestV2 {
+  cursor?: AgentThreadListCursorV2;
+  limit?: number;
+  query?: string;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadListResponseV2".
+ */
+export interface AgentThreadListResponseV2 {
+  protocolVersion: 3;
+  /**
+   * @maxItems 50
+   */
+  threads: AgentThreadSummaryV2[];
+  nextCursor?: AgentThreadListCursorV2;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
  * via the `definition` "AgentThreadMessagesPageV2".
  */
 export interface AgentThreadMessagesPageV2 {
@@ -2490,6 +2583,25 @@ export interface AgentThreadMessagesPageV2 {
 export interface AgentThreadMessagesRequestV2 {
   cursor?: AgentMessageCursorV2;
   limit?: number;
+}
+/**
+ * Changes the title, the pin or both: `protocolVersion` and at least one of them
+ *
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadUpdateRequestV2".
+ */
+export interface AgentThreadUpdateRequestV2 {
+  protocolVersion: 3;
+  title?: AgentThreadTitleV2 | null;
+  isPinned?: boolean;
+}
+/**
+ * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
+ * via the `definition` "AgentThreadUpdateResponseV2".
+ */
+export interface AgentThreadUpdateResponseV2 {
+  protocolVersion: 3;
+  thread: AgentThreadSummaryV2;
 }
 /**
  * This interface was referenced by `MyTonWalletAgentProtocolV2StandalonePublicWireContract`'s JSON-Schema
@@ -3113,6 +3225,9 @@ export interface AgentV2PublicContractTypes {
   AgentActionEvent: AgentActionEvent;
   AgentActionKind: AgentActionKind;
   AgentActionProposal: AgentActionProposal;
+  AgentAnswerFeedbackRequestV2: AgentAnswerFeedbackRequestV2;
+  AgentAnswerFeedbackResponseV2: AgentAnswerFeedbackResponseV2;
+  AgentAnswerFeedbackV2: AgentAnswerFeedbackV2;
   AgentAnswerLinkV1: AgentAnswerLinkV1;
   AgentAnswerTableReferenceV1: AgentAnswerTableReferenceV1;
   AgentAnswerTableV1: AgentAnswerTableV1;
@@ -3224,10 +3339,20 @@ export interface AgentV2PublicContractTypes {
   AgentThreadApiErrorV2: AgentApiErrorV2;
   AgentThreadClearRequestV2: AgentThreadClearRequestV2;
   AgentThreadClearResponseV2: AgentThreadClearResponseV2;
+  AgentThreadCreateRequestV2: AgentThreadCreateRequestV2;
+  AgentThreadCreateResponseV2: AgentThreadCreateResponseV2;
+  AgentThreadDeleteRequestV2: AgentThreadDeleteRequestV2;
+  AgentThreadDeleteResponseV2: AgentThreadDeleteResponseV2;
   AgentThreadEvent: AgentThreadEvent;
+  AgentThreadListCursorV2: AgentThreadListCursorV2;
+  AgentThreadListRequestV2: AgentThreadListRequestV2;
+  AgentThreadListResponseV2: AgentThreadListResponseV2;
   AgentThreadMessagesPageV2: AgentThreadMessagesPageV2;
   AgentThreadMessagesRequestV2: AgentThreadMessagesRequestV2;
   AgentThreadSummaryV2: AgentThreadSummaryV2;
+  AgentThreadTitleV2: AgentThreadTitleV2;
+  AgentThreadUpdateRequestV2: AgentThreadUpdateRequestV2;
+  AgentThreadUpdateResponseV2: AgentThreadUpdateResponseV2;
   AgentToolCall: AgentToolCall;
   AgentToolCallEvent: AgentToolCallEvent;
   AgentToolError: AgentToolError;

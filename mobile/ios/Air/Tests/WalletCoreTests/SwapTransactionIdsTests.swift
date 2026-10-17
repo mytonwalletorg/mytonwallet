@@ -21,6 +21,14 @@ struct SwapTransactionIdsTests {
         #expect(swap.displayTransactionIds.outgoing?.hash == "normalized-hash")
     }
 
+    @Test
+    func `trace ID takes precedence over the message hash once it is known`() throws {
+        let swap = try makeSwap(["externalMsgHashNorm": "normalized-hash", "traceId": "trace-id"])
+
+        #expect(swap.traceId == "trace-id")
+        #expect(swap.displayTransactionIds.outgoing?.hash == "trace-id")
+    }
+
     @Test(arguments: ["2551567::backend-swap", "2551567::local"])
     func `summary IDs without hashes do not become transaction links`(id: String) throws {
         let swap = try makeSwap(["id": id])

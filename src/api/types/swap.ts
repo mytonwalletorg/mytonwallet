@@ -39,8 +39,11 @@ export type ApiBuildOnchainSwapTransferResult = {
   transaction?: string;
   calls?: ApiEvmSwapCall[];
   chain: ApiChain;
-  /** EVM: approve, delegation setup, and swap are submitted as one EIP-7702 batch user operation. */
-  isBatchTx?: boolean;
+  /**
+   * EVM: the swap runs as one EIP-7702 batch because a Permit2 approve, a router permit,
+   * or an Alchemy delegate is missing.
+   */
+  needsBatch?: boolean;
 };
 
 export type ApiSubmitOnchainSwapTransferOptions = {
@@ -49,8 +52,8 @@ export type ApiSubmitOnchainSwapTransferOptions = {
   transfers?: ApiSwapTransfer[];
   transaction?: string;
   calls?: ApiEvmSwapCall[];
-  /** EVM: from estimate; gates EIP-7702 batching when allowance approve is required. */
-  needsApprove?: boolean;
+  /** EVM: from the estimate or the build. Same meaning as `ApiBuildOnchainSwapTransferResult.needsBatch`. */
+  needsBatch?: boolean;
   historyItem: ApiSwapHistoryItem;
   isGasless?: boolean;
   authToken: string;

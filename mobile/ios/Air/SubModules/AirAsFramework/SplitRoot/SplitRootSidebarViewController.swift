@@ -29,6 +29,13 @@ final class SplitRootSidebarViewController: WViewController, WalletCoreData.Even
         case addAccount
     }
     
+    var hiddenTabIds: Set<AppTabId> = [] {
+        didSet {
+            guard oldValue != hiddenTabIds, isViewLoaded else { return }
+            applySnapshot(animated: false)
+        }
+    }
+
     private let viewModel: SplitRootViewModel
     
     private let accountSelector = HomeAccountSelector(accountSource: .current, mode: .sidebar)
@@ -282,7 +289,7 @@ final class SplitRootSidebarViewController: WViewController, WalletCoreData.Even
     private func makeSnapshot() -> NSDiffableDataSourceSnapshot<Section, Item> {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.tabs])
-        snapshot.appendItems(AppTabManager.shared.orderedTabIds.map(Item.tab), toSection: .tabs)
+        snapshot.appendItems(AppTabManager.shared.orderedTabIds.filter { !hiddenTabIds.contains($0) }.map(Item.tab), toSection: .tabs)
         
         snapshot.appendSections([.accounts])
         let accounts = AccountStore.orderedAccountIds

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="passcode_key_0" type="id" />
+    <item name="passcode_key_1" type="id" />
+    <item name="passcode_key_2" type="id" />
+    <item name="passcode_key_3" type="id" />
+    <item name="passcode_key_4" type="id" />
+    <item name="passcode_key_5" type="id" />
+    <item name="passcode_key_6" type="id" />
+    <item name="passcode_key_7" type="id" />
+    <item name="passcode_key_8" type="id" />
+    <item name="passcode_key_9" type="id" />
+    <item name="passcode_key_biometric" type="id" />
+    <item name="passcode_key_delete" type="id" />
+</resources>

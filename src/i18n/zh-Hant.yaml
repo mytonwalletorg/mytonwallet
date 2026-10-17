@@ -591,6 +591,13 @@ Are you sure you want to disable biometrics?: 您確定要禁用生物識別技�
 "Yes": 是的
 Biometric confirmation failed: 生物辨識確認失敗
 No Activity: 無活動
+Loading Activity: 正在載入活動
+Loading More Activity: 正在載入更多活動
+Your activity history is loading.: 正在載入你的活動歷史。
+Taking Longer Than Usual: 載入時間較長
+Activity history is taking longer to load. Please check back shortly.: 活動歷史載入時間比平時更長。請稍後查看。
+Activity Unavailable: 活動暫不可用
+Activity history is temporarily unavailable. We’ll try again shortly.: 活動歷史暫時無法使用。我們將稍後重試。
 Fund: 儲值
 Buy with Card: 用卡購買
 Buy with Crypto: 用加密貨幣購買
@@ -623,6 +630,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: 您也可以%action%。
 $wallet_switch_version_2: 切換到另一個錢包版本
 or import from: 或從中導入
+or enter manually: 或手動輸入
 Insufficient fee: 手续费不足
 $insufficient_fee: "手续费不足: %fee%"
 $dapp_insufficient_network_fee_warning: "%token% 不足，無法支付網路費用"
@@ -679,6 +687,7 @@ $transfer_link_expired: 轉帳連結已過期
 $transfer_text_and_bin_exclusive: 不能同時使用文字和二進位資料參數
 $unsupported_deeplink_parameter: 此深度連結包含不支援的參數。
 $unsupported_chain: 不支援的區塊鏈。
+$token_chain_not_supported_by_wallet: "您目前的錢包不支援 %chain%。請建立多鏈錢包以使用此代幣。"
 Successfully: 成功地
 Estimated Time: 預計時間
 $utxo_confirmations:
@@ -1298,6 +1307,7 @@ $agent_connection_interrupted: 助手連線中斷，請重試。
 $agent_history_unavailable: 無法載入聊天記錄，請重試。
 $agent_secret_words_removed: "[密語已刪除，未傳送]"
 $agent_activity_analyzing_request: 正在分析您的請求…
+$agent_analyzing: 正在分析
 $agent_activity_wallet: 正在讀取錢包數據…
 $agent_activity_transactions: 正在查看錢包活動…
 $agent_activity_portfolio: 正在載入投資組合數據…
@@ -1405,6 +1415,9 @@ $agent_report_problem_description: 此聊天的最近訊息將傳送給我們的
 $agent_report_problem_sent: 謝謝！您的回報已送出。
 $agent_report_problem_failed: 無法送出回報，請再試一次。
 $agent_report_problem_rate_limited: 您最近已送出多份回報，請稍後再試。
+Like: 讚
+Dislike: 倒讚
+$agent_feedback_failed: 無法儲存您的評價，請稍後再試。
 $unknown_swap_token: 交換連結中的代幣未知。已使用預設代幣。
 $action_not_available_view_mode: 此操作不適用於檢視錢包
 Deposit: 存入
@@ -2037,4 +2050,5 @@ Ruble: 盧布
 $token_price_value: "價格：%value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: 此類交換通常需要幾分鐘。極少數情況下，最長可能需要兩小時。
 3D Gram Diamond: 3D Gram 鑽石
+Hold to enlarge. Drag to rotate.: 按住可放大，拖曳可旋轉。
 "Max": "最大"

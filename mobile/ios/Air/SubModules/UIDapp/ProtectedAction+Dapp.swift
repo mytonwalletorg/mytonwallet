@@ -22,7 +22,7 @@ extension ProtectedAction where HeaderView == DappConfirmationHeaderView, Result
                     action: .signData
                 )
             ),
-            completion: .finish { _ in
+            completion: .handoff { _ in
                 onCommitted()
             }
         )
@@ -87,7 +87,7 @@ extension ProtectedAction where HeaderView == DappConfirmationHeaderView, Result
                     action: .send(request)
                 )
             ),
-            completion: .finish { _ in
+            completion: .handoff { _ in
                 onCommitted()
             }
         )

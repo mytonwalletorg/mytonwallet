@@ -9,7 +9,16 @@ import Perception
 @MainActor
 final class TokenExpandableContentView: WTouchPassView {
 
-    private var token: ApiToken? = nil
+    private struct IconConfiguration: Equatable {
+        var slug: String
+        var image: String?
+        var displayName: String
+        var symbol: String
+        var chain: ApiChain
+        var isNative: Bool
+        var isRwaStock: Bool
+    }
+    private var iconConfiguration: IconConfiguration?
     
     let metrics = Metrics()
 
@@ -31,17 +40,11 @@ final class TokenExpandableContentView: WTouchPassView {
     private var balanceCenterConstraint: NSLayoutConstraint!
     private var balanceHeightConstraint: NSLayoutConstraint!
 
-    private lazy var iconView: IconView = {
-        let v = IconView(size: 60)
-        v.setChainSize(24, borderWidth: 1.5, horizontalOffset: 5, verticalOffset: 1.5)
-        v.config(with: token, isStaking: false, isWalletView: false, shouldShowChain: true)
-        v.isUserInteractionEnabled = false
-        return v
-    }()
+    private lazy var iconView = TokenHeroIconView(size: 60)
 
     private lazy var iconBlurView: WBlurredContentView = {
         let v = WBlurredContentView()
-        v.isUserInteractionEnabled = false
+        v.passesTouchesOutsideContent = true
         return v
     }()
 
@@ -53,6 +56,7 @@ final class TokenExpandableContentView: WTouchPassView {
         iconTopConstraint = iconView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: metrics.iconTopExpanded)
 
         addSubview(balanceHostingView)
+        bringSubviewToFront(iconBlurView)
         balanceCenterConstraint = balanceHostingView.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor)
         balanceHeightConstraint = balanceHostingView.heightAnchor.constraint(equalToConstant: metrics.balanceHostingExpandedHeight)
 
@@ -75,14 +79,32 @@ final class TokenExpandableContentView: WTouchPassView {
     }
     
     func configure(token: ApiToken) {
-        self.token = token
-        iconView.config(with: token, isStaking: false, shouldShowChain: true)
+        let iconConfiguration = IconConfiguration(
+            slug: token.slug,
+            image: token.image,
+            displayName: token.displayName(strippingLabelWhenShown: false),
+            symbol: token.symbol,
+            chain: token.chain,
+            isNative: token.isNative,
+            isRwaStock: token.isRwaStock
+        )
+        if iconConfiguration != self.iconConfiguration {
+            self.iconConfiguration = iconConfiguration
+            iconView.configure(token: token)
+        }
         let balance = $account.balances[token.slug] ?? 0
         let balanceAsDouble = balance.doubleAbsRepresentation(decimals: token.decimals)
         let baseCurrencyValue = balanceAsDouble * (token.price ?? 0)
-        balanceModel.token = token
-        balanceModel.balance = balance
-        balanceModel.baseCurrencyAmount = BaseCurrencyAmount.fromDouble(baseCurrencyValue, TokenStore.baseCurrency)
+        if balanceModel.token != token {
+            balanceModel.token = token
+        }
+        if balanceModel.balance != balance {
+            balanceModel.balance = balance
+        }
+        let baseCurrencyAmount = BaseCurrencyAmount.fromDouble(baseCurrencyValue, TokenStore.baseCurrency)
+        if balanceModel.baseCurrencyAmount != baseCurrencyAmount {
+            balanceModel.baseCurrencyAmount = baseCurrencyAmount
+        }
     }
 
     func update(scrollOffset: CGFloat, navBarShift: CGFloat) {
@@ -97,6 +119,7 @@ final class TokenExpandableContentView: WTouchPassView {
         let blurProgress = 1 - min(1, max(0, (150 - scrollOffset) / 150))
         iconBlurView.blurRadius = blurProgress * 30
         iconView.alpha = min(1, max(0, (180 - scrollOffset) / 40))
+        iconView.setRenderingVisible(iconView.alpha > 0.01)
         
         balanceCenterConstraint.constant = interpolate(from: 0, to: m.balanceExpandedCenterY, progress: expansionProgress) - navBarShift + topOverscroll
         balanceHeightConstraint.constant = interpolate(

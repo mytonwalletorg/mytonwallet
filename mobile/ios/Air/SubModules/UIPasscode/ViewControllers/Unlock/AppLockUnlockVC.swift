@@ -32,4 +32,11 @@ public final class AppLockUnlockVC: UnlockVC {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        if #available(iOS 27.1, *) {
+            passcodeScreenView.centersContentVerticallyInView = traitCollection.verticalBarEdge != .unspecified
+        }
+    }
 }

@@ -83,12 +83,7 @@ class StreamingRevealLabel(context: Context) : WLabel(context) {
     var onRevealFinished: (() -> Unit)? = null
     var onSizeTransitionFrame: (() -> Unit)? = null
 
-    fun setTextWithReveal(
-        newText: CharSequence?,
-        isStreaming: Boolean,
-        key: String,
-        transitionFromContentSize: Pair<Float, Float>? = null
-    ) {
+    fun setTextWithReveal(newText: CharSequence?, isStreaming: Boolean, key: String) {
         if (key != revealKey) {
             revealKey = key
             cancelReveal(notifySizeChange = false)
@@ -119,17 +114,6 @@ class StreamingRevealLabel(context: Context) : WLabel(context) {
                     revealController = it
                     if (revealCharCount == null) {
                         revealCharCount = revealProgressByKey[key] ?: 0
-                    }
-                    // Start the size morph from the previous bubble content (e.g. the typing
-                    // indicator) instead of snapping to the empty reveal size.
-                    if (transitionFromContentSize != null && !hasSizeOverride &&
-                        (revealCharCount ?: 0) == 0
-                    ) {
-                        setSizeTarget(
-                            transitionFromContentSize.first,
-                            transitionFromContentSize.second,
-                            now
-                        )
                     }
                 }
                 active.observeUpdate(length, now)

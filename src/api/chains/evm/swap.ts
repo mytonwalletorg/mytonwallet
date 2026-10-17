@@ -28,6 +28,7 @@ import {
   submitBatchUserOp,
   validateEvmSwapCalls,
 } from './smartAccount/batch';
+import { isAlchemy7702Delegated } from './smartAccount/delegation';
 import { normalizeAddress } from './address';
 import { fetchPrivateKeyString, getSignerFromPrivateKey } from './auth';
 import { EVM_MAX_TRANSFER_FEE_MULTIPLIER, UNISWAP_PERMIT2_ADDRESS } from './constants';
@@ -117,10 +118,40 @@ function tryParseErc20ApproveSpender(data: string): string | undefined {
   }
 }
 
+export async function resolveSwapNeedsBatch(chain: EVMChain, accountId: string, needsApprove?: boolean) {
+  if (needsApprove) return true;
+
+  const { network } = parseAccountId(accountId);
+  const { address } = await fetchEvmWallet(accountId, chain);
+  return !(await isAlchemy7702Delegated(chain, network, address));
+}
+
 export function hasUniswapPermitData(payload: UniswapEvmTransactionPayload): payload is UniswapEvmTransactionPayload & {
   permitData: UniswapPermitData;
 } {
   return !!payload.permitData?.domain && !!payload.permitData.types && !!payload.permitData.values;
+}
+
+export function shouldBatchUniswapSwap(
+  payload: UniswapEvmTransactionPayload,
+  options?: { needsBatch?: boolean; needsDelegate?: boolean },
+) {
+  return !!options?.needsBatch || !!options?.needsDelegate || hasUniswapPermitData(payload);
+}
+
+async function resolveShouldBatchUniswapSwap(
+  chain: EVMChain,
+  network: ApiNetwork,
+  address: string,
+  payload: UniswapEvmTransactionPayload,
+  needsBatch?: boolean,
+) {
+  if (shouldBatchUniswapSwap(payload, { needsBatch })) {
+    return true;
+  }
+
+  const needsDelegate = !(await isAlchemy7702Delegated(chain, network, address));
+  return shouldBatchUniswapSwap(payload, { needsDelegate });
 }
 
 export function shouldIncludePermit2AllowanceCall(payload: UniswapEvmTransactionPayload) {
@@ -386,7 +417,7 @@ export async function buildOnchainSwapTransfer(
       return { error: payloadError };
     }
 
-    if (request.needsApprove) {
+    if (await resolveShouldBatchUniswapSwap(chain, network, address, payload, request.needsBatch)) {
       const account = await fetchStoredChainAccount(accountId, chain);
 
       if (account.type === 'ledger' || account.type === 'view') {
@@ -417,11 +448,11 @@ export async function buildOnchainSwapTransfer(
         chain,
         transaction,
         calls: serializeEvmSwapCalls(calls),
-        isBatchTx: true,
+        needsBatch: true,
       };
     }
 
-    const feeError = await estimateRegularSwapFee(chain, network, address, payload, !!request.needsApprove);
+    const feeError = await estimateRegularSwapFee(chain, network, address, payload, false);
 
     if (feeError) {
       await patchSwapItem({ address: historyAddress, swapId, authToken, error: feeError.error });
@@ -432,6 +463,7 @@ export async function buildOnchainSwapTransfer(
       id: swapId,
       chain,
       transaction,
+      needsBatch: false,
     };
   } catch (err) {
     await patchSwapItem({
@@ -491,7 +523,7 @@ export async function submitOnchainSwapTransfer(
     localSwap,
     swapId,
     transaction,
-    needsApprove,
+    needsBatch,
   } = options;
 
   const { network } = parseAccountId(accountId);
@@ -520,12 +552,9 @@ export async function submitOnchainSwapTransfer(
 
     let txHash: string;
 
-    if (needsApprove) {
-      if (!transaction) {
-        return { error: ApiTransactionError.UnsuccesfulTransfer };
-      }
+    const payload = transaction ? parseUniswapTransactionPayload(transaction) : undefined;
 
-      const payload = parseUniswapTransactionPayload(transaction);
+    if (payload && await resolveShouldBatchUniswapSwap(chain, network, address, payload, needsBatch)) {
       const payloadError = assertUniswapPayloadReady(payload);
 
       if (payloadError) {
@@ -561,7 +590,7 @@ export async function submitOnchainSwapTransfer(
       }
 
       const result = await submitRegularUniswapSwap(
-        chain, network, address, privateKey, transaction, !!needsApprove,
+        chain, network, address, privateKey, transaction, false,
       );
 
       if ('error' in result) {

@@ -1,5 +1,6 @@
 import type { Address } from '@solana/kit';
 
+import type { FetchedToken } from '../../common/tokens';
 import type { ApiAddressInfo, ApiBalanceBySlug, ApiNetwork, ApiTokenWithMaybePrice } from '../../types';
 import type { SolanaSPLToken, SolanaSplTokenAccountsByAddressRaw, SolanaSPLTokensByAddressRaw } from './types';
 import { ApiCommonError } from '../../types';
@@ -11,7 +12,7 @@ import withCacheAsync from '../../../util/withCacheAsync';
 import { getSolanaClient } from './util/client';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { callBackendGet } from '../../common/backend';
-import { buildTokenSlug, updateTokens, waitForTokenSlugResolver } from '../../common/tokens';
+import { buildTokenSlug, updateTokensFetchedTogether } from '../../common/tokens';
 import { isValidAddress } from './address';
 import { NETWORK_CONFIG, SOLANA_DERIVATION_PATHS, SOLANA_PROGRAM_IDS } from './constants';
 
@@ -88,7 +89,7 @@ export async function fetchAccountAssets(
       },
     }),
   };
-  const tokenEntities: ApiTokenWithMaybePrice[] = [];
+  const tokenEntities: FetchedToken[] = [];
   const slugPairs: Record<string, bigint> = {};
 
   const response = await fetchJson<SolanaSPLTokensByAddressRaw>(
@@ -98,22 +99,15 @@ export async function fetchAccountAssets(
   );
   throwIfAborted(signal);
 
-  const resolveTokenSlugs = await waitForTokenSlugResolver(signal);
   const items = response.result.items.filter((e) => e.content.metadata.symbol && e.content.metadata.name);
-  const slugs = resolveTokenSlugs(items.map((e) => ({ chain: 'solana', address: e.id })));
 
-  items.forEach((e, i) => {
-    const slug = slugs[i];
-
-    slugPairs[slug] = BigInt(e.token_info.balance ?? 0);
-
+  items.forEach((e) => {
     tokenEntities.push({
       priceUsd: e.token_info.price_info?.price_per_token,
       percentChange24h: undefined,
       type: e.token_info.token_program === SOLANA_PROGRAM_IDS.token[1] ? 'token_2022' : 'legacy_token',
       name: e.content.metadata.name,
       symbol: e.content.metadata.symbol,
-      slug,
       decimals: e.token_info.decimals,
       chain: 'solana',
       image: e.content.files?.[0]?.uri || e.content.files?.[0]?.cdn_uri || e.content?.links?.image,
@@ -122,15 +116,21 @@ export async function fetchAccountAssets(
     });
   });
 
-  slugPairs[SOLANA.slug] = BigInt(response.result.nativeBalance?.lamports ?? 0);
-
   tokenEntities.push({
     priceUsd: response.result?.nativeBalance?.price_per_sol,
     percentChange24h: undefined,
     ...SOLANA,
   });
 
-  await updateTokens(tokenEntities, sendUpdateTokens, [], true);
+  const tokens = await updateTokensFetchedTogether(tokenEntities, {
+    signal,
+    sendUpdate: sendUpdateTokens,
+    shouldSendUpdate: true,
+  });
+  items.forEach((e, i) => {
+    slugPairs[tokens[i].slug] = BigInt(e.token_info.balance ?? 0);
+  });
+  slugPairs[SOLANA.slug] = BigInt(response.result.nativeBalance?.lamports ?? 0);
 
   return slugPairs;
 }

@@ -1,4 +1,12 @@
-import { convertExplorerUrl, getViewAccountUrl, isInIframeWhitelist, isValidUrl, normalizeUrl } from './url';
+import {
+  convertExplorerUrl,
+  getExplorerAddressUrl,
+  getExplorerTransactionUrl,
+  getViewAccountUrl,
+  isInIframeWhitelist,
+  isValidUrl,
+  normalizeUrl,
+} from './url';
 
 // Test constants
 const TEST_TON_ADDRESS = 'EQAIsixsrb93f9kDyplo_bK5OdgW5r0WCcIJZdGOUG1B282S';
@@ -6,6 +14,8 @@ const TEST_TRON_ADDRESS = 'TRjE1H8dxypKM1NZRdysbs9wo7huR4bdNz';
 const TEST_SOLANA_ADDRESS = '6fHx3tfJdMz7NEjjSdzFy18byg328vnrNH5Z23zGprKL';
 const TEST_EVM_ADDRESS = '0x9429C8Af1089efD542b313156Af2DFA35c7e0a81';
 const TEST_TON_HASH = 'cd3547d822b1f33e5825572709b9ac95e64d46680cde5fc6e5ae489ecec83b27';
+const TEST_MESSAGE_HASH = 'f0ba363519a627caeda1d41d8cc7c14ba21287e719e3a8b424471e49daffcc11';
+const TEST_EVM_HASH = '0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060';
 const TEST_NFT_ADDRESS = 'EQCchzdeVwH5js22ReWU7smONvgpB9bZG9k_VEmYmGhIhuTL';
 const TEST_NFT_COLLECTION_ADDRESS = 'EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM';
 
@@ -193,6 +203,56 @@ describe('convertExplorerUrl', () => {
     });
   });
 
+  describe('Explorer with the network in a URL parameter (actonscan)', () => {
+    it('should add the network parameter when converting to actonscan', () => {
+      expect(convertExplorerUrl(`https://tonscan.org/jetton/${TEST_TON_ADDRESS}`, 'actonscan'))
+        .toBe(`https://actonscan.com/address/${TEST_TON_ADDRESS}?network=mainnet`);
+      expect(convertExplorerUrl(`https://testnet.tonviewer.com/transaction/${TEST_TON_HASH}`, 'actonscan'))
+        .toBe(`https://actonscan.com/tx/${TEST_TON_HASH}?network=testnet`);
+    });
+
+    it('should detect the network by the parameter when converting from actonscan', () => {
+      expect(convertExplorerUrl(`https://actonscan.com/tx/${TEST_TON_HASH}?network=mainnet`, 'tonscan'))
+        .toBe(`https://tonscan.org/tx/${TEST_TON_HASH}`);
+      expect(convertExplorerUrl(`https://actonscan.com/tx/${TEST_TON_HASH}?network=testnet`, 'tonscan'))
+        .toBe(`https://testnet.tonscan.org/tx/${TEST_TON_HASH}`);
+    });
+
+    it('should treat an actonscan URL without the network parameter as mainnet', () => {
+      expect(convertExplorerUrl(`https://actonscan.com/address/${TEST_TON_ADDRESS}`, 'tonviewer'))
+        .toBe(`https://tonviewer.com/${TEST_TON_ADDRESS}?address`);
+    });
+
+    it('should convert an actonscan address to the plain address page', () => {
+      expect(convertExplorerUrl(`https://actonscan.com/address/${TEST_NFT_ADDRESS}?network=testnet`, 'tonscan'))
+        .toBe(`https://testnet.tonscan.org/address/${TEST_NFT_ADDRESS}`);
+    });
+
+    it('should replace the network parameter in the fallback conversion', () => {
+      expect(convertExplorerUrl('https://actonscan.com/blocks?network=testnet', 'tonscan'))
+        .toBe('https://testnet.tonscan.org/blocks');
+    });
+
+    it('should keep the rest of the query and the fragment in the fallback conversion', () => {
+      expect(convertExplorerUrl('https://testnet.tonscan.org/blocks?page=2', 'actonscan'))
+        .toBe('https://actonscan.com/blocks?page=2&network=testnet');
+      expect(convertExplorerUrl('https://tonscan.org/blocks#top', 'actonscan'))
+        .toBe('https://actonscan.com/blocks?network=mainnet#top');
+      expect(convertExplorerUrl('https://actonscan.com/blocks?network=testnet&page=2#top', 'tonscan'))
+        .toBe('https://testnet.tonscan.org/blocks?page=2#top');
+    });
+  });
+
+  describe('Explorer without message hashes (actonscan)', () => {
+    it('should keep a transaction link that may hold a message hash when asked to', () => {
+      expect(convertExplorerUrl(`https://tonscan.org/tx/${TEST_MESSAGE_HASH}`, 'actonscan', true)).toBeUndefined();
+      expect(convertExplorerUrl(`https://tonscan.org/tx/${TEST_MESSAGE_HASH}`, 'tonviewer', true))
+        .toBe(`https://tonviewer.com/transaction/${TEST_MESSAGE_HASH}`);
+      expect(convertExplorerUrl(`https://tonscan.org/address/${TEST_TON_ADDRESS}`, 'actonscan', true))
+        .toBe(`https://actonscan.com/address/${TEST_TON_ADDRESS}?network=mainnet`);
+    });
+  });
+
   describe('URLs with query strings and fragments', () => {
     it('should preserve query string when converting address URL', () => {
       const input = `https://tonscan.org/address/${TEST_TON_ADDRESS}?tab=tokens`;
@@ -251,9 +311,49 @@ describe('convertExplorerUrl', () => {
   });
 });
 
+describe('explorer URLs of the selected explorer', () => {
+  it('should use the base URL and parameter of the selected explorer', () => {
+    const base64Hash = Buffer.from(TEST_TON_HASH, 'hex').toString('base64');
+
+    expect(getExplorerAddressUrl('ton', TEST_TON_ADDRESS, false, 'tonviewer'))
+      .toBe(`https://tonviewer.com/${TEST_TON_ADDRESS}?address`);
+    expect(getExplorerAddressUrl('ton', TEST_TON_ADDRESS, true, 'actonscan'))
+      .toBe(`https://actonscan.com/address/${TEST_TON_ADDRESS}?network=testnet`);
+    expect(getExplorerTransactionUrl('ton', { traceId: base64Hash }, false, 'actonscan'))
+      .toBe(`https://actonscan.com/tx/${TEST_TON_HASH}?network=mainnet`);
+  });
+});
+
+describe('getExplorerTransactionUrl', () => {
+  const messageHash = Buffer.from(TEST_MESSAGE_HASH, 'hex').toString('base64');
+  const traceId = Buffer.from(TEST_TON_HASH, 'hex').toString('base64');
+
+  it('links the trace id in every explorer when it is known', () => {
+    expect(getExplorerTransactionUrl('ton', { hash: messageHash, traceId }, false, 'actonscan'))
+      .toBe(`https://actonscan.com/tx/${TEST_TON_HASH}?network=mainnet`);
+    expect(getExplorerTransactionUrl('ton', { hash: messageHash, traceId }, false, 'tonviewer'))
+      .toBe(`https://tonviewer.com/transaction/${TEST_TON_HASH}`);
+  });
+
+  it('opens a hash without a trace id in an explorer that finds a trace by its message hash', () => {
+    expect(getExplorerTransactionUrl('ton', { hash: messageHash }, false, 'tonviewer'))
+      .toBe(`https://tonviewer.com/transaction/${TEST_MESSAGE_HASH}`);
+    expect(getExplorerTransactionUrl('ton', { hash: messageHash }, false, 'actonscan'))
+      .toBe(`https://tonscan.org/tx/${TEST_MESSAGE_HASH}`);
+    expect(getExplorerTransactionUrl('ton', { hash: messageHash }, true, 'actonscan'))
+      .toBe(`https://testnet.tonscan.org/tx/${TEST_MESSAGE_HASH}`);
+  });
+
+  it('keeps the selected explorer of a chain without message hashes', () => {
+    expect(getExplorerTransactionUrl('ethereum', { hash: TEST_EVM_HASH }))
+      .toBe(`https://etherscan.io/tx/${TEST_EVM_HASH}`);
+  });
+});
+
 describe('isInIframeWhitelist', () => {
   it('accepts the whitelisted explorers', () => {
     expect(isInIframeWhitelist('https://tonscan.org')).toBe(true);
+    expect(isInIframeWhitelist('https://actonscan.com/address/EQ123?network=mainnet')).toBe(true);
     expect(isInIframeWhitelist('https://tonscan.org/address/EQ123')).toBe(true);
     expect(isInIframeWhitelist('https://testnet.tonviewer.com/')).toBe(true);
   });

@@ -239,7 +239,7 @@ function Assets({
   }, [pinnedSlugs]);
 
   const prevPinnedSlugs = usePrevious2(pinnedSlugs);
-  const prevAllTokensWithStaked = usePrevious2(allTokensWithStaked);
+  const prevTokenSlugs = usePrevious2(tokenSlugs);
 
   // Detect which token was just pinned/unpinned
   const pinToggledSlug = useMemo(() => {
@@ -261,16 +261,16 @@ function Assets({
     return undefined;
   }, [prevPinnedSlugs, pinnedSlugs]);
 
-  // Check if pin-toggled token stayed in the same position
+  // Check if pin-toggled token stayed in the same position. Positions are counted among the shown tokens,
+  // since hidden ones sorted before the token take no place in the list.
   const isPinAnimatable = useMemo(() => {
-    if (!pinToggledSlug || !prevAllTokensWithStaked || !allTokensWithStaked) return false;
+    if (!pinToggledSlug || !prevTokenSlugs || !tokenSlugs) return false;
 
-    const prevIndex = prevAllTokensWithStaked.findIndex((t) => t.slug === pinToggledSlug);
-    const currentIndex = allTokensWithStaked.findIndex((t) => t.slug === pinToggledSlug);
+    const prevIndex = prevTokenSlugs.indexOf(pinToggledSlug);
+    const currentIndex = tokenSlugs.indexOf(pinToggledSlug);
 
-    // Token stayed in the same position
     return prevIndex === currentIndex && prevIndex !== -1;
-  }, [pinToggledSlug, prevAllTokensWithStaked, allTokensWithStaked]);
+  }, [pinToggledSlug, prevTokenSlugs, tokenSlugs]);
 
   function renderVestingToken() {
     return (

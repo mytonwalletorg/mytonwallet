@@ -52,18 +52,21 @@ struct CreateBackupDisclaimerView: View {
                 isEnabled: currentStep >= .zero,
                 isCompleted: currentStep >= .one,
                 text: langMd("$safety_rules_one"),
+                accessibilityId: "create_warning_1",
                 onTap: setStep(.one)
             )
             StepView(
                 isEnabled: currentStep >= .one,
                 isCompleted: currentStep >= .two,
                 text: langMd("$safety_rules_two"),
+                accessibilityId: "create_warning_2",
                 onTap: setStep(.two)
             )
             StepView(
                 isEnabled: currentStep >= .two,
                 isCompleted: currentStep >= .three,
                 text: langMd("$safety_rules_three"),
+                accessibilityId: "create_warning_3",
                 onTap: setStep(.three)
             )
         }
@@ -74,6 +77,7 @@ struct CreateBackupDisclaimerView: View {
             Text(lang("Go to Words"))
         }
         .buttonStyle(.airPrimary)
+        .accessibilityIdentifier("create_go_to_words")
         .disabled(currentStep != .three)
         .environment(\.isLoading, isLoading)
         .animation(.smooth(duration: 0.4), value: currentStep)
@@ -109,6 +113,7 @@ private struct StepView: View {
     var isEnabled: Bool
     var isCompleted: Bool
     var text: LocalizedStringKey
+    var accessibilityId: String
     var onTap: () -> ()
 
     var body: some View {
@@ -134,6 +139,7 @@ private struct StepView: View {
                 }
                 .disabled(isCompleted || !isEnabled)
                 .accessibilityAddTraits(isCompleted ? .isSelected : [])
+                .accessibilityIdentifier(accessibilityId)
             }
         }
         .opacity(isEnabled ? 1 : 0.4)

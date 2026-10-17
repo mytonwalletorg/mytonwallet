@@ -12,7 +12,7 @@ import PasswordForm from '../ui/PasswordForm';
 interface OwnProps {
   isActive: boolean;
   isLoading?: boolean;
-  isBatchTx?: boolean;
+  needsBatch?: boolean;
   error?: string;
   children?: TeactNode;
   onAuthorize: (enclaveToken: string) => void;
@@ -22,7 +22,7 @@ interface OwnProps {
 function SwapPassword({
   isActive,
   isLoading,
-  isBatchTx,
+  needsBatch,
   error,
   children,
   onAuthorize,
@@ -47,12 +47,11 @@ function SwapPassword({
         operationType="swap"
         submitLabel={lang('Swap')}
         cancelLabel={lang('Back')}
-        footerNotice={isBatchTx ? lang('$swap_batch_tx_duration_hint') : undefined}
-        // A swap builds the transfer and submits it in two separate API calls. The first one derives
-        // the backend auth token from the private key until it is cached, so the very first swap of
-        // an account reads the secret twice and would otherwise fail on a single-use session. Later
-        // swaps read once and hand the spare read back when the flow ends.
-        extraAuthUsages={1}
+        footerNotice={needsBatch ? lang('$swap_batch_tx_duration_hint') : undefined}
+        // An EVM batch whose backend auth token is not cached reads the secret three times: to build
+        // the token, to sign the batch, and to submit. Fewer reads are used otherwise, and the
+        // session is released when the flow ends.
+        extraAuthUsages={2}
         onAuthorize={onAuthorize}
         onCancel={onBack}
         onUpdate={clearSwapError}

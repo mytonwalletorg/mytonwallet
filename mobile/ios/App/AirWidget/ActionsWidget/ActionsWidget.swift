@@ -43,7 +43,7 @@ struct ActionsWidgetView: View {
         VStack(spacing: 8) {
             HStack(spacing: 8) {
                 ActionButton(
-                    label: localized("add"),
+                    label: localized("Add"),
                     image: "AddIcon",
                     link: "\(SELF_PROTOCOL)receive",
                     style: entry.style,
@@ -51,7 +51,7 @@ struct ActionsWidgetView: View {
                     rotationIndex: 0,
                 )
                 ActionButton(
-                    label: localized("send"),
+                    label: localized("Send"),
                     image: "SendIcon",
                     link: "\(SELF_PROTOCOL)transfer",
                     style: entry.style,
@@ -61,7 +61,7 @@ struct ActionsWidgetView: View {
             }
             HStack(spacing: 8) {
                 ActionButton(
-                    label: localized("swap"),
+                    label: localized("Trade"),
                     image: "SwapIcon",
                     link: "\(SELF_PROTOCOL)swap",
                     style: entry.style,
@@ -69,7 +69,7 @@ struct ActionsWidgetView: View {
                     rotationIndex: 3,
                 )
                 ActionButton(
-                    label: localized("earn"),
+                    label: localized("Earn"),
                     image: "EarnIcon",
                     link: "\(SELF_PROTOCOL)stake",
                     style: entry.style,

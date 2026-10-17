@@ -9,11 +9,13 @@ final class ActivityDetailsViewModel {
     var activity: ApiActivity {
         didSet {
             refreshScamStatus()
+            refreshWearableNft()
             scheduleCexDeadlineRefresh()
         }
     }
     var currentDate: Date = .now
     var isScam: Bool = false
+    private(set) var wearableNft: ApiNft?
     var detailsExpanded: Bool
     var detailsCollapseEnabled: Bool = true
     var scrollingDisabled: Bool = true
@@ -46,6 +48,7 @@ final class ActivityDetailsViewModel {
         self.scrollingDisabled = scrollingDisabled
         self.context = context
         refreshScamStatus()
+        refreshWearableNft()
         scheduleCexDeadlineRefresh()
     }
 
@@ -146,6 +149,26 @@ final class ActivityDetailsViewModel {
         && attemptedDetailsActivityIds.contains(activity.id)
         && activity.shouldLoadDetails != true
         && newActivity.shouldLoadDetails == true
+    }
+
+    func refreshWearableNft() {
+        wearableNft = ownedReceivedCard
+    }
+
+    private var ownedReceivedCard: ApiNft? {
+        guard let transaction = activity.transaction,
+              transaction.isIncoming,
+              let activityNft = transaction.nft,
+              let nft = NftStore.getNft(accountId: accountContext.accountId, nftId: activityNft.id)?.nft,
+              nft.isMtwCard else { return nil }
+        if let ownerAddress = nft.ownerAddress?.nilIfEmpty,
+           let accountAddress = accountContext.account.getAddress(chain: nft.chain)?.nilIfEmpty {
+            let isOwned = nft.chain.isEvm
+                ? ownerAddress.caseInsensitiveCompare(accountAddress) == .orderedSame
+                : ownerAddress == accountAddress
+            guard isOwned else { return nil }
+        }
+        return nft
     }
 
     func refreshScamStatus() {

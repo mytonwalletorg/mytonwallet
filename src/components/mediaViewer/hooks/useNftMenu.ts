@@ -52,8 +52,8 @@ const getMarketplaceItem = (chain: ApiChain): DropdownItem<NftMenuHandler> => ({
   value: 'marketplace',
   fontIcon: 'external',
 });
-const getExplorerItem = (chain: ApiChain): DropdownItem<NftMenuHandler> => ({
-  name: getExplorerName(chain),
+const getExplorerItem = (chain: ApiChain, explorerId?: string): DropdownItem<NftMenuHandler> => ({
+  name: getExplorerName(chain, explorerId),
   value: 'explorer',
   fontIcon: 'external',
 });
@@ -128,6 +128,7 @@ export default function useNftMenu({
   isNftInstalled,
   isNftAccentColorInstalled,
   isTestnet,
+  selectedExplorerId,
 }: {
   nft?: ApiNft;
   isViewMode: boolean;
@@ -139,6 +140,7 @@ export default function useNftMenu({
   isNftInstalled?: boolean;
   isNftAccentColorInstalled?: boolean;
   isTestnet?: boolean;
+  selectedExplorerId?: string;
 }) {
   const {
     startTransfer,
@@ -169,7 +171,7 @@ export default function useNftMenu({
     value: NftMenuHandler,
     e?: React.MouseEvent,
   ) => {
-    const { isTestnet, selectedExplorerIds } = getGlobal().settings;
+    const { isTestnet } = getGlobal().settings;
     const isExternal = e?.shiftKey || e?.ctrlKey || e?.metaKey;
 
     switch (value) {
@@ -187,7 +189,7 @@ export default function useNftMenu({
           nft!.chain,
           nft!.address,
           isTestnet,
-          selectedExplorerIds?.ton,
+          selectedExplorerId,
         )!;
 
         void openUrl(url, { isExternal });
@@ -331,7 +333,7 @@ export default function useNftMenu({
           : lang('$one_domain_expires %days%', { days: formatRelativeDays(lang, dnsExpireInDays) }),
       },
       getMarketplaceItem(nft.chain),
-      getExplorerItem(nft.chain),
+      getExplorerItem(nft.chain, selectedExplorerId),
       SHARE_LINK_ITEM,
       collectionAddress && COLLECTION_ITEM,
       ((!isScam && !isNftBlacklisted) || isNftWhitelisted) && HIDE_ITEM,
@@ -344,7 +346,7 @@ export default function useNftMenu({
     ]);
   }, [
     nft, isViewMode, isWidget, dnsExpireInDays, lang, linkedAddress, isNftBlacklisted,
-    isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled,
+    isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled, selectedExplorerId,
   ]);
 
   return { menuItems, handleMenuItemSelect };

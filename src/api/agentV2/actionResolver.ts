@@ -11,6 +11,7 @@ import type {
   AgentV2ActionPresentation,
   AgentV2HostAsset,
   AgentV2HostContextSnapshot,
+  AgentV2InactiveAction,
   AgentV2ResolvedAction,
 } from './types';
 import type { AgentV2WalletSession } from './walletSession';
@@ -89,7 +90,7 @@ export class AgentV2ActionResolver {
   ) {
     if (action.kind === 'send' && action.effect === 'open_send') {
       const binding = this.resolveSendFormBinding(action);
-      if (!binding) return { kind: 'inactive' as const };
+      if (!binding) return buildInactiveSigningAction(this.session.snapshot().host);
       return {
         kind: 'send',
         status: 'active',
@@ -181,7 +182,7 @@ export class AgentV2ActionResolver {
     const host = this.session.snapshot().host;
     const activeAccount = host?.accounts.find(({ accountId }) => accountId === host.activeAccountId);
     if (!getAgentV2ActionAvailability(host).canOpenStaking
-      || !activeAccount?.chains.includes(action.asset.chain)) return { kind: 'inactive' };
+      || !activeAccount?.chains.includes(action.asset.chain)) return buildInactiveSigningAction(host);
     const amount = action.amount;
     if (amount?.kind === 'exact') {
       const fractionLength = amount.value.split('.')[1]?.length ?? 0;
@@ -207,7 +208,7 @@ export class AgentV2ActionResolver {
       || !host?.activeNetwork || !activeAccount) return { kind: 'inactive' };
     const resolvedNetwork = targetNetwork ?? host.activeNetwork;
     if (targetNetwork && targetNetwork !== host.activeNetwork && activeAccount.isViewOnly) {
-      return { kind: 'inactive' };
+      return { kind: 'inactive', reason: 'viewOnlyWallet' };
     }
     if (!activeAccount.chains.includes(resolvedNetwork)) return { kind: 'inactive' };
     return { kind: 'openReceive', chain: resolvedNetwork };
@@ -220,7 +221,7 @@ export class AgentV2ActionResolver {
     const host = snapshot.host;
     const active = host?.accounts.find(({ accountId }) => accountId === host.activeAccountId);
     if (!getAgentV2ActionAvailability(host).canPrepareSwap || !active) {
-      return { kind: 'inactive' };
+      return buildInactiveSigningAction(host);
     }
     if (action.amount?.side === 'source' && !action.sourceAsset) return { kind: 'inactive' };
     if (action.amount?.side === 'destination' && (
@@ -253,7 +254,7 @@ export class AgentV2ActionResolver {
     action: Extract<AgentV2LiveAction, { kind: 'send'; effect: 'open_send' }>,
   ): AgentV2ResolvedAction {
     const binding = this.resolveSendFormBinding(action);
-    if (!binding) return { kind: 'inactive' };
+    if (!binding) return buildInactiveSigningAction(this.session.snapshot().host);
     if (!binding.asset && !binding.destination && !action.comment) return { kind: 'sendForm', url: 'mtw://send' };
     // Without `token` the Send form chooses the asset itself
     const query = new URLSearchParams(binding.asset ? { token: binding.asset.slug } : {});
@@ -345,6 +346,11 @@ function isSameAsset(candidate: AgentV2HostAsset, asset: AgentAssetRefV2) {
 
 function getActiveAccount(host?: AgentV2HostContextSnapshot) {
   return host?.accounts.find(({ accountId }) => accountId === host.activeAccountId);
+}
+
+// Send, swap and stake sign from the current wallet, so a view-only one never opens them whatever else holds
+function buildInactiveSigningAction(host?: AgentV2HostContextSnapshot): AgentV2InactiveAction {
+  return getActiveAccount(host)?.isViewOnly ? { kind: 'inactive', reason: 'viewOnlyWallet' } : { kind: 'inactive' };
 }
 
 function isDecimal(value: string) {

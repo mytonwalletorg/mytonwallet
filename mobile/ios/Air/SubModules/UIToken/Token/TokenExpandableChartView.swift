@@ -42,6 +42,10 @@ final class TokenExpandableChartView: UIView {
     private var expandedHeight: CGFloat {
         30 + 16 + 76 + Self.expandedChartHeight + analyzeButtonInset
     }
+    private var expandedLoadingIndicatorOffset: CGFloat {
+        // Center between the price header and the period switcher, including the hidden range chart.
+        (Self.collapsedHeight - 16 - 28 - analyzeButtonInset) / 2
+    }
 
     private let parentProcessorQueue = DispatchQueue(label: "TokenExpandableChartView")
     private let locker = DispatchSemaphore(value: 1)
@@ -60,6 +64,14 @@ final class TokenExpandableChartView: UIView {
     private var token: ApiToken? = nil
     private var displayedPeriod: ApiPriceHistoryPeriod? = nil
     private var historyData: [[Double]]? = nil
+    private struct Configuration: Equatable {
+        var price: Double?
+        var percentChange24h: Double?
+        var baseCurrency: MBaseCurrency
+        var historyData: [[Double]]?
+        var showsAnalyze: Bool
+    }
+    private var configuration: Configuration?
     private let graph = CompactLineChart()
     private var onPeriodChange: ((ApiPriceHistoryPeriod) -> Void)? = nil
     private var onAnalyze: (() -> Void)?
@@ -83,16 +95,26 @@ final class TokenExpandableChartView: UIView {
                    historyData: [[Double]]?,
                    onPeriodChange: @escaping (ApiPriceHistoryPeriod) -> Void,
                    onAnalyze: (() -> Void)?) {
-        self.token = token
-        self.historyData = historyData
         self.onPeriodChange = onPeriodChange
         self.onAnalyze = onAnalyze
+        let configuration = Configuration(
+            price: token.price,
+            percentChange24h: token.percentChange24h,
+            baseCurrency: TokenStore.baseCurrency,
+            historyData: historyData,
+            showsAnalyze: onAnalyze != nil
+        )
+        guard configuration != self.configuration else { return }
+        self.configuration = configuration
+        self.token = token
+        self.historyData = historyData
         analyzeButton.configure(title: lang("Analyze it"), showsArrow: true)
         analyzeButton.isHidden = onAnalyze == nil
         analyzeButton.isUserInteractionEnabled = isExpanded && onAnalyze != nil
         timeFrameBottomConstraint.constant = -16 - analyzeButtonInset
         if isExpanded && !isTogglingChart {
             heightConstraint.constant = expandedHeight
+            loadingIndicatorCenterYConstraint.constant = expandedLoadingIndicatorOffset
         }
 
         fillLabels()
@@ -109,6 +131,7 @@ final class TokenExpandableChartView: UIView {
     private var heightConstraint: NSLayoutConstraint!
     private var timeFrameBottomConstraint: NSLayoutConstraint!
     private var arrowTrailingConstraint: NSLayoutConstraint!
+    private var loadingIndicatorCenterYConstraint: NSLayoutConstraint!
 
     private var chartAnimationViewTopAnchor: NSLayoutConstraint!
     private var chartAnimationViewTrailingAnchor: NSLayoutConstraint!
@@ -281,6 +304,7 @@ final class TokenExpandableChartView: UIView {
         chartAnimationViewTopAnchor = lineChartAnimationView.topAnchor.constraint(equalTo: topAnchor, constant: 11.33)
         chartAnimationViewWidthAnchor = lineChartAnimationView.widthAnchor.constraint(equalToConstant: 82)
         chartAnimationViewHeightAnchor = lineChartAnimationView.heightAnchor.constraint(equalToConstant: 40)
+        loadingIndicatorCenterYConstraint = loadingIndicator.centerYAnchor.constraint(equalTo: centerYAnchor)
 
         let loadingIndicatorXConstraint = loadingIndicator.centerXAnchor.constraint(equalTo: lineChartAnimationView.centerXAnchor)
         loadingIndicatorXConstraint.priority = .init(999)
@@ -349,7 +373,7 @@ final class TokenExpandableChartView: UIView {
 
             loadingIndicatorXConstraint,
             loadingIndicator.centerXAnchor.constraint(greaterThanOrEqualTo: centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: lineChartAnimationView.centerYAnchor),
+            loadingIndicatorCenterYConstraint,
 
             noPriceDataLabelXConstraint,
             noPriceDataLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -46),
@@ -530,6 +554,7 @@ final class TokenExpandableChartView: UIView {
 
     @objc private func handlePeriodChange() {
         let period = timePeriods[timeFrameSwitcherView.selectedSegmentIndex]
+        configuration = nil
         historyData = nil
         lastSelection = nil
         selectedRange = 0...1
@@ -588,6 +613,7 @@ final class TokenExpandableChartView: UIView {
 
         let updateBlock: (CGFloat, CGFloat) -> () = { [self] progress, value in
             heightConstraint.constant = value
+            loadingIndicatorCenterYConstraint.constant = expandedLoadingIndicatorOffset * (isExpanded ? progress : 1 - progress)
 
             // Animate line charts
             let currentWidth = startGeometry.width + (endGeometry.width - startGeometry.width) * CGFloat(progress)

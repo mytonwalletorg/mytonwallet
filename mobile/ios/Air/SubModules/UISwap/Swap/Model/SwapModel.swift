@@ -43,6 +43,10 @@ func estimateTicksToWait(failedAttempts: Int) -> Int {
         )
     }
 
+    var estimateDebugSummary: String? {
+        estimate.current?.draft.stateUpdate?.response?.debugSummary
+    }
+
     let input: SwapInputModel
     let buttonModel = SwapButtonModel()
     private let contextModel = SwapContextModel()

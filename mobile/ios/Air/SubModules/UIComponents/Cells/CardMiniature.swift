@@ -14,13 +14,17 @@ import Perception
 import OrderedCollections
 import Kingfisher
 
-struct CardMiniature: View {
+public struct CardMiniature: View {
     
     let accountContext: AccountContext
     
     private let cardPreviewSize = CGSize(width: 22, height: 14)
+
+    public init(accountContext: AccountContext) {
+        self.accountContext = accountContext
+    }
     
-    var body: some View {
+    public var body: some View {
         WithPerceptionTracking {
             if let imageUrl = accountContext.nft?.metadata?.mtwCardBackgroundUrl {
                 ZStack {
@@ -39,6 +43,7 @@ struct CardMiniature: View {
                         .sourceAtop { MtwCardInverseCenteredGradient(nft: accountContext.nft) }
                         .scaleEffect(0.8)
                 }
+                .accessibilityHidden(true)
             }
         }
     }

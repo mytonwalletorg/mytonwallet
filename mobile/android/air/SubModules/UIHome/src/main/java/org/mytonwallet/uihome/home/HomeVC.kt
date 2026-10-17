@@ -226,10 +226,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         )[EarnViewModel.alias(MYCOIN_SLUG), EarnViewModel::class.java]
     }
 
-    private val tonConnectController by lazy {
-        TonConnectController(window!!)
-    }
-
     private val walletConnectPayController by lazy {
         WalletConnectPayController(window!!)
     }
@@ -659,7 +655,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
                     )
                     if (validDeeplink == true) return@build
                     if (URLUtil.isValidUrl(qr)) {
-                        tonConnectController.connectStart(qr)
+                        TonConnectController.connectStart(qr)
                         return@build
                     }
                     Toast.makeText(
@@ -808,7 +804,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         }
 
         if (mode == MScreenMode.Default) {
-            tonConnectController.onCreate()
             walletConnectPayController.onCreate()
         }
 
@@ -871,7 +866,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         phoneHeaderView.onDestroy()
         if (mode == MScreenMode.Default) {
             walletConnectPayController.onDestroy()
-            tonConnectController.onDestroy()
         }
         allActivityListViews.forEach {
             it.onDestroy()

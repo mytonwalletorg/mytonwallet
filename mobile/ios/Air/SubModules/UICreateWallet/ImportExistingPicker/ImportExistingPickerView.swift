@@ -19,12 +19,14 @@ struct ImportExistingPickerView: View {
                     title: lang("$secret_words"),
                     subtitle: localizedIntegerDigits(in: lang("Restore wallet from 12 or 24 words")),
                     showsDivider: true,
+                    accessibilityId: "add_wallet_secret_words",
                     onTap: onImport
                 )
                 WalletPickerOptionRow(
                     icon: "LedgerIcon30",
                     title: lang("Ledger"),
                     subtitle: lang("Connect your hardware wallet"),
+                    accessibilityId: "add_wallet_ledger",
                     onTap: onLedger
                 )
             }
@@ -34,6 +36,7 @@ struct ImportExistingPickerView: View {
                     icon: "ViewIcon30",
                     title: lang("View Any Address"),
                     subtitle: lang("Watch wallet in read-only mode"),
+                    accessibilityId: "add_wallet_view",
                     onTap: onView
                 )
             }

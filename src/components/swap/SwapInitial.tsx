@@ -92,6 +92,7 @@ function SwapInitial({
     currentCexPrivacyPolicyUrl,
     currentCexAmlKycPolicyUrl,
     swapHint,
+    estimateDebugSummary,
   },
   tokens,
   isActive,
@@ -396,6 +397,11 @@ function SwapInitial({
             />
           )}
           {renderCexProviderInfo()}
+          {estimateDebugSummary && (
+            <div className={styles.estimateDebugSummary}>
+              {estimateDebugSummary}
+            </div>
+          )}
 
           <SwapSubmitButton
             tokenIn={tokenIn}

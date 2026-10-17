@@ -45,6 +45,8 @@ type OwnProps = {
   isOpen?: boolean;
   isCompact?: boolean;
   isInAppLock?: boolean;
+  /** Stops the modal from taking keys and focus, e.g. while the app lock covers it */
+  isKeyboardDisabled?: boolean;
   forceBottomSheet?: boolean;
   noBackdrop?: boolean;
   noBackdropClose?: boolean;
@@ -89,6 +91,7 @@ function Modal({
   isCompact,
   forceBottomSheet,
   isInAppLock,
+  isKeyboardDisabled,
   noBackdrop,
   noBackdropClose,
   header,
@@ -129,13 +132,15 @@ function Modal({
   }, [isOpen, onClose]);
 
   useEffect(
-    () => (isOpen ? captureKeyboardListeners({
+    () => (isOpen && !isKeyboardDisabled ? captureKeyboardListeners({
       onEsc: { handler: onClose, shouldPreventDefault: IS_EXTENSION },
       ...(onEnter && { onEnter }),
     }) : undefined),
-    [isOpen, onClose, onEnter],
+    [isOpen, isKeyboardDisabled, onClose, onEnter],
   );
-  useEffect(() => (isOpen && modalRef.current ? trapFocus(modalRef.current) : undefined), [isOpen]);
+  useEffect(() => (
+    isOpen && !isKeyboardDisabled && modalRef.current ? trapFocus(modalRef.current) : undefined
+  ), [isOpen, isKeyboardDisabled]);
   useToggleClass({ className: 'is-modal-open', isActive: !isCompact && isOpen });
   // The shared backdrop in `Modal.module.scss` stays visible as long as at least one modal holds this class.
   // Compact modals are excluded — they usually stack on top of a bigger modal, so they paint their own

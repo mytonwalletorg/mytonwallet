@@ -16,6 +16,7 @@ import org.mytonwallet.app_air.uicomponents.widgets.fadeInObjectAnimator
 import org.mytonwallet.app_air.uicomponents.widgets.fadeOut
 import org.mytonwallet.app_air.uicomponents.widgets.lockView
 import org.mytonwallet.app_air.uicomponents.widgets.unlockView
+import org.mytonwallet.app_air.uipasscode.R as PasscodeR
 import org.mytonwallet.app_air.walletbasecontext.theme.WColor
 import org.mytonwallet.app_air.walletbasecontext.theme.color
 import org.mytonwallet.app_air.walletbasecontext.utils.getDrawableCompat
@@ -35,6 +36,20 @@ class PasscodeKeyboardView(
         private const val GAP = 8
         private const val HEIGHT = 80
         private const val MAX_BUTTON_WIDTH = 120
+
+        // Stable resource ids for UI automation (Maestro `id:` selectors)
+        private val digitKeyIds = intArrayOf(
+            PasscodeR.id.passcode_key_0,
+            PasscodeR.id.passcode_key_1,
+            PasscodeR.id.passcode_key_2,
+            PasscodeR.id.passcode_key_3,
+            PasscodeR.id.passcode_key_4,
+            PasscodeR.id.passcode_key_5,
+            PasscodeR.id.passcode_key_6,
+            PasscodeR.id.passcode_key_7,
+            PasscodeR.id.passcode_key_8,
+            PasscodeR.id.passcode_key_9
+        )
     }
 
     var listener: PasscodeListener? = null
@@ -59,6 +74,7 @@ class PasscodeKeyboardView(
                 ).apply {
                     when (a) {
                         11 -> { // backspace
+                            id = PasscodeR.id.passcode_key_delete
                             deleteButton = this
                             setOnClickListener {
                                 Haptics.play(this, HapticType.LIGHT_TAP)
@@ -67,6 +83,7 @@ class PasscodeKeyboardView(
                         }
 
                         9 -> { // biometric
+                            id = PasscodeR.id.passcode_key_biometric
                             customDrawable = context.getDrawableCompat(R.drawable.ic_biometric)
                             setOnClickListener {
                                 Haptics.play(this, HapticType.LIGHT_TAP)
@@ -78,6 +95,7 @@ class PasscodeKeyboardView(
                         }
 
                         else -> {
+                            num?.let { id = digitKeyIds[it] }
                             setOnClickListener {
                                 Haptics.play(this, HapticType.LIGHT_TAP)
                                 num?.let { listener?.onNumberInput(it) }

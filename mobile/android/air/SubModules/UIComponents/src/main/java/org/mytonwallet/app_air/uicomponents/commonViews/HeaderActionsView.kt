@@ -18,6 +18,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.graphics.toColorInt
 import kotlin.math.roundToInt
 import org.mytonwallet.app_air.icons.R
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.extensions.sp
 import org.mytonwallet.app_air.uicomponents.helpers.HapticType
@@ -211,7 +212,17 @@ class HeaderActionsView(
         WALLET_SETTINGS,
         WALLET_MENU,
         EDIT,
-        BACK
+        BACK;
+
+        /** Stable resource id of the action row button, for UI automation */
+        val testViewId: Int?
+            get() = when (this) {
+                RECEIVE -> UIComponentsR.id.header_action_fund
+                SEND -> UIComponentsR.id.header_action_send
+                SWAP -> UIComponentsR.id.header_action_swap
+                EARN -> UIComponentsR.id.header_action_earn
+                else -> null
+            }
     }
 
     override fun insetsUpdated() {
@@ -403,6 +414,8 @@ class HeaderActionsView(
         }
 
         init {
+            // Set before `setConstraints`, which anchors children to the current id
+            item.identifier.testViewId?.let { id = it }
             clipChildren = false
             clipToPadding = false
 

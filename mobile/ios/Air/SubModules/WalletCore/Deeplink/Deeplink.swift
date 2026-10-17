@@ -26,12 +26,14 @@ public enum Deeplink {
     case nftAddress(nftAddress: String)
     case view(network: ApiNetwork, addressOrDomainByChain: [String: String])
     case settings(section: AppSettingsSection?)
+    /// UI tests: `mtw://e2e-unlock?passcode=…`, parsed in DEBUG builds only.
+    case e2eUnlock(passcode: String)
 }
 
 public extension Deeplink {
     var isAllowedFromExploreSearchBar: Bool {
         switch self {
-        case .url:
+        case .url, .e2eUnlock:
             false
         default:
             true

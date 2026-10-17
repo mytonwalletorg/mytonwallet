@@ -77,7 +77,7 @@ describe('MessageBubble Agent V2 actions', () => {
     expect(onAction).toHaveBeenCalledWith(1, action);
   });
 
-  it('disables prepared Send with parent blocking or an inactive presentation', async () => {
+  it('disables prepared Send with parent blocking and lets an inactive one take the tap', async () => {
     const action = sendAction();
     const onAction = jest.fn();
     TeactDOM.render(
@@ -103,9 +103,11 @@ describe('MessageBubble Agent V2 actions', () => {
     await pause(20);
 
     expect(root.textContent).toBe('Review transfer');
-    expect(getReviewButton(root).disabled).toBe(true);
+    expect(getReviewButton(root).disabled).toBe(false);
+    expect(getReviewButton(root).getAttribute('aria-disabled')).toBe('true');
     getReviewButton(root).click();
-    expect(onAction).not.toHaveBeenCalled();
+    await pause(0);
+    expect(onAction).toHaveBeenCalledWith(1, action);
   });
 
   it('keeps a prepared Send enabled when its expiry is further out than a timer can hold', async () => {
@@ -122,10 +124,10 @@ describe('MessageBubble Agent V2 actions', () => {
     );
     await pause(20);
 
-    expect(getReviewButton(root).disabled).toBe(false);
+    expect(getReviewButton(root).getAttribute('aria-disabled')).toBeNull();
   });
 
-  it('disables a prepared Send whose presentation is already expired', async () => {
+  it('marks a prepared Send whose presentation is already expired as unavailable', async () => {
     const action = sendAction();
     TeactDOM.render(
       <MessageBubble
@@ -138,7 +140,7 @@ describe('MessageBubble Agent V2 actions', () => {
     await pause(20);
 
     expect(root.textContent).toBe('Review transfer');
-    expect(getReviewButton(root).disabled).toBe(true);
+    expect(getReviewButton(root).getAttribute('aria-disabled')).toBe('true');
   });
 
   it('renders every non-Send action and dispatches only after a click', async () => {
@@ -164,7 +166,7 @@ describe('MessageBubble Agent V2 actions', () => {
     expect(onAction.mock.calls).toEqual(actions.map((action) => [1, action]));
   });
 
-  it('disables a non-Send action after local resolution marks it inactive', async () => {
+  it('marks a non-Send action unavailable after local resolution and still reports the tap', async () => {
     const action = nonSendActions()[0];
     const onAction = jest.fn();
     const inactiveMessage = messageWithActions([action]);
@@ -181,9 +183,10 @@ describe('MessageBubble Agent V2 actions', () => {
     await pause(20);
 
     const button = root.querySelector('button')!;
-    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
     button.click();
-    expect(onAction).not.toHaveBeenCalled();
+    await pause(0);
+    expect(onAction).toHaveBeenCalledWith(1, action);
   });
 
   it('renders an incomplete Send action as the existing Open Send button', async () => {

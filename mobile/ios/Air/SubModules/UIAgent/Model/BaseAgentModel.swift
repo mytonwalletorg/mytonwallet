@@ -1,4 +1,5 @@
 import Foundation
+import WalletCore
 
 @MainActor
 protocol AgentModelDelegate: AnyObject {
@@ -183,16 +184,17 @@ class BaseAgentModel {
 
     func clearChat(animated: Bool = true) {
         guard backend.canClearConversation else { return }
-        resetPendingTypingIndicator()
-        backend.clearConversation { [weak self] didClear in
-            guard didClear, let self else { return }
-            self.replaceTimeline(with: [], animated: animated)
-            self.backend.loadHints(animated: animated)
-        }
+        backend.clearConversation()
+        replaceTimeline(with: [], animated: animated)
+        backend.loadHints(animated: animated)
     }
 
     func reportProblem(messageID: AgentItemID?, comment: String?) async -> Bool {
         await backend.reportProblem(messageID: messageID, comment: comment)
+    }
+
+    func rateMessage(messageID: AgentItemID, feedback: ApiAgentV2AnswerFeedback?) async -> Bool {
+        await backend.rateMessage(messageID: messageID, feedback: feedback)
     }
 
     func loadOlderMessages() async -> Bool {

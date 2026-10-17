@@ -90,19 +90,26 @@ data class MApiSwapHint(
     val url: String? = null
 )
 
+/** Present only for tester wallets; backend may attach more fields. */
+@JsonClass(generateAdapter = true)
+data class MApiSwapEstimateDebug(val summary: String)
+
 @JsonClass(generateAdapter = true)
 data class MApiSwapEstimateErrorResponse(
     val error: String? = null,
-    val hint: MApiSwapHint? = null
+    val hint: MApiSwapHint? = null,
+    val debug: MApiSwapEstimateDebug? = null
 ) {
     companion object {
-        fun hintFrom(raw: String?): MApiSwapHint? = raw?.let {
+        fun fromRaw(raw: String?): MApiSwapEstimateErrorResponse? = raw?.let {
             runCatching {
-                WalletCore.moshi.adapter(
-                    MApiSwapEstimateErrorResponse::class.java
-                ).fromJson(it)?.hint
+                WalletCore.moshi.adapter(MApiSwapEstimateErrorResponse::class.java).fromJson(it)
             }.getOrNull()
         }
+
+        fun hintFrom(raw: String?): MApiSwapHint? = fromRaw(raw)?.hint
+
+        fun debugSummaryFrom(raw: String?): String? = fromRaw(raw)?.debug?.summary
     }
 }
 
@@ -110,6 +117,7 @@ data class MApiSwapEstimateErrorResponse(
 data class MApiSwapEstimateResponse(
     val route: String? = null,
     val hint: MApiSwapHint? = null,
+    val debug: MApiSwapEstimateDebug? = null,
     val toAmount: BigDecimal,
     val fromAmount: BigDecimal,
     val toMinAmount: BigDecimal,
@@ -127,7 +135,7 @@ data class MApiSwapEstimateResponse(
     val from: String,
     val to: String,
     val slippage: Double?,
-    val needsApprove: Boolean? = null,
+    val needsBatch: Boolean? = null,
 
     // only in v3
     val routes: List<List<JSONObject>>?
@@ -153,7 +161,7 @@ data class MApiSwapBuildRequest(
     val dieselFee: String?,
     val shouldTryDiesel: Boolean,
     val routes: List<List<JSONObject>>?,
-    val needsApprove: Boolean? = null
+    val needsBatch: Boolean? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -166,6 +174,7 @@ data class MApiSwapBuildResponse(
     val chain: MBlockchain? = null,
     val transaction: String? = null,
     val calls: List<MApiEvmSwapCall>? = null,
+    val needsBatch: Boolean? = null,
     val error: String? = null
 )
 
@@ -173,6 +182,7 @@ data class MApiSwapBuildResponse(
 data class MApiSwapCexEstimateResponse(
     val route: String? = null,
     val hint: MApiSwapHint? = null,
+    val debug: MApiSwapEstimateDebug? = null,
     val cexLabel: String? = null,
     val providerName: String? = null,
     val termsOfUseUrl: String? = null,

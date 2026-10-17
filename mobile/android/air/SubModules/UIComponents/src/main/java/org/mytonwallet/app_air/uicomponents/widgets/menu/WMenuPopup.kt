@@ -9,6 +9,7 @@ import org.mytonwallet.app_air.uicomponents.extensions.atMost
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.extensions.getLocationInWindow
 import org.mytonwallet.app_air.uicomponents.extensions.unspecified
+import org.mytonwallet.app_air.uicomponents.helpers.PopupHelpers
 import org.mytonwallet.app_air.uicomponents.widgets.INavigationPopup
 import org.mytonwallet.app_air.uicomponents.widgets.cancelAncestorTouches
 import org.mytonwallet.app_air.uicomponents.widgets.frameAsPath
@@ -253,6 +254,11 @@ class WMenuPopup {
             xOffset: Int = 0,
             yOffset: Int = 0,
             positioning: Positioning,
+            /**
+             * With [Positioning.BELOW]: when the menu has no room below [view] but has room above it, it opens above,
+             * as [Positioning.ABOVE] with this offset. A negative one keeps it clear of something over [view].
+             */
+            aboveFallbackYOffset: Int? = null,
             centerHorizontally: Boolean = false,
             windowBackgroundStyle: BackgroundStyle =
                 BackgroundStyle.Cutout.fromView(view, roundRadius = 16f.dp),
@@ -309,27 +315,55 @@ class WMenuPopup {
                 else -> 0
             }
 
-            val y = when (positioning) {
-                Positioning.ABOVE -> {
+            val belowY = location.y + yOffset + (view.height + 8.dp)
+            val opensAbove = positioning == Positioning.ABOVE || (
+                aboveFallbackYOffset != null &&
+                    positioning == Positioning.BELOW &&
+                    hasRoomOnlyAbove(initialPopupView, belowY, location.y + aboveFallbackYOffset)
+                )
+            val y = when {
+                opensAbove -> {
                     initialPopupView.measure(screenWidth.atMost, 0.unspecified)
-                    location.y + yOffset - (initialPopupView.measuredHeight + 8.dp)
+                    val aboveYOffset = if (positioning ==
+                        Positioning.ABOVE
+                    ) {
+                        yOffset
+                    } else {
+                        aboveFallbackYOffset!!
+                    }
+                    location.y + aboveYOffset - (initialPopupView.measuredHeight + 8.dp)
                 }
 
-                Positioning.ALIGNED -> {
+                positioning == Positioning.ALIGNED -> {
                     location.y + yOffset
                 }
 
-                Positioning.BELOW -> {
-                    location.y + yOffset + (view.height + 8.dp)
+                else -> {
+                    belowY
                 }
             }
 
             popupWindow.showAtLocation(
                 x = location.x + offset,
                 y = y,
-                fromTop = positioning != Positioning.ABOVE
+                fromTop = !opensAbove
             )
             return popupWindow
+        }
+
+        /** Whether the menu overflows the popup host's content area from [belowY] but fits ending above [aboveBottom] */
+        private fun hasRoomOnlyAbove(
+            popupView: WMenuPopupView,
+            belowY: Int,
+            aboveBottom: Int
+        ): Boolean {
+            val host = PopupHelpers.popupHost ?: return false
+            popupView.measure(ApplicationContextHolder.screenWidth.atMost, 0.unspecified)
+            val height = popupView.measuredHeight
+            val hostTop = host.getLocationInWindow().y
+            val bounds = host.getContentAreaBounds()
+            return belowY - hostTop + height > bounds.bottom &&
+                aboveBottom - hostTop - (height + 8.dp) >= bounds.top
         }
     }
 

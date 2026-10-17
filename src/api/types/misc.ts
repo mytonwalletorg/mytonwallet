@@ -3,6 +3,7 @@ import type { Base58EncodedBytes } from '@solana/kit';
 
 import type { LangCode } from '../../global/types';
 import type { AgentOverride } from '../../util/agent/agentOverride';
+import type { WebFunnelContext } from '../../util/webFunnel';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { DappProtocolType } from '../dappProtocols';
 import type { ApiStorageConfig } from '../storages/types';
@@ -43,6 +44,7 @@ export interface ApiAccountInitialization {
 }
 
 export interface ApiInitArgs {
+  webFunnel?: WebFunnelContext;
   isElectron?: boolean;
   isIosApp?: boolean;
   isAndroidApp?: boolean;
@@ -362,6 +364,8 @@ export type ApiDappRequest = {
   accountId?: string;
   identifier?: string;
   sseOptions?: ApiSseOptions;
+  /** The bridge event that delivered this request, when it came over SSE */
+  sseEventId?: string;
 };
 
 export interface ApiTransferToSign {

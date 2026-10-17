@@ -117,7 +117,7 @@ struct AboutView: View {
                 onTap: onTerms
             )
             Item(
-                icon: "TermsIcon",
+                icon: "PolicyIcon",
                 text: lang("Privacy Policy"),
                 onTap: onPrivacyPolicy
             )

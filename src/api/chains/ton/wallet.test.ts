@@ -12,7 +12,7 @@ import {
 } from './contracts/TelegramWallet';
 import { WORKCHAIN } from './constants';
 import {
-  buildWallet, getTonWallet, pickBestWalletVersion, publicKeyToAddress,
+  buildWallet, getTonWallet, getWalletVersions, pickBestWalletVersion, publicKeyToAddress,
 } from './wallet';
 
 const PUBLIC_KEY_HEX = '1a4e0b6f3d8c2957e4b1a0d6c3f89e5271b4a8d0e6c2f39571a4e0b6f3d8c2957';
@@ -29,6 +29,17 @@ const TELEGRAM_SEND_ONE_EXTERNAL_OP = 0x63896E75;
 const TELEGRAM_SEND_BULK_EXTERNAL_OP = 0x73896E75;
 
 describe('W5 subwallet ID', () => {
+  it('discovers two distinct W5 choices on testnet with their import flags', () => {
+    const versions = getWalletVersions('testnet', PUBLIC_KEY, ['W5']);
+
+    expect(versions.map(({ version, address, isTestnetSubwalletId }) => ({ version, address, isTestnetSubwalletId })))
+      .toEqual([
+        { version: 'W5', address: publicKeyToAddress('testnet', PUBLIC_KEY, 'W5', true), isTestnetSubwalletId: true },
+        { version: 'W5', address: publicKeyToAddress('testnet', PUBLIC_KEY, 'W5', false), isTestnetSubwalletId: false },
+      ]);
+    expect(new Set(versions.map(({ address }) => address)).size).toBe(2);
+  });
+
   it('derives the testnet address with the testnet network global id', () => {
     // The same computation an external library performs, which is the comparison TON docs describe
     const reference = WalletContractV5R1.create({

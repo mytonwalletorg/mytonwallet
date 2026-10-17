@@ -8,6 +8,7 @@ import org.mytonwallet.app_air.walletcontext.models.MBlockchainNetwork
 enum class MBlockchainExplorer(val identifier: String) {
     TONSCAN("tonscan"),
     TONVIEWER("tonviewer"),
+    ACTONSCAN("actonscan"),
     TRONSCAN("tronscan"),
     SOLSCAN("solscan"),
     MEMPOOL("mempool"),
@@ -27,12 +28,20 @@ enum class MBlockchainExplorer(val identifier: String) {
     ROBINSCAN("robinscan"),
     ARCSCAN("arcscan");
 
+    val isMessageHashSupported: Boolean
+        get() = when (this) {
+            TONSCAN, TONVIEWER -> true
+            else -> false
+        }
+
     val title: String
         get() {
             return when (this) {
                 TONSCAN -> "Tonscan"
 
                 TONVIEWER -> "Tonviewer"
+
+                ACTONSCAN -> "Actonscan"
 
                 TRONSCAN -> "Tronscan"
 
@@ -111,6 +120,12 @@ enum class MBlockchainExplorer(val identifier: String) {
         TONVIEWER -> Uri.Builder()
             .scheme("https")
             .authority(if (network.isMainnet) "tonviewer.com" else "testnet.tonviewer.com")
+
+        // Without `network`, the site opens the network the user viewed there last
+        ACTONSCAN -> Uri.Builder()
+            .scheme("https")
+            .authority("actonscan.com")
+            .appendQueryParameter("network", if (network.isMainnet) "mainnet" else "testnet")
 
         TRONSCAN -> Uri.Builder()
             .scheme("https")

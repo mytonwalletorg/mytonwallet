@@ -1,4 +1,5 @@
 import type {
+  AgentAnswerFeedbackV2,
   AgentHintsResponseV2,
   AgentPersistedActionV2,
   AgentPublicFollowUpV2,
@@ -227,7 +228,8 @@ export type AgentV2MessagesStateAction =
       messageId: number;
       actionId: string;
       presentation: AgentV2ActionPresentation;
-    };
+    }
+    | { kind: 'messageFeedbackChanged'; messageId: number; feedback?: AgentAnswerFeedbackV2 };
 
 const ANALYZING_REQUEST_ACTIVITY: AgentRunActivityType = { kind: 'analyzingRequest' };
 
@@ -562,6 +564,10 @@ export function reduceAgentV2MessagesState(
           },
         };
       });
+    case 'messageFeedbackChanged':
+      return updateMessage(state, action.messageId, ({ feedback, ...message }) => (
+        action.feedback ? { ...message, feedback: action.feedback } : message
+      ));
     default:
       return assertUnreachable(action);
   }
@@ -775,6 +781,8 @@ function completeMessage(
     isTyping: undefined,
     isStreaming: undefined,
     shouldCommitMarkdownTail: action.finishReason === 'complete',
+    // An answer the agent finished without a client tool is still stored as complete
+    ...(action.finishReason === 'complete' || action.finishReason === 'tool_unavailable' ? { isComplete: true } : {}),
   }));
   if (!isRunUpdateCurrent(state.run, action.clientRunId)) return updated;
   const operationBinding = getRunOperationBinding(state.run);

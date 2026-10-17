@@ -56,11 +56,17 @@ object TonConfig : MBlockchainConfig {
 
     override fun idToTxHash(id: String?): String? = id?.substringBefore(":")
 
-    override fun transactionExplorers() =
-        listOf(MBlockchainExplorer.TONSCAN, MBlockchainExplorer.TONVIEWER)
+    override fun transactionExplorers() = listOf(
+        MBlockchainExplorer.TONSCAN,
+        MBlockchainExplorer.TONVIEWER,
+        MBlockchainExplorer.ACTONSCAN
+    )
 
-    override fun addressExplorers() =
-        listOf(MBlockchainExplorer.TONSCAN, MBlockchainExplorer.TONVIEWER)
+    override fun addressExplorers() = listOf(
+        MBlockchainExplorer.TONSCAN,
+        MBlockchainExplorer.TONVIEWER,
+        MBlockchainExplorer.ACTONSCAN
+    )
 
     override fun tokenExplorer() = MBlockchainExplorer.TONSCAN
 

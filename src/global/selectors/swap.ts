@@ -238,6 +238,10 @@ export function selectSwapType(global: GlobalState) {
   return getSwapType(tokenInSlug, tokenOutSlug, byChain);
 }
 
+export function selectSwapRoute(global: GlobalState) {
+  return global.currentSwap.route;
+}
+
 export function selectIsSwapDisabled(global: GlobalState) {
   return global.restrictions.isSwapDisabled
     || global.settings.isTestnet

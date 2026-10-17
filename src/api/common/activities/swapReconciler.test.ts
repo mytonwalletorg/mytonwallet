@@ -13,7 +13,12 @@ import {
   wallet2,
   wallet3,
 } from '../../../../tests/helpers/swapReconcilerFixtures';
-import { preserveActivityStatusProgress, projectSwapActivities, reconcileActivityUpdate } from './swapReconciler';
+import {
+  preserveActivityStatusProgress,
+  projectSwapActivities,
+  reconcileActivityUpdate,
+  uniqueSwapRows,
+} from './swapReconciler';
 
 const NOW = 1_788_462_500_000;
 
@@ -138,6 +143,7 @@ describe('projectSwapActivities', () => {
       to: 'ton-eqaj8uwd7e',
     });
     expect(swap.externalMsgHashNorm).toBe(chainRows[0].externalMsgHashNorm); // the details loader reads the trace by it
+    expect(swap.traceId).toBe('llavy3Q/XBVWY/2TFi6RXeh7N1c1bwaHMm0T43ny0O8=');
 
     expect(hiddenIds(projected).sort()).toEqual(ids(chainRows).sort());
     for (const activity of projected) {
@@ -245,7 +251,45 @@ describe('projectSwapActivities', () => {
     expect(swap.status).toBe('pendingTrusted');
     expect(swap.extra?.reconciliation?.reason).toBe('cex-swap');
     expect(swap.extra?.mtwAggregator).toBeUndefined();
+    expect(swap.traceId).toBeUndefined();
     expect(projected.find(({ id }) => id === deposit.id)?.shouldHide).toBe(true);
+  });
+
+  it('keeps the trace id of a summary only beside the message hash of its own trace', () => {
+    const pendingRows = activitiesFromSocketMessage(socketMessage(fixtures.case2WsActions, 'pending'));
+    const [backendRow] = activitiesFromBackendRows(backendRowsOf(fixtures.case2Backend.history));
+    const held = { ...backendRow, externalMsgHashNorm: 'another-message', traceId: 'trace-of-another-message' };
+
+    const projected = projectSwapActivities(pendingRows, [held], {
+      fromTime: pendingRows[0].timestamp,
+      toTime: NOW,
+    });
+
+    const [swap] = visible(projected) as ApiSwapActivity[];
+    expect(swap.externalMsgHashNorm).toBe(pendingRows[0].externalMsgHashNorm);
+    expect(swap.traceId).toBeUndefined();
+  });
+});
+
+describe('uniqueSwapRows', () => {
+  it('keeps the trace id of a held row when the backend row of the same swap arrives without it', () => {
+    const held = swapActivity({ traceId: 'trace-id' });
+    const incoming = swapActivity({ status: 'completed' });
+
+    const [row] = uniqueSwapRows([incoming, held]);
+
+    expect(row.status).toBe('completed');
+    expect(row.traceId).toBe('trace-id');
+  });
+
+  it('drops a trace id that belongs to another message of the swap', () => {
+    const winner = swapActivity({ externalMsgHashNorm: 'message-x' });
+    const other = swapActivity({ externalMsgHashNorm: 'message-y', traceId: 'trace-of-message-y' });
+
+    const [row] = uniqueSwapRows([winner, other]);
+
+    expect(row.externalMsgHashNorm).toBe('message-x');
+    expect(row.traceId).toBeUndefined();
   });
 });
 

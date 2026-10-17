@@ -1,4 +1,6 @@
-import React, { memo, useEffect, useMemo, useState } from '../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useRef, useState,
+} from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type { TonConnectProof } from '../../api/dappProtocols/adapters';
@@ -49,6 +51,7 @@ const ICON_FALLBACK_CLASS_NAME = buildClassName(
 interface DappConnectOpenProps {
   hasConnectRequest: true;
   state?: DappConnectState;
+  promiseId?: string;
   dapp?: StoredDappConnection;
   error?: string;
   requiredPermissions?: ApiDappPermissions;
@@ -61,6 +64,7 @@ interface DappConnectOpenProps {
   isCreatingAccount?: boolean;
   accountError?: string;
   isAuthAppState?: boolean;
+  isAppLocked?: boolean;
 }
 
 type StateProps = DappConnectOpenProps
@@ -68,6 +72,7 @@ type StateProps = DappConnectOpenProps
 
 function DappConnectModal({
   state,
+  promiseId,
   hasConnectRequest,
   dapp,
   error,
@@ -81,6 +86,7 @@ function DappConnectModal({
   isCreatingAccount,
   accountError,
   isAuthAppState,
+  isAppLocked,
 }: StateProps) {
   const {
     submitDappConnectRequestConfirm,
@@ -96,9 +102,21 @@ function DappConnectModal({
 
   const isOpen = hasConnectRequest && !(isCreatingAccount && isAuthAppState);
 
+  // The close animation can end after a newer request opened, so it cancels the request this modal showed when the
+  // close began, snapshotted at that moment
+  const shownPromiseIdRef = useRef<string>();
+  const closingPromiseIdRef = useRef<string>();
+  useEffect(() => {
+    if (isOpen) {
+      shownPromiseIdRef.current = promiseId;
+    } else {
+      closingPromiseIdRef.current = shownPromiseIdRef.current;
+    }
+  }, [isOpen, promiseId]);
+
   const handleCloseAnimationEnd = useLastCallback(() => {
     if (!isCreatingAccount) {
-      cancelDappConnectRequestConfirm();
+      cancelDappConnectRequestConfirm({ promiseId: closingPromiseIdRef.current });
     }
   });
 
@@ -228,7 +246,7 @@ function DappConnectModal({
   const isSelectedAccountCompatible = getIsAccountCompatible(accounts?.[selectedAccount]?.byChain ?? {});
 
   useEffect(() => {
-    if (state !== DappConnectState.Info || isLoading || isViewMode) return undefined;
+    if (state !== DappConnectState.Info || isLoading || isViewMode || isAppLocked) return undefined;
 
     if (isNoCompatibleWallet) {
       return isCreatingAccount ? undefined : captureKeyboardListeners({ onEnter: handleCreateMultichainWallet });
@@ -236,7 +254,7 @@ function DappConnectModal({
 
     return isSelectedAccountCompatible ? captureKeyboardListeners({ onEnter: handleSubmit }) : undefined;
   }, [
-    state, isLoading, isViewMode, isNoCompatibleWallet, isCreatingAccount, isSelectedAccountCompatible,
+    state, isLoading, isViewMode, isAppLocked, isNoCompatibleWallet, isCreatingAccount, isSelectedAccountCompatible,
     handleCreateMultichainWallet, handleSubmit,
   ]);
 
@@ -409,6 +427,7 @@ function DappConnectModal({
   return (
     <Modal
       isOpen={isOpen}
+      isKeyboardDisabled={isAppLocked}
       dialogClassName={styles.modalDialog}
       onClose={cancelDappConnectRequestConfirm}
       onCloseAnimationEnd={handleCloseAnimationEnd}
@@ -428,7 +447,7 @@ function DappConnectModal({
 
 export default memo(withGlobal((global): StateProps => {
   const {
-    state, dapp, error, accountId, permissions, proof, multichainResolution, isCreatingAccount,
+    state, promiseId, dapp, error, accountId, permissions, proof, multichainResolution, isCreatingAccount,
   } = global.dappConnectRequest || {};
   const currentAccountId = accountId || selectCurrentAccountId(global)!;
   const hasConnectRequest = state !== undefined;
@@ -445,6 +464,7 @@ export default memo(withGlobal((global): StateProps => {
 
   return {
     state,
+    promiseId,
     hasConnectRequest,
     dapp,
     error,
@@ -458,5 +478,6 @@ export default memo(withGlobal((global): StateProps => {
     isCreatingAccount,
     accountError,
     isAuthAppState: global.appState === AppState.Auth,
+    isAppLocked: global.isAppLockActive,
   };
 })(DappConnectModal));

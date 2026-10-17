@@ -337,6 +337,8 @@ extension ExploreVC {
                             .backportScrollEdgeEffectHidden(viewState.content.isBrowsing, for: .top)
                             .backportScrollClipDisabled()
                             .scrollDismissesKeyboard(.immediately)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier("explore_list")
                             .safeAreaInset(edge: .leading, spacing: contentMargins.leading) {
                                 Color.clear.frame(width: 0, height: 1)
                             }

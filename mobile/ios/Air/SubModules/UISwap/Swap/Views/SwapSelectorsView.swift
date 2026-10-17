@@ -125,7 +125,9 @@ fileprivate struct _SwapSelectorsView: View {
                 onInputTapped: {
                     sellingFocused = sellingToken != nil
                 },
-                onAmountChanged: onSellingAmountChanged
+                onAmountChanged: onSellingAmountChanged,
+                amountIdentifier: "swap_sell_amount",
+                tokenPickerIdentifier: "swap_sell_token"
             )
             .frame(minHeight: IOS_26_MODE_ENABLED ? 42 : nil)
             .padding(8) // increase touch target
@@ -183,7 +185,9 @@ fileprivate struct _SwapSelectorsView: View {
                         buyingFocused = buyingToken != nil
                     }
                 },
-                onAmountChanged: onBuyingAmountChanged
+                onAmountChanged: onBuyingAmountChanged,
+                amountIdentifier: "swap_buy_amount",
+                tokenPickerIdentifier: "swap_buy_token"
             )
             .frame(minHeight: IOS_26_MODE_ENABLED ? 42 : nil)
             .padding(8)  // increase touch target

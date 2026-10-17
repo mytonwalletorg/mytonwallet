@@ -43,6 +43,8 @@ public struct ChainConfig: Sendable {
         /// Use `{base}` as the base URL placeholder and `{address}` as the NFT collection address placeholder
         public var nftCollection: String? = nil
         public var doConvertHashFromBase64: Bool
+        /// Whether the transaction page also finds a TON trace by the hash of its external message
+        public var isMessageHashSupported: Bool = false
     }
 
     public struct Marketplace: Sendable {
@@ -550,7 +552,8 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
                 transaction: "{base}tx/{hash}",
                 nft: "{base}nft/{address}",
                 nftCollection: "{base}collection/{address}",
-                doConvertHashFromBase64: true
+                doConvertHashFromBase64: true,
+                isMessageHashSupported: true
             ),
             .init(
                 id: "tonviewer",
@@ -564,6 +567,22 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
                 transaction: "{base}transaction/{hash}",
                 nft: "{base}{address}?nft",
                 nftCollection: "{base}{address}?collection",
+                doConvertHashFromBase64: true,
+                isMessageHashSupported: true
+            ),
+            .init(
+                id: "actonscan",
+                name: "Actonscan",
+                // Without `network`, the site opens the network the user viewed there last
+                baseUrl: [
+                    .mainnet: .init(url: "https://actonscan.com/", param: "?network=mainnet"),
+                    .testnet: .init(url: "https://actonscan.com/", param: "?network=testnet"),
+                ],
+                address: "{base}address/{address}",
+                token: "{base}address/{address}",
+                transaction: "{base}tx/{hash}",
+                nft: "{base}address/{address}",
+                nftCollection: "{base}address/{address}",
                 doConvertHashFromBase64: true
             ),
         ],
@@ -931,6 +950,7 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
        title: "Polygon",
        nativeToken: .POLYGON,
        buySwapAmountIn: "100",
+       isOnchainSwapSupported: false,
        defaultEnabledSlugs: [],
        crosschainSwapSlugs: [POLYGON_SLUG],
        tokenInfo: [
@@ -990,6 +1010,7 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
        buySwapAmountIn: "10",
        isOnRampSupported: false,
        isOffRampSupported: false,
+       isOnchainSwapSupported: false,
        defaultEnabledSlugs: [],
        crosschainSwapSlugs: [MONAD_SLUG],
        tokenInfo: [
@@ -1009,6 +1030,7 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
        title: "Avalanche",
        nativeToken: .AVALANCHE,
        buySwapAmountIn: "0.1",
+       isOnchainSwapSupported: false,
        usdtSlug: AVALANCHE_USDT_MAINNET_SLUG,
        defaultEnabledSlugs: [],
        crosschainSwapSlugs: [AVALANCHE_SLUG],

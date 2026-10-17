@@ -246,7 +246,7 @@ class ActivityMainContentView(context: Context) :
     fun configureTransactionTopRight(transaction: MApiTransaction.Transaction) {
         topRightLabel.contentView.setStyle(adaptiveFontSize())
 
-        val amountCols = if (transaction.isNft || transaction.noAmountTransaction) {
+        val amountCols = if (transaction.hidesAmount) {
             0
         } else {
             4 + abs(
@@ -256,7 +256,7 @@ class ActivityMainContentView(context: Context) :
         topRightLabel.setMaskCols(amountCols)
 
         val token = transaction.token
-        if (token == null || transaction.isNft || transaction.noAmountTransaction) {
+        if (token == null || transaction.hidesAmount) {
             topRightLabel.contentView.text = ""
             topRightIconView.isGone = true
             topRightIconView.clear()
@@ -352,7 +352,7 @@ class ActivityMainContentView(context: Context) :
 
     private fun configureTransactionEquivalentAmount() {
         val transaction = transaction as MApiTransaction.Transaction
-        if (transaction.isNft || transaction.noAmountTransaction ||
+        if (transaction.hidesAmount ||
             transaction.type == ApiTransactionType.APPROVAL
         ) {
             bottomRightLabel.contentView.text = ""
@@ -549,3 +549,8 @@ class ActivityMainContentView(context: Context) :
         val END_MARGIN_PX = 16.dp
     }
 }
+
+private val MApiTransaction.Transaction.hidesAmount: Boolean
+    get() = type != ApiTransactionType.APPROVAL &&
+        amount.signum() == 0 &&
+        (type != null || isNft)

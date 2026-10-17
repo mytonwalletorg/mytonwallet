@@ -29,7 +29,9 @@ interface OwnProps {
 type StateProps = Pick<
   GlobalState['currentDappSignData'],
   'dapp' | 'isLoading' | 'payloadToSign' | 'parsedPayloadToSign'
->;
+> & {
+  isAppLocked?: boolean;
+};
 
 type RenderingSignData = Pick<StateProps, 'payloadToSign' | 'parsedPayloadToSign'>;
 
@@ -43,6 +45,7 @@ function DappSignDataInitial({
   isLoading,
   payloadToSign,
   parsedPayloadToSign,
+  isAppLocked,
 }: OwnProps & StateProps) {
   const { closeDappSignData, submitDappSignDataConfirm } = getActions();
 
@@ -65,10 +68,10 @@ function DappSignDataInitial({
   });
 
   useEffect(() => (
-    isActive && canSubmit
+    isActive && canSubmit && !isAppLocked
       ? captureKeyboardListeners({ onEnter: { handler: handleEnter, noStopPropagation: true } })
       : undefined
-  ), [isActive, canSubmit, handleEnter]);
+  ), [isActive, canSubmit, isAppLocked, handleEnter]);
 
   function renderContent() {
     return (
@@ -214,5 +217,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isLoading,
     payloadToSign,
     parsedPayloadToSign,
+    isAppLocked: global.isAppLockActive,
   };
 })(DappSignDataInitial));

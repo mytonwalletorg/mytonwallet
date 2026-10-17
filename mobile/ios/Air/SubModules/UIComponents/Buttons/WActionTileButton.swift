@@ -20,7 +20,6 @@ public final class WActionTileButton: UIControl {
         label.textColor = .label
         label.allowsDefaultTighteningForTruncation = true
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.heightAnchor.constraint(equalToConstant: 13).isActive = true
         return label
     }()
 

@@ -166,6 +166,7 @@ open class RecoveryPhraseVC(
 
     val letsCheckButton: WButton by lazy {
         val btn = WButton(context, WButton.Type.PRIMARY)
+        btn.id = R.id.create_check
         btn.text =
             LocaleController.getString("Let's Check!")
         btn.setOnClickListener {
@@ -180,6 +181,7 @@ open class RecoveryPhraseVC(
             context,
             if (isShowingPrivateKey) WButton.Type.PRIMARY else WButton.Type.SECONDARY
         )
+        btn.id = R.id.create_skip_check
         btn.text = skipTitle
         btn.setOnClickListener {
             skipPressed()

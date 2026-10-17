@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Path
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.util.AttributeSet
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toDrawable
@@ -119,13 +120,6 @@ open class WCustomImageView @JvmOverloads constructor(
         val chainRadius = chainSize / 2f
 
         path.reset()
-        path.addRect(
-            0f,
-            0f,
-            measuredWidth.toFloat(),
-            measuredHeight.toFloat(),
-            Path.Direction.CW
-        )
         path.addCircle(
             measuredWidth - chainRadius + chainOffsetX,
             measuredHeight - chainRadius + chainOffsetY,
@@ -139,7 +133,12 @@ open class WCustomImageView @JvmOverloads constructor(
         val needClip = chainDrawable != null && chainSize > 0
         if (needClip) {
             canvas.save()
-            canvas.clipPath(path)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                canvas.clipOutPath(path)
+            } else {
+                @Suppress("DEPRECATION")
+                canvas.clipPath(path, android.graphics.Region.Op.DIFFERENCE)
+            }
         }
 
         super.onDraw(canvas)

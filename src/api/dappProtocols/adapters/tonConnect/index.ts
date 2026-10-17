@@ -115,7 +115,9 @@ import {
   findLastConnectedAccount,
   getDapp,
   getDappsState,
+  getSseDelivery,
   getSseLastEventId,
+  setSseDelivery,
   setSseLastEventId,
   updateDapp,
 } from '../../../methods/dapps';
@@ -137,6 +139,7 @@ import {
   UnknownAppError,
   UnknownError,
 } from './errors';
+import { SseDeliveryTracker } from './sseDelivery';
 import {
   isTransferPayloadDangerous,
   isValidString,
@@ -224,6 +227,16 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
   } | undefined;
 
   private sseDapps: SseDapp[] = [];
+
+  // Outlives `destroy`, because a reconnect must keep knowing which events are still being handled
+  private sseDelivery = new SseDeliveryTracker({
+    loadState: getSseDelivery,
+    loadLegacyEventId: getSseLastEventId,
+    saveState: setSseDelivery,
+    saveLegacyEventId: setSseLastEventId,
+  });
+
+  private resetupChain: Promise<void> = Promise.resolve();
 
   constructor() {
     this.onUpdate = this.handleUpdateBeforeInit;
@@ -594,6 +607,11 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
         validUntil = Math.round(validUntil / 1000);
       }
 
+      // A request the bridge delivers again after a restart may already be past its deadline
+      if (validUntil && validUntil < (Date.now() / 1000)) {
+        throw new BadRequestError('The confirmation timeout has expired');
+      }
+
       const isLedger = type === 'ledger';
 
       let vestingAddress: string | undefined;
@@ -665,6 +683,12 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
       const signedTransactions: Parameters<
         typeof confirmDappRequestSendTransaction<typeof this.protocolType>
       >[1] = await promise;
+
+      // The user has decided, so the bridge must not deliver this request again, even if the app stops mid-broadcast.
+      // A settlement the storage refuses fails the request here, before anything is broadcast
+      if (request.sseEventId) {
+        await this.sseDelivery.settle(request.sseEventId);
+      }
 
       if (validUntil && validUntil < (Date.now() / 1000)) {
         throw new BadRequestError('The confirmation timeout has expired');
@@ -981,14 +1005,25 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
     return ret;
   }
 
-  async resetupRemoteConnection() {
-    const [lastEventId, dappsState, network] = await Promise.all([
-      getSseLastEventId(),
+  /** Runs one setup at a time, so overlapping callers can never leave two streams open */
+  resetupRemoteConnection() {
+    const resetup = this.resetupChain.then(() => this.setupRemoteConnection());
+    this.resetupChain = resetup.catch((err) => {
+      logDebugError('tonConnect:resetupRemoteConnection', err);
+    });
+    return resetup;
+  }
+
+  private async setupRemoteConnection() {
+    const [dappsState, network] = await Promise.all([
       getDappsState(),
       getCurrentNetwork(),
+      this.sseDelivery.load(),
     ]);
 
     if (!dappsState || !network) {
+      this.sseDapps = [];
+      await this.destroy();
       return;
     }
 
@@ -1013,11 +1048,12 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
     }, [] as SseDapp[]);
 
     const walletClientIds = extractKey(this.sseDapps, 'clientId').filter(Boolean);
+
+    await this.destroy();
+
     if (!walletClientIds.length) {
       return;
     }
-
-    await this.destroy();
 
     const bridgeTraceId = generateUuidV7();
     // Restarted on each disconnect (in `onerror`) so a reconnect's `onopen` reports the reconnect handshake
@@ -1032,7 +1068,7 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
       bridge_url: SSE_BRIDGE_URL,
     });
 
-    const eventSource = this.openEventSource(walletClientIds, lastEventId);
+    const eventSource = this.openEventSource(walletClientIds, this.sseDelivery.getCursor());
     this.sseEventSource = eventSource;
     this.initialized = true;
 
@@ -1075,93 +1111,122 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
     };
 
     eventSource.onmessage = async (event) => {
-      const { from, message: encryptedMessage } = JSON.parse(event.data);
-
-      const sseDapp = this.sseDapps.find(({ appClientId }) => appClientId === from);
-      if (!sseDapp) {
-        logDebug(`tonConnect:resetupRemoteConnection: Dapp with appClientId ${from} not found`);
+      // A source that a later setup replaced must not deliver anything
+      if (eventSource !== this.sseEventSource) {
+        safeExec(() => eventSource.close());
         return;
       }
 
-      const {
-        accountId, clientId: walletClientId, appClientId, secretKey, url, lastOutputId,
-      } = sseDapp;
+      // Recorded before anything else, so a redelivery that overlaps this one is skipped
+      const eventId = event.lastEventId || undefined;
+      if (eventId && !this.sseDelivery.receive(eventId)) {
+        return;
+      }
 
-      const messageTraceId = generateUuidV7();
-      let message: AppRequest<keyof RpcRequests>;
       try {
-        message = decryptMessage(encryptedMessage, appClientId, secretKey) as AppRequest<keyof RpcRequests>;
-      } catch (err) {
-        void recordTonConnectEvent({
-          event_name: 'bridge-client-message-decode-error',
-          trace_id: messageTraceId,
-          bridge_url: SSE_BRIDGE_URL,
-          client_id: appClientId,
-          wallet_id: walletClientId,
-          error_message: err instanceof Error ? err.message : String(err),
-        });
-        logDebugError('tonConnect:resetupRemoteConnection: decode error', err);
-        return;
-      }
-
-      void recordTonConnectEvent({
-        event_name: 'bridge-client-message-received',
-        trace_id: messageTraceId,
-        bridge_url: SSE_BRIDGE_URL,
-        client_id: appClientId,
-        wallet_id: walletClientId,
-        message_id: message.id !== undefined ? String(message.id) : undefined,
-        request_type: toTonConnectRequestType(message.method),
-      });
-
-      logDebug('tonConnect:resetupRemoteConnection: SSE Event:', message);
-
-      await setSseLastEventId(event.lastEventId);
-      const sseOptions = {
-        clientId: walletClientId,
-        appClientId,
-        secretKey,
-        lastOutputId,
-      };
-
-      if (!ALLOWED_SSE_METHODS.has(message.method)) {
-        logDebug(`tonConnect:resetupRemoteConnection: Unsupported SSE method: ${message.method}`);
-        return;
-      }
-
-      // @ts-ignore
-      const handler = this[message.method].bind(this);
-
-      const result = await handler(
-        { url, accountId, sseOptions },
-        transformTonConnectMessageToUnified(message) as any,
-      );
-
-      await sendMessage(
-        transformUnifiedMethodResponseToTonConnect(result, message.id),
-        secretKey,
-        walletClientId,
-        appClientId,
-      );
-
-      void recordTonConnectEvent({
-        event_name: 'bridge-client-message-sent',
-        trace_id: messageTraceId,
-        bridge_url: SSE_BRIDGE_URL,
-        client_id: appClientId,
-        wallet_id: walletClientId,
-        message_id: message.id !== undefined ? String(message.id) : undefined,
-        request_type: toTonConnectRequestType(message.method),
-      });
-
-      if (this.delayedReturnParams) {
-        const { validUntil, url, isFromInAppBrowser } = this.delayedReturnParams;
-        if (validUntil > Date.now()) {
-          this.onUpdate({ type: 'openUrl', url, isExternal: !isFromInAppBrowser });
+        await this.handleSseMessage(event.data, eventId);
+      } finally {
+        if (eventId) {
+          void this.sseDelivery.settle(eventId);
         }
-        this.delayedReturnParams = undefined;
       }
     };
+  }
+
+  private async handleSseMessage(data: string, eventId?: string) {
+    const { from, message: encryptedMessage } = JSON.parse(data);
+
+    const sseDapp = this.sseDapps.find(({ appClientId }) => appClientId === from);
+    if (!sseDapp) {
+      logDebug(`tonConnect:resetupRemoteConnection: Dapp with appClientId ${from} not found`);
+      return;
+    }
+
+    const {
+      accountId, clientId: walletClientId, appClientId, secretKey, url, lastOutputId,
+    } = sseDapp;
+
+    const messageTraceId = generateUuidV7();
+    let message: AppRequest<keyof RpcRequests>;
+    try {
+      message = decryptMessage(encryptedMessage, appClientId, secretKey) as AppRequest<keyof RpcRequests>;
+    } catch (err) {
+      void recordTonConnectEvent({
+        event_name: 'bridge-client-message-decode-error',
+        trace_id: messageTraceId,
+        bridge_url: SSE_BRIDGE_URL,
+        client_id: appClientId,
+        wallet_id: walletClientId,
+        error_message: err instanceof Error ? err.message : String(err),
+      });
+      logDebugError('tonConnect:resetupRemoteConnection: decode error', err);
+      return;
+    }
+
+    void recordTonConnectEvent({
+      event_name: 'bridge-client-message-received',
+      trace_id: messageTraceId,
+      bridge_url: SSE_BRIDGE_URL,
+      client_id: appClientId,
+      wallet_id: walletClientId,
+      message_id: message.id !== undefined ? String(message.id) : undefined,
+      request_type: toTonConnectRequestType(message.method),
+    });
+
+    logDebug('tonConnect:resetupRemoteConnection: SSE Event:', message);
+
+    const sseOptions = {
+      clientId: walletClientId,
+      appClientId,
+      secretKey,
+      lastOutputId,
+    };
+
+    if (!ALLOWED_SSE_METHODS.has(message.method)) {
+      logDebug(`tonConnect:resetupRemoteConnection: Unsupported SSE method: ${message.method}`);
+      return;
+    }
+
+    // @ts-ignore
+    const handler = this[message.method].bind(this);
+
+    const result = await handler(
+      {
+        url, accountId, sseOptions, sseEventId: eventId,
+      },
+      transformTonConnectMessageToUnified(message) as any,
+    );
+
+    // Settled before the response goes out, so a restart never shows an answered request again. The answer is final
+    // either way, so a settlement the storage refuses is logged by the tracker and does not withhold it
+    if (eventId) {
+      await this.sseDelivery.settle(eventId).catch(() => undefined);
+    }
+
+    await sendMessage(
+      transformUnifiedMethodResponseToTonConnect(result, message.id),
+      secretKey,
+      walletClientId,
+      appClientId,
+    );
+
+    void recordTonConnectEvent({
+      event_name: 'bridge-client-message-sent',
+      trace_id: messageTraceId,
+      bridge_url: SSE_BRIDGE_URL,
+      client_id: appClientId,
+      wallet_id: walletClientId,
+      message_id: message.id !== undefined ? String(message.id) : undefined,
+      request_type: toTonConnectRequestType(message.method),
+    });
+
+    if (this.delayedReturnParams) {
+      const { validUntil, url: returnUrl, isFromInAppBrowser } = this.delayedReturnParams;
+      if (validUntil > Date.now()) {
+        this.onUpdate({ type: 'openUrl', url: returnUrl, isExternal: !isFromInAppBrowser });
+      }
+      this.delayedReturnParams = undefined;
+    }
   }
 
   async closeRemoteConnection(accountId: string, dapp: StoredDappConnection): Promise<void> {

@@ -28,6 +28,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WNavigationController
 import org.mytonwallet.app_air.uicomponents.base.WViewController
@@ -63,6 +64,7 @@ import org.mytonwallet.app_air.uiswap.screens.swap.models.SwapDetailsVisibility
 import org.mytonwallet.app_air.uiswap.screens.swap.models.SwapHint
 import org.mytonwallet.app_air.uiswap.screens.swap.views.SwapAssetInputView
 import org.mytonwallet.app_air.uiswap.screens.swap.views.SwapCexProviderInfoView
+import org.mytonwallet.app_air.uiswap.screens.swap.views.SwapEstimateDebugSummaryView
 import org.mytonwallet.app_air.uiswap.screens.swap.views.SwapEstimatedHeader
 import org.mytonwallet.app_air.uiswap.screens.swap.views.SwapEstimatedInfo
 import org.mytonwallet.app_air.uiswap.screens.swap.views.SwapHintView
@@ -121,8 +123,16 @@ class SwapVC(
 
     private val swapAssetsButton = SwapSwapAssetsButton(context)
     private val topSpacer = View(context)
-    private val sendAmount = SwapAssetInputView(context)
-    private val receiveAmount = SwapAssetInputView(context)
+    private val sendAmount = SwapAssetInputView(
+        context,
+        assetViewId = UIComponentsR.id.swap_sell_token,
+        amountEditTextId = UIComponentsR.id.swap_sell_amount
+    )
+    private val receiveAmount = SwapAssetInputView(
+        context,
+        assetViewId = UIComponentsR.id.swap_buy_token,
+        amountEditTextId = UIComponentsR.id.swap_buy_amount
+    )
     private val alertView = WAlertLabel(
         context,
         alertColor = WColor.Red.color
@@ -133,6 +143,9 @@ class SwapVC(
     private val hintView = SwapHintView(context) {
         currentHint?.let(::performHintAction)
     }.apply {
+        isGone = true
+    }
+    private val estimateDebugSummaryView = SwapEstimateDebugSummaryView(context).apply {
         isGone = true
     }
 
@@ -208,7 +221,7 @@ class SwapVC(
 
         view.addView(scrollView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
 
-        continueButton.id = View.generateViewId()
+        continueButton.id = UIComponentsR.id.swap_continue
 
         scrollView.addView(contentLayout, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
@@ -267,6 +280,10 @@ class SwapVC(
 
         linearLayout.addView(cexProviderInfoView)
         linearLayout.addView(hintView, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        linearLayout.addView(
+            estimateDebugSummaryView,
+            LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        )
 
         view.addView(
             bottomReversedCornerViewUpsideDown,
@@ -409,6 +426,13 @@ class SwapVC(
                 est,
                 toToken = est?.request?.tokenToReceive ?: swapViewModel.tokenToReceive
             )
+            val debugSummary = est?.debugSummary
+            if (!debugSummary.isNullOrEmpty()) {
+                estimateDebugSummaryView.configure(debugSummary)
+                animateIn(estimateDebugSummaryView, ViewConstants.GAP.dp)
+            } else {
+                animateOut(estimateDebugSummaryView)
+            }
             ignoreTextChanges = true
             est?.let { estimate ->
                 if (!estimate.request.reverse) {
@@ -508,6 +532,7 @@ class SwapVC(
             ViewConstants.BLOCK_RADIUS.dp,
             true
         )
+        estimateDebugSummaryView.updateTheme()
     }
 
     var isSwapDone = false
@@ -803,6 +828,7 @@ class SwapVC(
             task = { passcode ->
                 swapViewModel.doSend(passcode, request, event.addressToReceive)
             },
+            extraAuthUsages = if (request.reservesBatchKeyRead) 1 else 0,
             allowsAutoConfirm = allowsAutoConfirm
         )
         push(confirmActionVC)

@@ -30,7 +30,13 @@ function TokenIcon({
   const shouldRenderImage = Boolean(image) && !isLoadingError;
   const shapeClassName = getIsRwaStockToken(token) ? styles.square : styles.circle;
   const shouldRenderChainIcon = Boolean(withChainIcon && !isNativeToken && !isNativeTokenStaking && chain);
-  const iconFullClassName = buildClassName(styles.icon, size && styles[size], shapeClassName, iconClassName);
+  const iconFullClassName = buildClassName(
+    styles.icon,
+    size && styles[size],
+    shapeClassName,
+    shouldRenderChainIcon && styles.withChainIcon,
+    iconClassName,
+  );
 
   function renderDefaultIcon() {
     return (
@@ -45,7 +51,6 @@ function TokenIcon({
       className={buildClassName(
         styles.wrapper,
         size && styles[size],
-        shouldRenderChainIcon && styles.withChainIcon,
         className,
       )}
     >

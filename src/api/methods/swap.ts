@@ -20,8 +20,10 @@ import type {
 
 import { SWAP_API_VERSION } from '../../config';
 import { buildLocalTxId } from '../../util/activities';
-import { unique } from '../../util/iteratees';
+import { getIsSupportedChain } from '../../util/chain';
+import { omit, unique } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
+import { getChainBySlug } from '../../util/tokens';
 import chains from '../chains';
 import { fetchStoredAccount, fetchStoredWallet } from '../common/accounts';
 import {
@@ -98,7 +100,7 @@ export async function swapSubmit(
   isGasless?: boolean,
   transaction?: string,
   calls?: ApiEvmSwapCall[],
-  needsApprove?: boolean,
+  needsBatch?: boolean,
 ): Promise<{ activityId?: string; mfaRequestHash?: string; swapId: string } | { error: string }> {
   const swapId = historyItem.id;
 
@@ -130,7 +132,7 @@ export async function swapSubmit(
     transfers,
     transaction,
     calls,
-    needsApprove,
+    needsBatch,
     historyItem,
     isGasless,
     authToken,
@@ -293,22 +295,35 @@ export async function swapEstimate(
   accountId: string,
   request: ApiSwapEstimateRequest,
 ): Promise<ApiSwapEstimateResponse> {
-  const walletVersion = (await fetchStoredAccount(accountId)).byChain.ton?.version;
+  const account = await fetchStoredAccount(accountId);
+  const walletVersion = account.byChain.ton?.version;
+  const historyAddress = account.byChain.ton?.address;
   const { swapVersion } = await getBackendConfigCache();
 
-  const estimate = await callBackendPost<ApiSwapEstimateResponse>('/swap/estimate', {
+  let estimate = await callBackendPost<ApiSwapEstimateResponse>('/swap/estimate', {
     ...request,
     swapVersion: swapVersion ?? SWAP_API_VERSION,
     walletVersion,
+    historyAddress,
   }, {
     isAllowBadRequest: true,
   });
 
   if (estimate.hint?.type === 'intermediate') {
-    return { ...estimate, hint: { ...estimate.hint, token: getSwapItemSlug(estimate.hint.token) } };
+    estimate = { ...estimate, hint: { ...estimate.hint, token: getSwapItemSlug(estimate.hint.token) } };
   }
 
-  return estimate;
+  if (!('route' in estimate) || estimate.route !== 'dex') {
+    return estimate;
+  }
+
+  const chain = getIsSupportedChain(estimate.chain) ? estimate.chain : getChainBySlug(estimate.from);
+  const sdk = getIsSupportedChain(chain) ? chains[chain] : undefined;
+  const needsBatch = sdk
+    ? await sdk.resolveSwapNeedsBatch(accountId, estimate.needsApprove)
+    : !!estimate.needsApprove;
+
+  return { ...estimate, needsBatch };
 }
 
 export async function swapBuild(
@@ -318,7 +333,7 @@ export async function swapBuild(
   const { swapVersion } = await getBackendConfigCache();
 
   return callBackendPost('/swap/buildTransaction', {
-    ...request,
+    ...omit(request, ['needsBatch']),
     swapVersion: swapVersion ?? SWAP_API_VERSION,
     isMsgHashMode: true,
   }, {

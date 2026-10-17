@@ -242,6 +242,7 @@ public final class ActivityVC: WViewController, WSensitiveDataProtocol, WalletCo
         guard accountId == viewModel.accountContext.accountId else {
             return
         }
+        viewModel.refreshWearableNft()
         guard let nft = activity.transaction?.nft,
               nft.metadata?.lottie?.nilIfEmpty == nil else {
             return

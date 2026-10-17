@@ -107,6 +107,7 @@ function AuthImportViewAccount({
           value={value}
           address=""
           addressName=""
+          enterKeyHint="done"
           withQrScan
           shouldHideAddressBook
           shouldValidateAllChains

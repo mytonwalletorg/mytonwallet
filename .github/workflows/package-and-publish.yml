@@ -1087,69 +1087,26 @@ jobs:
       # twenty-two of them against the three this repository owns, and the cache key below hashes
       # that glob - a derived data root inside it would feed the key with its own contents.
       GYM_DERIVED_DATA_PATH: ${{ github.workspace }}/.derived-data
-      # Keep production on the released SDK. Xcode 27.1-only Duo work lives on
-      # ios/duo-development; runtime availability checks cannot hide missing SDK declarations.
-      IOS_REQUIRED_SDK: "27.0"
+      # The versioned alias survives beta/RC bundle renames and avoids selecting 27.2.
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
+      IOS_REQUIRED_SDK: "27.1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # The image's default Xcode is the newest one RELEASED when the image was built, so code
-      # written against a beta SDK cannot be built by it. Naming the SDK and looking for it turns
-      # that into one legible failure here instead of a wall of "has no member" deep in a Swift
-      # compile, and it keeps working when the image renames or re-dates its bundles.
-      - name: Select an Xcode carrying the required iOS SDK
-        env:
-          # Named here or the escape hatch the error below offers does not exist: a repository
-          # variable reaches a step only through an explicit mapping.
-          IOS_ALLOW_PRERELEASE_TOOLCHAIN: ${{ vars.IOS_ALLOW_PRERELEASE_TOOLCHAIN }}
+      - name: Verify Xcode 27.1 toolchain
         run: |
           set -euo pipefail
-
-          # The OLDEST toolchain that satisfies the requirement: anything newer is a further beta
-          # that nothing here asked for, and each step away from the released Xcode is a step
-          # further from the one an App Store build is allowed to use.
-          chosen=""
-          chosen_sdk=""
-          installed=""
-          for app in /Applications/Xcode*.app; do
-            developer_dir="$app/Contents/Developer"
-            [ -d "$developer_dir" ] || continue
-            sdk=$(DEVELOPER_DIR="$developer_dir" xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || true)
-            [ -n "$sdk" ] || continue
-            installed="$installed$app iphoneos$sdk"$'\n'
-            # sort -V puts the smaller version first, so the requirement leading the pair means
-            # this SDK is at least the requirement.
-            [ "$(printf '%s\n%s\n' "$sdk" "$IOS_REQUIRED_SDK" | sort -V | head -1)" = "$IOS_REQUIRED_SDK" ] || continue
-            if [ -z "$chosen" ] || [ "$(printf '%s\n%s\n' "$sdk" "$chosen_sdk" | sort -V | head -1)" = "$sdk" ]; then
-              chosen="$developer_dir"
-              chosen_sdk="$sdk"
-            fi
-          done
-
-          if [ -z "$chosen" ]; then
-            echo "::error::No installed Xcode carries iOS SDK $IOS_REQUIRED_SDK. Installed:"
-            printf '%s' "$installed"
+          if [ ! -d "$DEVELOPER_DIR" ]; then
+            echo "::error::Xcode 27.1 is missing from this runner image: $DEVELOPER_DIR"
             exit 1
           fi
-
-          default_sdk=$(DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun --sdk iphoneos --show-sdk-version)
-          # App Store Connect accepts a binary built with a beta toolchain for TestFlight and
-          # refuses it for review, and the refusal arrives after the upload, at the end of a
-          # release. The image's default is its newest RELEASED Xcode, so needing more than that
-          # is exactly the case Apple will not take - said here, before the build, rather than by
-          # Apple after it. It falls silent by itself once the SDK ships and the default moves.
-          if [ "$chosen_sdk" != "$default_sdk" ] \
-            && [ "$(printf '%s\n%s\n' "$chosen_sdk" "$default_sdk" | sort -V | head -1)" = "$default_sdk" ]; then
-            if [ -n "$PUBLISH_REPO" ] && [ -z "${IOS_ALLOW_PRERELEASE_TOOLCHAIN:-}" ]; then
-              echo "::error::iOS SDK $IOS_REQUIRED_SDK is only in a pre-release Xcode (default is $default_sdk); App Store Connect rejects builds made with one. Wait for the SDK to ship, or set IOS_ALLOW_PRERELEASE_TOOLCHAIN=1 to upload anyway."
-              exit 1
-            fi
-            echo "::warning::Building with a pre-release Xcode (iOS SDK $chosen_sdk, default $default_sdk). Fine for TestFlight, not for App Store review."
+          xcodebuild -version
+          sdk=$(xcrun --sdk iphoneos --show-sdk-version)
+          if [ "$sdk" != "$IOS_REQUIRED_SDK" ]; then
+            echo "::error::Expected iOS SDK $IOS_REQUIRED_SDK, found $sdk"
+            exit 1
           fi
-
-          echo "Using $chosen (iphoneos$chosen_sdk)"
-          echo "DEVELOPER_DIR=$chosen" >> "$GITHUB_ENV"
 
       - name: Configure iOS variant
         env:
@@ -1217,9 +1174,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/.derived-data/SourcePackages
-          key: ios-spm-xcode27-${{ hashFiles('mobile/ios/**/Package.resolved') }}
+          key: ios-spm-xcode27.1-${{ hashFiles('mobile/ios/**/Package.resolved') }}
           restore-keys: |
-            ios-spm-xcode27-
+            ios-spm-xcode27.1-
 
       # Resolving in a step of its own is what lets the cache be written before anything that can
       # fail: the archive that follows takes a quarter of an hour and has plenty of ways to die, and
@@ -1250,7 +1207,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/.derived-data/SourcePackages
-          key: ios-spm-xcode27-${{ hashFiles('mobile/ios/**/Package.resolved') }}
+          key: ios-spm-xcode27.1-${{ hashFiles('mobile/ios/**/Package.resolved') }}
 
       - name: Use Ruby and install dependencies
         uses: ruby/setup-ruby@v1

@@ -1,5 +1,7 @@
 import React, { memo } from '../../../../lib/teact/teact';
-import { withGlobal } from '../../../../global';
+import { getActions, withGlobal } from '../../../../global';
+
+import { SettingsState } from '../../../../global/types';
 
 import { IS_EXPLORER, IS_EXTENSION, IS_TELEGRAM_APP } from '../../../../config';
 import {
@@ -12,6 +14,7 @@ import { IS_ANDROID, IS_ELECTRON, IS_IOS, IS_LEGACY_APP_HOST } from '../../../..
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 
 import BackupWarning from './BackupWarning';
 import LegacyDomainWarning from './LegacyDomainWarning';
@@ -41,14 +44,26 @@ function Warnings({
   isMnemonicAccount,
   onOpenBackupWallet,
 }: OwnProps & StateProps) {
+  const { openSettingsWithState } = getActions();
   const { isPortrait } = useDeviceScreen();
   const lang = useLang();
+
+  const handleOpenDeveloperMenu = useLastCallback(() => {
+    openSettingsWithState({ state: SettingsState.Developer });
+  });
 
   return (
     <>
       {isTestnet && (
         <div className={isPortrait ? styles.portraitContainer : styles.container}>
-          <div className={styles.testnetWarning}>{lang('Testnet Version')}</div>
+          <button
+            type="button"
+            className={styles.testnetWarning}
+            disabled={IS_EXPLORER}
+            onClick={handleOpenDeveloperMenu}
+          >
+            {lang('Testnet Version')}
+          </button>
         </div>
       )}
 

@@ -37,7 +37,7 @@ final class MarketScreenModel: ObservableObject {
         self.now = now
     }
 
-    isolated deinit {
+    nonisolated deinit {
         initialContentTask?.cancel()
         fetchTask?.cancel()
         buildTask?.cancel()

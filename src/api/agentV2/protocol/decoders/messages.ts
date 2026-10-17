@@ -1,4 +1,6 @@
 import type {
+  AgentAnswerFeedbackResponseV2,
+  AgentAnswerFeedbackV2,
   AgentDefaultThreadResponseV2,
   AgentErrorCodeV2,
   AgentHintsResponseV2,
@@ -47,6 +49,7 @@ import {
   semanticContent,
 } from './semantic';
 
+const ANSWER_FEEDBACK = new Set(['like', 'dislike']);
 const CURSOR_PATTERN = /^[A-Za-z0-9_-]{1,512}$/;
 const FOLLOWUP_MARKDOWN_PATTERN = /(?:[*_~`]|\[[^\]]*\]\(|<\/?[A-Za-z]|^\s{0,3}(?:#{1,6}|>|[-+*]|\d+[.)])\s)/mu;
 const RESPONSE_LANGUAGE_PATTERN = /^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/u;
@@ -191,6 +194,15 @@ function validatePersistedMessage(
     } catch (error) {
       if (!(error instanceof AgentV2ContractError)) throw error;
       delete result.chains;
+    }
+  }
+  // An unknown rating never fails the message: the answer is shown as not rated
+  if (result.feedback !== undefined) {
+    try {
+      oneOf(result.feedback, ANSWER_FEEDBACK, `${path}.feedback`);
+    } catch (error) {
+      if (!(error instanceof AgentV2ContractError)) throw error;
+      delete result.feedback;
     }
   }
   if (result.error !== undefined) result.error = messageError(result.error, `${path}.error`);
@@ -344,6 +356,15 @@ export function decodeAgentV2ThreadClear(value: unknown): AgentThreadClearRespon
     thread: threadSummary(result.thread, '$.thread'),
     duplicate: boolean(result.duplicate, '$.duplicate'),
   };
+}
+
+export function decodeAgentV2AnswerFeedback(value: unknown): AgentAnswerFeedbackResponseV2 {
+  const result = object(value, '$');
+  protocol(result, '$');
+  const feedback = result.feedback === undefined
+    ? undefined
+    : oneOf<AgentAnswerFeedbackV2>(result.feedback, ANSWER_FEEDBACK, '$.feedback');
+  return { protocolVersion: 3, ...(feedback ? { feedback } : {}) };
 }
 
 export function decodeAgentV2ProblemReport(value: unknown): AgentProblemReportResponseV2 {

@@ -399,8 +399,13 @@ function SwapActivityModal({
     const transactionIdRows = getSwapTransactionIdRows(renderedActivity);
     if (!transactionIdRows.length) return undefined;
 
-    return transactionIdRows.map(({ label, hash, chain }) => {
-      const transactionUrl = getExplorerTransactionUrl(chain, hash, isTestnet, selectedExplorerIds?.[chain]);
+    return transactionIdRows.map(({ label, hash, chain, traceId }) => {
+      const transactionUrl = getExplorerTransactionUrl(
+        chain,
+        { hash, traceId },
+        isTestnet,
+        selectedExplorerIds?.[chain],
+      );
 
       return (
         <div key={`${label}-${hash}`} className={styles.textFieldWrapper}>

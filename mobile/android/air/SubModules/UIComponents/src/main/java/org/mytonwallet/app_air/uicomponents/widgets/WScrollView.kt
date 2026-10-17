@@ -9,9 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ScrollView
 import java.lang.ref.WeakReference
-import kotlin.math.max
 import org.mytonwallet.app_air.uicomponents.base.WViewController
-import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.glass.GlassCaptureHost
 
 @SuppressLint("ViewConstructor")
@@ -128,39 +126,5 @@ open class WScrollView(private val viewController: WeakReference<WViewController
 
         scrollState = state
         onScrollStateChange?.invoke(state)
-    }
-
-    fun makeViewVisible(view: WView) {
-        val vc = viewController.get()
-        val topInset = vc?.navigationController?.getSystemBars()?.top ?: 0
-        val bottomInset = max(
-            vc?.window?.imeInsets?.bottom ?: 0,
-            vc?.navigationController?.getSystemBars()?.bottom ?: 0
-        )
-
-        val minTopSpace = 100.dp
-        val bottomPadding = 100.dp
-
-        val rect = Rect()
-        view.getDrawingRect(rect)
-        offsetDescendantRectToMyCoords(view, rect)
-
-        val visibleTop = scrollY + topInset + minTopSpace
-        val visibleBottom = scrollY + height - bottomInset
-
-        val desiredY = when {
-            rect.bottom > visibleBottom ->
-                rect.bottom - height + bottomInset + bottomPadding
-
-            rect.top < visibleTop ->
-                rect.top - topInset - minTopSpace
-
-            else -> null
-        }
-
-        desiredY?.let { target ->
-            val maxScroll = max(0, (getChildAt(0)?.height ?: 0) - height)
-            post { smoothScrollTo(0, target.coerceIn(0, maxScroll)) }
-        }
     }
 }

@@ -268,14 +268,22 @@ export function uniqueSwapRows(swapRows: readonly ApiSwapActivity[]) {
     }
     const isBackendOverLocal = getIsTxIdLocal(existing.id) && getIsBackendSwapId(swap.id);
     const [winner, other] = isBackendOverLocal ? [swap, existing] : [existing, swap];
+    const externalMsgHashNorm = winner.externalMsgHashNorm ?? other.externalMsgHashNorm;
     byBackendId.set(backendId, {
       ...winner,
       hashes: unique([...winner.hashes, ...other.hashes]),
       msgHash: winner.msgHash ?? other.msgHash,
-      externalMsgHashNorm: winner.externalMsgHashNorm ?? other.externalMsgHashNorm,
+      externalMsgHashNorm,
+      traceId: getTraceIdOfMessage(externalMsgHashNorm, [winner, other]),
     });
   }
   return [...byBackendId.values()];
+}
+
+/** The explorer link opens the trace id and the details loader reads the message hash, so both name one trace */
+function getTraceIdOfMessage(externalMsgHashNorm: string | undefined, rows: readonly (ApiActivity | undefined)[]) {
+  const key = normalizeIdentifier(externalMsgHashNorm);
+  return rows.find((row) => row?.traceId && normalizeIdentifier(row.externalMsgHashNorm) === key)?.traceId;
 }
 
 function uniqueById(activities: readonly ApiActivity[]) {
@@ -295,9 +303,9 @@ function buildProjectedSwap(swap: ApiSwapActivity, sources: readonly ApiActivity
     : getIsTxIdLocal(swap.id) ? 'local-intent' : 'ton-aggregated-swap';
 
   // The trace hash lets the details loader read the trace of a DEX summary
-  const externalMsgHashNorm = swap.cex
-    ? swap.externalMsgHashNorm
-    : sources.find((source) => source.externalMsgHashNorm)?.externalMsgHashNorm ?? swap.externalMsgHashNorm;
+  const traceSource = swap.cex ? undefined : sources.find((source) => source.externalMsgHashNorm);
+  const externalMsgHashNorm = traceSource?.externalMsgHashNorm ?? swap.externalMsgHashNorm;
+  const traceId = getTraceIdOfMessage(externalMsgHashNorm, [traceSource, swap]);
 
   return {
     ...swap,
@@ -305,6 +313,7 @@ function buildProjectedSwap(swap: ApiSwapActivity, sources: readonly ApiActivity
     toAmount,
     shouldHide: undefined,
     ...(externalMsgHashNorm && { externalMsgHashNorm }),
+    traceId,
     extra: {
       ...swap.extra,
       ...(legs.length && !swap.cex && {

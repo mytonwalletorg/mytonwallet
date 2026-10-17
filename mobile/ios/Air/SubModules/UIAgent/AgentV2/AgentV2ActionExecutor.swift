@@ -102,7 +102,7 @@ final class AgentV2ActionExecutor {
                 return
             }
         case .inactive:
-            showUnavailableAction()
+            showUnavailableAction(reason: action.inactiveReason)
         }
     }
 
@@ -132,7 +132,12 @@ final class AgentV2ActionExecutor {
         )
     }
 
-    private func showUnavailableAction() {
-        AppActions.showToast(message: lang("This action is no longer available."))
+    private func showUnavailableAction(reason: ApiAgentV2ResolvedAction.InactiveReason? = nil) {
+        switch reason {
+        case .viewOnlyWallet:
+            AppActions.showToast(message: lang("$action_not_available_view_mode"))
+        case nil:
+            AppActions.showToast(message: lang("This action is no longer available."))
+        }
     }
 }

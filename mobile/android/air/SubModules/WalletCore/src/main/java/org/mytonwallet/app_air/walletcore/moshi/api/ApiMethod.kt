@@ -65,6 +65,7 @@ import org.mytonwallet.app_air.walletcore.moshi.MWalletPermission
 import org.mytonwallet.app_air.walletcore.moshi.ReturnStrategy
 import org.mytonwallet.app_air.walletcore.moshi.StakingState
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2ActionPresentation
+import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2AnswerFeedbackResponse
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2EntryPoint
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2FollowUpReference
 import org.mytonwallet.app_air.walletcore.moshi.agentV2.AgentV2HintsResponse
@@ -671,7 +672,7 @@ sealed class ApiMethod<T> {
             withDiesel: Boolean,
             transaction: String?,
             calls: List<MApiEvmSwapCall>? = null,
-            needsApprove: Boolean? = null
+            needsBatch: Boolean? = null
         ) : ApiMethod<ApiSubmitTransferResult>() {
             override val name: String = "swapSubmit"
             override val type: Type = ApiSubmitTransferResult::class.java
@@ -690,7 +691,7 @@ sealed class ApiMethod<T> {
                     calls,
                     Types.newParameterizedType(List::class.java, MApiEvmSwapCall::class.java)
                 )
-                .boolean(needsApprove)
+                .boolean(needsBatch)
                 .build()
         }
 
@@ -1582,6 +1583,18 @@ sealed class ApiMethod<T> {
             override val arguments = ArgumentsBuilder()
                 .string(threadId)
                 .jsonObject(JSONObject().put("messageId", messageId).put("comment", comment))
+                .build()
+        }
+
+        /** Sets the rating of a complete answer, or withdraws it when [feedback] is null */
+        class SetMessageFeedback(threadId: String, messageId: String, feedback: String?) :
+            ApiMethod<AgentV2MutationResult<AgentV2AnswerFeedbackResponse>>() {
+            override val name = "setAgentV2MessageFeedback"
+            override val type: Type = mutationType(AgentV2AnswerFeedbackResponse::class.java)
+            override val arguments = ArgumentsBuilder()
+                .string(threadId)
+                .string(messageId)
+                .string(feedback)
                 .build()
         }
 

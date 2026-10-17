@@ -5,11 +5,13 @@ import type { UserToken } from '../../global/types';
 
 import { selectCurrentAccountState, selectUserTokenMemoized } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { animateContentShift } from '../../util/layoutChangeAnimation';
 import { captureControlledSwipe } from '../../util/swipeController';
 import useTelegramMiniAppSwipeToClose from '../../util/telegram/hooks/useTelegramMiniAppSwipeToClose';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import Activities from '../main/sections/Content/Activities';
@@ -33,6 +35,7 @@ function TokenInfo({ isActive, token }: OwnProps & StateProps) {
   const { closeTokenActivity, selectToken } = getActions();
 
   const rootRef = useRef<HTMLDivElement>();
+  const activityRef = useRef<HTMLDivElement>();
   const { handleScroll, isScrolled } = useScrolledState();
 
   const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isActive);
@@ -55,6 +58,10 @@ function TokenInfo({ isActive, token }: OwnProps & StateProps) {
     });
   }, [slug, disableSwipeToClose, enableSwipeToClose]);
 
+  const handleSummaryHeightChange = useLastCallback((prevHeight: number, nextHeight: number) => {
+    animateContentShift(activityRef.current!, SCROLL_CONTAINER_SELECTOR, prevHeight - nextHeight);
+  });
+
   if (!renderedToken) return undefined;
 
   return (
@@ -67,9 +74,15 @@ function TokenInfo({ isActive, token }: OwnProps & StateProps) {
       />
 
       <div className={buildClassName(styles.body, 'custom-scroll', SCROLL_CONTAINER_CLASS)} onScroll={handleScroll}>
-        <Summary token={renderedToken} className={styles.summary} />
+        <Summary
+          key={renderedToken.slug}
+          token={renderedToken}
+          isActive={isActive}
+          className={styles.summary}
+          onHeightChange={handleSummaryHeightChange}
+        />
 
-        <div className={styles.activity}>
+        <div ref={activityRef} className={styles.activity}>
           <Activities isActive={isActive} scrollContainerSelector={SCROLL_CONTAINER_SELECTOR} />
         </div>
       </div>

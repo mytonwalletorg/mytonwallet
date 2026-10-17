@@ -30,3 +30,5 @@ export * from './prices';
 export * from './preload';
 
 export { captureInstallAttribution } from './attribution';
+
+export { retryWebFirstLaunch } from './webFunnel';

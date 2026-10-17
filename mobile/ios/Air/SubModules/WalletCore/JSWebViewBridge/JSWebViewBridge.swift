@@ -198,6 +198,8 @@ public class JSWebViewBridge: UIViewController {
         userContentController.add(self, name: "log")
 
         #if DEBUG
+        userContentController.addUserScript(TonConnectTrace.sdkPageUserScript)
+
         // End-to-end tests substitute wallet data in the SDK's network responses, as Playwright's
         // addInitScript does for the web app; the script runs before the SDK loads.
         if let initScript = ProcessInfo.processInfo.environment["E2E_SDK_INIT_SCRIPT"], !initScript.isEmpty {
@@ -228,6 +230,7 @@ public class JSWebViewBridge: UIViewController {
         #endif
 
         view.addSubview(webView!)
+        TonConnectTrace.record("SDK web view created")
         if isViewAppeared {
             loadHtml()
         }
@@ -269,6 +272,7 @@ public class JSWebViewBridge: UIViewController {
             try? await Task.sleep(for: .seconds(bridgeReadyTimeoutSeconds))
             guard !Task.isCancelled, let self, !self.isApiReady, self.webView === loadedWebView else { return }
             log.fault("SDK page is not ready after \(bridgeReadyTimeoutSeconds)s, recreating the web view")
+            TonConnectTrace.record("SDK page not ready after \(bridgeReadyTimeoutSeconds)s, recreating the web view")
             self.recreateWebView(onCompletion: self.onBridgeReady)
         }
     }
@@ -460,6 +464,7 @@ public class JSWebViewBridge: UIViewController {
         let initApi = makeInitApi(langCode: LocalizationSupport.shared.langCode)
         webView?.evaluateJavaScript(initApi) { [weak self] (result, error) in
             if let error = error {
+                TonConnectTrace.record("SDK initApi injection failed attempt=\(attempt + 1): \(error.localizedDescription)")
                 if attempt == 3 {
                     log.fault("JavaScript injection repeatedly failed: \(error.localizedDescription)")
                 } else {
@@ -471,6 +476,7 @@ public class JSWebViewBridge: UIViewController {
                 })
             } else {
                 //log.debug("JavaScript injected successfully")
+                TonConnectTrace.record("SDK bridge ready (initApi injected)")
                 self?.readinessWatchdog?.cancel()
                 self?.readinessWatchdog = nil
                 self?.isApiReady = true
@@ -494,6 +500,7 @@ public class JSWebViewBridge: UIViewController {
     }
     
     func stop() {
+        TonConnectTrace.record("SDK bridge stopped")
         readinessWatchdog?.cancel()
         readinessWatchdog = nil
         isApiReady = false
@@ -553,7 +560,8 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
                 }
                 let string = "\(body)"
                 console.info("\(string, .public)", fileOnly: string.contains("POST") || string.contains("GET") || string.contains("toncenter: "))
-                
+                TonConnectTrace.recordConsoleLine(string)
+
             case "nativeCall":
                 guard let requestNumber = data?["requestNumber"] as? Int,
                       let methodName = data?["methodName"] as? String else {
@@ -698,6 +706,7 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
                 else {
                     return
                 }
+                TonConnectTrace.recordUpdate(type: updateType, data: data)
 //                log.info("\(updateType, .public)", fileOnly: updateType == "updatingStatus")
                 #if DEBUG
 //                if updateType != "updatingStatus" {
@@ -1095,16 +1104,19 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
 
 extension JSWebViewBridge: WKNavigationDelegate, WKUIDelegate {
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        TonConnectTrace.record("SDK page loaded")
         WalletCoreData.setLockdownModeEnabled(webView.configuration.defaultWebpagePreferences.isLockdownModeEnabled)
         injectIfNeeded()
     }
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
         log.error("SDK page navigation failed: \(error, .public)")
+        TonConnectTrace.record("SDK page navigation failed: \(error.localizedDescription)")
     }
     public func webView(_ webView: WKWebView,
                         didFailProvisionalNavigation navigation: WKNavigation!,
                         withError error: any Error) {
         log.error("SDK page failed to load: \(error, .public)")
+        TonConnectTrace.record("SDK page failed to load: \(error.localizedDescription)")
     }
     
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
@@ -1117,6 +1129,7 @@ extension JSWebViewBridge: WKNavigationDelegate, WKUIDelegate {
     
     public func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         log.error("WebView terminated, reloading...")
+        TonConnectTrace.record("SDK web content process terminated, recreating the web view")
         recreateWebView {
             Task {
                 try? await AccountStore.reactivateCurrentAccount()

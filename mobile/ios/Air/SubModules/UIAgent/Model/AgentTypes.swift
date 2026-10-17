@@ -97,6 +97,9 @@ struct AgentMessage {
     var renderingPolicy: AgentMessageRenderingPolicy = .classic
     var supplementaryErrorText: String? = nil
     var systemStyle: SystemStyle? = nil
+    /// The answer is stored as complete, so the user can rate it
+    var canRate = false
+    var feedback: ApiAgentV2AnswerFeedback? = nil
 
     init(
         id: AgentItemID = UUID(),

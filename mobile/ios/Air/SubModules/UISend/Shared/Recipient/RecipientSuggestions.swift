@@ -178,6 +178,7 @@ private struct SavedAddressButton: View {
                 accountContext: account,
                 isReordering: false,
                 showCurrentAccountHighlight: false,
+                showBalance: false,
                 addressLineSuffix: incompatibilityText,
                 isDimmed: incompatibilityText != nil
             )

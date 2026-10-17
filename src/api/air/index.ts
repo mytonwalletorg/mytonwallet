@@ -4,7 +4,9 @@ import { AGENT_API_URL, APP_VERSION, SDK_BUILD_STAMP } from '../../config';
 import { bigintReviver } from '../../util/bigint';
 import { installFetchLogging } from '../../util/fetchLogging';
 import contractManifest from '../agentV2/generated/manifest.json';
-import { callApi, captureInstallAttribution, initApi, setInstallChannel } from '../providers/direct/connector';
+import {
+  callApi, captureInstallAttribution, captureInstallMetadata, initApi, setInstallChannel,
+} from '../providers/direct/connector';
 
 export const airWindow = window as AirWindow;
 
@@ -43,6 +45,7 @@ airWindow.airBridge = {
   callApi,
   setInstallChannel,
   captureInstallAttribution,
+  captureInstallMetadata,
   bigintReviver,
   nativeCallCallbacks: {},
 };

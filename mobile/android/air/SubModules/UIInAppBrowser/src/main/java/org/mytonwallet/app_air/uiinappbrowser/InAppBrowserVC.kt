@@ -38,6 +38,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.util.Locale
 import java.util.regex.Pattern
+import kotlin.math.max
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
 import org.mytonwallet.app_air.uicomponents.base.ITabsVC
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
@@ -626,11 +627,13 @@ class InAppBrowserVC(context: Context, tabBarController: ITabsVC?, val config: I
     }
 
     private fun layoutWebView() {
-        val refView = navigationController?.window?.windowView ?: return
+        val nav = navigationController ?: return
+        val refView = if (nav.isCenteredWindow) nav else nav.window.windowView
+        val systemBars = nav.getSystemBars()
         val browserWidth = refView.width
-        val topSpace = (window?.systemBars?.top ?: 0) +
-            WNavigationBar.DEFAULT_HEIGHT_TINY.dp
-        val browserHeight = refView.height - topSpace - (window?.systemBars?.bottom ?: 0)
+        val topSpace = systemBars.top + WNavigationBar.DEFAULT_HEIGHT_TINY.dp
+        val bottomInset = max(systemBars.bottom, nav.imeInsetBottom)
+        val browserHeight = (refView.height - topSpace - bottomInset).coerceAtLeast(0)
         for (child in listOf(webViewContainer, webViewScreenShot)) {
             val lp = child.layoutParams ?: continue
             if (lp.width != browserWidth || lp.height != browserHeight) {

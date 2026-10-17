@@ -3,6 +3,13 @@ import UIKit
 
 
 public final class WBlurredContentView: UIView {
+    public var passesTouchesOutsideContent = false
+
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hit = super.hitTest(point, with: event)
+        return passesTouchesOutsideContent && hit === self ? nil : hit
+    }
+
 
     private static let filterClassName = "retliFAC"
     private static let filterSelectorName = ":epyThtiWretlif"

@@ -11,6 +11,7 @@ import {
   LITECOIN,
   MYCOIN_MAINNET,
   SOLANA,
+  SOLANA_USDC_MAINNET,
   TON_USDT_MAINNET,
   TONCOIN,
   TRX,
@@ -18,7 +19,7 @@ import {
 import * as schedulers from '../../../util/schedulers';
 import { callApi } from '../../../api';
 import { addActionHandler, getActions, getGlobal, setGlobal } from '../../index';
-import { clearCurrentSwap, updateCurrentSwap } from '../../reducers';
+import { clearCurrentSwap, updateCurrentSwap, updateLastSwapPair } from '../../reducers';
 import {
   buildSwapBuildRequest,
   estimateSwap,
@@ -255,6 +256,59 @@ describe('startSwap', () => {
     getActions().startSwap({ tokenInSlug: TONCOIN.slug, tokenOutSlug: SOLANA.slug });
 
     expect(getGlobal().currentSwap).toMatchObject({ tokenInSlug: TONCOIN.slug, tokenOutSlug: SOLANA.slug });
+  });
+
+  describe('startTokenSwap', () => {
+    function rememberSwap(tokenInSlug: string, tokenOutSlug: string) {
+      setGlobal(updateLastSwapPair(updateCurrentSwap(getGlobal(), { tokenInSlug, tokenOutSlug })));
+    }
+
+    it('sells a token with balance', () => {
+      getActions().startTokenSwap({ tokenSlug: TONCOIN.slug });
+
+      expect(getGlobal().currentSwap).toMatchObject({ tokenInSlug: TONCOIN.slug, tokenOutSlug: TON_USDT_MAINNET.slug });
+    });
+
+    it('buys a token without balance with a funded token', () => {
+      getActions().startTokenSwap({ tokenSlug: SOLANA_USDC_MAINNET.slug });
+
+      expect(getGlobal().currentSwap)
+        .toMatchObject({ tokenInSlug: TON_USDT_MAINNET.slug, tokenOutSlug: SOLANA_USDC_MAINNET.slug });
+    });
+
+    it('repeats the last swap made with the token', () => {
+      rememberSwap(SOLANA.slug, TONCOIN.slug);
+
+      getActions().startTokenSwap({ tokenSlug: TONCOIN.slug });
+
+      expect(getGlobal().currentSwap).toMatchObject({ tokenInSlug: SOLANA.slug, tokenOutSlug: TONCOIN.slug });
+    });
+
+    it('repeats an MFA swap once it is confirmed', async () => {
+      setGlobal(updateCurrentSwap(getGlobal(), {
+        tokenInSlug: SOLANA.slug,
+        tokenOutSlug: TONCOIN.slug,
+        mfaRequestHash: 'hash',
+        swapId: 'swap',
+      }));
+      (callApi as jest.Mock).mockImplementation((method: string) => Promise.resolve(
+        method === 'fetchMfaRequest' ? { isConfirmed: true, txHash: 'tx' } : undefined,
+      ));
+
+      await (getActions().updateSwapMfaRequestStatus() as unknown as Promise<void>);
+      getActions().startTokenSwap({ tokenSlug: TONCOIN.slug });
+
+      expect(getGlobal().currentSwap).toMatchObject({ tokenInSlug: SOLANA.slug, tokenOutSlug: TONCOIN.slug });
+    });
+
+    it('buys a token that was sold last time but has no balance now', () => {
+      rememberSwap(SOLANA_USDC_MAINNET.slug, SOLANA.slug);
+
+      getActions().startTokenSwap({ tokenSlug: SOLANA_USDC_MAINNET.slug });
+
+      expect(getGlobal().currentSwap)
+        .toMatchObject({ tokenInSlug: TON_USDT_MAINNET.slug, tokenOutSlug: SOLANA_USDC_MAINNET.slug });
+    });
   });
 });
 

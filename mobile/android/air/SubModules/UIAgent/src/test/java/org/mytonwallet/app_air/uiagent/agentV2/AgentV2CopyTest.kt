@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentAnswerFeedback
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentMessage
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.AgentMessageRole
 import org.mytonwallet.app_air.uiagent.viewControllers.agent.MarkdownParser
@@ -38,6 +39,28 @@ class AgentV2CopyTest {
         assertEquals("sdk-answer", message.sdkMessageId)
         assertEquals(listOf(followup), message.followups)
         assertEquals(message, listOf(message).findFollowupOwner())
+    }
+
+    @Test
+    fun restoresTheRatingOfAnAnswerAndLetsOnlyACompleteOneBeRated() {
+        val persisted = AgentV2PersistedMessage(
+            id = "sdk-answer",
+            threadId = "thread",
+            role = "assistant",
+            status = "complete",
+            content = AgentV2MessageContent.Markdown("Staking locks coins to earn a reward."),
+            createdAt = "2026-10-05T12:00:00.000Z",
+            feedback = "dislike"
+        )
+
+        val rated = mapAgentV2Message(persisted)!!
+        val unknownRating = mapAgentV2Message(persisted.copy(feedback = "helpful"))!!
+        val cancelled = mapAgentV2Message(persisted.copy(status = "cancelled", feedback = null))!!
+
+        assertTrue(rated.isComplete)
+        assertEquals(AgentAnswerFeedback.DISLIKE, rated.feedback)
+        assertNull(unknownRating.feedback)
+        assertFalse(cancelled.isComplete)
     }
 
     @Test

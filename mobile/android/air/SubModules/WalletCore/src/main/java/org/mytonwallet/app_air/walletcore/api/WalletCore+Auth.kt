@@ -232,10 +232,14 @@ fun WalletCore.activateAccount(
     isPushedTemporary: Boolean = false,
     willPopTemporaryPushedWallets: Boolean = false,
     force: Boolean = false,
+    onSkipped: (() -> Unit)? = null,
     callback: (MAccount?, MBridgeError?) -> Unit
 ) {
     if (willPopTemporaryPushedWallets) AccountStore.isPushedTemporary = false
-    if (nextAccountId == accountId && !force) return
+    if (nextAccountId == accountId && !force) {
+        onSkipped?.invoke()
+        return
+    }
     val prevNextAccountId = nextAccountId
     nextAccountId = accountId
     nextAccountIsPushedTemporary = isPushedTemporary
@@ -247,7 +251,10 @@ fun WalletCore.activateAccount(
             "activateAccount: bridge interrupted reason=$reason " +
                 "isCurrentActivation=$isCurrentActivation bridgeReady=$isBridgeReady"
         )
-        if (!isCurrentActivation) return
+        if (!isCurrentActivation) {
+            onSkipped?.invoke()
+            return
+        }
         nextAccountId = null
         nextAccountIsPushedTemporary = null
         WalletCore.notifyEvent(WalletEvent.AccountChangeAborted)
@@ -256,7 +263,10 @@ fun WalletCore.activateAccount(
 
     fun fetch() {
         fetchAccount(accountId) { account, err ->
-            if (nextAccountId != accountId) return@fetchAccount
+            if (nextAccountId != accountId) {
+                onSkipped?.invoke()
+                return@fetchAccount
+            }
             if (account == null || err != null) {
                 nextAccountId = null
                 nextAccountIsPushedTemporary = null
@@ -309,7 +319,10 @@ fun WalletCore.activateAccount(
                     if (error?.type == MBridgeError.Type.BRIDGE_INTERRUPTED) {
                         failBridgeInterruption("pending-call-interrupted")
                     } else if (error != null || result == null) {
-                        if (nextAccountId != accountId) return@callApi
+                        if (nextAccountId != accountId) {
+                            onSkipped?.invoke()
+                            return@callApi
+                        }
                         nextAccountId = null
                         nextAccountIsPushedTemporary = null
                         WalletCore.notifyEvent(WalletEvent.AccountChangeAborted)
@@ -357,6 +370,7 @@ fun WalletCore.resetAccounts(callback: (Boolean?, MBridgeError?) -> Unit) {
         PoisoningCacheHelper.clearCache()
         WCacheStorage.clean(accountIds)
         WCacheStorage.setInitialScreen(WCacheStorage.InitialScreen.INTRO)
+        WalletCore.notifyEvent(WalletEvent.AccountsReset)
     }
     if (!isBridgeReady) {
         wipeNativeState()

@@ -160,6 +160,7 @@ class SplashVC(context: Context) :
     // Pending deeplink to run after the wallet is ready
     private var nextDeeplink: PendingDeeplink? = null
     private var openingSingleWalletWithAddress: String? = null
+    private var tonConnectController: TonConnectController? = null
 
     init {
         sharedInstance = this
@@ -175,7 +176,15 @@ class SplashVC(context: Context) :
         handleDeeplinkIfRequired()
         updateTheme()
         WalletCore.subscribeToApiUpdates(ApiUpdate.ApiUpdateDappLoading::class.java, this)
+        // Subscribed with the window, so requests that arrive before unlock are kept until it, not dropped
+        tonConnectController = TonConnectController(window!!).also { it.onCreate() }
         WalletCore.registerObserver(this)
+    }
+
+    fun onWindowDestroy() {
+        WalletCore.unsubscribeFromApiUpdates(ApiUpdate.ApiUpdateDappLoading::class.java, this)
+        tonConnectController?.onDestroy()
+        tonConnectController = null
     }
 
     override fun updateTheme() {
@@ -517,6 +526,9 @@ class SplashVC(context: Context) :
             onCompletion = {
                 // Lock-screen is on, remove unnecessary window background
                 window.window?.decorView?.background = null
+                (nextDeeplink?.deeplink as? Deeplink.E2EUnlock)?.let {
+                    handle(it, DeeplinkOpenSource.OS_EXTERNAL)
+                }
                 executeWithLowPriority { tabsVC?.prepareHomeStack() }
             }
         )
@@ -682,6 +694,17 @@ class SplashVC(context: Context) :
     }
 
     private fun handle(deeplink: Deeplink, source: DeeplinkOpenSource) {
+        if (deeplink is Deeplink.E2EUnlock) {
+            nextDeeplink = null
+            if (appIsUnlocked) return
+            val lockScreen = window?.topViewController as? PasscodeConfirmVC
+            if (lockScreen == null) {
+                nextDeeplink = PendingDeeplink(deeplink, source)
+            } else {
+                lockScreen.enterPasscodeForTests(deeplink.passcode)
+            }
+            return
+        }
         if (!_isWalletReady) {
             nextDeeplink = PendingDeeplink(deeplink, source)
             return
@@ -971,6 +994,8 @@ class SplashVC(context: Context) :
                 )
                 window.present(navVC)
             }
+
+            is Deeplink.E2EUnlock -> {}
 
             is Deeplink.TonConnect2 -> {
                 // Already handled

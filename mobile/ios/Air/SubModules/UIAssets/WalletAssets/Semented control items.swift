@@ -65,6 +65,7 @@ extension DisplayAssetTab {
 
 @MainActor
 public final class WalletAssetsTabContextMenuProviders {
+    @Dependency(\.accountStore) private var accountStore
     private var accountSource: AccountSource
     private let nftsVCManager: NftsVCManager
     private let sourceViewProvider: () -> UIView?
@@ -132,7 +133,6 @@ public final class WalletAssetsTabContextMenuProviders {
     }
 
     private var isTemporaryViewAccount: Bool {
-        @Dependency(\.accountStore) var accountStore
         let accountId = accountStore.resolveAccountId(source: accountSource)
         return accountStore.get(accountId: accountId).isTemporaryView
     }

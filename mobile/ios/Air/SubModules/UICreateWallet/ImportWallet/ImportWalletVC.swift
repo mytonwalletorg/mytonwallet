@@ -183,6 +183,7 @@ public class ImportWalletVC: CreateWalletBaseVC {
         }
         let pasteButton = UIButton(configuration: pasteConfiguration)
         pasteButton.translatesAutoresizingMaskIntoConstraints = false
+        pasteButton.accessibilityIdentifier = "import_paste"
         pasteButton.addTarget(self, action: #selector(pasteFromClipboard), for: .touchUpInside)
         scrollView.addSubview(pasteButton)
         NSLayoutConstraint.activate([
@@ -225,6 +226,7 @@ public class ImportWalletVC: CreateWalletBaseVC {
         var previousWorkInput: WWordInput?
         for i in 0 ..< fieldsCount {
             let wordInput = WWordInput(wordNumber: i + 1, suggestionsView: suggestionsView, delegate: self)
+            wordInput.textField.accessibilityIdentifier = "import_word_\(i + 1)"
             
             if let previousWorkInput {
                 previousWorkInput.nextInput = wordInput
@@ -244,6 +246,7 @@ public class ImportWalletVC: CreateWalletBaseVC {
         bottomEdgeEffect.translatesAutoresizingMaskIntoConstraints = false
         bottomEdgeEffect.update(content: .air.groupedBackground, blur: true, alpha: 0.85, edge: .bottom, edgeSize: 48)
         view.addSubview(bottomEdgeEffect)
+        bottomActionsView.primaryButton.accessibilityIdentifier = "import_continue"
         view.addSubview(bottomActionsView)
         bottomActionLeading = bottomActionsView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 36)
         bottomActionTrailing = bottomActionsView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -36)
@@ -741,7 +744,7 @@ private final class SecretWordsModeControl: UIControl {
             button.titleLabel?.numberOfLines = 1
             button.layer.cornerRadius = 17
             button.layer.cornerCurve = .continuous
-            button.accessibilityIdentifier = "mnemonicWordCount.\(index == 0 ? 12 : 24)"
+            button.accessibilityIdentifier = "import_mode_\(index == 0 ? 12 : 24)"
             button.addAction(UIAction { [weak self] _ in
                 self?.selectedSegmentIndex = index
                 self?.sendActions(for: .valueChanged)

@@ -65,10 +65,18 @@ private struct ReceiveHeaderItemView: View {
             ZStack {
                 receiveOrnament(progressAbs: progressAbs)
                 
-                _QRCodeView(chain: chain, address: address, opacity: interpolate(from: 0.25, to: 1, progress: progressAbs), onTap: {})
-                    .id(address)
-                    .frame(width: 220, height: 220)
-                    .clipShape(.rect(cornerRadius: 32))
+                if IS_GRAM_WALLET && chain == .ton && TelegramDiamondView.isAvailable {
+                    TelegramReceiveQRCodeView(address: address, renderingEnabled: progressAbs > 0.99)
+                        .id(address)
+                        .frame(width: 220, height: 220)
+                        .clipShape(.rect(cornerRadius: 32))
+                        .opacity(interpolate(from: 0.25, to: 1, progress: progressAbs))
+                } else {
+                    _QRCodeView(chain: chain, address: address, opacity: interpolate(from: 0.25, to: 1, progress: progressAbs), onTap: {})
+                        .id(address)
+                        .frame(width: 220, height: 220)
+                        .clipShape(.rect(cornerRadius: 32))
+                }
             }
             .scaleEffect(min(1.05, interpolate(from: 0.5, to: 1, progress: progressAbs)))
             .offset(x: progress * 320)

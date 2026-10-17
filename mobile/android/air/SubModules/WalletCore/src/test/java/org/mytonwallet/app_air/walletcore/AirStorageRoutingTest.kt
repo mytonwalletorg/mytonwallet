@@ -12,6 +12,7 @@ class AirStorageRoutingTest {
             "stateVersion",
             "currentAccountId",
             "clientId",
+            "installMetadata",
             "referrer",
             "langCode",
             "dapps",
@@ -20,7 +21,8 @@ class AirStorageRoutingTest {
             "windowState",
             "isTonProxyEnabled",
             "isDeeplinkHookEnabled",
-            "sseLastEventId"
+            "sseLastEventId",
+            "sseDelivery"
         )
 
         keys.forEach {

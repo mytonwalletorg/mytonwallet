@@ -1,5 +1,8 @@
+import ContextMenuKit
 import SwiftUI
+import UIKit
 import WalletContext
+import WalletCore
 
 
 public struct InsetCell<Content: View>: View {
@@ -136,7 +139,7 @@ public struct InsetExpandableCell: View {
                         .fixedSize(horizontal: false, vertical: true)
                     if !isExpanded {
                         Button(action: {isExpanded = true}) {
-                            Text(lang("Show All").lowercased())
+                            Text(lang("Show All"))
                                 .tint(.accentColor)
                         }
                         .buttonStyle(.borderless)
@@ -144,5 +147,24 @@ public struct InsetExpandableCell: View {
                 }
             }
         }
+        .contextMenuSource(triggers: .longPress) {
+            ContextMenuConfiguration(
+                rootPage: ContextMenuPage(items: [
+                    .action(ContextMenuAction(
+                        title: lang("Copy"),
+                        icon: .airBundle("SendCopy"),
+                        handler: copyContent
+                    )),
+                ]),
+                backdrop: .none
+            )
+        }
+        .accessibilityAction(named: Text(lang("Copy")), copyContent)
+    }
+
+    private func copyContent() {
+        UIPasteboard.general.string = content
+        AppActions.showToast(icon: .animatedCopy, message: lang("Data Copied"))
+        Haptics.play(.lightTap)
     }
 }

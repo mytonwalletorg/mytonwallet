@@ -92,6 +92,10 @@ class TonConnectRequestSendVC(
 ) : WViewControllerWithModelStore(context),
     CustomListAdapter.ItemClickListener,
     SkeletonContainer {
+    // Shown while the request is still loading; the request fills it through `setUpdate`
+    fun isPlaceholderFor(connectionType: ApiConnectionType) =
+        update == null && this.connectionType == connectionType
+
     @Suppress("PropertyName")
     override val TAG = "TonConnectRequestSend"
 

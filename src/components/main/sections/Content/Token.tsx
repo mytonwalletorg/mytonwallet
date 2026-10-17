@@ -12,14 +12,17 @@ import { calcChangeValue } from '../../../../util/calcChangeValue';
 import { DAY, formatFullDay } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
+import { animateShift } from '../../../../util/layoutChangeAnimation';
 import { toNativeDigits } from '../../../../util/nativeDigits';
 import { round } from '../../../../util/round';
 import { getIsRwaStockToken, getTokenName } from '../../../../util/tokens';
+import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useLayoutEffectWithPrevDeps from '../../../../hooks/useLayoutEffectWithPrevDeps';
 import useShowTransition from '../../../../hooks/useShowTransition';
 import useTokenContextMenu from './hooks/useTokenContextMenu';
 
@@ -66,6 +69,9 @@ interface OwnProps {
 
 const UNFREEZE_DANGER_DURATION = 7 * DAY;
 const CONTEXT_MENU_VERTICAL_SHIFT_PX = 4;
+const PIN_TRANSITION_DURATION = 150;
+// Must match the `.pinIcon` width
+const PIN_ICON_WIDTH_PX = REM;
 export const OPEN_CONTEXT_MENU_CLASS_NAME = 'open-context-menu';
 
 function Token({
@@ -143,6 +149,18 @@ function Token({
     isOpen: isPinned,
     withShouldRender: true,
   });
+
+  // An appearing pin takes its space at once and a disappearing one leaves the flow (see `.pinIcon`),
+  // so the name and the rest of the line start from where they were. Investor view renders no pin to shift from.
+  useLayoutEffectWithPrevDeps(([wasPinned]) => {
+    const pin = pinRef.current;
+    if (!pin || !withPinTransition || wasPinned === undefined || wasPinned === isPinned) return;
+
+    const offset = (isPinned ? -PIN_ICON_WIDTH_PX : PIN_ICON_WIDTH_PX) * (lang.isRtl ? -1 : 1);
+    for (let element = pin.nextElementSibling; element; element = element.nextElementSibling) {
+      animateShift(element as HTMLElement, offset, 0, PIN_TRANSITION_DURATION);
+    }
+  }, [isPinned, withPinTransition, lang.isRtl, pinRef]);
 
   const handleClick = useLastCallback(() => {
     onClick(slug);

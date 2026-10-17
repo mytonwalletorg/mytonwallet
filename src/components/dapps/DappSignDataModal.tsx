@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
@@ -24,13 +24,17 @@ import DappSignDataInitial from './DappSignDataInitial';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
 
-type StateProps = Pick<GlobalState['currentDappSignData'], 'isLoading' | 'state' | 'dapp' | 'error'>;
+type StateProps = Pick<GlobalState['currentDappSignData'], 'isLoading' | 'state' | 'promiseId' | 'dapp' | 'error'> & {
+  isAppLocked?: boolean;
+};
 
 function DappSignDataModal({
   isLoading,
   state,
+  promiseId,
   dapp,
   error,
+  isAppLocked,
 }: StateProps) {
   const {
     setDappSignDataScreen,
@@ -43,6 +47,18 @@ function DappSignDataModal({
   const lang = useLang();
 
   const isOpen = state !== SignDataState.None;
+
+  // The close animation can end after a newer request opened, so it cancels the request this modal showed when the
+  // close began, snapshotted at that moment
+  const shownPromiseIdRef = useRef<string>();
+  const closingPromiseIdRef = useRef<string>();
+  useEffect(() => {
+    if (isOpen) {
+      shownPromiseIdRef.current = promiseId;
+    } else {
+      closingPromiseIdRef.current = shownPromiseIdRef.current;
+    }
+  }, [isOpen, promiseId]);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
@@ -57,7 +73,7 @@ function DappSignDataModal({
   });
 
   const handleResetSignData = useLastCallback(() => {
-    cancelDappSignData();
+    cancelDappSignData({ promiseId: closingPromiseIdRef.current });
     updateNextKey();
   });
 
@@ -105,6 +121,7 @@ function DappSignDataModal({
     <Modal
       hasCloseButton
       isOpen={isOpen}
+      isKeyboardDisabled={isAppLocked}
       dialogClassName={styles.modalDialog}
       noBackdropClose
       onClose={closeDappSignData}
@@ -123,7 +140,7 @@ function DappSignDataModal({
   );
 }
 
-export default memo(withGlobal((global): StateProps => pick(
-  global.currentDappSignData,
-  ['isLoading', 'state', 'dapp', 'error'],
-))(DappSignDataModal));
+export default memo(withGlobal((global): StateProps => ({
+  ...pick(global.currentDappSignData, ['isLoading', 'state', 'promiseId', 'dapp', 'error']),
+  isAppLocked: global.isAppLockActive,
+}))(DappSignDataModal));

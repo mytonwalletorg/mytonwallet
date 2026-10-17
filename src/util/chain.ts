@@ -73,6 +73,8 @@ export interface ExplorerConfig extends BaseExplorerConfig {
   /** Use `{base}` as the base URL placeholder and `{address}` as the NFT collection address placeholder */
   nftCollection?: string;
   doConvertHashFromBase64: boolean;
+  /** Whether the transaction page also finds a TON trace by the hash of its external message */
+  isMessageHashSupported?: boolean;
 }
 
 export interface MarketplaceConfig extends BaseExplorerConfig {
@@ -291,6 +293,7 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
         nft: '{base}nft/{address}',
         nftCollection: '{base}collection/{address}',
         doConvertHashFromBase64: true,
+        isMessageHashSupported: true,
       },
       {
         id: 'tonviewer',
@@ -304,6 +307,28 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
         transaction: '{base}transaction/{hash}',
         nft: '{base}{address}?nft',
         nftCollection: '{base}{address}?collection',
+        doConvertHashFromBase64: true,
+        isMessageHashSupported: true,
+      },
+      {
+        id: 'actonscan',
+        name: 'Actonscan',
+        // Without `network`, the site opens the network the user viewed there last
+        baseUrl: {
+          mainnet: {
+            url: 'https://actonscan.com/',
+            param: '?network=mainnet',
+          },
+          testnet: {
+            url: 'https://actonscan.com/',
+            param: '?network=testnet',
+          },
+        },
+        address: '{base}address/{address}',
+        token: '{base}address/{address}',
+        transaction: '{base}tx/{hash}',
+        nft: '{base}address/{address}',
+        nftCollection: '{base}address/{address}',
         doConvertHashFromBase64: true,
       },
     ],
@@ -646,7 +671,7 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     canBuyWithCardInRussia: false,
     isOnRampSupported: true,
     isOffRampSupported: true,
-    isOnchainSwapSupported: true,
+    isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
     canTransferFullNativeBalance: false,
@@ -824,7 +849,7 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     canBuyWithCardInRussia: false,
     isOnRampSupported: false,
     isOffRampSupported: false,
-    isOnchainSwapSupported: true,
+    isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
     canTransferFullNativeBalance: false,
@@ -882,7 +907,7 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     canBuyWithCardInRussia: false,
     isOnRampSupported: true,
     isOffRampSupported: true,
-    isOnchainSwapSupported: true,
+    isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
     canTransferFullNativeBalance: false,

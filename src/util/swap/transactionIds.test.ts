@@ -70,6 +70,16 @@ describe('getSwapTransactionIdRows', () => {
     ]);
   });
 
+  it('names a TON swap by its trace id once it is known', () => {
+    expect(getSwapTransactionIdRows(makeSwapActivity({
+      id: '2551567::backend-swap',
+      externalMsgHashNorm: 'external-message-hash',
+      traceId: 'trace-id',
+    }))).toEqual([
+      { label: 'Transaction ID', hash: 'trace-id', traceId: 'trace-id', chain: 'ton' },
+    ]);
+  });
+
   it('renders no transaction id for a swap row that has no hash yet', () => {
     expect(getSwapTransactionIdRows(makeSwapActivity({ id: '2551567::local' }))).toEqual([]);
     expect(getSwapTransactionIdRows(makeSwapActivity({ id: '2551567::backend-swap' }))).toEqual([]);

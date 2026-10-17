@@ -349,9 +349,9 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
                     bottomSpacing: headerPlaceholderBottomSpacing,
                     height: .absolute(headerPlaceholderLayoutHeight)
                 )
-            case .emptyPlaceholder:
+            case .emptyPlaceholder, .loadingPlaceholder:
                 plainSection
-            case .placeholderTransactionsSection, .transactions, .none:
+            case .transactions, .none:
                 makeListSection(layoutEnvironment: layoutEnvironment)
             }
         }
@@ -379,10 +379,7 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
                     cell.configureSkeleton()
                     cell.setContextMenuInteraction(nil)
                 }
-            case .transactionPlaceholder, .loadingMore:
-                cell.configureSkeleton()
-                cell.setContextMenuInteraction(nil)
-            case .headerPlaceholder, .custom(_), .emptyPlaceholder:
+            case .headerPlaceholder, .custom(_), .emptyPlaceholder, .loadingMore:
                 cell.setContextMenuInteraction(nil)
                 return
             }
@@ -391,16 +388,20 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
             cell.backgroundColor = .clear
             cell.set(animated: true)
         }
+        let loadingCellRegistration = UICollectionView.CellRegistration<ActivityHistoryStatusCell, Row> { [unowned self] cell, _, _ in
+            cell.configure(
+                hasLoadError: activityViewModel?.hasLoadError == true,
+                activityCount: activityViewModel?.idsByDate?.values.reduce(0, { $0 + $1.count }) ?? 0
+            )
+        }
         let dateSupplementaryRegistration = UICollectionView.SupplementaryRegistration<ActivityDateCell>(
             elementKind: UICollectionView.elementKindSectionHeader
         ) { [weak self] cell, _, indexPath in
             guard let self, let section = self.dataSource?.sectionIdentifier(for: indexPath.section) else { return }
             switch section.value {
-            case .placeholderTransactionsSection:
-                cell.configureSkeleton()
             case .transactions(_, let date):
                 cell.configure(with: date)
-            case .headerPlaceholder, .custom(_), .emptyPlaceholder:
+            case .headerPlaceholder, .custom(_), .emptyPlaceholder, .loadingPlaceholder:
                 break
             }
         }
@@ -424,8 +425,11 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
                     itemIdentifier: itemIdentifier
                 )
 
-            case .transaction(_, _), .transactionPlaceholder, .loadingMore:
+            case .transaction(_, _):
                 return collectionView.dequeueConfiguredReusableCell(using: activityCellRegistration, for: indexPath, item: item)
+
+            case .loadingMore:
+                return collectionView.dequeueConfiguredReusableCell(using: loadingCellRegistration, for: indexPath, item: item)
 
             case .emptyPlaceholder:
                 return collectionView.dequeueConfiguredReusableCell(using: emptyWalletCellRegistration, for: indexPath, item: item)
@@ -578,8 +582,8 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
                     }
                 }
             }
-            snapshot.appendSections([.placeholderTransactionsSection])
-            snapshot.appendItems(ActivityListViewModel.placeholderTransactionRows)
+            snapshot.appendSections([.loadingPlaceholder])
+            snapshot.appendItems([.loadingMore])
             return snapshot
         }
     }
@@ -977,6 +981,7 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
     }
 
     open func updateSkeletonViewsIfNeeded(animateAlondside: ((_ isLoading: Bool) -> ())?) {
+        guard !displaysActivitySections else { return }
         let dataAvailable = isActivityDataAvailableForSkeleton
 
         if !dataAvailable, !skeletonView.isAnimating, !isInitializingCache {

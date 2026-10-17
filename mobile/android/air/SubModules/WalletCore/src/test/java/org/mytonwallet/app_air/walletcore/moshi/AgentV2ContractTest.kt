@@ -44,6 +44,20 @@ class AgentV2ContractTest {
     }
 
     @Test
+    fun decodesTheReasonAnActionDoesNotOpen() {
+        val actionAdapter = moshi.adapter(AgentV2ResolvedAction::class.java)
+
+        assertEquals(
+            AgentV2ResolvedAction.Inactive("viewOnlyWallet"),
+            actionAdapter.fromJson("""{"kind":"inactive","reason":"viewOnlyWallet"}""")
+        )
+        assertEquals(
+            AgentV2ResolvedAction.Inactive(),
+            actionAdapter.fromJson("""{"kind":"inactive"}""")
+        )
+    }
+
+    @Test
     fun decodesPartialSwapWithoutInventingSourceOrAmount() {
         val actionAdapter = moshi.adapter(AgentV2ResolvedAction::class.java)
         val decoded = actionAdapter.fromJson("""{"kind":"openSwap","tokenOutSlug":"trx"}""")

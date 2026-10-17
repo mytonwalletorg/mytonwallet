@@ -62,6 +62,7 @@ import {
   clearCurrentSwap,
   clearIsPinAccepted,
   updateCurrentSwap,
+  updateLastSwapPair,
   updateTradeAmount,
   updateTradeCounterToken,
 } from '../../reducers';
@@ -99,7 +100,7 @@ export function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildTransact
   const {
     dexLabel,
     dexRouterLabel,
-    needsApprove,
+    needsBatch,
     amountIn,
     amountOut,
     quotedAmountOut,
@@ -142,7 +143,7 @@ export function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildTransact
     historyAddress,
     shouldTryDiesel: shouldSwapBeGasless({ ...global.currentSwap, swapType, nativeTokenInBalance }),
     dexRouterLabel: dexRouterLabel || undefined,
-    needsApprove,
+    needsBatch,
     dexLabel,
     networkFee: realNetworkFee ?? networkFee,
     swapFee: swapFee!,
@@ -225,13 +226,8 @@ addActionHandler('startSwap', (global, actions, payload) => {
 addActionHandler('startTokenTrade', (global, actions, { tokenSlug, direction }) => {
   const isBuy = direction === 'buy';
   // The counter token picked by hand last time comes back; otherwise the pair is resolved from the balances.
-  // The remembered token is dropped only once the swap tokens are loaded and it is not among them.
-  const { swapTokenInfo } = global;
   const rememberedSlug = selectCurrentAccountState(global)?.tradeCounterTokenSlugs?.[direction];
-  const counterSlug = rememberedSlug && rememberedSlug !== tokenSlug
-    && (!swapTokenInfo.isLoaded || swapTokenInfo.bySlug[rememberedSlug])
-    ? rememberedSlug
-    : undefined;
+  const counterSlug = getAvailableCounterSlug(global, tokenSlug, rememberedSlug);
   const tokenInSlug = isBuy ? counterSlug : tokenSlug;
   const tokenOutSlug = isBuy ? tokenSlug : counterSlug;
 
@@ -247,6 +243,19 @@ addActionHandler('startTokenTrade', (global, actions, { tokenSlug, direction }) 
   });
 
   setGlobal(global);
+});
+
+addActionHandler('startTokenSwap', (global, actions, { tokenSlug }) => {
+  const lastPair = selectCurrentAccountState(global)?.lastSwapPairsBySlug?.[tokenSlug];
+  const hasBalance = selectCurrentAccountTokenBalance(global, tokenSlug) > 0n;
+  const isSell = hasBalance && (!lastPair || lastPair.tokenInSlug === tokenSlug);
+  // For a token sold last time and bought now, this is the token itself, which `getAvailableCounterSlug` skips
+  const lastCounterSlug = isSell ? lastPair?.tokenOutSlug : lastPair?.tokenInSlug;
+  const counterSlug = getAvailableCounterSlug(global, tokenSlug, lastCounterSlug);
+
+  actions.startSwap(isSell
+    ? { tokenInSlug: tokenSlug, tokenOutSlug: counterSlug }
+    : { tokenInSlug: counterSlug, tokenOutSlug: tokenSlug });
 });
 
 addActionHandler('setTradeAmount', (global, actions, payload) => {
@@ -301,22 +310,19 @@ addActionHandler('switchSwapAccount', async (global, actions, { accountId }) => 
 });
 
 addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
-  let { tokenInSlug: requiredTokenInSlug, tokenOutSlug: requiredTokenOutSlug } = payload ?? {};
   const { withResetAmount } = payload ?? {};
 
-  requiredTokenInSlug = requiredTokenInSlug || DEFAULT_SWAP_FIRST_TOKEN_SLUG;
-  requiredTokenOutSlug = requiredTokenOutSlug || DEFAULT_SWAP_SECOND_TOKEN_SLUG;
   if (
-    global.currentSwap.tokenInSlug === requiredTokenInSlug
-    && global.currentSwap.tokenOutSlug === requiredTokenOutSlug
+    global.currentSwap.tokenInSlug === DEFAULT_SWAP_FIRST_TOKEN_SLUG
+    && global.currentSwap.tokenOutSlug === DEFAULT_SWAP_SECOND_TOKEN_SLUG
     && !withResetAmount
   ) {
     return;
   }
 
   global = updateCurrentSwap(global, {
-    tokenInSlug: requiredTokenInSlug,
-    tokenOutSlug: requiredTokenOutSlug,
+    tokenInSlug: DEFAULT_SWAP_FIRST_TOKEN_SLUG,
+    tokenOutSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG,
     inputSource: SwapInputSource.In,
     ...(withResetAmount ? { amountIn: undefined, amountOut: undefined } : undefined),
   });
@@ -372,7 +378,7 @@ addActionHandler('submitSwap', withEnclaveSessionRelease(async (global, actions,
   // keep it on so the confirm button doesn't flash the Back button
   setGlobal(updateCurrentSwap(getGlobal(), {
     isLoading: true,
-    ...(buildResult.isBatchTx ? { isBatchTx: true } : undefined),
+    needsBatch: buildResult.needsBatch,
   }));
 
   const swapHistoryItem: ApiSwapHistoryItem = {
@@ -401,7 +407,7 @@ addActionHandler('submitSwap', withEnclaveSessionRelease(async (global, actions,
     swapBuildRequest.shouldTryDiesel,
     buildResult.transaction,
     buildResult.calls,
-    swapBuildRequest.needsApprove,
+    buildResult.needsBatch,
   );
 
   if (isErrorTransferResult(result)) {
@@ -412,7 +418,12 @@ addActionHandler('submitSwap', withEnclaveSessionRelease(async (global, actions,
     return;
   }
 
-  setGlobal(updateCurrentSwap(getGlobal(), {
+  global = getGlobal();
+  if (!result.mfaRequestHash) {
+    global = updateLastSwapPair(global);
+  }
+
+  setGlobal(updateCurrentSwap(global, {
     isLoading: undefined,
     state: result.mfaRequestHash ? SwapState.ConfirmMfa : SwapState.Complete,
     activityId: result.activityId,
@@ -499,7 +510,7 @@ addActionHandler('submitSwapCex', withEnclaveSessionRelease(async (global, actio
   // until `swapCexSubmit` tells which screen comes next
   const shouldAwaitDepositSubmit = canAutoSubmit && Boolean(account?.byChain[tokenIn.chain as ApiChain]?.mfa);
 
-  global = getGlobal();
+  global = updateLastSwapPair(getGlobal());
   global = updateCurrentSwap(global, {
     ...(shouldAwaitDepositSubmit
       ? { isLoading: true }
@@ -596,7 +607,7 @@ addActionHandler('updateSwapMfaRequestStatus', async (global) => {
     logDebugError('updateSwapMfaRequestStatus:confirmSwapMfaRequest', err);
   }
 
-  global = getGlobal();
+  global = updateLastSwapPair(getGlobal());
   global = updateCurrentSwap(global, {
     state: SwapState.Complete,
     mfaRequestHash: undefined,
@@ -748,7 +759,10 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
   let toncoinBalance: bigint | undefined;
 
   if (isOnChain) {
-    const nativeTokenIn = getNativeToken(getChainBySlug(tokenIn.slug));
+    const account = selectCurrentAccount(global)!;
+    const chain = tokenIn.chain as ApiChain;
+    const address = account.byChain[chain]!.address;
+    const nativeTokenIn = getNativeToken(chain);
     const { fromAmount, isFromAmountMax: isMax } = processNativeMaxSwap(global);
 
     isFromAmountMax = isMax;
@@ -756,18 +770,21 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
     const toAmount = global.currentSwap.amountOut ?? '0';
     const estimateAmount = global.currentSwap.inputSource === SwapInputSource.In ? { fromAmount } : { toAmount };
 
-    if (tokenIn.chain === 'ton') {
+    if (chain === 'ton') {
       toncoinBalance = selectCurrentToncoinBalance(global);
 
       shouldTryDiesel = toncoinBalance < fromDecimal(global.currentSwap.networkFee ?? '0', nativeTokenIn.decimals);
     }
 
+    // Same-chain quotes race DEX and CEX. CEX needs the payout address; the provider is left unset so the
+    // backend can pick the winner. Exact-out is priced by DEX alone.
     estimateRequest = {
       ...estimateAmount,
       from,
       to,
       slippage: global.currentSwap.slippage,
-      fromAddress: selectCurrentAccount(global)!.byChain[tokenIn.chain as ApiChain]!.address,
+      fromAddress: address,
+      toAddress: address,
       shouldTryDiesel,
       isFromAmountMax,
       toncoinBalance: toncoinBalance !== undefined
@@ -824,6 +841,7 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
       ...(shouldTryDiesel ? { networkFee: global.currentSwap.networkFee } : undefined),
       errorType,
       swapHint: estimate && 'hint' in estimate ? getUsableSwapHint(global, estimate.hint) : undefined,
+      estimateDebugSummary: estimate && 'debug' in estimate ? estimate.debug?.summary : undefined,
     };
   }
 
@@ -834,6 +852,7 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
       return {
         ...getSwapEstimateResetParams(global),
         errorType: SwapErrorType.UnexpectedError,
+        estimateDebugSummary: estimate.debug?.summary,
       };
     }
 
@@ -859,8 +878,7 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
       amountOutMin: currentEstimate.toMinAmount,
       priceImpact: currentEstimate.impact,
       dexRouterLabel: dexEstimate.dexRouterLabel || undefined,
-      needsApprove: dexEstimate.needsApprove,
-      isBatchTx: !!dexEstimate.needsApprove,
+      needsBatch: dexEstimate.needsBatch,
       errorType,
       dieselStatus: dexEstimate.dieselStatus,
       dexLabel: currentEstimate.dexLabel,
@@ -872,17 +890,12 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
       ourFee: currentEstimate.ourFee,
       ourFeePercent: dexEstimate.ourFeePercent,
       dieselFee: currentEstimate.dieselFee,
+      route: 'dex',
+      estimateDebugSummary: estimate.debug?.summary,
     };
   }
 
   if (estimate.route === 'cex') {
-    if (isOnChain) {
-      return {
-        ...getSwapEstimateResetParams(global),
-        errorType: SwapErrorType.UnexpectedError,
-      };
-    }
-
     const cexEstimate: ApiSwapCexEstimateResponse = estimate;
     const fromAmount = global.currentSwap.amountIn ?? '0';
 
@@ -944,6 +957,7 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
       ourFeePercent: cexEstimate.ourFeePercent ?? 0,
       dieselStatus: 'not-available',
       amountOutMin: cexEstimate.toAmount,
+      route: 'cex',
       errorType: Big(fromAmount).lt(cexEstimate.fromMin)
         ? SwapErrorType.ChangellyMinSwap
         : Big(fromAmount).gt(cexEstimate.fromMax)
@@ -951,6 +965,7 @@ export async function estimateSwap(global: GlobalState, shouldStop: () => boolea
           : isNetworkFeeUnknown
             ? SwapErrorType.UnexpectedError
             : undefined,
+      estimateDebugSummary: estimate.debug?.summary,
     };
   }
 
@@ -1209,4 +1224,14 @@ function fillMissingSwapToken(global: GlobalState, tokenInSlug?: string, tokenOu
     tokenInSlug: tokenInSlug || defaults?.tokenIn?.slug || fallbackSlug,
     tokenOutSlug: tokenOutSlug || defaults?.tokenOut?.slug || fallbackSlug,
   };
+}
+
+// A remembered counter token is dropped only once the swap tokens are loaded and it is not among them
+function getAvailableCounterSlug(global: GlobalState, tokenSlug: string, counterSlug?: string) {
+  const { swapTokenInfo } = global;
+
+  return counterSlug && counterSlug !== tokenSlug
+    && (!swapTokenInfo.isLoaded || swapTokenInfo.bySlug[counterSlug])
+    ? counterSlug
+    : undefined;
 }

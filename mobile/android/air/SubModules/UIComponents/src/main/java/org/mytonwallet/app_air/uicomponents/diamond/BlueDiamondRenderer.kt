@@ -1,6 +1,8 @@
 package org.mytonwallet.app_air.uicomponents.diamond
 
 import android.content.res.AssetManager
+import android.graphics.Bitmap
+import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.opengl.EGL14.EGL_ALPHA_SIZE
 import android.opengl.EGL14.EGL_BLUE_SIZE
@@ -42,6 +44,8 @@ internal class BlueDiamondRenderer(
     private val assets: AssetManager,
     private val texture: SurfaceTexture,
     private var size: Int,
+    private val maxGrow: Float,
+    private val pixelsPerPoint: Float,
     private val onError: () -> Unit
 ) {
     private val thread = HandlerThread("BlueDiamond").apply { start() }
@@ -52,6 +56,11 @@ internal class BlueDiamondRenderer(
     private var eglSurface = EGL_NO_SURFACE
     private var surface: Surface? = null
     private var scene: BlueDiamondScene? = null
+
+    @Volatile var grip = 0f
+        private set
+    private var lensMask: Bitmap? = null
+    private val lensRect = RectF()
     private var isVisible = false
     private var canAnimate = false
     private var hasFailed = false
@@ -88,10 +97,19 @@ internal class BlueDiamondRenderer(
         }
     }
 
-    fun press() = handler.post { motion.press() }
+    fun setLensSource(mask: Bitmap?, rect: RectF) {
+        val frame = RectF(rect)
+        handler.post {
+            lensMask = mask
+            lensRect.set(frame)
+            scene?.setLensSource(mask, frame)
+        }
+    }
+
+    fun press() = handler.post { motion.press(time) }
     fun drag(dx: Float, dy: Float) = handler.post { motion.drag(dx, dy) }
-    fun release(tapX: Float? = null, tapY: Float? = null) =
-        handler.post { motion.release(time, tapX, tapY) }
+    fun release(tapX: Float? = null, tapY: Float? = null, flingDirection: Float? = null) =
+        handler.post { motion.release(time, tapX, tapY, flingDirection) }
 
     fun stop() {
         isStopped = true
@@ -143,7 +161,7 @@ internal class BlueDiamondRenderer(
         eglSurface = eglCreateWindowSurface(display, config, surface, intArrayOf(EGL_NONE), 0)
         check(eglSurface != EGL_NO_SURFACE)
         check(eglMakeCurrent(display, eglSurface, eglSurface, eglContext))
-        scene = BlueDiamondScene(assets)
+        scene = BlueDiamondScene(assets).also { it.setLensSource(lensMask, lensRect) }
     }
 
     private fun drawFrame() {
@@ -162,8 +180,19 @@ internal class BlueDiamondRenderer(
             if (canAnimate) {
                 time += frameTime
                 motion.update(time)
+                grip = motion.grip
             }
-            scene.draw(size, time, frameTime, motion.yaw, motion.pitch)
+            val scale = (1 + (maxGrow - 1) * motion.grip) / maxGrow
+            scene.draw(
+                size,
+                time,
+                frameTime,
+                motion.yaw,
+                motion.pitch,
+                scale,
+                motion.grip.coerceIn(0f, 1f),
+                pixelsPerPoint
+            )
             check(eglSwapBuffers(display, eglSurface)) {
                 "Diamond EGL swap failed: ${eglGetError()}"
             }

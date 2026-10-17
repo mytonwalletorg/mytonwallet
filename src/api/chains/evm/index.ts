@@ -23,7 +23,7 @@ import {
   submitNftTransfers,
 } from './nfts';
 import { setupActivePolling, setupInactivePolling } from './polling';
-import { buildOnchainSwapTransfer, submitOnchainSwapTransfer } from './swap';
+import { buildOnchainSwapTransfer, resolveSwapNeedsBatch, submitOnchainSwapTransfer } from './swap';
 import { fetchTransactionById } from './transactionInfo';
 import { checkTransactionDraft, sendSignedTransaction, submitGasfullTransfer } from './transfer';
 import { fetchAccountBalances, fetchCrosschainAccountBalances, getAddressInfo, getWalletBalance } from './wallet';
@@ -86,6 +86,7 @@ class EVMChainSdk<T extends EVMChain> implements ChainSdk<T> {
 
   buildOnchainSwapTransfer = this.#bindChain(buildOnchainSwapTransfer);
   submitOnchainSwapTransfer = this.#bindChain(submitOnchainSwapTransfer);
+  resolveSwapNeedsBatch = this.#bindChain(resolveSwapNeedsBatch);
 
   fetchPrivateKeyString = this.#bindChain(fetchPrivateKeyString);
 

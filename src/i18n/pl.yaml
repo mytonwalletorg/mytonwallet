@@ -601,6 +601,13 @@ Are you sure you want to disable biometrics?: Czy na pewno chcesz wyłączyć bi
 "Yes": Tak
 Biometric confirmation failed: Potwierdzenie biometryczne nie powiodło się
 No Activity: Brak aktywności
+Loading Activity: Ładowanie aktywności
+Loading More Activity: Ładowanie kolejnych aktywności
+Your activity history is loading.: Trwa ładowanie historii Twojej aktywności.
+Taking Longer Than Usual: To trwa dłużej niż zwykle
+Activity history is taking longer to load. Please check back shortly.: Ładowanie historii aktywności trwa dłużej niż zwykle. Sprawdź ponownie za chwilę.
+Activity Unavailable: Aktywność niedostępna
+Activity history is temporarily unavailable. We’ll try again shortly.: Historia aktywności jest chwilowo niedostępna. Za chwilę spróbujemy ponownie.
 Fund: Doładować
 Buy with Card: Kup za pomocą karty
 Buy with Crypto: Kup za pomocą kryptowalut
@@ -633,6 +640,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Możesz także %action%.
 $wallet_switch_version_2: zmienić na inną wersję portfela
 or import from: lub zaimportować z
+or enter manually: lub wprowadź ręcznie
 Insufficient fee: Niewystarczająca opłata
 $insufficient_fee: "Niewystarczająca opłata: %fee%"
 $dapp_insufficient_network_fee_warning: Za mało %token%, aby pokryć opłatę sieciową
@@ -691,6 +699,7 @@ $transfer_link_expired: Link do transferu wygasł
 $transfer_text_and_bin_exclusive: Nie można używać razem parametrów tekstu i danych binarnych
 $unsupported_deeplink_parameter: Ten deeplink zawiera nieobsługiwane parametry.
 $unsupported_chain: Nieobsługiwany blockchain.
+$token_chain_not_supported_by_wallet: "Twój obecny portfel nie obsługuje %chain%. Utwórz portfel multichain, aby korzystać z tego tokena."
 Successfully: Pomyślnie
 Estimated Time: Szacowany czas
 $utxo_confirmations:
@@ -1335,6 +1344,7 @@ $agent_connection_interrupted: Połączenie z agentem zostało przerwane. Sprób
 $agent_history_unavailable: Nie udało się załadować historii czatu. Spróbuj ponownie.
 $agent_secret_words_removed: "[tajne słowa usunięte i niewysłane]"
 $agent_activity_analyzing_request: Analizowanie Twojego żądania…
+$agent_analyzing: Analizowanie
 $agent_activity_wallet: Odczytywanie danych portfela…
 $agent_activity_transactions: Przeglądanie aktywności portfela…
 $agent_activity_portfolio: Ładowanie danych portfela inwestycyjnego…
@@ -1442,6 +1452,9 @@ $agent_report_problem_description: Ostatnie wiadomości z tego czatu zostaną wy
 $agent_report_problem_sent: Dziękujemy! Zgłoszenie zostało wysłane.
 $agent_report_problem_failed: Nie udało się wysłać zgłoszenia. Spróbuj ponownie.
 $agent_report_problem_rate_limited: Wysłano ostatnio kilka zgłoszeń. Spróbuj ponownie później.
+Like: Podoba mi się
+Dislike: Nie podoba mi się
+$agent_feedback_failed: Nie udało się zapisać oceny. Spróbuj ponownie.
 $unknown_swap_token: Nieznany token w linku wymiany. Użyto domyślnych tokenów.
 $action_not_available_view_mode: Ta akcja jest niedostępna dla portfeli podglądu
 Deposit: Wpłać
@@ -2095,4 +2108,5 @@ Ruble: Rubel
 $token_price_value: "Cena: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: Taka wymiana zwykle trwa kilka minut. W rzadkich przypadkach — do dwóch godzin.
 3D Gram Diamond: Diament Gram 3D
+Hold to enlarge. Drag to rotate.: Przytrzymaj, aby powiększyć. Przeciągnij, aby obrócić.
 "Max": "Maks."

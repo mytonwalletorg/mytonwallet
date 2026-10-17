@@ -22,6 +22,22 @@ export function withForeignDelegationResetCall(
   }, ...transactions];
 }
 
+export function resolveBatchDelegation(activeDelegate: string | undefined): {
+  foreignDelegation?: string;
+  shouldDelegate: boolean;
+} {
+  if (!activeDelegate) {
+    return { shouldDelegate: true };
+  }
+
+  const normalized = normalizeAddress(activeDelegate);
+  if (ALCHEMY_7702_DELEGATEE_ADDRESSES.has(normalized.toLowerCase())) {
+    return { shouldDelegate: false };
+  }
+
+  return { foreignDelegation: normalized, shouldDelegate: true };
+}
+
 export async function isAlchemy7702Delegated(
   chain: EVMChain,
   network: ApiNetwork,
@@ -41,11 +57,5 @@ export async function getForeignEvmDelegationAddress(
 ): Promise<string | undefined> {
   const activeDelegate = await getEvmDelegationAddress(chain, network, address);
 
-  if (!activeDelegate) return undefined;
-
-  if (await isAlchemy7702Delegated(chain, network, address)) {
-    return undefined;
-  }
-
-  return normalizeAddress(activeDelegate);
+  return resolveBatchDelegation(activeDelegate).foreignDelegation;
 }

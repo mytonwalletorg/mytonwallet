@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stable resource ids for UI automation (Maestro `id:` selectors) -->
+<resources>
+    <!-- Settings list rows, keyed by `SettingsItem.Identifier` -->
+    <item name="settings_item_add_account" type="id" />
+    <item name="settings_item_show_all_wallets" type="id" />
+    <item name="settings_item_portfolio" type="id" />
+    <item name="settings_item_notification_settings" type="id" />
+    <item name="settings_item_appearance" type="id" />
+    <item name="settings_item_assets_and_activity" type="id" />
+    <item name="settings_item_connected_apps" type="id" />
+    <item name="settings_item_language" type="id" />
+    <item name="settings_item_security" type="id" />
+    <item name="settings_item_mfa" type="id" />
+    <item name="settings_item_subwallets" type="id" />
+    <item name="settings_item_wallet_versions" type="id" />
+    <item name="settings_item_ask_a_question" type="id" />
+    <item name="settings_item_help_center" type="id" />
+    <item name="settings_item_mtw_features" type="id" />
+    <item name="settings_item_use_responsibility" type="id" />
+    <item name="settings_item_mtw_cards_nft" type="id" />
+    <item name="settings_item_install_on_desktop" type="id" />
+    <item name="settings_item_about_mtw" type="id" />
+
+    <!-- Appearance and Assets & Activity screens -->
+    <item name="appearance_theme_system" type="id" />
+    <item name="appearance_theme_light" type="id" />
+    <item name="appearance_theme_dark" type="id" />
+    <item name="assets_base_currency" type="id" />
+
+    <!-- Security screen -->
+    <item name="security_back_up" type="id" />
+    <item name="security_biometric_auth" type="id" />
+    <item name="security_change_passcode" type="id" />
+    <item name="security_app_lock" type="id" />
+    <item name="security_auto_lock" type="id" />
+    <item name="security_remember_passcode" type="id" />
+    <item name="security_auto_exit" type="id" />
+    <item name="security_disable_screen_record_warning" type="id" />
+    <item name="security_allow_suspicious_actions" type="id" />
+</resources>

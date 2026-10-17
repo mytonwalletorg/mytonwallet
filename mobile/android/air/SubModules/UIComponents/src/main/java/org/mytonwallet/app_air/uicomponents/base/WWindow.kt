@@ -588,6 +588,14 @@ abstract class WWindow :
         task()
     }
 
+    // Drops the screen waiting for unlock without showing it; returns whether it was the one waiting
+    fun discardPendingPresentationNav(navigationController: WNavigationController): Boolean {
+        if (pendingPresentationNav !== navigationController) return false
+        pendingPresentationNav = null
+        navigationController.onDestroy()
+        return true
+    }
+
     fun presentPendingPresentationNav(): Boolean {
         val pendingPresentationNav = pendingPresentationNav ?: return false
         if (presentOnWalletReady(pendingPresentationNav)) {
@@ -951,6 +959,12 @@ abstract class WWindow :
         val startOverlayAlpha = lastOverlay?.alpha ?: 0f
 
         fun animationEnded() {
+            // A replaced stack has already torn this nav down.
+            if (navigationController !in navigationControllers) {
+                activeAnimator = null
+                navAnimation = NavAnimation.NONE
+                return
+            }
             navigationController?.visibility = View.GONE
             navigationController?.onDestroy()
             forgetNav(navigationController)
@@ -1143,7 +1157,7 @@ abstract class WWindow :
         val prevNavigationControllers = ArrayList(navigationControllers)
         for (i in 1 until prevNavigationControllers.size - 1) {
             val nav = prevNavigationControllers[i]
-            if (nav.parent == null) dismissNav(i) else break
+            if (nav.parent == null) dismissNav(nav) else break
         }
         if (navigationControllers.size > 1) {
             dismissLastNav {

@@ -83,10 +83,10 @@ extension WalletVersionCell {
 
     static func makeOtherVersionRegistration(
         versions: [MWalletVersionsData.Version],
-        isLoading: @escaping (String) -> Bool
-    ) -> UICollectionView.CellRegistration<UICollectionViewListCell, String> {
-        UICollectionView.CellRegistration<UICollectionViewListCell, String> { cell, _, versionId in
-            guard let version = versions.first(where: { $0.version == versionId }) else { return }
+        isLoading: @escaping (MWalletVersionsData.Version.ID) -> Bool
+    ) -> UICollectionView.CellRegistration<UICollectionViewListCell, MWalletVersionsData.Version.ID> {
+        UICollectionView.CellRegistration<UICollectionViewListCell, MWalletVersionsData.Version.ID> { cell, _, versionId in
+            guard let version = versions.first(where: { $0.id == versionId }) else { return }
             let value: String
             if let balance = MTokenBalance(tokenSlug: "toncoin", balance: version.balance, isStaking: false).toBaseCurrency {
                 let baseCurrencyAmount = BaseCurrencyAmount.fromDouble(balance, TokenStore.baseCurrency)

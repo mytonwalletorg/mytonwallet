@@ -43,10 +43,14 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
     ...otherProps
   } = props;
 
+  const { color } = otherProps;
+
   const [isPreviewLoaded, markPreviewLoaded] = useFlag(
     Boolean(iconPreviewClass) || Boolean(thumbDataUri) || loadedPreviewUrls.has(previewUrl),
   );
-  const ref = useMediaTransition(isPreviewLoaded || noPreviewTransition);
+  // A recolored preview is a CSS mask, which has no load event to wait for. Until the image loads,
+  // the mask hides the whole element, so nothing shows up early.
+  const ref = useMediaTransition(isPreviewLoaded || noPreviewTransition || Boolean(color));
   const [isAnimationReady, markAnimationReady, markAnimationNotReady] = useFlag(false);
 
   useEffect(() => {
@@ -73,14 +77,21 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
         // eslint-disable-next-line jsx-a11y/alt-text
         <img src={thumbDataUri} className={styles.preview} />
       )}
-      {previewUrl && !isAnimationReady && (
+      {previewUrl && !isAnimationReady && (color ? (
+        // `AnimatedSticker` paints every pixel of the animation with `color` and keeps the alpha,
+        // and a mask over a solid background gives the preview the same look
+        <div
+          className={buildClassName(styles.preview, styles.coloredPreview)}
+          style={buildStyle(`--preview-url: url("${previewUrl}")`, `background-color: ${color}`)}
+        />
+      ) : (
         // eslint-disable-next-line jsx-a11y/alt-text
         <img
           src={previewUrl}
           className={styles.preview}
           onLoad={handlePreviewLoad}
         />
-      )}
+      ))}
       {iconPreviewClass && !isAnimationReady && (
         <i className={buildClassName(styles.preview, iconPreviewClass)} aria-hidden />
       )}

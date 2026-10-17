@@ -37,6 +37,25 @@
 
 .change {
   white-space: nowrap;
+  animation: fade-in-opacity var(--slide-transition);
+
+  :global(html.animation-level-0) & {
+    animation: none;
+  }
+}
+
+.changeUnknown {
+  visibility: hidden;
+}
+
+.changeSkeleton {
+  display: inline-block;
+
+  width: 6.25rem;
+  height: 0.75rem;
+  border-radius: 0.375rem;
+
+  vertical-align: middle;
 }
 
 .positive {

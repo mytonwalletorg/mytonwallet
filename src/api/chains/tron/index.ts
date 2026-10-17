@@ -43,6 +43,7 @@ const tronSdk: ChainSdk<'tron'> = {
   submitGaslessTransfer: notSupported,
   buildOnchainSwapTransfer: notSupported,
   submitOnchainSwapTransfer: notSupported,
+  resolveSwapNeedsBatch: () => false,
   getAddressInfo,
   getWalletBalance,
   getWalletAssets,

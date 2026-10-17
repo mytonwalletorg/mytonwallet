@@ -573,6 +573,13 @@ Are you sure you want to disable biometrics?: هل أنت متأكد أنك تر
 "Yes": نعم
 Biometric confirmation failed: فشل التأكيد البيومتري
 No Activity: لا يوجد نشاط
+Loading Activity: جارٍ تحميل النشاط
+Loading More Activity: جارٍ تحميل المزيد من النشاط
+Your activity history is loading.: جارٍ تحميل سجل نشاطك.
+Taking Longer Than Usual: يستغرق وقتًا أطول من المعتاد
+Activity history is taking longer to load. Please check back shortly.: يستغرق تحميل سجل النشاط وقتًا أطول من المعتاد. يُرجى العودة بعد قليل.
+Activity Unavailable: النشاط غير متاح
+Activity history is temporarily unavailable. We’ll try again shortly.: سجل النشاط غير متاح مؤقتًا. سنحاول مجددًا بعد قليل.
 Fund: تمويل
 Buy with Card: الشراء بالبطاقة
 Buy with Crypto: الشراء باستخدام التشفير
@@ -607,6 +614,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: يمكنك أيضًا استخدام %action%.
 $wallet_switch_version_2: التبديل إلى إصدار محفظة آخر
 or import from: أو الاستيراد من
+or enter manually: أو أدخلها يدويًا
 Insufficient fee: رسوم غير كافية
 $insufficient_fee: "رسوم غير كافية: %fee%"
 Required: مطلوب
@@ -661,6 +669,7 @@ $transfer_link_expired: انتهت صلاحية رابط النقل
 $transfer_text_and_bin_exclusive: لا يمكن استخدام معلمات النص وbin معًا
 $unsupported_deeplink_parameter: يحتوي هذا الرابط لموضع معين على معلمات غير مدعومة.
 $unsupported_chain: "\u200Fblockchain غير مدعوم."
+$token_chain_not_supported_by_wallet: "محفظتك الحالية لا تدعم %chain%. أنشئ محفظة متعددة السلاسل لاستخدام هذا الرمز."
 Successfully: بنجاح
 Estimated Time: الوقت المقدّر
 $utxo_confirmations:
@@ -1271,6 +1280,7 @@ $agent_connection_interrupted: تم قطع اتصال الوكيل. حاول م�
 $agent_history_unavailable: تعذر تحميل سجل الدردشة. حاول مرة أخرى.
 $agent_secret_words_removed: "[تمت إزالة عبارات الاسترداد ولم تُرسل]"
 $agent_activity_analyzing_request: جارٍ تحليل طلبك…
+$agent_analyzing: جارٍ التحليل
 $agent_activity_wallet: جارٍ قراءة بيانات المحفظة…
 $agent_activity_transactions: جارٍ مراجعة نشاط المحفظة…
 $agent_activity_portfolio: جارٍ تحميل بيانات المحفظة الاستثمارية…
@@ -1368,6 +1378,9 @@ $agent_report_problem_description: سيتم إرسال الرسائل الأخي
 $agent_report_problem_sent: شكرًا لك! تم إرسال بلاغك.
 $agent_report_problem_failed: تعذّر إرسال البلاغ. يرجى المحاولة مرة أخرى.
 $agent_report_problem_rate_limited: لقد أرسلت عدة بلاغات مؤخرًا. يرجى المحاولة مرة أخرى لاحقًا.
+Like: إعجاب
+Dislike: عدم إعجاب
+$agent_feedback_failed: تعذّر حفظ تقييمك. يرجى المحاولة مرة أخرى.
 $unknown_swap_token: رمز غير معروف في رابط المبادلة. تم استخدام الرموز الافتراضية.
 $action_not_available_view_mode: هذا الإجراء غير متاح لعرض المحافظ
 Deposit: إيداع
@@ -2058,4 +2071,5 @@ Ruble: روبل
 $token_price_value: "سعر: %value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: تستغرق هذه المبادلة عادةً بضع دقائق. وفي حالات نادرة، قد تستغرق ما يصل إلى ساعتين.
 3D Gram Diamond: ماسة Gram ثلاثية الأبعاد
+Hold to enlarge. Drag to rotate.: اضغط مطولًا للتكبير. اسحب للتدوير.
 "Max": "الأقصى"

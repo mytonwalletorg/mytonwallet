@@ -62,7 +62,7 @@
 }
 
 @mixin separatorBottomSettings($inline-start-offset: 0, $inline-end-offset: 0, $bottom-offset: 0) {
-  &:not(:last-child):not(:has(+ :global(.collapsible:not(.open))))::after {
+  &:not(:last-child)::after {
     content: '';
 
     position: absolute;
@@ -238,6 +238,25 @@
 @mixin rtl-mirror() {
   :global(html[dir="rtl"]) & {
     transform: scaleX(-1);
+  }
+}
+
+// Cuts a circle out of an icon to separate the badge overlapping it. The gap shows whatever surface is behind,
+// so it needs no color. `$x` is measured from the inline-start edge, so the cutout follows the badge in RTL
+
+@mixin badgeCutout($x, $y, $radius) {
+  mask-image: radial-gradient(
+    circle at #{$x} #{$y},
+    transparent #{$radius},
+    #000 calc(#{$radius} + 0.03125rem)
+  );
+
+  :global(html[dir="rtl"]) & {
+    mask-image: radial-gradient(
+      circle at calc(100% - #{$x}) #{$y},
+      transparent #{$radius},
+      #000 calc(#{$radius} + 0.03125rem)
+    );
   }
 }
 

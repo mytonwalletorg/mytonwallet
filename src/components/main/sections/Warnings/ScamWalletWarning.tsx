@@ -8,8 +8,7 @@ import buildClassName from '../../../../util/buildClassName';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
-
-import Collapsible from '../../../ui/Collapsible';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
 import styles from './Warnings.module.scss';
 
@@ -22,29 +21,35 @@ function ScamWalletWarning({ isMultisig, isViewMode }: StateProps) {
   const { isLandscape } = useDeviceScreen();
   const lang = useLang();
 
-  const isShown = isMultisig && !isViewMode;
+  const { shouldRender, ref } = useShowTransition({
+    isOpen: isMultisig && !isViewMode,
+    noMountTransition: true,
+    withShouldRender: true,
+  });
+
+  if (!shouldRender) {
+    return undefined;
+  }
 
   const helpCenterLink = getHelpCenterUrl(lang.code, 'seedScam');
 
   return (
-    <Collapsible isShown={isShown}>
-      <div className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape)}>
-        {lang('Multisig Wallet Detected')}
-        <p className={styles.text}>
-          {lang('$multisig_warning_text', {
-            app_name: APP_NAME,
-            multisig_warning_link: (
-              <span className={styles.linkContainer}>
-                <i className={buildClassName(styles.link, 'icon-chevron-right')} aria-hidden />
-                <a href={helpCenterLink} className={styles.link} target="_blank" rel="noreferrer">
-                  {lang('$multisig_warning_link')}
-                </a>
-              </span>
-            ),
-          })}
-        </p>
-      </div>
-    </Collapsible>
+    <div ref={ref} className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape)}>
+      {lang('Multisig Wallet Detected')}
+      <p className={styles.text}>
+        {lang('$multisig_warning_text', {
+          app_name: APP_NAME,
+          multisig_warning_link: (
+            <span className={styles.linkContainer}>
+              <i className={buildClassName(styles.link, 'icon-chevron-right')} aria-hidden />
+              <a href={helpCenterLink} className={styles.link} target="_blank" rel="noreferrer">
+                {lang('$multisig_warning_link')}
+              </a>
+            </span>
+          ),
+        })}
+      </p>
+    </div>
   );
 }
 

@@ -526,10 +526,9 @@ class PortfolioVM :
 
         val first = totals.first()
         val last = totals.last()
-        val baseline = totals.firstOrNull { it.second > 0.0 } ?: first
         val netAbs = last.second - first.second
-        val netPct = if (baseline.second > 0.0) {
-            (last.second - baseline.second) / baseline.second
+        val netPct = if (first.second > 0.0) {
+            netAbs / first.second
         } else {
             null
         }

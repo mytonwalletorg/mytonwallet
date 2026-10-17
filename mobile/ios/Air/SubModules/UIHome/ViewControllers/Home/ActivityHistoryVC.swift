@@ -69,15 +69,4 @@ final class ActivityHistoryVC: ActivityListViewController, ActivityListViewModel
         }
     }
 
-    override func updateSkeletonViewMask() {
-        var skeletonViews = collectionView.visibleCells.compactMap { cell in
-            (cell as? ActivityCell)?.contentView
-        }
-        skeletonViews += collectionView
-            .visibleSupplementaryViews(ofKind: UICollectionView.elementKindSectionHeader)
-            .compactMap { view in
-                (view as? ActivityDateCell)?.skeletonView
-            }
-        skeletonView.applyMask(with: skeletonViews)
-    }
 }

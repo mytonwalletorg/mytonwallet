@@ -3,7 +3,7 @@ import { withGlobal } from '../../../global';
 
 import type { ApiBaseCurrency } from '../../../api/types';
 import type { UserToken } from '../../../global/types';
-import type { TokenPricePoint } from './Chart';
+import type { TokenBalanceChange } from '../helpers/resolveBalanceChange';
 
 import { selectCurrentAccountId, selectIsMultichainAccount } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -16,13 +16,13 @@ import useFullAmountToggle from '../../../hooks/useFullAmountToggle';
 
 import TokenIcon from '../../common/TokenIcon';
 import SensitiveData from '../../ui/SensitiveData';
+import Skeleton from '../../ui/Skeleton';
 
 import styles from './Balance.module.scss';
 
 interface OwnProps {
   token: UserToken;
-  /** Follows the chart: the price under the cursor, or the last one of the shown period */
-  pricePoint?: TokenPricePoint;
+  change?: TokenBalanceChange;
 }
 
 interface StateProps {
@@ -41,23 +41,27 @@ const VALUE_ROWS = 2;
 const VALUE_CELL_SIZE = 10;
 
 function Balance({
-  token, pricePoint, baseCurrency, isSensitiveDataHidden, isMultichainAccount,
+  token, change, baseCurrency, isSensitiveDataHidden, isMultichainAccount,
 }: OwnProps & StateProps) {
   const amountRef = useRef<HTMLDivElement>();
   const { updateFontScale } = useFontScale(amountRef);
 
   const { amount, decimals, symbol, price, change24h } = token;
   const currencySymbol = getShortCurrencySymbol(baseCurrency);
+  // The chart reports a frame or two after mounting, and a skeleton shown until then would blink before a ready change
+  const isChangeUnknown = !change;
+  const isChangeLoading = isChangeUnknown || change.type === 'loading';
+  const chartChange = change?.type === 'chart' ? change : undefined;
 
   const amountBig = toBig(amount, decimals);
-  const valueBig = amountBig.mul(pricePoint?.price ?? price);
+  const valueBig = amountBig.mul(chartChange?.price ?? price);
   // With no chart point, only the 24h change ratio is known, and the amount is restored from it by
   // dividing by `1 + change24h`. A point carries both prices, so the amount is a subtraction, which
   // covers a zero price as well.
-  const changeValue = pricePoint
-    ? amountBig.mul(pricePoint.price - pricePoint.initialPrice).toNumber()
+  const changeValue = chartChange
+    ? amountBig.mul(chartChange.price - chartChange.initialPrice).toNumber()
     : calcBigChangeValue(valueBig, change24h).toNumber();
-  const changePercent = (pricePoint ? pricePoint.price / pricePoint.initialPrice - 1 : change24h) * 100;
+  const changePercent = (chartChange ? chartChange.price / chartChange.initialPrice - 1 : change24h) * 100;
 
   const { wholePart, fractionPart, handleAmountClick, hideFullAmount } = useFullAmountToggle(
     toDecimal(amount, decimals), decimals,
@@ -100,7 +104,12 @@ function Balance({
         className={styles.value}
       >
         {formatCurrency(valueBig, currencySymbol)}
-        {Boolean(changeValue) && (
+        {isChangeLoading ? (
+          <span className={isChangeUnknown ? styles.changeUnknown : undefined}>
+            {' · '}
+            <Skeleton className={styles.changeSkeleton} />
+          </span>
+        ) : change.type !== 'empty' && Boolean(changeValue) && (
           <span className={buildClassName(styles.change, changeValue > 0 ? styles.positive : styles.negative)}>
             {' · '}
             {changeValue > 0 ? '↑' : '↓'}&thinsp;

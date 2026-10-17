@@ -630,8 +630,7 @@ class TransactionVC(
     private val transactionDetails: WView by lazy {
         val v = WView(context)
         v.addView(transactionDetailsLabel)
-        val shouldShowViewInExplorer =
-            transaction.getTxIdentifier()?.isNotEmpty() == true
+        val shouldShowViewInExplorer = transaction.getExplorerTxHash() != null
         val transaction = transaction
         when (transaction) {
             is MApiTransaction.Transaction -> {
@@ -846,7 +845,7 @@ class TransactionVC(
             swapProviderName = swapTransaction?.cex?.providerName?.takeIf { it.isNotEmpty() },
             hasSwapProviderId = !swapTransaction?.cex?.transactionId.isNullOrEmpty(),
             swapTransactionIds = getSwapTransactionIdItems(swapTransaction),
-            hasTransactionId = transaction.getTxIdentifier()?.isNotEmpty() == true
+            hasTransactionId = transaction.getExplorerTxHash() != null
         )
     }
 
@@ -1640,7 +1639,7 @@ class TransactionVC(
     private val transactionIdValue: CharSequence
         get() {
             val spannedString = SpannableStringBuilder(
-                transaction.getTxHash()?.formatStartEndAddress(6, 6) ?: ""
+                transaction.getExplorerTxHash()?.formatStartEndAddress(6, 6) ?: ""
             )
             spannedString.styleDots()
             context.getDrawableCompat(
@@ -1674,7 +1673,7 @@ class TransactionVC(
                                     if (ClipboardHelpers.copyToClipboard(
                                             context,
                                             "",
-                                            transaction.getTxIdentifier()
+                                            transaction.getExplorerTxHash()
                                         )
                                     ) {
                                         Haptics.play(context, HapticType.LIGHT_TAP)
@@ -1702,11 +1701,12 @@ class TransactionVC(
                                         } else {
                                             return@Item
                                         }
-                                    val txHash = transaction.getTxHash() ?: return@Item
+                                    val txHash = transaction.getExplorerTxHash() ?: return@Item
                                     val config = ExplorerHelpers.createTransactionExplorerConfig(
                                         chain,
                                         network,
-                                        txHash
+                                        txHash,
+                                        isTraceId = txHash == transaction.traceId
                                     ) ?: return@Item
                                     val browserVC = InAppBrowserVC(context, null, config)
                                     val window = window ?: return@Item
@@ -1797,7 +1797,8 @@ class TransactionVC(
                                 val config = ExplorerHelpers.createTransactionExplorerConfig(
                                     chain,
                                     network,
-                                    transactionId.hash
+                                    transactionId.hash,
+                                    isTraceId = transactionId.hash == transaction.traceId
                                 ) ?: return@Item
                                 val browserVC = InAppBrowserVC(context, null, config)
                                 val window = window ?: return@Item

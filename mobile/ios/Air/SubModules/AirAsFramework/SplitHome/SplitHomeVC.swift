@@ -7,7 +7,7 @@ import WalletCore
 import WalletContext
 
 @MainActor
-final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, ActivityListViewModelDelegate, WalletCoreData.EventsObserver, SplitHomeAssetsRowViewDelegate {
+final class SplitHomeVC: ActivityListViewController, ActivityListViewModelDelegate, WalletCoreData.EventsObserver, SplitHomeAssetsRowViewDelegate {
     @AccountContext private var account: MAccount
 
     var splitHomeAccountContext: AccountContext { $account }
@@ -22,25 +22,12 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
     private weak var splitHomeAssetsSectionCell: SplitHomeAssetsSectionCell?
     private var actionsCustomSectionDescriptor: CustomSectionDescriptor?
     private var assetsCustomSectionDescriptor: CustomSectionDescriptor?
+    private var actionsLayout: SplitHomeActionsLayout?
 
     override var hideBottomBar: Bool { false }
     override var headerPlaceholderHeight: CGFloat { 0 }
     override var customSections: [any CustomSectionDataProvider] {
         [actionsCustomSectionDescriptor, assetsCustomSectionDescriptor].compactMap { $0 }
-    }
-
-    private lazy var lockNavigationItem = WNavigationBarIconGroup.Item(
-        title: lang("Lock"),
-        image: .airBundle("HomeLock")
-    ) { [weak self] in
-        self?.lockPressed()
-    }
-
-    private lazy var hideNavigationItem = WNavigationBarIconGroup.Item(
-        title: lang("Hide"),
-        image: .airBundle(AppStorageHelper.isSensitiveDataHidden ? "HomeUnhide" : "HomeHide")
-    ) { [weak self] in
-        self?.hidePressed()
     }
 
     init(accountSource: AccountSource = .current) {
@@ -59,10 +46,12 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         fatalError("init(coder:) has not been implemented")
     }
 
-    isolated deinit {
+    nonisolated deinit {
         guard removesTemporaryAccountOnDeinit else { return }
-        guard case .accountId(let accountId) = $account.source else { return }
-        Task {
+        // Avoid isolated-deinit back-deployment on older runtimes. Keep the
+        // account context alive until cleanup can read it on the main actor.
+        Task { @MainActor [accountContext = _account] in
+            guard case .accountId(let accountId) = accountContext.source else { return }
             try? await AccountStore.removeAccountIfTemporary(accountId: accountId)
         }
     }
@@ -80,6 +69,32 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         }
     }
 
+    override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
+        updateTopInset()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateTopInset()
+    }
+
+    private func updateTopInset() {
+        // Like Search, keep the empty bar in native transitions without reserving
+        // a row above Home. Editing, pushed accounts and UIKit's sidebar toggle
+        // still need that row when the primary column is not beside Home.
+        var topInset: CGFloat = 0
+        let hasSidebarToggle = splitViewController.map { $0.displayMode != .oneBesideSecondary } ?? false
+        if navigationController?.viewControllers.first === self,
+           editingNavigator?.state.editingState == nil, !hasSidebarToggle,
+           let bar = navigationController?.navigationBar, !bar.isHidden {
+            topInset = -bar.bounds.height
+        }
+        if additionalSafeAreaInsets.top != topInset {
+            additionalSafeAreaInsets.top = topInset
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         (splitViewController as? SplitRootViewController)?.syncSidebarFocusWithHomeStack(animated: animated)
@@ -89,6 +104,29 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         if WalletContextManager.delegate?.isWalletReady == false {
             WalletContextManager.delegate?.walletIsReady(isReady: true)
         }
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        let layout = currentActionsLayout
+        guard actionsLayout != layout else { return }
+        actionsLayout = layout
+        (visibleCustomSectionCell(id: actionsCustomSectionID) as? SplitHomeActionsSectionCell)?.configure(layout: layout)
+        invalidateCustomSectionLayout(id: actionsCustomSectionID)
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
+            view.setNeedsLayout()
+        }
+    }
+
+    private var currentActionsLayout: SplitHomeActionsLayout {
+        SplitHomeActionsLayout(
+            windowHeight: view.window?.bounds.height ?? view.bounds.height,
+            traitCollection: traitCollection
+        )
     }
 
     override func otherViewControllerDidAppear(_ vc: UIViewController) {
@@ -113,8 +151,9 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
     }
 
     private func configureCustomSections() {
-        let actionsCustomSectionCellRegistration = UICollectionView.CellRegistration<SplitHomeActionsSectionCell, Row> { cell, _, _ in
+        let actionsCustomSectionCellRegistration = UICollectionView.CellRegistration<SplitHomeActionsSectionCell, Row> { [unowned self] cell, _, _ in
             cell.backgroundColor = .clear
+            cell.configure(layout: currentActionsLayout)
         }
         actionsCustomSectionDescriptor = CustomSectionDescriptor(id: actionsCustomSectionID, usesInsetGroupedMargins: true) { [unowned self] collectionView, indexPath in
             collectionView.dequeueConfiguredReusableCell(using: actionsCustomSectionCellRegistration, for: indexPath, item: .custom(actionsCustomSectionID))
@@ -178,19 +217,11 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         }
     }
 
-    func updateSensitiveData() {
-        let isHidden = AppStorageHelper.isSensitiveDataHidden
-        let image = UIImage.airBundle(isHidden ? "HomeUnhide" : "HomeHide")
-        hideNavigationItem.setImage(image)
-    }
-
     private func setupViews() {
         view.backgroundColor = .air.groupedBackground
         updateNavigationItem()
 
-        if !IOS_26_MODE_ENABLED {
-            configureNavigationItemWithTransparentBackground()
-        }
+        configureNavigationItemWithTransparentBackground()
 
         super.setupCollectionView(collectionViewBottomConstraint: 0)
         additionalSafeAreaInsets.left = 4
@@ -225,15 +256,6 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         transactionsUpdated(accountChanged: accountChanged, isUpdateEvent: false)
     }
 
-    @objc private func lockPressed() {
-        AppActions.lockApp(animated: true)
-    }
-
-    @objc private func hidePressed() {
-        let isHidden = AppStorageHelper.isSensitiveDataHidden
-        AppActions.setSensitiveDataIsHidden(!isHidden)
-    }
-
     private func updateNavigationItem() {
         var leadingItemGroups: [UIBarButtonItemGroup] = []
         var trailingItemGroups: [UIBarButtonItemGroup] = []
@@ -253,12 +275,6 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
 
         case nil:
             isEditing = false
-            let trailingItems = AuthSupport.accountsSupportAppLock
-                ? [lockNavigationItem, hideNavigationItem]
-                : [hideNavigationItem]
-            if let trailingItem = WNavigationBarIconGroup(items: trailingItems).barButtonItem {
-                trailingItemGroups += trailingItem.asSingleItemGroup()
-            }
         }
 
         navigationItem.leadingItemGroups = leadingItemGroups
@@ -266,6 +282,7 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
 
         navigationController?.allowBackSwipeToDismiss(!isEditing)
         navigationController?.isModalInPresentation = isEditing
+        updateTopInset()
     }
 
     var editingNavigator: NftsEditingNavigator? {

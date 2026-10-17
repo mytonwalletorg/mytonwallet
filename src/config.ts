@@ -252,6 +252,7 @@ export const IFRAME_WHITELIST = [
   'https://testnet.tonscan.org',
   'https://tonviewer.com',
   'https://testnet.tonviewer.com',
+  'https://actonscan.com',
 ];
 export const SUBPROJECT_URL_MASK = 'https://*.mywallet.io';
 
@@ -265,7 +266,7 @@ export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = IS_EXPLORER ? 'explorer-image' : 'mtw-image';
 
-export const LANG_CACHE_NAME = 'mtw-lang-370';
+export const LANG_CACHE_NAME = 'mtw-lang-372';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

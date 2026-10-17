@@ -31,12 +31,12 @@ class SwapHintView(context: Context, onAction: () -> Unit) : LinearLayout(contex
     private val titleLabel = WLabel(context).apply {
         setStyle(14f, WFont.Medium)
         setLineHeight(20f)
-        setTextColor(WColor.PrimaryText.color)
+        setTextColor(WColor.StockBadge.color)
     }
     private val messageLabel = WLabel(context).apply {
         setStyle(14f, WFont.Regular)
         setLineHeight(20f)
-        setTextColor(WColor.PrimaryText.color)
+        setTextColor(WColor.StockBadge.color)
     }
     private val actionLabel = WLabel(context).apply {
         setStyle(14f, WFont.Medium)

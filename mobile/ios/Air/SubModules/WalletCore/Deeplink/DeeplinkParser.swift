@@ -232,6 +232,7 @@ private func parseTonInvoiceUrl(_ url: URL) -> Deeplink? {
 
 private func parseMtwUrl(_ url: URL) -> Deeplink? {
 
+    let isUniversalLink = ["http", "https"].contains(url.scheme?.lowercased())
     var url = url
 
     if let normalizedUrl = normalizeSelfProtocolUrl(url) {
@@ -252,6 +253,17 @@ private func parseMtwUrl(_ url: URL) -> Deeplink? {
     switch url.host {
     case "agent":
         return .agent
+
+    case "e2e-unlock":
+        #if DEBUG
+        // Custom scheme only: universal links (https://my.tt/…) do not unlock.
+        guard !isUniversalLink else { return nil }
+        let passcode = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?.first(where: { $0.name == "passcode" })?.value
+        return passcode.flatMap { $0.isEmpty ? nil : .e2eUnlock(passcode: $0) }
+        #else
+        return nil
+        #endif
 
     case "wc":
         return parseWalletConnectWrapperUrl(url)

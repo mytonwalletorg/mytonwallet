@@ -1,9 +1,11 @@
 /* eslint-disable no-template-curly-in-string */
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, open, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 
 jest.mock('node:fs/promises', () => ({
+  chmod: jest.fn(),
   mkdir: jest.fn(),
+  open: jest.fn(),
   readFile: jest.fn(),
   rename: jest.fn(),
   rm: jest.fn(),
@@ -13,17 +15,29 @@ jest.mock('node:fs/promises', () => ({
 
 import { createNodeFileStorage, resolveDefaultNodeFileStoragePath } from './nodeFile';
 
+const chmodMock = jest.mocked(chmod);
 const mkdirMock = jest.mocked(mkdir);
+const openMock = jest.mocked(open);
 const readFileMock = jest.mocked(readFile);
 const renameMock = jest.mocked(rename);
 const rmMock = jest.mocked(rm);
 const statMock = jest.mocked(stat);
 const writeFileMock = jest.mocked(writeFile);
 
+function createFileHandle() {
+  return {
+    writeFile: jest.fn().mockResolvedValue(undefined),
+    sync: jest.fn().mockResolvedValue(undefined),
+    close: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
 describe('node-file storage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    chmodMock.mockResolvedValue(undefined as never);
     mkdirMock.mockResolvedValue(undefined as never);
+    openMock.mockImplementation(() => Promise.resolve(createFileHandle() as never));
     readFileMock.mockResolvedValue('{}' as never);
     renameMock.mockResolvedValue(undefined as never);
     rmMock.mockResolvedValue(undefined as never);
@@ -55,15 +69,112 @@ describe('node-file storage', () => {
       storageB.setItem('currentAccountId', 'ton-testnet-1'),
     ])).resolves.toEqual([undefined, undefined]);
 
-    const tempWritePaths = writeFileMock.mock.calls
-      .map(([targetPath]) => `${targetPath as string}`)
-      .filter((targetPath) => targetPath.endsWith('.tmp'));
-    expect(tempWritePaths).toHaveLength(2);
-    expect(new Set(tempWritePaths).size).toBe(2);
-    expect(tempWritePaths.every((targetPath) => targetPath.startsWith('/tmp/headless-storage.json.'))).toBe(true);
-
     const renameSourcePaths = renameMock.mock.calls.map(([sourcePath]) => String(sourcePath));
     expect(new Set(renameSourcePaths).size).toBe(2);
+    const tempPathPattern = /^\/tmp\/headless-storage\.json\..+\.tmp$/;
+    expect(renameSourcePaths.every((sourcePath) => tempPathPattern.test(sourcePath))).toBe(true);
+  });
+
+  it('should flush the new contents before replacing the store and the directory after it', async () => {
+    const fileHandle = createFileHandle();
+    const dirHandle = createFileHandle();
+
+    openMock.mockImplementation((targetPath: any) => Promise.resolve(
+      (String(targetPath).endsWith('.tmp') ? fileHandle : dirHandle) as never,
+    ));
+
+    await createNodeFileStorage({ type: 'nodeFile', path: '/tmp/headless-storage.json' }).setItem('accounts', { a: 1 });
+
+    expect(fileHandle.sync).toHaveBeenCalledTimes(1);
+    expect(dirHandle.sync).toHaveBeenCalledTimes(1);
+    expect(openMock).toHaveBeenCalledWith('/tmp', 'r');
+
+    const [renameOrder] = renameMock.mock.invocationCallOrder;
+    expect(fileHandle.sync.mock.invocationCallOrder[0]).toBeLessThan(renameOrder);
+    expect(dirHandle.sync.mock.invocationCallOrder[0]).toBeGreaterThan(renameOrder);
+  });
+
+  it('should flush the parent of every newly created store directory before writing', async () => {
+    const syncedPaths: string[] = [];
+
+    mkdirMock.mockResolvedValueOnce(`${homedir()}/.mywallet` as never);
+    openMock.mockImplementation((targetPath: any) => {
+      const handle = createFileHandle();
+      handle.sync.mockImplementation(() => {
+        syncedPaths.push(String(targetPath));
+        return Promise.resolve();
+      });
+      return Promise.resolve(handle as never);
+    });
+
+    await createNodeFileStorage({ type: 'nodeFile', profile: 'mywallet' }).setItem('accounts', { a: 1 });
+
+    expect(syncedPaths).toEqual([
+      `${homedir()}/.mywallet`,
+      homedir(),
+      expect.stringMatching(/\.tmp$/),
+      `${homedir()}/.mywallet/mywallet`,
+    ]);
+  });
+
+  it('should save into a new profile even when its parents cannot be synced', async () => {
+    mkdirMock.mockResolvedValueOnce(`${homedir()}/.mywallet` as never);
+    openMock.mockImplementation((targetPath: any) => (String(targetPath).endsWith('.tmp')
+      ? Promise.resolve(createFileHandle() as never)
+      : Promise.reject(Object.assign(new Error('EISDIR'), { code: 'EISDIR' }))));
+
+    await createNodeFileStorage({ type: 'nodeFile', profile: 'mywallet' }).setItem('accounts', { a: 1 });
+
+    expect(renameMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should remove the temp file when replacing the store fails', async () => {
+    renameMock.mockRejectedValue(Object.assign(new Error('EXDEV'), { code: 'EXDEV' }));
+
+    const storage = createNodeFileStorage({ type: 'nodeFile', path: '/tmp/headless-storage.json' });
+
+    await expect(storage.setItem('accounts', { a: 1 })).rejects.toMatchObject({ code: 'EXDEV' });
+
+    const [tempFilePath] = renameMock.mock.calls[0];
+    expect(rmMock).toHaveBeenCalledWith(tempFilePath, { force: true });
+  });
+
+  it('should save even when the directory cannot be opened for syncing', async () => {
+    openMock.mockImplementation((targetPath: any) => (String(targetPath).endsWith('.tmp')
+      ? Promise.resolve(createFileHandle() as never)
+      : Promise.reject(Object.assign(new Error('EISDIR'), { code: 'EISDIR' }))));
+
+    const storage = createNodeFileStorage({ type: 'nodeFile', path: '/tmp/headless-storage.json' });
+
+    await expect(storage.setItem('accounts', { a: 1 })).resolves.toBeUndefined();
+    expect(renameMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should save even when the directory refuses to sync', async () => {
+    const dirHandle = createFileHandle();
+
+    dirHandle.sync.mockRejectedValue(Object.assign(new Error('EINVAL'), { code: 'EINVAL' }));
+    openMock.mockImplementation((targetPath: any) => Promise.resolve(
+      (String(targetPath).endsWith('.tmp') ? createFileHandle() : dirHandle) as never,
+    ));
+
+    const storage = createNodeFileStorage({ type: 'nodeFile', path: '/tmp/headless-storage.json' });
+
+    await expect(storage.setItem('accounts', { a: 1 })).resolves.toBeUndefined();
+    expect(dirHandle.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('should save even when the directory handle fails to close', async () => {
+    const dirHandle = createFileHandle();
+
+    dirHandle.close.mockRejectedValue(Object.assign(new Error('EIO'), { code: 'EIO' }));
+    openMock.mockImplementation((targetPath: any) => Promise.resolve(
+      (String(targetPath).endsWith('.tmp') ? createFileHandle() : dirHandle) as never,
+    ));
+
+    const storage = createNodeFileStorage({ type: 'nodeFile', path: '/tmp/headless-storage.json' });
+
+    await expect(storage.setItem('accounts', { a: 1 })).resolves.toBeUndefined();
   });
 
   it('should recover a stale per-storage lock before mutating', async () => {
@@ -132,5 +243,35 @@ describe('node-file storage', () => {
     await storage.getItem('accounts');
 
     expect(readFileMock).toHaveBeenCalledWith(`${homedir()}/.mywallet/custom/storage.json`, 'utf8');
+  });
+
+  it.each(['..', '.', '../Documents', 'nested/profile', 'nested\\profile'])(
+    'should reject the profile %p that is not a plain directory name',
+    (profile) => {
+      expect(() => createNodeFileStorage({ type: 'nodeFile', profile })).toThrow('plain name');
+      expect(() => resolveDefaultNodeFileStoragePath(profile)).toThrow('plain name');
+    },
+  );
+
+  it('should restrict the profile directory to the owner', async () => {
+    await createNodeFileStorage({ type: 'nodeFile', profile: 'mywallet' }).getItem('accounts');
+
+    expect(chmodMock).toHaveBeenCalledWith(`${homedir()}/.mywallet/mywallet`, 0o700);
+  });
+
+  it('should leave the directory of an explicit storage path alone', async () => {
+    await createNodeFileStorage({ type: 'nodeFile', path: '/tmp/headless-storage.json' }).getItem('accounts');
+
+    expect(chmodMock).not.toHaveBeenCalledWith('/tmp', expect.anything());
+    expect(chmodMock).toHaveBeenCalledWith('/tmp/headless-storage.json', 0o600);
+  });
+
+  it('should keep reading a store whose permissions cannot be changed', async () => {
+    chmodMock.mockRejectedValue(Object.assign(new Error('EROFS'), { code: 'EROFS' }));
+    readFileMock.mockResolvedValue('{"currentAccountId":"ton-1"}' as never);
+
+    const storage = createNodeFileStorage({ type: 'nodeFile', profile: 'mywallet' });
+
+    await expect(storage.getItem('currentAccountId')).resolves.toBe('ton-1');
   });
 });

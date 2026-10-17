@@ -508,6 +508,22 @@
   line-height: 1rem;
 }
 
+.estimateDebugSummary {
+  align-self: stretch;
+
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-default);
+
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  color: var(--color-gray-1);
+  word-break: break-all;
+  white-space: pre-wrap;
+
+  background-color: var(--color-background-first);
+}
+
 .cexInfoBlock {
   display: flex;
   flex-direction: column;

@@ -37,6 +37,28 @@ private final class DappRequestNavigationController: WNavigationController {
     private weak var lastPresented: UIViewController?
     private var pendingReturnStrategy: ReturnStrategy?
     private var pendingRequestError: ApiAnyDisplayError?
+
+    // Opened by `resumeRequests()` once the wallet is ready and unlocked; a sheet presented earlier would sit on the
+    // lock screen and be dismissed together with it
+    private lazy var requestQueue = DappRequestQueue<WalletCoreData.Event>(
+        isOpen: false,
+        isReady: {
+            guard let delegate = WalletContextManager.delegate else { return false }
+            return delegate.isWalletReady && delegate.isAppUnlocked
+        },
+        isBusy: {
+            Self.isPresentationInFlight()
+        },
+        handle: { [weak self] event, status in
+            await self?.handleEvent(event: event, status: status) ?? .done
+        },
+        discard: { event in
+            Self.cancelRequest(of: event)
+        },
+        isStale: { event in
+            Self.isAccountMissing(for: event)
+        }
+    )
     
     init() {
         WalletCoreData.add(eventObserver: self)
@@ -45,8 +67,19 @@ private final class DappRequestNavigationController: WNavigationController {
     public func start() {
         // nothing to do, just makes sure shared TonConnect is initialized
     }
+
+    /// Lets queued requests reach the screen. Call it whenever the wallet becomes ready and unlocked.
+    public func resumeRequests() {
+        requestQueue.open()
+    }
+
+    /// Holds requests until the next `resumeRequests()`, or drops (and rejects) the ones already queued.
+    public func suspendRequests(discardingQueued: Bool = false) {
+        requestQueue.close(discardingQueued: discardingQueued)
+    }
     
     public func handleDeeplink(_ url: String) {
+        TonConnectTrace.record("tonConnect_handleDeepLink → SDK: \(TonConnectTrace.describeLink(url))")
         Task { @MainActor in
             do {
                 let identifier = "\(Date().timeIntervalSince1970)"
@@ -56,10 +89,12 @@ private final class DappRequestNavigationController: WNavigationController {
                         identifier: identifier
                     )
                 )
+                TonConnectTrace.record("tonConnect_handleDeepLink returned \(describeReturnStrategy(returnStrategy))")
                 if let returnStrategy, case .url(let str) = returnStrategy {
                     openReturnUrl(str)
                 }
             } catch {
+                TonConnectTrace.record("tonConnect_handleDeepLink failed: \(error)")
                 log.error("failed to handle deeplink: \(error, .public)")
                 AppActions.showError(error: error)
             }
@@ -77,24 +112,33 @@ private final class DappRequestNavigationController: WNavigationController {
         }
     }
 
-    public nonisolated func walletCore(event: WalletCore.WalletCoreData.Event) {
-        Task {
-            await handleEvent(event: event)
+    public func walletCore(event: WalletCore.WalletCoreData.Event) {
+        switch event {
+        case .dappLoading, .dappCloseLoading, .dappConnect, .dappSendTransactions, .dappSignData,
+             .dappAlreadyConnected, .dappDisconnected, .dappRequestSettled:
+            requestQueue.enqueue(event)
+        case .accountsReset:
+            requestQueue.invalidate()
+        default:
+            break
         }
     }
     
-    func handleEvent(event: WalletCoreData.Event) async {
+    func handleEvent(
+        event: WalletCoreData.Event,
+        status: @escaping @MainActor () -> DappRequestStatus
+    ) async -> DappRequestOutcome {
         switch event {
         case .dappLoading(let update):
-            await handleLoading(update: update)
+            return await handleLoading(update: update, status: status)
         case .dappCloseLoading(let update):
             await handleCloseLoading(update: update)
         case .dappConnect(let update):
-            await handleConnect(update: update)
+            return await handleConnect(update: update, status: status)
         case .dappSendTransactions(let update):
-            await handleSendTransactions(update: update)
+            return await handleSendTransactions(update: update, status: status)
         case .dappSignData(let update):
-            await handleSignData(update: update)
+            return await handleSignData(update: update, status: status)
         case .dappAlreadyConnected(let update):
             await handleAlreadyConnected(update: update)
         case .dappDisconnected(let update):
@@ -104,15 +148,23 @@ private final class DappRequestNavigationController: WNavigationController {
         default:
             break
         }
+        return .done
     }
 
-    @MainActor func handleLoading(update: ApiUpdate.DappLoading) async {
+    @MainActor func handleLoading(
+        update: ApiUpdate.DappLoading,
+        status: @MainActor () -> DappRequestStatus
+    ) async -> DappRequestOutcome {
         // The SSE request event may arrive before the wake deeplink; if a request modal is already shown, ignore the placeholder.
         if update.isWaitingForRequest == true, lastPresented != nil {
-            return
+            TonConnectTrace.record("dappLoading: skips the waiting placeholder, a request sheet is already shown")
+            return .done
         }
         if let accountId = update.accountId, update.connectionType != .connect {
             await switchAccountIfNeeded(accountId: accountId)
+            if let outcome = Self.interruptedOutcome(status()) {
+                return outcome
+            }
         }
         // The real request emits a typed `dappLoading` of its own; keep the matching placeholder, or swap it on a type change.
         if let nc = placeholderNc, let top = nc.visibleViewController {
@@ -122,11 +174,14 @@ private final class DappRequestNavigationController: WNavigationController {
             case .signData: top is SignDataVC
             }
             if matchesType {
-                return
+                TonConnectTrace.record("dappLoading: keeps the \(update.connectionType) placeholder")
+                return .done
             }
+            TonConnectTrace.record("dappLoading: dismisses the placeholder for a \(update.connectionType) one")
             placeholderNc = nil
-            await withCheckedContinuation { continuation in
-                nc.dismiss(animated: false) { continuation.resume() }
+            await dismissAndWait(nc, animated: false)
+            if let outcome = Self.interruptedOutcome(status()) {
+                return outcome
             }
         }
         let vc: UIViewController
@@ -144,23 +199,23 @@ private final class DappRequestNavigationController: WNavigationController {
         }
         let nc = makeRequestNavigationController(rootViewController: vc)
         self.placeholderNc = nc
+        TonConnectTrace.record("dappLoading: \(update.connectionType) placeholder, waiting for request=\(update.isWaitingForRequest == true)")
         presentAndRecord(nc)
+        return .done
     }
 
     @MainActor func handleCloseLoading(update: ApiUpdate.DappCloseLoading) async {
         guard let nc = placeholderNc,
               isPlaceholder(nc.visibleViewController, for: update.connectionType) else {
+            TonConnectTrace.record("dappCloseLoading: no \(update.connectionType) placeholder to close")
             return
         }
+        TonConnectTrace.record("dappCloseLoading: dismisses the \(update.connectionType) placeholder")
         placeholderNc = nil
         if lastPresented === nc {
             lastPresented = nil
         }
-        await withCheckedContinuation { continuation in
-            nc.dismiss(animated: true) {
-                continuation.resume()
-            }
-        }
+        await dismissAndWait(nc, animated: true)
     }
 
     @MainActor private func isPlaceholder(_ vc: UIViewController?, for connectionType: ApiDappConnectionType) -> Bool {
@@ -179,6 +234,7 @@ private final class DappRequestNavigationController: WNavigationController {
 
     @MainActor func handleAlreadyConnected(update: ApiUpdate.DappAlreadyConnected) async {
         let url = update.url
+        TonConnectTrace.record("dappAlreadyConnected: alert on \(describeTopViewController())")
         topViewController()?.showAlert(
             title: lang("Already Connected"),
             text: lang("Return to the dapp to proceed, or reconnect."),
@@ -194,6 +250,7 @@ private final class DappRequestNavigationController: WNavigationController {
 
     @MainActor func handleDisconnected(update: ApiUpdate.DappDisconnected) async {
         let url = update.url
+        TonConnectTrace.record("dappDisconnected: alert on \(describeTopViewController())")
         topViewController()?.showAlert(
             title: lang("Dapp Disconnected"),
             text: lang("Please reconnect your wallet from the dapp."),
@@ -207,12 +264,19 @@ private final class DappRequestNavigationController: WNavigationController {
         )
     }
 
-    @MainActor func handleConnect(update: ApiUpdate.DappConnect) async {
+    @MainActor func handleConnect(
+        update: ApiUpdate.DappConnect,
+        status: @MainActor () -> DappRequestStatus
+    ) async -> DappRequestOutcome {
         if update.multichainResolution != .switchedAccount {
             await switchAccountIfNeeded(accountId: update.accountId)
         }
+        if let outcome = Self.interruptedOutcome(accountId: update.accountId, promiseId: update.promiseId, status: status) {
+            return outcome
+        }
         Api.recordTonConnectEvent(eventName: "wallet-connect-request-ui-displayed", promiseId: update.promiseId)
         if let vc = placeholderNc?.visibleViewController as? ConnectDappVC {
+            TonConnectTrace.record("dappConnect: fills the placeholder")
             vc.replacePlaceholder(
                 request: update,
                 onCreateMultichainWallet: { [weak self] in
@@ -229,6 +293,7 @@ private final class DappRequestNavigationController: WNavigationController {
             )
             presentAndRecord(makeRequestNavigationController(rootViewController: vc))
         }
+        return .done
     }
     
     func prepareConnect(
@@ -270,10 +335,17 @@ private final class DappRequestNavigationController: WNavigationController {
         AppActions.showAddWallet(network: network)
     }
 
-    @MainActor  func handleSendTransactions(update: ApiUpdate.DappSendTransactions) async {
+    @MainActor  func handleSendTransactions(
+        update: ApiUpdate.DappSendTransactions,
+        status: @MainActor () -> DappRequestStatus
+    ) async -> DappRequestOutcome {
         await switchAccountIfNeeded(accountId: update.accountId)
+        if let outcome = Self.interruptedOutcome(accountId: update.accountId, promiseId: update.promiseId, status: status) {
+            return outcome
+        }
         Api.recordTonConnectEvent(eventName: "wallet-transaction-confirmation-ui-displayed", promiseId: update.promiseId)
         if let vc = placeholderNc?.visibleViewController as? SendDappVC {
+            TonConnectTrace.record("dappSendTransactions: fills the placeholder")
             vc.replacePlaceholder(
                 request: update,
                 onCancel: { self.cancelSendTransactions(request: update) }
@@ -290,6 +362,7 @@ private final class DappRequestNavigationController: WNavigationController {
             }
             presentAndRecord(nc)
         }
+        return .done
     }
     
     func submitSendTransactions(request: ApiUpdate.DappSendTransactions, enclaveToken: EnclaveToken?) async throws -> DappSendSubmitResult {
@@ -337,10 +410,17 @@ private final class DappRequestNavigationController: WNavigationController {
         }
     }
     
-    @MainActor func handleSignData(update: ApiUpdate.DappSignData) async {
+    @MainActor func handleSignData(
+        update: ApiUpdate.DappSignData,
+        status: @MainActor () -> DappRequestStatus
+    ) async -> DappRequestOutcome {
         await switchAccountIfNeeded(accountId: update.accountId)
+        if let outcome = Self.interruptedOutcome(accountId: update.accountId, promiseId: update.promiseId, status: status) {
+            return outcome
+        }
         Api.recordTonConnectEvent(eventName: "wallet-sign-data-confirmation-ui-displayed", promiseId: update.promiseId)
         if let vc = placeholderNc?.visibleViewController as? SignDataVC {
+            TonConnectTrace.record("dappSignData: fills the placeholder")
             vc.replacePlaceholder(
                 update: update,
                 onCancel: { self.cancelSignData(update: update) }
@@ -354,6 +434,7 @@ private final class DappRequestNavigationController: WNavigationController {
             let nc = makeRequestNavigationController(rootViewController: vc)
             presentAndRecord(nc)
         }
+        return .done
     }
 
     @MainActor private func makeRequestNavigationController(
@@ -367,6 +448,7 @@ private final class DappRequestNavigationController: WNavigationController {
     }
 
     @MainActor private func handleRequestSettled(update: ApiUpdate.DappRequestSettled) {
+        TonConnectTrace.record("dappRequestSettled: error=\(update.error != nil) return=\(describeReturnStrategy(update.returnStrategy)) sheetShown=\(lastPresented?.presentingViewController != nil)")
         if let error = update.error {
             pendingReturnStrategy = nil
             if let lastPresented, lastPresented.presentingViewController != nil {
@@ -456,9 +538,12 @@ private final class DappRequestNavigationController: WNavigationController {
     }
     
     @MainActor func presentAndRecord(_ vc: UIViewController) {
+        // Without a top view controller the sheet is not presented and nothing else reports it.
+        TonConnectTrace.record("presents \(describeViewController(vc)) on \(describeTopViewController())")
         // Only one dapp request modal at a time: if one is still on screen (e.g. a connect deeplink
         // tapped twice in a row), replace it instead of stacking a second sheet.
         if let previous = lastPresented, previous.presentingViewController != nil {
+            cancelReplacedRequest(in: previous)
             previous.dismiss(animated: false) { [weak self] in
                 self?.lastPresented = vc
                 topViewController()?.present(vc, animated: true)
@@ -468,4 +553,136 @@ private final class DappRequestNavigationController: WNavigationController {
             topViewController()?.present(vc, animated: true)
         }
     }
+}
+
+extension TonConnect {
+    /// Waits for the dismissal, but only briefly: UIKit never calls the completion of a dismissal it can't start.
+    private func dismissAndWait(_ viewController: UIViewController, animated: Bool) async {
+        guard viewController.presentingViewController != nil else { return }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            let once = ResumeOnce(continuation)
+            viewController.dismiss(animated: animated) {
+                once.resume()
+            }
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                once.resume()
+            }
+        }
+    }
+
+    /// A sheet dismissed for a newer request rejects its own request the way a swipe-down would, so it never hangs.
+    /// Each sheet's cancel path does nothing for a placeholder or a request the user already answered.
+    private func cancelReplacedRequest(in viewController: UIViewController) {
+        let content = (viewController as? UINavigationController)?.viewControllers.first ?? viewController
+        switch content {
+        case let sendVC as SendDappVC:
+            sendVC.onCancel?()
+            sendVC.onCancel = nil
+        case let signDataVC as SignDataVC:
+            signDataVC.onCancel?()
+            signDataVC.onCancel = nil
+        case let connectVC as ConnectDappVC:
+            connectVC.viewModel.cancel()
+        default:
+            break
+        }
+    }
+
+    /// The unlock screen is still animating away right after the unlock flag flips.
+    private static func isPresentationInFlight() -> Bool {
+        var viewController = UIApplication.shared.sceneKeyWindow?.rootViewController
+        while let current = viewController {
+            if current.isBeingPresented || current.isBeingDismissed {
+                return true
+            }
+            viewController = current.presentedViewController
+        }
+        return false
+    }
+
+    /// A request for an account that was removed must not reach the screen, where another wallet could answer it.
+    private static func isAccountMissing(for event: WalletCoreData.Event) -> Bool {
+        let accountId: String? = switch event {
+        case .dappLoading(let update): update.accountId
+        case .dappConnect(let update): update.accountId
+        case .dappSendTransactions(let update): update.accountId
+        case .dappSignData(let update): update.accountId
+        default: nil
+        }
+        guard let accountId else { return false }
+        return isAccountMissing(accountId: accountId)
+    }
+
+    private static func isAccountMissing(accountId: String) -> Bool {
+        AccountStore.accountsById[accountId] == nil
+    }
+
+    /// The account switch suspends: the wallets may be reset meanwhile, the queue may stop waiting for this handler, or
+    /// the app may lock. Account ids are reused, so the queue's own check is what tells a new wallet from the one the
+    /// request was for. Returns `nil` when the request can still be shown; a stale one is rejected here.
+    private static func interruptedOutcome(
+        accountId: String,
+        promiseId: String,
+        status: @MainActor () -> DappRequestStatus
+    ) -> DappRequestOutcome? {
+        let requestStatus: DappRequestStatus = isAccountMissing(accountId: accountId) ? .stale : status()
+        if requestStatus == .stale {
+            cancelRequest(promiseId: promiseId)
+        }
+        return interruptedOutcome(requestStatus)
+    }
+
+    private static func interruptedOutcome(_ status: DappRequestStatus) -> DappRequestOutcome? {
+        switch status {
+        case .current:
+            return nil
+        case .stale:
+            TonConnectTrace.record("drops a request that went stale while it was being handled")
+            return .done
+        case .held:
+            TonConnectTrace.record("holds a request until requests resume")
+            return .held
+        }
+    }
+
+    private static func cancelRequest(of event: WalletCoreData.Event) {
+        let promiseId: String? = switch event {
+        case .dappConnect(let update): update.promiseId
+        case .dappSendTransactions(let update): update.promiseId
+        case .dappSignData(let update): update.promiseId
+        default: nil
+        }
+        guard let promiseId else { return }
+        cancelRequest(promiseId: promiseId)
+    }
+
+    private static func cancelRequest(promiseId: String) {
+        TonConnectTrace.record("cancels a request that can no longer be shown")
+        Task {
+            do {
+                try await Api.cancelDappRequest(promiseId: promiseId, reason: nil)
+            } catch {
+                log.error("cancelRequest: \(error, .public)")
+            }
+        }
+    }
+}
+
+private func describeReturnStrategy(_ strategy: ReturnStrategy?) -> String {
+    switch strategy {
+    case nil: "nil"
+    case .some(.none): "none"
+    case .some(.back): "back"
+    case .some(.url(let url)): TonConnectTrace.describeURL(url)
+    }
+}
+
+@MainActor private func describeTopViewController() -> String {
+    topViewController().map { describeViewController($0) } ?? "nil (nothing to present on)"
+}
+
+@MainActor private func describeViewController(_ vc: UIViewController) -> String {
+    let content = (vc as? UINavigationController)?.viewControllers.first ?? vc
+    return String(describing: type(of: content))
 }

@@ -3,6 +3,7 @@ import { ALCHEMY_7702_DELEGATEE_ADDRESSES } from './constants';
 import {
   getForeignEvmDelegationAddress,
   isAlchemy7702Delegated,
+  resolveBatchDelegation,
   withForeignDelegationResetCall,
 } from './delegation';
 
@@ -53,6 +54,23 @@ describe('getForeignEvmDelegationAddress', () => {
     mockedGetEvmDelegationAddress.mockResolvedValue(FOREIGN_DELEGATE);
 
     await expect(getForeignEvmDelegationAddress(CHAIN, NETWORK, ADDRESS)).resolves.toBe(FOREIGN_DELEGATE);
+  });
+});
+
+describe('resolveBatchDelegation', () => {
+  it('requests an Alchemy delegate when the EOA has none', () => {
+    expect(resolveBatchDelegation(undefined)).toEqual({ shouldDelegate: true });
+  });
+
+  it('skips a new delegation when the EOA already uses Alchemy', () => {
+    expect(resolveBatchDelegation(ALCHEMY_DELEGATE)).toEqual({ shouldDelegate: false });
+  });
+
+  it('replaces a foreign delegate with Alchemy', () => {
+    expect(resolveBatchDelegation(FOREIGN_DELEGATE)).toEqual({
+      foreignDelegation: FOREIGN_DELEGATE,
+      shouldDelegate: true,
+    });
   });
 });
 

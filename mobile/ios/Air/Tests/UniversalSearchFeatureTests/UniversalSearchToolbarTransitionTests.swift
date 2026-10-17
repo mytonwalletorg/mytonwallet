@@ -287,6 +287,58 @@ struct UniversalSearchToolbarTransitionTests {
         #expect(clearance >= 31.5 && clearance <= 32.5)
     }
 
+    @Test(arguments: [false, true], [false, true])
+    func `side controls restore after completed and cancelled search transitions`(isRTL: Bool, isCancelled: Bool) throws {
+        _ = WalletResourcesBundle.bundle.load()
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 500, height: 900))
+        let controller = UIViewController()
+        window.rootViewController = controller
+        let toolbar = UniversalSearchFieldView(configuration: .init(placeholder: "Search"))
+        toolbar.translatesAutoresizingMaskIntoConstraints = true
+        controller.view.addSubview(toolbar)
+        toolbar.semanticContentAttribute = isRTL ? .forceRightToLeft : .forceLeftToRight
+        toolbar.frame = CGRect(x: 420, y: 740, width: 48, height: 108)
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true }
+        toolbar.setPresentation(.sideToolbar, animated: false)
+        toolbar.layoutIfNeeded()
+        let actionFrame = toolbar.trailingButtonView.convert(toolbar.trailingButtonView.bounds, to: toolbar)
+        #expect(actionFrame == CGRect(x: 0, y: 60, width: 48, height: 48))
+        #expect(toolbar.hitTest(CGPoint(x: 24, y: 84), with: nil) != nil)
+        #expect(!toolbar.trailingButtonView.accessibilityElementsHidden)
+        toolbar.configuration.text = "ton"
+        toolbar.layoutIfNeeded()
+        func textField(in view: UIView) -> UITextField? {
+            (view as? UITextField) ?? view.subviews.lazy.compactMap { textField(in: $0) }.first
+        }
+        let fieldContent = try #require(textField(in: toolbar)?.superview)
+        #expect(fieldContent.bounds.size == CGSize(width: 48, height: 48))
+
+        let transition = try #require(toolbar.preparePresentationTransition(to: .search))
+        toolbar.frame = CGRect(x: 8, y: 600, width: 380, height: 48)
+        toolbar.applyPreparedPresentationTransition(transition)
+        toolbar.layoutIfNeeded()
+        #expect(toolbar.presentation == .search)
+        #expect(toolbar.trailingButtonView.convert(toolbar.trailingButtonView.bounds, to: toolbar).minY == 0)
+        #expect(toolbar.bounds.contains(toolbar.trailingButtonView.convert(toolbar.trailingButtonView.bounds, to: toolbar)))
+
+        if isCancelled {
+            toolbar.frame = CGRect(x: 420, y: 740, width: 48, height: 108)
+            toolbar.finishPreparedPresentationTransition(transition, isCancelled: true)
+        } else {
+            toolbar.finishPreparedPresentationTransition(transition, isCancelled: false)
+            let collapse = try #require(toolbar.preparePresentationTransition(to: .sideToolbar))
+            toolbar.frame = CGRect(x: 420, y: 740, width: 48, height: 108)
+            toolbar.applyPreparedPresentationTransition(collapse)
+            toolbar.finishPreparedPresentationTransition(collapse, isCancelled: false)
+        }
+        toolbar.layoutIfNeeded()
+        #expect(toolbar.presentation == .sideToolbar)
+        #expect(toolbar.text == "ton")
+        #expect(toolbar.trailingButtonView.convert(toolbar.trailingButtonView.bounds, to: toolbar) == actionFrame)
+        #expect(fieldContent.bounds.size == CGSize(width: 48, height: 48))
+    }
+
     private func makeToolbar(isRTL: Bool = false, panelWidth: CGFloat = 402) -> (UIWindow, UniversalSearchFieldView) {
         _ = WalletResourcesBundle.bundle.load()
         let toolbar = UniversalSearchFieldView(configuration: .init(placeholder: "Search"))

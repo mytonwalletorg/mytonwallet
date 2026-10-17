@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?4ce3a612ae6249dac79c50390ff20acb") format("woff"),
-url("./brilliant-icons.woff2?4ce3a612ae6249dac79c50390ff20acb") format("woff2");
+    src: url("./brilliant-icons.woff?ad48e0602dd37c799c7e853a44e22b68") format("woff"),
+url("./brilliant-icons.woff2?ad48e0602dd37c799c7e853a44e22b68") format("woff2");
     font-weight: normal;
     font-style: normal;
     font-display: block;
@@ -492,57 +492,69 @@ url("./brilliant-icons.woff2?4ce3a612ae6249dac79c50390ff20acb") format("woff2");
 .icon-testnet::before {
     content: "\f19f";
 }
-.icon-tooltip::before {
+.icon-thumb-down-filled::before {
     content: "\f1a0";
 }
-.icon-touch-id::before {
+.icon-thumb-down::before {
     content: "\f1a1";
 }
-.icon-trash-small::before {
+.icon-thumb-up-filled::before {
     content: "\f1a2";
 }
-.icon-trash::before {
+.icon-thumb-up::before {
     content: "\f1a3";
 }
-.icon-update::before {
+.icon-tooltip::before {
     content: "\f1a4";
 }
-.icon-usd::before {
+.icon-touch-id::before {
     content: "\f1a5";
 }
-.icon-verification::before {
+.icon-trash-small::before {
     content: "\f1a6";
 }
-.icon-versions::before {
+.icon-trash::before {
     content: "\f1a7";
 }
-.icon-view-landscape::before {
+.icon-update::before {
     content: "\f1a8";
 }
-.icon-view-portrait::before {
+.icon-usd::before {
     content: "\f1a9";
 }
-.icon-wallet-add::before {
+.icon-verification::before {
     content: "\f1aa";
 }
-.icon-wallet-outline::before {
+.icon-versions::before {
     content: "\f1ab";
 }
-.icon-wallet-view::before {
+.icon-view-landscape::before {
     content: "\f1ac";
 }
-.icon-wallet::before {
+.icon-view-portrait::before {
     content: "\f1ad";
 }
-.icon-windows-close::before {
+.icon-wallet-add::before {
     content: "\f1ae";
 }
-.icon-windows-maximize::before {
+.icon-wallet-outline::before {
     content: "\f1af";
 }
-.icon-windows-minimize::before {
+.icon-wallet-view::before {
     content: "\f1b0";
 }
-.icon-x::before {
+.icon-wallet::before {
     content: "\f1b1";
+}
+.icon-windows-close::before {
+    content: "\f1b2";
+}
+.icon-windows-maximize::before {
+    content: "\f1b3";
+}
+.icon-windows-minimize::before {
+    content: "\f1b4";
+}
+.icon-x::before {
+    content: "\f1b5";
 }

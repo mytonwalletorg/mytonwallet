@@ -31,6 +31,7 @@ struct DebugView: View {
     let onCreateTonOnlyWallet: () -> Void
 
     @AppStorage(DebugProductionMode.userDefaultsKey) private var forceProductionMode = false
+    @AppStorage(DuoNavigationSettings.userDefaultsKey) private var duoNavigation: DuoNavigationSettings.Placement = .sidebar
 #if DEBUG
     @AppStorage("debug_displayLogOverlay") private var displayLogOverlayEnabled = false
     @AppStorage(DebugBypassLockscreen.userDefaultsKey) private var bypassLockscreen = false
@@ -67,6 +68,9 @@ struct DebugView: View {
             .disabled(isClearingCaches)
         }
         .interactiveDismissDisabled(isClearingCaches)
+        .onDisappear {
+            DuoNavigationSettings.notifyDidChange()
+        }
     }
 
     // MARK: - Public
@@ -184,6 +188,17 @@ struct DebugView: View {
         }
 
         TestFlightConfigDebugSection()
+
+        if #available(iOS 27.1, *) {
+            Section {
+                Picker("Open Duo Navigation", selection: $duoNavigation) {
+                    Text("Sidebar").tag(DuoNavigationSettings.Placement.sidebar)
+                    Text("Toolbar").tag(DuoNavigationSettings.Placement.toolbar)
+                }
+            } footer: {
+                Text("Move account and tabs to the side toolbar while keeping the split view, home card and account list. Applies when closing this menu. Other devices are unaffected.")
+            }
+        }
     }
     
     // MARK: - Debug only
@@ -196,6 +211,8 @@ struct DebugView: View {
 
         Section {
             Toggle("Display log overlay", isOn: $displayLogOverlayEnabled)
+        } footer: {
+            Text("Shows account activation and the TON Connect flow (`TC` lines): deeplinks, the SDK bridge, the SSE bridge connection and its messages, and the request sheets. Stays on across launches, so it also covers cold starts.")
         }
         .onChange(of: displayLogOverlayEnabled) { isEnabled in
             setDisplayLogOverlayEnabled(isEnabled)

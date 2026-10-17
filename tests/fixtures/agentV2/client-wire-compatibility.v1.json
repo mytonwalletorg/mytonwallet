@@ -3170,6 +3170,68 @@
       ]
     },
     {
+      "schema": "AgentThreadMessagesPageV2",
+      "values": [
+        {
+          "protocolVersion": 3,
+          "thread": {
+            "id": "33333333-3333-4333-8333-333333333333",
+            "revision": 4,
+            "createdAt": "2026-07-12T00:00:00.000Z",
+            "updatedAt": "2026-07-12T00:00:00.000Z",
+            "lastActivityAt": "2026-07-12T00:00:00.000Z",
+            "messageCount": 2,
+            "title": "Taxes 2026",
+            "hasCustomTitle": true,
+            "isPinned": true
+          },
+          "messages": []
+        }
+      ]
+    },
+    {
+      "schema": "AgentThreadMessagesPageV2",
+      "values": [
+        {
+          "protocolVersion": 3,
+          "thread": {
+            "id": "34343434-3434-4434-8434-343434343434",
+            "revision": 2,
+            "createdAt": "2026-07-12T00:00:00.000Z",
+            "updatedAt": "2026-07-12T00:00:00.000Z",
+            "lastActivityAt": "2026-07-12T00:00:00.000Z",
+            "messageCount": 2
+          },
+          "messages": [
+            {
+              "id": "35353535-3535-4535-8535-353535353535",
+              "threadId": "34343434-3434-4434-8434-343434343434",
+              "role": "user",
+              "status": "complete",
+              "content": {
+                "kind": "markdown",
+                "text": "What is staking?"
+              },
+              "createdAt": "2026-07-12T00:00:00.000Z"
+            },
+            {
+              "id": "36363636-3636-4636-8636-363636363636",
+              "threadId": "34343434-3434-4434-8434-343434343434",
+              "role": "assistant",
+              "status": "complete",
+              "content": {
+                "kind": "markdown",
+                "text": "Staking locks coins to earn a reward."
+              },
+              "createdAt": "2026-07-12T00:00:01.000Z",
+              "runId": "37373737-3737-4737-8737-373737373737",
+              "feedback": "dislike"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "schema": "AgentStreamEventV2",
       "values": [
         {

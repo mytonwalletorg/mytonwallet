@@ -92,15 +92,17 @@ addActionHandler('submitDappConnectRequestConfirm', withEnclaveSessionRelease(as
   actions.getDapps();
 }));
 
-addActionHandler('cancelDappConnectRequestConfirm', (global) => {
-  if (global.dappConnectRequest?.isCreatingAccount) {
+addActionHandler('cancelDappConnectRequestConfirm', (global, actions, payload) => {
+  const { promiseId, isCreatingAccount } = global.dappConnectRequest ?? {};
+  if (isCreatingAccount && (!payload?.promiseId || payload.promiseId === promiseId)) {
     requestAbortDappConnectWalletCreation();
   }
 
-  recordTonConnectUiEvent('wallet-connect-rejected', global.dappConnectRequest?.promiseId);
+  recordTonConnectUiEvent('wallet-connect-rejected', payload?.promiseId ?? global.dappConnectRequest?.promiseId);
   cancelDappOperation(
     (global) => global.dappConnectRequest,
     clearDappConnectRequest,
+    payload?.promiseId,
   );
 });
 
@@ -108,23 +110,35 @@ addActionHandler('setDappConnectRequestState', (global, actions, { state }) => {
   setGlobal(updateDappConnectRequest(global, { state }));
 });
 
-addActionHandler('cancelDappTransfer', (global) => {
-  recordTonConnectUiEvent('wallet-transaction-declined', global.currentDappTransfer.promiseId);
+addActionHandler('cancelDappTransfer', (global, actions, payload) => {
+  recordTonConnectUiEvent('wallet-transaction-declined', payload?.promiseId ?? global.currentDappTransfer.promiseId);
   cancelDappOperation(
     (global) => global.currentDappTransfer,
     clearCurrentDappTransfer,
+    payload?.promiseId,
   );
 });
 
+/**
+ * Rejects `promiseIdToCancel`, or the request in the state when none is given. The state is cleared only when it still
+ * holds the rejected request: a late close animation of a replaced request must not take down the one replacing it.
+ */
 function cancelDappOperation(
   getState: (global: GlobalState) => { promiseId?: string } | undefined,
   clearState: (global: GlobalState) => GlobalState,
+  promiseIdToCancel?: string,
 ) {
   let global = getGlobal();
-  const { promiseId } = getState(global) ?? {};
+  const { promiseId: currentPromiseId } = getState(global) ?? {};
+  const promiseId = promiseIdToCancel ?? currentPromiseId;
 
   if (promiseId) {
     void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
+  }
+
+  // The state holds another request, or a skeleton for one that is still loading
+  if (promiseIdToCancel && promiseIdToCancel !== currentPromiseId) {
+    return;
   }
 
   if (getDoesUsePinPad()) {
@@ -276,17 +290,29 @@ addActionHandler('deleteDapp', (global, actions, { url, uniqueId }) => {
   setGlobal(global);
 });
 
-addActionHandler('cancelDappSignData', (global) => {
-  recordTonConnectUiEvent('wallet-sign-data-declined', global.currentDappSignData.promiseId);
+addActionHandler('cancelDappSignData', (global, actions, payload) => {
+  recordTonConnectUiEvent('wallet-sign-data-declined', payload?.promiseId ?? global.currentDappSignData.promiseId);
   cancelDappOperation(
     (global) => global.currentDappSignData,
     clearCurrentDappSignData,
+    payload?.promiseId,
   );
 });
 
 addActionHandler('apiUpdateDappConnect', (global, actions, {
   accountId, dapp, permissions, promiseId, proof, multichainResolution,
 }) => {
+  // A newer connect request takes the modal over; the dapp that sent the open one gets a rejection instead of waiting
+  const previousPromiseId = global.dappConnectRequest?.promiseId;
+  if (previousPromiseId && previousPromiseId !== promiseId) {
+    // A wallet being created for the replaced request must not be saved or activated under the new one
+    if (global.dappConnectRequest?.isCreatingAccount) {
+      requestAbortDappConnectWalletCreation();
+    }
+    void callApi('cancelDappRequest', previousPromiseId, 'Canceled by the user');
+    global = clearDappConnectRequest(global);
+  }
+
   global = updateDappConnectRequest(global, {
     state: DappConnectState.Info,
     promiseId,
@@ -361,7 +387,17 @@ addActionHandler('apiUpdateDappSignData', async (global, actions, payload) => {
   recordTonConnectUiEvent('wallet-sign-data-confirmation-ui-displayed', promiseId);
 });
 
-async function apiUpdateDappOperation(
+// Requests replace one another one at a time, in arrival order: each reads the request the previous one installed,
+// so every replaced request is rejected, including one that arrived while another was still being switched to
+let dappOperationQueue: Promise<void> = Promise.resolve();
+
+function apiUpdateDappOperation(...args: Parameters<typeof replaceDappOperation>) {
+  const operation = dappOperationQueue.then(() => replaceDappOperation(...args));
+  dappOperationQueue = operation.catch(() => undefined);
+  return operation;
+}
+
+async function replaceDappOperation(
   payload: { accountId: string },
   getState: (global: GlobalState) => { promiseId?: string },
   close: NoneToVoidFunction,
@@ -377,6 +413,8 @@ async function apiUpdateDappOperation(
 
   if (currentPromiseId) {
     close();
+    // Rejected here rather than by the modal's close animation, which never ends if the new request renders first
+    void callApi('cancelDappRequest', currentPromiseId, 'Canceled by the user');
     const closeDuration = getIsPortrait() ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION;
     await pause(closeDuration + ANIMATION_END_DELAY);
   }
@@ -409,6 +447,15 @@ addActionHandler('apiUpdateDappLoading', (global, actions, {
     return;
   }
 
+  // A filled request of the same type stays as it is; the next request replaces it once its own data arrives
+  if (
+    (connectionType === 'connect' && global.dappConnectRequest?.promiseId)
+    || (connectionType === 'sendTransaction' && global.currentDappTransfer.promiseId)
+    || (connectionType === 'signData' && global.currentDappSignData.promiseId)
+  ) {
+    return;
+  }
+
   if (accountId) {
     actions.switchAccount({ accountId });
   }
@@ -437,12 +484,25 @@ addActionHandler('apiUpdateDappLoading', (global, actions, {
 });
 
 addActionHandler('apiUpdateDappCloseLoading', (global, actions, { connectionType }) => {
-  // But clear the state if a skeleton is displayed in the Modal
-  if (connectionType === 'connect' && global.dappConnectRequest?.state === DappConnectState.Info) {
+  // Clear only a skeleton; a filled request (one with a `promiseId`) belongs to another request that is still open
+  const { dappConnectRequest, currentDappTransfer, currentDappSignData } = global;
+  if (
+    connectionType === 'connect'
+    && dappConnectRequest?.state === DappConnectState.Info
+    && !dappConnectRequest.promiseId
+  ) {
     global = clearDappConnectRequest(global);
-  } else if (connectionType === 'sendTransaction' && global.currentDappTransfer.state === TransferState.Initial) {
+  } else if (
+    connectionType === 'sendTransaction'
+    && currentDappTransfer.state === TransferState.Initial
+    && !currentDappTransfer.promiseId
+  ) {
     global = clearCurrentDappTransfer(global);
-  } else if (connectionType === 'signData' && global.currentDappSignData.state === SignDataState.Initial) {
+  } else if (
+    connectionType === 'signData'
+    && currentDappSignData.state === SignDataState.Initial
+    && !currentDappSignData.promiseId
+  ) {
     global = clearCurrentDappSignData(global);
   }
   setGlobal(global);

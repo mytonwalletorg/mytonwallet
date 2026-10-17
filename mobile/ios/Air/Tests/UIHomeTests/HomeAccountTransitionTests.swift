@@ -70,6 +70,35 @@ struct HomeAccountTransitionTests {
         try await wait { commits == ["a"] }
     }
 
+    @Test
+    func releaseOutsideTaskCancelsPendingPreparation() async throws {
+        var transition: HomeAccountTransition<String>? = HomeAccountTransition()
+        weak var releasedTransition = transition
+        let loader = Loader()
+        var wasCancelled: Bool?
+        var commits: [String] = []
+        transition?.request(accountId: "a", prepare: {
+            let value = await loader.load("a")
+            wasCancelled = Task.isCancelled
+            return value
+        }, commit: { commits.append($0) })
+        try await wait { loader.pending["a"] != nil }
+
+        // UIKit can release a controller and its transition with no Swift task,
+        // which triggers the isolated-deinit runtime bug on iOS 26.
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                transition = nil
+                continuation.resume()
+            }
+        }
+        #expect(releasedTransition == nil)
+        loader.complete("a")
+        try await wait { wasCancelled != nil }
+        #expect(wasCancelled == true)
+        #expect(commits.isEmpty)
+    }
+
     private final class Loader {
         var pending: [String: CheckedContinuation<String?, Never>] = [:]
         func load(_ id: String) async -> String? {

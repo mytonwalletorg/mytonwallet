@@ -8,6 +8,7 @@ import { decodeAgentV2WalletSnapshotAck } from './decoders/coreRun';
 import {
   AgentV2CompatibilityError,
   AgentV2ContractError,
+  decodeAgentV2AnswerFeedback,
   decodeAgentV2FeatureCapabilities,
   decodeAgentV2Hints,
   decodeAgentV2Messages,
@@ -820,6 +821,28 @@ describe('Agent V2 semantic public contract', () => {
     });
 
     expect(decoded.messages[0].responseLanguage).toBe('it');
+  });
+
+  it('keeps an answer rating and drops an unknown one without failing its message', () => {
+    const decoded = decodeAgentV2Messages({
+      protocolVersion: 3,
+      thread: threadSummary(),
+      messages: [
+        { ...persistedMessage(MESSAGE_ID, 'assistant', { kind: 'markdown', text: 'Rated' }), feedback: 'dislike' },
+        { ...persistedMessage(RUN_ID, 'assistant', { kind: 'markdown', text: 'Unknown' }), feedback: 'helpful' },
+      ],
+    });
+
+    expect(decoded.messages.map(({ id, feedback }) => ({ id, feedback }))).toEqual([
+      { id: MESSAGE_ID, feedback: 'dislike' },
+      { id: RUN_ID, feedback: undefined },
+    ]);
+    expect(decodeAgentV2AnswerFeedback({ protocolVersion: 3, feedback: 'like' })).toEqual({
+      protocolVersion: 3, feedback: 'like',
+    });
+    expect(decodeAgentV2AnswerFeedback({ protocolVersion: 3 })).toEqual({ protocolVersion: 3 });
+    expect(() => decodeAgentV2AnswerFeedback({ protocolVersion: 3, feedback: 'helpful' }))
+      .toThrow(AgentV2ContractError);
   });
 
   it('keeps messages after dropping unknown persisted controls and reports malformed messages', () => {

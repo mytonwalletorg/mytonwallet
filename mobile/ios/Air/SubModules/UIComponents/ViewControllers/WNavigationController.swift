@@ -25,6 +25,22 @@ open class WNavigationController: UINavigationController {
     
     private let log = Log("WNavigationController")
     private let sheetDimmingController = SheetDimmingController()
+    /// Allows container-owned chrome to replace the root navigation bar.
+    public var hidesRootNavigationBar = false {
+        didSet {
+            guard oldValue != hidesRootNavigationBar, let topViewController else { return }
+            updateNavigationBarVisibility(for: topViewController, animated: false)
+        }
+    }
+
+    private func updateNavigationBarVisibility(for viewController: UIViewController, animated: Bool) {
+        guard let vc = viewController as? WViewController else { return }
+        setNavigationBarHidden(
+            (hidesRootNavigationBar && viewControllers.first === vc) || vc.hideNavigationBar,
+            animated: animated
+        )
+    }
+
     public var onWillShowViewController: ((UIViewController) -> Void)?
     public var onDidShowViewController: ((UIViewController) -> Void)?
     public var pushViewControllerInterceptor: ((UIViewController, Bool) -> Bool)?
@@ -166,9 +182,7 @@ extension WNavigationController: UINavigationControllerDelegate {
     public func navigationController(_ navigationController: UINavigationController,
                                      willShow viewController: UIViewController, animated: Bool) {
         onWillShowViewController?(viewController)
-        guard let vc = viewController as? WViewController else {return}
-        setNavigationBarHidden(vc.hideNavigationBar,
-                               animated: animated)
+        updateNavigationBarVisibility(for: viewController, animated: animated)
     }
 
     public func navigationController(_ navigationController: UINavigationController,

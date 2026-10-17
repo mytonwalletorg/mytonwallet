@@ -58,6 +58,7 @@ export function AgentV2Classic({
     sendFollowup,
     clearChat,
     reportProblem,
+    rateMessage,
     acceptConsent,
     composerStatus,
     userQuota,
@@ -99,6 +100,7 @@ export function AgentV2Classic({
         onFollowup={handleFollowup}
         onAction={activateAction}
         onRetry={message.isRetryAvailable ? retryMessage : undefined}
+        onRate={rateMessage}
         onReport={context.onReportMessage}
         onTextRevealSessionConsumed={consumeTextRevealSession}
         onTextRevealSessionSettled={settleTextRevealSession}

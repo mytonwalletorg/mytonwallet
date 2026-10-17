@@ -339,39 +339,35 @@ final class InAppBrowserVC: WViewController, InAppBrowserPageDelegate {
     }
 
     private func makeTitleMenu(for url: URL?) -> UIMenu? {
-        guard let url,
-              let tonscanUrl = ExplorerHelper.convertExplorerUrl(url, toExplorerId: "tonscan"),
-              let tonviewerUrl = ExplorerHelper.convertExplorerUrl(url, toExplorerId: "tonviewer") else {
+        guard let url, let pages = tonExplorerPages(for: url) else {
             return nil
         }
-        let isTonscan = tonscanUrl == url
-        let isTonviewer = tonviewerUrl == url
-        let tonscanAction = UIAction(title: "Tonscan", state: isTonscan ? .on : .off) { [weak self] _ in
-            guard let self, !isTonscan else { return }
-            ExplorerHelper.setSelectedExplorerId("tonscan", for: .ton)
-            self.navigate(to: tonscanUrl)
+        let actions = pages.map { page in
+            let isCurrent = page.url == url
+            return UIAction(title: page.name, state: isCurrent ? .on : .off) { [weak self] _ in
+                guard let self, !isCurrent else { return }
+                ExplorerHelper.setSelectedExplorerId(page.explorerId, for: .ton)
+                self.navigate(to: page.url)
+            }
         }
-        let tonviewerAction = UIAction(title: "Tonviewer", state: isTonviewer ? .on : .off) { [weak self] _ in
-            guard let self, !isTonviewer else { return }
-            ExplorerHelper.setSelectedExplorerId("tonviewer", for: .ton)
-            self.navigate(to: tonviewerUrl)
-        }
-        return UIMenu(title: "", children: [tonscanAction, tonviewerAction])
+        return UIMenu(title: "", children: actions)
     }
 
     private func explorerTitleText(for url: URL?) -> String? {
-        guard let url,
-              let tonscanUrl = ExplorerHelper.convertExplorerUrl(url, toExplorerId: "tonscan"),
-              let tonviewerUrl = ExplorerHelper.convertExplorerUrl(url, toExplorerId: "tonviewer") else {
-            return nil
+        guard let url else { return nil }
+        return tonExplorerPages(for: url)?.first(where: { $0.url == url })?.name
+    }
+
+    private func tonExplorerPages(for url: URL) -> [(explorerId: String, name: String, url: URL)]? {
+        var pages: [(explorerId: String, name: String, url: URL)] = []
+        for explorer in getAvailableExplorers(chain: .ton) {
+            guard let explorerId = explorer.id,
+                  let explorerUrl = ExplorerHelper.convertExplorerUrl(url, toExplorerId: explorerId) else {
+                return nil
+            }
+            pages.append((explorerId, explorer.name, explorerUrl))
         }
-        if tonscanUrl == url {
-            return "Tonscan"
-        }
-        if tonviewerUrl == url {
-            return "Tonviewer"
-        }
-        return nil
+        return pages
     }
 
     private func applyTitle(navigationBar: WNavigationBar, title: String?, explorerTitle: String?) {

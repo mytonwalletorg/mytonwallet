@@ -4,6 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 
 import type {
+  AgentAnswerFeedbackV2,
   AgentPersistedActionV2,
   AgentPublicFollowUpV2,
   AgentV2LiveAction,
@@ -18,6 +19,7 @@ import { getAgentV2NoticeTexts } from './agentV2Copy';
 import { LangProvider, useLangForCode } from '../../hooks/useLang';
 
 import AgentRunActivity from '../agent/AgentRunActivity';
+import AgentAnswerFeedback from './AgentAnswerFeedback';
 import AgentMessageControls from './AgentMessageControls';
 import { AgentRunFailure } from './AgentStatusNotice';
 import { AgentV2AssistantText } from './AgentV2Conversation';
@@ -42,6 +44,7 @@ interface OwnProps {
     action: AgentV2LiveAction | AgentPersistedActionV2,
   ) => void;
   onRetry?: (messageId: number) => void;
+  onRate?: (messageId: number, feedback?: AgentAnswerFeedbackV2) => void;
   onTextRevealSessionConsumed?: (messageId: number, key: string) => void;
   onTextRevealSessionSettled?: (messageId: number, key: string) => void;
   onTextRevealProgress?: NoneToVoidFunction;
@@ -65,6 +68,7 @@ function AgentV2IncomingMessage({
   onFollowup,
   onAction,
   onRetry,
+  onRate,
   onTextRevealSessionConsumed,
   onTextRevealSessionSettled,
   onTextRevealProgress,
@@ -72,7 +76,7 @@ function AgentV2IncomingMessage({
 }: OwnProps) {
   const {
     id, text, shouldCommitMarkdownTail, isTyping, isStreaming, semanticContent,
-    actions, actionPresentations, followups, error, responseLanguage,
+    actions, actionPresentations, followups, error, responseLanguage, isComplete, feedback,
   } = message;
   const lang = useLangForCode(responseLanguage);
   const noticeContent = semanticContent?.kind === 'notice' ? semanticContent : undefined;
@@ -83,7 +87,8 @@ function AgentV2IncomingMessage({
   const hasActionButtons = Boolean(actions?.length);
   const shouldRenderIncomingBubble = Boolean(isTyping || incomingText || message.tableReferences?.length);
   const isTextRevealActive = textRevealPresentation?.status === 'active' && Boolean(incomingText);
-  const areRichContentVisible = hasRichContent && !isTextRevealActive;
+  const isRatable = Boolean(isComplete && onRate);
+  const areControlsVisible = (hasRichContent || isRatable) && !isTextRevealActive;
   const hasPartialResponse = Boolean(incomingText.trim() || hasRichContent || message.tableReferences?.length);
 
   return (
@@ -95,6 +100,7 @@ function AgentV2IncomingMessage({
         onContextMenu={onContextMenu}
         className={buildClassName(
           styles.wrapper,
+          v2styles.answer,
           hasRichContent && styles.wrapperRich,
           hasActionButtons && styles.wrapperRichActions,
         )}
@@ -122,7 +128,7 @@ function AgentV2IncomingMessage({
           </div>
         )}
         {isLatest && <AgentRunActivity activity={activity} isAnswerPlaceholder />}
-        {areRichContentVisible && (
+        {areControlsVisible && (
           <AgentMessageControls
             followups={followups}
             isDisabled={isDisabled}
@@ -148,6 +154,13 @@ function AgentV2IncomingMessage({
                 />
               );
             })}
+            {isRatable && (
+              <AgentAnswerFeedback
+                feedback={feedback}
+                isShownOnHover={!isLatest}
+                onChange={(value) => onRate!(id, value)}
+              />
+            )}
           </AgentMessageControls>
         )}
         {error && (
@@ -195,12 +208,16 @@ function AgentV2ActionButton({
     return () => window.clearTimeout(timer);
   }, [expiresAt]);
 
+  // An unavailable action still takes a tap, which tells the user why it does not open
+  const isUnavailable = !isActive || isExpired;
+
   return (
     <button
       type="button"
       data-agent-action-kind={actionKind}
       className={buildClassName(styles.actionButton, v2styles.button)}
-      disabled={isDisabled || !isActive || isExpired}
+      disabled={isDisabled}
+      aria-disabled={isUnavailable || undefined}
       onClick={onClick}
     >
       {label}

@@ -1,5 +1,7 @@
 import { Wallet } from 'ethers';
 
+import { fetchEvmWallet } from './util/account';
+import { isAlchemy7702Delegated } from './smartAccount/delegation';
 import { UNISWAP_PERMIT2_ADDRESS } from './constants';
 import {
   buildPermit2PermitCall,
@@ -8,9 +10,19 @@ import {
   hasUniswapPermitData,
   parseUniswapTransactionPayload,
   resolveSwapGasLimit,
+  resolveSwapNeedsBatch,
+  shouldBatchUniswapSwap,
   shouldIncludePermit2AllowanceCall,
   signUniswapPermit2,
 } from './swap';
+
+jest.mock('./util/account', () => ({
+  fetchEvmWallet: jest.fn(),
+}));
+
+jest.mock('./smartAccount/delegation', () => ({
+  isAlchemy7702Delegated: jest.fn(),
+}));
 
 const SAMPLE_PAYLOAD = {
   routing: 'CLASSIC',
@@ -138,6 +150,25 @@ describe('hasUniswapPermitData', () => {
   });
 });
 
+describe('shouldBatchUniswapSwap', () => {
+  it('batches when a Permit2 approve or a missing delegate is already known', () => {
+    expect(shouldBatchUniswapSwap(SAMPLE_PAYLOAD, { needsBatch: true })).toBe(true);
+    expect(shouldBatchUniswapSwap(SAMPLE_PAYLOAD, { needsDelegate: true })).toBe(true);
+  });
+
+  it('batches when Permit2 EIP-712 data is present and approve is not required', () => {
+    const payload = { ...PERMIT2_PERMIT_PAYLOAD, approval: undefined };
+
+    expect(shouldBatchUniswapSwap(payload)).toBe(true);
+  });
+
+  it('sends the router transaction directly when approve, permitData, and delegation are settled', () => {
+    const payload = { ...SAMPLE_PAYLOAD, approval: undefined };
+
+    expect(shouldBatchUniswapSwap(payload)).toBe(false);
+  });
+});
+
 describe('shouldIncludePermit2AllowanceCall', () => {
   it('returns false when permitData is provided', () => {
     expect(shouldIncludePermit2AllowanceCall(PERMIT2_PERMIT_PAYLOAD)).toBe(false);
@@ -181,5 +212,35 @@ describe('resolveSwapGasLimit', () => {
 
   it('prefers backend gasLimit when it is higher than buffered estimate', () => {
     expect(resolveSwapGasLimit(182_181n, '300000')).toBe(300_000n);
+  });
+});
+
+describe('resolveSwapNeedsBatch', () => {
+  const fetchWallet = fetchEvmWallet as jest.Mock;
+  const isDelegated = isAlchemy7702Delegated as jest.Mock;
+
+  beforeEach(() => {
+    fetchWallet.mockReset();
+    isDelegated.mockReset();
+  });
+
+  it('is true when the backend already requires a Permit2 approval', async () => {
+    await expect(resolveSwapNeedsBatch('robinhood', '0-mainnet', true)).resolves.toBe(true);
+    expect(fetchWallet).not.toHaveBeenCalled();
+  });
+
+  it('is true when the account has no Alchemy delegate', async () => {
+    fetchWallet.mockResolvedValue({ address: '0xwallet' });
+    isDelegated.mockResolvedValue(false);
+
+    await expect(resolveSwapNeedsBatch('robinhood', '0-mainnet', false)).resolves.toBe(true);
+    expect(isDelegated).toHaveBeenCalledWith('robinhood', 'mainnet', '0xwallet');
+  });
+
+  it('is false when the account is already delegated and no approval is required', async () => {
+    fetchWallet.mockResolvedValue({ address: '0xwallet' });
+    isDelegated.mockResolvedValue(true);
+
+    await expect(resolveSwapNeedsBatch('robinhood', '0-mainnet')).resolves.toBe(false);
   });
 });

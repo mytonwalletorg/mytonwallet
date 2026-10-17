@@ -68,6 +68,10 @@ class TonConnectRequestConnectVC(
     @Suppress("PropertyName")
     override val TAG = "TonConnectRequestConnect"
 
+    // Shown while the request is still loading; the request fills it through `setDappUpdate`
+    val isPlaceholder: Boolean
+        get() = update == null
+
     override val shouldDisplayTopBar = false
     override val shouldDisplayBottomBar = false
 

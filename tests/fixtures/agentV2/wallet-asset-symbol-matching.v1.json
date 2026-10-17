@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "wallet-asset-symbol-matching-v1",
+  "cases": [
+    { "id": "tether-sign", "selectorSymbol": "USDT", "assetSymbol": "USD₮", "matches": true },
+    { "id": "tether-sign-any-case", "selectorSymbol": "usdt", "assetSymbol": "USD₮", "matches": true },
+    { "id": "tether-sign-in-selector", "selectorSymbol": "USD₮", "assetSymbol": "USDT", "matches": true },
+    { "id": "letter-case", "selectorSymbol": "jusdt", "assetSymbol": "jUSDT", "matches": true },
+    { "id": "non-latin-letter-case", "selectorSymbol": "волк", "assetSymbol": "ВОЛК", "matches": true },
+    { "id": "compatibility-form", "selectorSymbol": "ＵＳＤＴ", "assetSymbol": "USDT", "matches": true },
+    { "id": "bridged-token", "selectorSymbol": "USDT", "assetSymbol": "jUSDT", "matches": false },
+    { "id": "bridged-suffix", "selectorSymbol": "USDC", "assetSymbol": "USDC.e", "matches": false },
+    { "id": "lookalike-letter", "selectorSymbol": "USDT", "assetSymbol": "USDТ", "matches": false },
+    { "id": "prefix", "selectorSymbol": "USD", "assetSymbol": "USDT", "matches": false }
+  ]
+}

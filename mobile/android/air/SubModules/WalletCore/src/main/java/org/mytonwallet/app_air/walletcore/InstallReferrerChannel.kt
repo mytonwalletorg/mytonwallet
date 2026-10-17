@@ -4,6 +4,7 @@ import android.content.Context
 import android.webkit.WebView
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
+import com.android.installreferrer.api.ReferrerDetails
 import org.json.JSONObject
 import org.mytonwallet.app_air.walletbasecontext.logger.Logger
 
@@ -62,11 +63,14 @@ object InstallReferrerChannel {
 
     private fun handleResponse(responseCode: Int, client: InstallReferrerClient, webView: WebView) {
         when (responseCode) {
-            InstallReferrerClient.InstallReferrerResponse.OK ->
+            InstallReferrerClient.InstallReferrerResponse.OK -> {
+                val details = client.installReferrer
+                deliverMetadata(webView, details)
                 deliverChannel(
                     webView,
-                    sanitizeInstallAttribution(client.installReferrer.installReferrer)
+                    sanitizeInstallAttribution(details.installReferrer)
                 )
+            }
 
             // SERVICE_UNAVAILABLE is transient; leave it for the next launch to retry.
             InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE -> Unit
@@ -74,6 +78,27 @@ object InstallReferrerChannel {
             // Any other code is permanent (no Play services, developer or permission error):
             // deliver the fallback bucket so the install is still attributed.
             else -> deliverChannel(webView, sanitizeInstallAttribution(null))
+        }
+    }
+
+    private fun deliverMetadata(webView: WebView, details: ReferrerDetails) {
+        try {
+            val metadata = readPlayInstallMetadata(
+                details.installBeginTimestampServerSeconds,
+                details.installVersion
+            ) ?: return
+            val json = JSONObject.quote(
+                JSONObject()
+                    .put("installedAt", metadata.installedAt)
+                    .put("installVersion", metadata.installVersion)
+                    .toString()
+            ).replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+            evaluateScript(webView, "window.airBridge?.captureInstallMetadata?.(JSON.parse($json))")
+        } catch (e: Exception) {
+            Logger.e(
+                Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                "InstallReferrerChannel: metadata failed error=${e.javaClass.simpleName}"
+            )
         }
     }
 
@@ -91,6 +116,10 @@ object InstallReferrerChannel {
                 .replace("\u2029", "\\u2029")
             "window.airBridge?.captureInstallAttribution(JSON.parse($json))"
         }
+        evaluateScript(webView, script)
+    }
+
+    private fun evaluateScript(webView: WebView, script: String) {
         webView.post {
             try {
                 webView.evaluateJavascript(script, null)

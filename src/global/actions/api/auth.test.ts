@@ -446,3 +446,42 @@ describe('multichain upgrade', () => {
     expect(releaseEnclaveSession).toHaveBeenCalledWith({ enclaveToken: TOKEN });
   });
 });
+
+// `CreatePasswordForm` blocks a repeated submit until `onError` reopens it
+describe('replacing biometrics with a passcode', () => {
+  const TOKEN = 'biometric:stub';
+  const disableBiometrics = getHandler('disableBiometrics');
+  let store: GlobalState;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    store = makeGlobal({ enclaveSession: { token: TOKEN } } as Partial<GlobalState>);
+    (getGlobal as jest.Mock).mockImplementation(() => store);
+    (setGlobal as jest.Mock).mockImplementation((next: GlobalState) => {
+      store = next;
+    });
+  });
+
+  it.each([
+    ['throws', () => (enclave.migrateAuth as jest.Mock).mockRejectedValue(new Error('Enclave failure'))],
+    ['returns no session', () => (enclave.migrateAuth as jest.Mock).mockResolvedValue(undefined)],
+  ])('reports the failure when the migration %s', async (_, mockMigration) => {
+    mockMigration();
+    const onError = jest.fn();
+
+    await disableBiometrics(store, {}, { newPassword: PASSWORD, onError });
+
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(store.biometrics.error).toBe('Failed to create password');
+  });
+
+  it('keeps the form closed after a successful migration', async () => {
+    (enclave.migrateAuth as jest.Mock).mockResolvedValue({ token: 'passcode:stub' });
+    const onError = jest.fn();
+
+    await disableBiometrics(store, { releaseEnclaveSession: jest.fn() }, { newPassword: PASSWORD, onError });
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(store.authTypes).toEqual(['passcode']);
+  });
+});

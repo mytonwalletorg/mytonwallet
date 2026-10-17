@@ -30,14 +30,14 @@ public class WalletVersionsVC: SettingsBaseVC, UICollectionViewDelegate {
 
     private enum Item: Hashable {
         case currentWallet
-        case otherVersion(String)
+        case otherVersion(MWalletVersionsData.Version.ID)
     }
 
     private let isModal: Bool
     private var collectionView: UICollectionView!
     private var walletVersionsData: MWalletVersionsData?
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
-    private var importingVersionId: String?
+    private var importingVersionId: MWalletVersionsData.Version.ID?
 
     public init(isModal: Bool = false) {
         self.isModal = isModal
@@ -147,7 +147,7 @@ public class WalletVersionsVC: SettingsBaseVC, UICollectionViewDelegate {
 
         if let versions = walletVersionsData?.versions, !versions.isEmpty {
             snapshot.appendSections([.otherVersions])
-            snapshot.appendItems(versions.map { .otherVersion($0.version) }, toSection: .otherVersions)
+            snapshot.appendItems(versions.map { .otherVersion($0.id) }, toSection: .otherVersions)
         }
         if dataSource.snapshot().sectionIdentifiers.contains(.otherVersions) {
             snapshot.reloadSections([.otherVersions])
@@ -174,7 +174,7 @@ public class WalletVersionsVC: SettingsBaseVC, UICollectionViewDelegate {
             navigationController?.popViewController(animated: true)
         case .otherVersion(let versionId):
             guard importingVersionId == nil else { return }
-            guard let version = walletVersionsData?.versions.first(where: { $0.version == versionId }),
+            guard let version = walletVersion(at: indexPath),
                   let accountId = AccountStore.accountId,
                   let apiVersion = ApiTonWalletVersion(rawValue: version.version) else { return }
             Task { @MainActor in
@@ -182,7 +182,11 @@ public class WalletVersionsVC: SettingsBaseVC, UICollectionViewDelegate {
                     importingVersionId = versionId
                     collectionView.isUserInteractionEnabled = false
                     applySnapshot()
-                    _ = try await AccountStore.importNewWalletVersion(accountId: accountId, version: apiVersion)
+                    _ = try await AccountStore.importNewWalletVersion(
+                        accountId: accountId,
+                        version: apiVersion,
+                        isTestnetSubwalletId: version.isTestnetSubwalletId
+                    )
                     AppActions.showHome(popToRoot: true)
                     popToRootAfterDelay()
                 } catch {
@@ -193,6 +197,11 @@ public class WalletVersionsVC: SettingsBaseVC, UICollectionViewDelegate {
                 }
             }
         }
+    }
+
+    func walletVersion(at indexPath: IndexPath) -> MWalletVersionsData.Version? {
+        guard case .otherVersion(let versionId) = dataSource.itemIdentifier(for: indexPath) else { return nil }
+        return walletVersionsData?.versions.first { $0.id == versionId }
     }
 
     public override func viewWillLayoutSubviews() {

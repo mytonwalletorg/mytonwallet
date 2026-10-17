@@ -16,6 +16,7 @@ export type OwnProps = {
   className?: string;
   style?: string;
   ariaLabel?: string;
+  tabIndex?: number;
   forFormId?: string;
   kind?: 'transparent' | 'green';
   isSubmit?: boolean;
@@ -45,6 +46,7 @@ function Button({
   className,
   style,
   ariaLabel,
+  tabIndex,
   forFormId,
   kind,
   isSubmit,
@@ -106,6 +108,7 @@ function Button({
       )}
       style={style}
       aria-label={ariaLabel}
+      tabIndex={tabIndex}
       disabled={isDisabled || isLoading}
       form={forFormId}
       onClick={handleClick}

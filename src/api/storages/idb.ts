@@ -5,7 +5,7 @@ import type { Storage, StorageKey } from './types';
 import { INDEXED_DB_NAME, INDEXED_DB_STORE_NAME } from '../../config';
 import { fromKeyValueArrays } from '../../util/iteratees';
 
-const store = idb.createStore(INDEXED_DB_NAME, INDEXED_DB_STORE_NAME);
+export const store = idb.createStore(INDEXED_DB_NAME, INDEXED_DB_STORE_NAME);
 
 export default {
   getItem: (name: StorageKey) => idb.get(name, store),

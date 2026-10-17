@@ -591,6 +591,13 @@ Are you sure you want to disable biometrics?: 您确定要禁用生物识别技�
 "Yes": 是的
 Biometric confirmation failed: 生物识别确认失败
 No Activity: 无活动
+Loading Activity: 正在加载活动
+Loading More Activity: 正在加载更多活动
+Your activity history is loading.: 正在加载你的活动历史。
+Taking Longer Than Usual: 加载时间较长
+Activity history is taking longer to load. Please check back shortly.: 活动历史加载时间比平时更长。请稍后查看。
+Activity Unavailable: 活动暂不可用
+Activity history is temporarily unavailable. We’ll try again shortly.: 活动历史暂时不可用。我们将稍后重试。
 Fund: 充值
 Buy with Card: 用卡购买
 Buy with Crypto: 用加密货币购买
@@ -623,6 +630,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: 您也可以%action%。
 $wallet_switch_version_2: 切换到另一个钱包版本
 or import from: 或从中导入
+or enter manually: 或手动输入
 Insufficient fee: 手续费不足
 $insufficient_fee: "手续费不足: %fee%"
 $dapp_insufficient_network_fee_warning: "%token% 不足，无法支付网络费用"
@@ -679,6 +687,7 @@ $transfer_link_expired: 转账链接已过期
 $transfer_text_and_bin_exclusive: 不能同时使用文本和二进制数据参数
 $unsupported_deeplink_parameter: 此深度链接包含不支持的参数。
 $unsupported_chain: 不支持的区块链。
+$token_chain_not_supported_by_wallet: "您当前的钱包不支持 %chain%。请创建多链钱包以使用此代币。"
 Successfully: 成功地
 Estimated Time: 预计时间
 $utxo_confirmations:
@@ -1298,6 +1307,7 @@ $agent_connection_interrupted: 助手连接中断，请重试。
 $agent_history_unavailable: 无法加载聊天记录，请重试。
 $agent_secret_words_removed: "[密语已删除，未发送]"
 $agent_activity_analyzing_request: 正在分析您的请求……
+$agent_analyzing: 正在分析
 $agent_activity_wallet: 正在读取钱包数据…
 $agent_activity_transactions: 正在查看钱包活动…
 $agent_activity_portfolio: 正在加载投资组合数据…
@@ -1405,6 +1415,9 @@ $agent_report_problem_description: 此聊天的最近消息将发送给我们的
 $agent_report_problem_sent: 谢谢！您的报告已发送。
 $agent_report_problem_failed: 无法发送报告，请重试。
 $agent_report_problem_rate_limited: 您最近已发送多份报告，请稍后再试。
+Like: 赞
+Dislike: 踩
+$agent_feedback_failed: 无法保存您的评价，请稍后再试。
 $unknown_swap_token: 交换链接中的代币未知。已使用默认代币。
 $action_not_available_view_mode: 此操作不适用于查看钱包
 Deposit: 存入
@@ -2044,4 +2057,5 @@ Ruble: 卢布
 $token_price_value: "价格：%value%"
 Swaps like this usually take a few minutes. In rare cases, up to two hours.: 此类交换通常需要几分钟。极少数情况下，最长可能需要两小时。
 3D Gram Diamond: 3D Gram 钻石
+Hold to enlarge. Drag to rotate.: 按住可放大，拖动可旋转。
 "Max": "最大"

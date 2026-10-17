@@ -5,12 +5,14 @@ import UIComponents
 import WalletCore
 import WalletContext
 import Dependencies
+import Perception
 
 struct TransferRow: View {
 
     var transfer: ApiDappTransfer
     var chain: ApiChain
     var accountContext: AccountContext
+    var addressNames: [String: String]
     var action: (ApiDappTransfer) -> ()
 
     @Dependency(\.nftStore) private var nftStore
@@ -46,7 +48,7 @@ struct TransferRow: View {
                 icon
                 VStack(alignment: .leading, spacing: 0) {
                     text
-                    addressLines
+                    addressLine
                 }
                 Spacer()
                 Image.airBundle("RightArrowIcon")
@@ -101,24 +103,37 @@ struct TransferRow: View {
     }
     
     @ViewBuilder
-    var addressLines: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            makeAddressLine(label: lang("to"), address: transfer.toAddress)
-            if let payloadRecipientAddress = transfer.payloadRecipientAddress {
-                makeAddressLine(label: lang("Recipient"), address: payloadRecipientAddress)
-            }
+    var addressLine: some View {
+        WithPerceptionTracking {
+            Text(attributedAddresses)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 1)
+                .foregroundStyle(Color.air.secondaryLabel)
         }
-        .lineLimit(1)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 1)
-        .foregroundStyle(Color.air.secondaryLabel)
     }
 
-    private func makeAddressLine(label: String, address: String) -> some View {
-        let labelText = Text(label).textStyle(.supporting)
-        let addressText = Text(formatStartEndAddress(address))
-            .textStyle(.supportingStrong, content: .technical)
-        return Text("\(labelText) \(addressText)")
-            .lineSpacing(2)
+    private var attributedAddresses: AttributedString {
+        var result = AttributedString(lang("to") + " ")
+        result.font = WTypography.font(.supporting)
+
+        let addresses = [transfer.toAddress, transfer.payloadRecipientAddress].compactMap { $0 }
+        for (index, address) in addresses.enumerated() {
+            if index > 0 {
+                var separator = AttributedString(" · ")
+                separator.font = WTypography.font(.supporting)
+                result.append(separator)
+            }
+
+            let model = AddressViewModel(chain: chain, apiAddress: address, apiName: addressNames[address])
+                .withLocalName(account: accountContext)
+            let name = model.name?.nilIfEmpty
+            var value = AttributedString(name ?? formatStartEndAddress(address, prefix: 4, suffix: 4))
+            value.font = WTypography.font(.supportingStrong, content: name == nil ? .technical : .default)
+            result.append(value)
+        }
+
+        return result
     }
 }

@@ -11,6 +11,7 @@ struct WalletPickerOptionRow: View {
     var subtitle: String
     var showsDivider: Bool = false
     var isLoading: Bool = false
+    var accessibilityId: String? = nil
     var onTap: () -> ()
 
     var body: some View {
@@ -48,6 +49,7 @@ struct WalletPickerOptionRow: View {
             .frame(minHeight: 52)
             .backportGeometryGroup()
         }
+        .accessibilityIdentifier(ifPresent: accessibilityId)
         .overlay(alignment: .bottom) {
             if showsDivider {
                 Rectangle()

@@ -87,7 +87,7 @@ describe('BalanceStream', () => {
     expect(loadingEvents).toEqual([true, false]);
   });
 
-  it('refetches its balances when a slug of its chain passes to another token', async () => {
+  it('drops at once and refetches the balance under a slug that passes to another token', async () => {
     const watcher: WalletWatcher = {
       isConnected: false,
       destroy: jest.fn(),
@@ -127,12 +127,105 @@ describe('BalanceStream', () => {
     expect(fetchBalances).toHaveBeenCalledTimes(1);
 
     notifyTokenSlugsMove(['ethereum-0x00000000']);
+    expect(updateEvents.at(-1)).toEqual({});
     await refetch.promise;
     await new Promise((resolve) => setTimeout(resolve, 0));
     stream.destroy();
 
     expect(fetchBalances).toHaveBeenCalledTimes(2);
     expect(updateEvents.at(-1)).toEqual({ 'ethereum-0x00000000f9fd50c832d79facfe6f4e8ce90a5efb': 400n });
+  });
+
+  it('polls again when a slug moves while its first poll, which assigned the old slug, is running', async () => {
+    const watcher: WalletWatcher = {
+      isConnected: false,
+      destroy: jest.fn(),
+    };
+    const wsClient = {
+      watchWallets: jest.fn(() => watcher),
+    } as unknown as AbstractWebsocketClient<any, any, any, any, any>;
+    const firstPoll = new Deferred<StampedBalances>();
+    const refetch = new Deferred();
+    const fetchBalances = jest.fn()
+      .mockReturnValueOnce(firstPoll.promise)
+      .mockImplementationOnce(() => {
+        refetch.resolve();
+        return Promise.resolve({ balances: { 'ethereum-0x00000000f9fd50c832d79facfe6f4e8ce90a5efb': 400n } });
+      });
+    const updateEvents: ApiBalanceBySlug[] = [];
+
+    const stream = new BalanceStream({
+      chain: 'ethereum',
+      wsClient,
+      network: 'mainnet',
+      address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+      sendUpdateTokens: jest.fn(),
+      fallbackPollingOptions: FAST_POLLING_OPTIONS,
+      fetchBalancesCb: fetchBalances,
+    });
+    stream.onUpdate((balances) => updateEvents.push(balances));
+    stream.start();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchBalances).toHaveBeenCalledTimes(1);
+
+    notifyTokenSlugsMove(['ethereum-0x00000000']);
+    firstPoll.resolve({ balances: { 'ethereum-0x00000000': 400n } });
+    await refetch.promise;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    stream.destroy();
+
+    expect(fetchBalances).toHaveBeenCalledTimes(2);
+    expect(updateEvents.some((balances) => 'ethereum-0x00000000' in balances)).toBe(false);
+    expect(updateEvents.at(-1)).toEqual({ 'ethereum-0x00000000f9fd50c832d79facfe6f4e8ce90a5efb': 400n });
+  });
+
+  it('fetches every chain again when a moved slug of another chain was fetched with them', async () => {
+    const watcher: WalletWatcher = {
+      isConnected: false,
+      destroy: jest.fn(),
+    };
+    const wsClient = {
+      watchWallets: jest.fn(() => watcher),
+    } as unknown as AbstractWebsocketClient<any, any, any, any, any>;
+    const fetchBalances = jest.fn();
+    const refetch = new Deferred();
+    const fetchCrosschainBalances = jest.fn()
+      .mockResolvedValueOnce({ balances: { ethereum: 1n, 'base-0x00000000': 400n } })
+      .mockImplementationOnce(() => {
+        refetch.resolve();
+        return Promise.resolve({ balances: { ethereum: 1n, 'base-0x00000000f9fd50c832d79facfe6f4e8ce90a5efb': 400n } });
+      });
+    const updateEvents: ApiBalanceBySlug[] = [];
+
+    const stream = new BalanceStream({
+      chain: 'ethereum',
+      wsClient,
+      network: 'mainnet',
+      address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+      sendUpdateTokens: jest.fn(),
+      fallbackPollingOptions: FAST_POLLING_OPTIONS,
+      fetchBalancesCb: fetchBalances,
+      fetchCrosschainBalancesCb: fetchCrosschainBalances,
+    });
+    const firstLoad = new Promise<void>((resolve) => {
+      stream.onLoadingChange((isLoading) => {
+        if (!isLoading) resolve();
+      });
+    });
+    stream.onUpdate((balances) => updateEvents.push(balances));
+    stream.start();
+    await firstLoad;
+
+    notifyTokenSlugsMove(['base-0x00000000']);
+    expect(updateEvents.at(-1)).toEqual({ ethereum: 1n });
+    // A regular request queued after the move must not replace the cross-chain poll it asked for
+    stream.markWalletActiveAndForcePoll();
+    await refetch.promise;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    stream.destroy();
+
+    expect(fetchBalances).not.toHaveBeenCalled();
+    expect(updateEvents.at(-1)).toEqual({ ethereum: 1n, 'base-0x00000000f9fd50c832d79facfe6f4e8ce90a5efb': 400n });
   });
 
   it('does not start polling after destroy', async () => {

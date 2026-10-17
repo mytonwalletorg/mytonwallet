@@ -25,6 +25,7 @@ import org.mytonwallet.app_air.uicomponents.widgets.WView
 import org.mytonwallet.app_air.uicomponents.widgets.menu.WMenuPopup
 import org.mytonwallet.app_air.uicomponents.widgets.menu.WMenuPopup.BackgroundStyle
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
+import org.mytonwallet.app_air.uisettings.R as UISettingsR
 import org.mytonwallet.app_air.uisettings.viewControllers.assetsAndActivities.ChainDisplaySettingsVC
 import org.mytonwallet.app_air.uisettings.viewControllers.assetsAndActivities.views.ChainIconStackView
 import org.mytonwallet.app_air.uisettings.viewControllers.baseCurrency.BaseCurrencyVC
@@ -75,8 +76,14 @@ class AssetsAndActivitiesHeaderCell(
         return v
     }
 
-    private fun valueRow(label: WLabel, valueLabel: WLabel, onClick: () -> Unit): WView {
+    private fun valueRow(
+        label: WLabel,
+        valueLabel: WLabel,
+        viewId: Int? = null,
+        onClick: () -> Unit
+    ): WView {
         val v = WView(context)
+        viewId?.let { v.id = it }
         v.addView(label)
         v.addView(valueLabel)
         v.setConstraints {
@@ -104,7 +111,11 @@ class AssetsAndActivitiesHeaderCell(
     }
 
     private val baseCurrencyView: WView by lazy {
-        valueRow(baseCurrencyLabel, currentBaseCurrencyLabel) {
+        valueRow(
+            baseCurrencyLabel,
+            currentBaseCurrencyLabel,
+            viewId = UISettingsR.id.assets_base_currency
+        ) {
             navigationController.push(BaseCurrencyVC(context))
         }
     }

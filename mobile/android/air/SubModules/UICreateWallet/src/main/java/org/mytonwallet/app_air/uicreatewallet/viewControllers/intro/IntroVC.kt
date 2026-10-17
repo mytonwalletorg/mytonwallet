@@ -29,6 +29,7 @@ import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.base.WNavigationController
 import org.mytonwallet.app_air.uicomponents.base.WViewController
 import org.mytonwallet.app_air.uicomponents.base.WWindow
@@ -172,6 +173,7 @@ class IntroVC(context: Context, private val network: MBlockchainNetwork) :
 
     val termsView: WLabel by lazy {
         val btn = WLabel(context)
+        btn.id = UIComponentsR.id.intro_terms
         btn.textAlignment = TEXT_ALIGNMENT_CENTER
         btn.setStyle(14f)
         btn.setPaddingDp(16, 1, 16, 8)
@@ -180,6 +182,7 @@ class IntroVC(context: Context, private val network: MBlockchainNetwork) :
 
     val createNewWalletButton: WButton by lazy {
         val btn = WButton(context, WButton.Type.PRIMARY)
+        btn.id = UIComponentsR.id.intro_create_wallet
         btn.text = LocaleController.getString("Create New Wallet")
         btn.setOnClickListener {
             view.lockView()
@@ -192,6 +195,7 @@ class IntroVC(context: Context, private val network: MBlockchainNetwork) :
 
     val importExistingWalletButton: WButton by lazy {
         val btn = WButton(context, WButton.Type.SECONDARY)
+        btn.id = UIComponentsR.id.intro_import_wallet
         btn.text = LocaleController.getString("Import Existing Wallet")
         btn.setOnClickListener {
             if (!termsAccepted) {

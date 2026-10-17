@@ -755,6 +755,7 @@ function parseJettonSwap(action: SwapAction, options: ParseOptions): ParsedActio
     hashes: [],
     transactionIds: {},
     externalMsgHashNorm: action.trace_external_hash_norm ?? action.trace_external_hash,
+    ...(action.trace_id && { traceId: action.trace_id }),
     shouldLoadDetails: true,
   };
 
@@ -952,6 +953,7 @@ function parseCommonFields(
     id,
     timestamp: toMilliseconds(action.end_utime),
     externalMsgHashNorm: action.trace_external_hash_norm ?? action.trace_external_hash,
+    ...(action.trace_id && { traceId: action.trace_id }),
     fee: 0n, // Calculated when TransactionModal opens
     fromAddress,
     toAddress,

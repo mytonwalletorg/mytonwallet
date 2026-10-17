@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal } from '../../../global';
 
 import type {
+  AgentAnswerFeedbackV2,
   AgentHintsResponseV2,
   AgentPersistedActionV2,
   AgentPublicFollowUpV2,
@@ -12,6 +13,7 @@ import type {
   AgentV2ActionPresentation,
   AgentV2ComposerStatus,
   AgentV2HostContextSnapshot,
+  AgentV2InactiveAction,
   AgentV2IncompatibleHistoryMessage,
   AgentV2ResolvedAction,
 } from '../../../api/agentV2/types';
@@ -56,7 +58,9 @@ import { findSiteByUrl, openSite } from '../../explore/helpers/utils';
 import { buildAgentV2SendAuthorityKey } from '../helpers/sendActionAuthority';
 import { createAgentV2HydrationController } from './agentV2HydrationController';
 import {
+  type AgentV2MessagesState,
   type AgentV2MessagesStateAction,
+  findAgentV2MessageId,
   INITIAL_AGENT_V2_MESSAGES_STATE,
   reduceAgentV2MessagesState,
   selectAgentV2Activity,
@@ -67,6 +71,14 @@ import { createAgentV2RunController } from './agentV2RunController';
 import { createAgentV2StreamController } from './agentV2StreamController';
 
 import useLastCallback from '../../../hooks/useLastCallback';
+
+/** The rating requests of one answer that have not all settled yet */
+interface AgentV2FeedbackRequests {
+  /** The request that settles the rating; the SDK sends an answer's requests in order, so it settles last */
+  latest: { feedback?: AgentAnswerFeedbackV2 };
+  /** The rating the server keeps after the requests settled so far */
+  saved?: AgentAnswerFeedbackV2;
+}
 
 interface AgentV2Controllers {
   hydration: AgentV2HydrationController;
@@ -89,6 +101,8 @@ export interface UseAgentV2MessagesResult {
   clearChat: NoneToVoidFunction;
   /** Present while the server takes problem reports */
   reportProblem?: (messageId: number | undefined, comment: string) => Promise<AgentProblemReportOutcome>;
+  /** Sets the user's rating of a complete answer, or withdraws it without `feedback` */
+  rateMessage: (messageId: number, feedback?: AgentAnswerFeedbackV2) => void;
   consumeTextRevealSession: (messageId: number, key: string) => void;
   settleTextRevealSession: (messageId: number, key: string) => void;
   activity?: AgentRunActivityType;
@@ -129,11 +143,17 @@ export default function useAgentV2Messages({
   const [textRevealPresentations, setTextRevealPresentations] = useState<TextRevealPresentations>({});
   const [isProblemReportAvailable, setIsProblemReportAvailable] = useState(false);
   const stateRef = useRef(state);
+  // Keyed by the answer's server id, which a cleared chat cannot hand over to another answer
+  const feedbackRequestsRef = useRef(new Map<string, AgentV2FeedbackRequests>());
   const langRef = useRef(lang);
   const wasActiveRef = useRef(isActive);
   const controllersRef = useRef<AgentV2Controllers>();
   const dispatch = useLastCallback((action: AgentV2MessagesStateAction) => {
     stateRef.current = reduceAgentV2MessagesState(stateRef.current, action);
+    // History carries the rating the server keeps; a rating still being saved shows over it
+    if (action.kind === 'hydrationSucceeded' || action.kind === 'historyPageSucceeded') {
+      stateRef.current = applyPendingFeedback(stateRef.current, feedbackRequestsRef.current);
+    }
     setState(stateRef.current);
   });
   langRef.current = lang;
@@ -339,7 +359,7 @@ export default function useAgentV2Messages({
       const currentAuthorityKey = buildAgentV2ActionAuthorityKey(buildAgentV2HostContext(getGlobal()));
       if (currentAuthorityKey !== authorityKey) return;
       if (resolved.kind === 'inactive') {
-        controllers.stream.setActionPresentation(sourceId, action.id, resolved, generation);
+        showActionUnavailable(sourceId, action.id, resolved, generation);
         return;
       }
       dispatchResolvedAction(resolved);
@@ -368,6 +388,27 @@ export default function useAgentV2Messages({
       setIsProblemReportAvailable(Boolean(isAvailable));
     });
     return result?.error.code === 'rate_limited' ? 'rateLimited' : 'failed';
+  });
+
+  const rateMessage = useLastCallback(async (messageId: number, feedback?: AgentAnswerFeedbackV2) => {
+    const { thread, messages: currentMessages } = stateRef.current;
+    const message = currentMessages.find(({ id }) => id === messageId);
+    const sourceId = controllers.stream.getSourceId(messageId);
+    if (!thread || !sourceId || !message?.isComplete) return;
+    const request = { feedback };
+    const requests = feedbackRequestsRef.current.get(sourceId) ?? { latest: request, saved: message.feedback };
+    requests.latest = request;
+    feedbackRequestsRef.current.set(sourceId, requests);
+    dispatch({ kind: 'messageFeedbackChanged', messageId, feedback });
+    const result = await callApi('setAgentV2MessageFeedback', thread.id, sourceId, feedback);
+    if (result?.ok) requests.saved = result.value.feedback;
+    if (requests.latest !== request) return;
+    feedbackRequestsRef.current.delete(sourceId);
+    // A cleared chat no longer shows the answer
+    const currentMessageId = findAgentV2MessageId(stateRef.current, sourceId);
+    if (currentMessageId === undefined) return;
+    dispatch({ kind: 'messageFeedbackChanged', messageId: currentMessageId, feedback: requests.saved });
+    if (!result?.ok) showError({ error: '$agent_feedback_failed' });
   });
 
   const refreshExpiredComposerStatus = useLastCallback(() => {
@@ -403,6 +444,7 @@ export default function useAgentV2Messages({
     sendFollowup: controllers.run.sendFollowup,
     clearChat: controllers.run.clearChat,
     reportProblem: isProblemReportAvailable ? reportProblem : undefined,
+    rateMessage,
     acceptConsent,
     retryMessage,
     retryAdmission: controllers.run.retryAdmission,
@@ -419,14 +461,16 @@ export default function useAgentV2Messages({
       .find((message) => message.id === messageId)
       ?.actionPresentations?.[action.id];
     if (!isActiveSendPresentation(presentation)) {
-      controllers.stream.setActionPresentation(sourceId, action.id, { kind: 'inactive' });
+      showActionUnavailable(
+        sourceId, action.id, presentation?.kind === 'inactive' ? presentation : { kind: 'inactive' },
+      );
       return;
     }
 
     const initialHostContext = buildAgentV2HostContext(getGlobal());
     const initialAuthorityKey = buildAgentV2SendAuthorityKey(initialHostContext);
     if (!initialAuthorityKey) {
-      controllers.stream.setActionPresentation(sourceId, action.id, { kind: 'inactive' });
+      showActionUnavailable(sourceId, action.id, { kind: 'inactive' });
       return;
     }
 
@@ -460,11 +504,14 @@ export default function useAgentV2Messages({
       }
       presentationGeneration = currentGeneration;
       const currentMessage = stateRef.current.messages.find((message) => message.id === messageId);
-      if (
-        !currentMessage?.actions?.some(({ id }) => id === action.id)
-        || resolved?.kind !== 'sendForm'
-      ) {
+      if (!currentMessage?.actions?.some(({ id }) => id === action.id)) {
         controllers.stream.setActionPresentation(sourceId, action.id, { kind: 'inactive' }, presentationGeneration);
+        return;
+      }
+      if (resolved?.kind !== 'sendForm') {
+        showActionUnavailable(
+          sourceId, action.id, resolved?.kind === 'inactive' ? resolved : { kind: 'inactive' }, presentationGeneration,
+        );
         return;
       }
 
@@ -472,6 +519,20 @@ export default function useAgentV2Messages({
     } catch {
       controllers.stream.setActionPresentation(sourceId, action.id, { kind: 'inactive' }, presentationGeneration);
     }
+  }
+
+  function showActionUnavailable(
+    sourceId: string,
+    actionId: string,
+    inactive: AgentV2InactiveAction,
+    generation?: number,
+  ) {
+    controllers.stream.setActionPresentation(sourceId, actionId, inactive, generation);
+    showError({
+      error: inactive.reason === 'viewOnlyWallet'
+        ? '$action_not_available_view_mode'
+        : 'This action is no longer available.',
+    });
   }
 
   function dispatchResolvedAction(resolved: AgentV2ResolvedAction) {
@@ -635,6 +696,23 @@ function mapHints(
       prompt: copy.prompt,
     };
   });
+}
+
+function applyPendingFeedback(
+  state: AgentV2MessagesState,
+  requestsBySourceId: Map<string, AgentV2FeedbackRequests>,
+) {
+  let nextState = state;
+  requestsBySourceId.forEach((requests, sourceId) => {
+    const messageId = findAgentV2MessageId(nextState, sourceId);
+    if (messageId === undefined) return;
+    nextState = reduceAgentV2MessagesState(nextState, {
+      kind: 'messageFeedbackChanged',
+      messageId,
+      feedback: requests.latest.feedback,
+    });
+  });
+  return nextState;
 }
 
 function assertUnreachable(value: never): never {

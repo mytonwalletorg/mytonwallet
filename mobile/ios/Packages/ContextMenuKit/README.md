@@ -25,6 +25,7 @@ It is packaged as a standalone Swift package with:
 
 - `Package.swift`: Swift package manifest
 - `Sources/ContextMenuKit`: library sources
+- `Tests/ContextMenuKitTests`: unit tests, run with `xcodebuild test -scheme ContextMenuKit` and an iOS Simulator destination
 - `Examples/ContextMenuDemoApp`: checked-in example app with a local package dependency
 
 ## Public API
@@ -41,6 +42,8 @@ The main public entry points are:
 - `ContextMenuCustomRowSizing`
 - `ContextMenuCustomRowInteraction`
 - `ContextMenuCustomRowContext`
+- `ContextMenuAccessory`
+- `ContextMenuAccessoryContext`
 - `ContextMenuIcon`
 - `ContextMenuIconRenderingMode`
 - `ContextMenuBackdropStyle`
@@ -157,6 +160,24 @@ For portal-backed source cloning, provide `ContextMenuSourcePortal`:
 By default, portal-backed menus keep the backdrop continuous and render only the lifted portal clone. If you also want a matching hole cut out of the blur/dimming behind it, opt in with `showsBackdropCutout: true`.
 
 If the visible source shape is not just a simple rounded rect, `mask` also supports `.customAttachmentPath { rect in ... }` so the portal clone and backdrop cutout can use the exact same shape.
+
+An overlay menu can show an accessory over its source's top edge, such as a row of reactions. The accessory is placed by the offset of its top trailing corner from the source's top trailing corner and kept inside the screen; the panel attaches clear of the source and the accessory whatever `verticalPlacementBehavior` says, and when neither side has room, as for a source taller than the screen, it overlaps the source at the bottom. The menu panel's material fills `backgroundCapsules`, merging the ones that overlap into one shape, the content view handles its own taps, and taps inside the accessory never dismiss the menu. Right-to-left layouts mirror the placement and the capsules:
+
+```swift
+ContextMenuConfiguration(
+    rootPage: page,
+    accessory: ContextMenuAccessory(
+        size: CGSize(width: 104.0, height: 52.0),
+        topTrailingOffset: CGVector(dx: 16.0, dy: -40.0),
+        backgroundCapsules: [CGRect(x: 0.0, y: 0.0, width: 104.0, height: 52.0)]
+    ) { context in
+        ReactionsView(onSelect: { reaction in
+            react(reaction)
+            context.dismiss()
+        })
+    }
+)
+```
 
 For source-attached menus, `ContextMenuStyle` now defaults to:
 

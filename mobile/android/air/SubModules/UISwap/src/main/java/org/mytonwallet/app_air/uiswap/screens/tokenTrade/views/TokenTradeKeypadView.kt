@@ -7,6 +7,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -50,7 +51,18 @@ class TokenTradeKeypadView(
                     column == 0 -> "."
                     else -> "0"
                 }
-                val keyView = KeyView(context, if (isDelete) null else key)
+                val keyView = KeyView(
+                    context,
+                    if (isDelete) null else key,
+                    if (isDelete) {
+                        {
+                            onDelete()
+                            Haptics.play(this, HapticType.LIGHT_TAP)
+                        }
+                    } else {
+                        null
+                    }
+                )
                 keyView.contentDescription =
                     if (isDelete) LocaleController.getString("Delete") else key
                 keyView.setOnClickListener {
@@ -100,7 +112,20 @@ class TokenTradeKeypadView(
     }
 
     /** Animates the visible key without shrinking its touch target. */
-    private class KeyView(context: Context, private val title: String?) : FrameLayout(context) {
+    private class KeyView(
+        context: Context,
+        private val title: String?,
+        private val onRepeat: (() -> Unit)?
+    ) : FrameLayout(context) {
+        private var isClickHandled = false
+        private val repeatRunnable = object : Runnable {
+            override fun run() {
+                if (!isPressed || !isEnabled) return
+                onRepeat?.invoke()
+                postDelayed(this, REPEAT_INTERVAL)
+            }
+        }
+
         private val pressedBackground = View(context).apply {
             alpha = 0f
         }
@@ -143,10 +168,41 @@ class TokenTradeKeypadView(
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> setPressedAppearance(true)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> setPressedAppearance(false)
+                MotionEvent.ACTION_DOWN -> {
+                    setPressedAppearance(true)
+                    isClickHandled = false
+                    if (onRepeat != null && isEnabled) {
+                        isClickHandled = true
+                        onRepeat()
+                        postDelayed(
+                            repeatRunnable,
+                            ViewConfiguration.getLongPressTimeout().toLong()
+                        )
+                    }
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    setPressedAppearance(false)
+                    removeCallbacks(repeatRunnable)
+                    if (event.actionMasked == MotionEvent.ACTION_CANCEL || !isPressed) {
+                        isClickHandled = false
+                    }
+                }
             }
             return super.onTouchEvent(event)
+        }
+
+        override fun performClick(): Boolean {
+            if (isClickHandled) {
+                isClickHandled = false
+                return true
+            }
+            return super.performClick()
+        }
+
+        override fun onDetachedFromWindow() {
+            super.onDetachedFromWindow()
+            removeCallbacks(repeatRunnable)
         }
 
         private fun setPressedAppearance(pressed: Boolean) {
@@ -175,6 +231,7 @@ class TokenTradeKeypadView(
         const val ROWS = 4
         private const val SIDE_MARGIN = 18
         private const val MAX_WIDTH = 420
+        private const val REPEAT_INTERVAL = 50L
 
         // Design height: four 80dp rows with 8dp between them.
         val preferredHeight: Int

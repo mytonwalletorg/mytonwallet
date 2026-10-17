@@ -3,14 +3,13 @@ package org.mytonwallet.app_air.uicomponents.widgets.suggestion
 import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextWatcher
-import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import androidx.core.view.updateLayoutParams
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.lang.ref.WeakReference
-import kotlin.math.ceil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,7 +18,6 @@ import kotlinx.coroutines.withContext
 import org.mytonwallet.app_air.uicomponents.base.WRecyclerViewAdapter
 import org.mytonwallet.app_air.uicomponents.extensions.dp
 import org.mytonwallet.app_air.uicomponents.widgets.WCell
-import org.mytonwallet.app_air.uicomponents.widgets.WLabel
 import org.mytonwallet.app_air.uicomponents.widgets.WRecyclerView
 import org.mytonwallet.app_air.uicomponents.widgets.WThemedView
 import org.mytonwallet.app_air.uicomponents.widgets.WView
@@ -39,6 +37,8 @@ class WSuggestionView(context: Context, val onSuggest: (String) -> Unit) :
 
     companion object {
         val SUGGEST_CELL = WCell.Type(1)
+        private const val MAX_VISIBLE_SUGGESTIONS = 4
+        private const val CARD_MARGIN = 8f
     }
 
     private val rvAdapter = WRecyclerViewAdapter(WeakReference(this), arrayOf(SUGGEST_CELL))
@@ -47,12 +47,6 @@ class WSuggestionView(context: Context, val onSuggest: (String) -> Unit) :
     private var attachedInput: WeakReference<WWordInput>? = null
     private var currentFilterJob: Job? = null
 
-    private val measureLabel: WLabel by lazy {
-        WLabel(context).apply {
-            setStyle(15f)
-            maxLines = 1
-        }
-    }
     private val cardView: WView by lazy {
         WView(context).apply {
             elevation = 4f.dp
@@ -65,15 +59,22 @@ class WSuggestionView(context: Context, val onSuggest: (String) -> Unit) :
         val layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         layoutManager.isSmoothScrollbarEnabled = true
         rv.setLayoutManager(layoutManager)
+        rv.setPaddingRelative(6.dp, 0, 6.dp, 0)
+        rv.clipToPadding = false
         rv
     }
 
     override fun setupViews() {
         super.setupViews()
 
-        addView(cardView, LayoutParams(WRAP_CONTENT, MATCH_PARENT))
-        cardView.addView(recyclerView, LayoutParams(WRAP_CONTENT, MATCH_PARENT))
-        setConstraints { allEdges(cardView) }
+        visibility = INVISIBLE
+        addView(cardView, LayoutParams(0, 0))
+        cardView.addView(recyclerView, LayoutParams(0, MATCH_PARENT))
+        setConstraints {
+            toCenterX(cardView, CARD_MARGIN)
+            toTop(cardView, CARD_MARGIN)
+            toBottom(cardView, CARD_MARGIN)
+        }
         cardView.setConstraints { allEdges(recyclerView) }
 
         updateTheme()
@@ -140,6 +141,9 @@ class WSuggestionView(context: Context, val onSuggest: (String) -> Unit) :
             }
 
             suggestions = filteredSuggestions
+            val contentWidth = if (suggestions.size == 1) WRAP_CONTENT else 0
+            cardView.updateLayoutParams { width = contentWidth }
+            recyclerView.updateLayoutParams { width = contentWidth }
             rvAdapter.reloadData()
 
             val shouldShow =
@@ -150,65 +154,8 @@ class WSuggestionView(context: Context, val onSuggest: (String) -> Unit) :
                 recyclerView.post {
                     if (rvAdapter.itemCount > 0) recyclerView.scrollToPosition(0)
                 }
-                applyGeometry()
             }
         }
-    }
-
-    private fun applyGeometry() {
-        val input = attachedInput?.get() ?: return
-        val parentView = parent as? View ?: return
-
-        val parentWidth = parentView.width
-        val inputWidth = input.width
-
-        if (parentWidth <= 0 || inputWidth <= 0) {
-            post { applyGeometry() }
-            return
-        }
-
-        val horizontalMargin = 16.dp
-
-        val desiredWidth = measureContentWidth(suggestions).coerceAtLeast(0)
-        val lp = layoutParams
-        if (lp != null && lp.width != desiredWidth) {
-            lp.width = desiredWidth
-            layoutParams = lp
-        }
-
-        val rightLimit = (parentWidth - horizontalMargin).toFloat()
-        val leftLimit = horizontalMargin.toFloat()
-        val maxX = (rightLimit - desiredWidth).coerceAtLeast(leftLimit)
-
-        val textStartX = input.x + input.textField.x
-        val isLeftField = (input.x + inputWidth / 2f) <= parentWidth / 2f
-
-        val newX = if (isLeftField) {
-            textStartX.coerceIn(leftLimit, maxX)
-        } else {
-            val fits = textStartX + desiredWidth <= rightLimit
-            val candidate = if (fits) textStartX else (rightLimit - desiredWidth)
-            candidate.coerceIn(leftLimit, maxX)
-        }
-
-        x = newX
-        y = input.y - (48.dp + 8.dp)
-    }
-
-    private fun measureContentWidth(items: List<String>): Int {
-        if (items.isEmpty()) return 0
-
-        val maxWidth = 260.dp
-        var total = 0
-
-        for ((index, word) in items.withIndex()) {
-            val textWidth = ceil(measureLabel.paint.measureText(word)).toInt()
-            val side = if (index == 0) 24.dp else 12.dp
-            total += textWidth + side
-            if (total >= maxWidth) return maxWidth
-        }
-
-        return total
     }
 
     private var suggestions = emptyList<String>()
@@ -234,6 +181,13 @@ class WSuggestionView(context: Context, val onSuggest: (String) -> Unit) :
         indexPath: IndexPath
     ) {
         val cell = cellHolder.cell as WSuggestionCell
-        cell.configure(suggestions[indexPath.row], indexPath.row == 0, suggestions.size)
+        val cellMinWidth = if (suggestions.size == 1) {
+            0
+        } else {
+            val contentWidth = width - 2 * CARD_MARGIN.dp.toInt() -
+                recyclerView.paddingStart - recyclerView.paddingEnd
+            contentWidth / suggestions.size.coerceAtMost(MAX_VISIBLE_SUGGESTIONS)
+        }
+        cell.configure(suggestions[indexPath.row], indexPath.row == 0, cellMinWidth)
     }
 }

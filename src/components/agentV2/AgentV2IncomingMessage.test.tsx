@@ -47,6 +47,29 @@ describe('AgentV2IncomingMessage', () => {
     expect(response.getAttribute('dir')).toBeNull();
     expect(response.closest('[dir]')).toBe(root);
   });
+
+  it('offers rating buttons on a complete answer only and withdraws the chosen rating on a second press', async () => {
+    const onRate = jest.fn();
+    TeactDOM.render(
+      <>
+        <MessageBubble
+          message={{ ...message(), id: 1, isComplete: true, feedback: 'like' }}
+          isDisabled
+          onRate={onRate}
+        />
+        <MessageBubble message={{ ...message(), id: 2 }} isDisabled={false} onRate={onRate} />
+      </>,
+      root,
+    );
+    await pause(20);
+
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('button[aria-pressed]'));
+    expect(buttons.map((button) => [button.getAttribute('aria-label'), button.getAttribute('aria-pressed')]))
+      .toEqual([['Like', 'true'], ['Dislike', 'false']]);
+    buttons[0].click();
+    buttons[1].click();
+    expect(onRate.mock.calls).toEqual([[1, undefined], [1, 'dislike']]);
+  });
 });
 
 function message(): AgentMessage {

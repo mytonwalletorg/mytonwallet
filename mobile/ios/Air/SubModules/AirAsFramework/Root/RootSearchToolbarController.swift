@@ -47,6 +47,11 @@ final class RootSearchToolbarController: NSObject {
     private weak var sharedMainNavigationController: WNavigationController?
     private var hostConstraints: [NSLayoutConstraint] = []
     private var searchToolbarWidthConstraint: NSLayoutConstraint?
+    private var sideBarEdge: UIRectEdge?
+    private var viewportHorizontalConstraints: [NSLayoutConstraint] = []
+    private var searchToolbarCenterXConstraint: NSLayoutConstraint?
+    private var searchToolbarHeightConstraint: NSLayoutConstraint?
+    private var searchToolbarSideWidthConstraint: NSLayoutConstraint?
     private var isMigrating = false
     private var traitCollection: UITraitCollection { searchToolbarHostView.traitCollection }
 
@@ -54,8 +59,16 @@ final class RootSearchToolbarController: NSObject {
         super.init()
         installSearchToolbar()
         configureBottomBar()
+        if #available(iOS 27.1, *) {
+            searchToolbarViewportView.registerForTraitChanges(
+                UITraitCollection.systemTraitsAffectingVerticalBarEdge + [UITraitLayoutDirection.self]
+            ) { [weak self] (_: WTouchPassView, _: UITraitCollection) in
+                self?.updateToolbarPlacement()
+            }
+        }
         searchToolbarContainerView.onLayout = { [weak self] in
             guard let self else { return }
+            self.updateToolbarPlacement()
             self.updateSearchToolbarGeometry(for: self.searchToolbar.presentation)
         }
     }
@@ -68,6 +81,7 @@ final class RootSearchToolbarController: NSObject {
             self.host = host
             sharedMainNavigationController = navigation
             installBottomBar()
+            updateToolbarPlacement()
             configureNavigationControllers()
         } else {
             self.host = host
@@ -102,6 +116,9 @@ final class RootSearchToolbarController: NSObject {
         searchToolbarKeyboardAnimationID = nil
         searchToolbarKeyboardConstraint?.isActive = false
         searchToolbarKeyboardConstraint = nil
+        NSLayoutConstraint.deactivate(viewportHorizontalConstraints)
+        viewportHorizontalConstraints = []
+        sideBarEdge = nil
         NSLayoutConstraint.deactivate(hostConstraints)
         hostConstraints = []
         bottomGradientView.removeFromSuperview()
@@ -215,7 +232,7 @@ final class RootSearchToolbarController: NSObject {
         if isShowingRoot, installHomeNftSelectionToolbarIfNeeded(in: navigationController) {
             return
         }
-        let provider = viewController as? any SharedBottomToolbarContentProviding
+        let provider = sideBarEdge == nil ? viewController as? any SharedBottomToolbarContentProviding : nil
         let targetPresentation: UniversalSearchFieldPresentation = viewController is RootSearchViewController
             ? .search
             : sharedBottomToolbarPresentation(isShowingRoot: isShowingRoot, provider: provider)
@@ -260,7 +277,7 @@ final class RootSearchToolbarController: NSObject {
             return
         }
 
-        if targetPresentation != .homeToolbar {
+        if targetPresentation != .homeToolbar && targetPresentation != .sideToolbar {
             actionsMenuInteraction?.detach()
         }
         prepareBottomChromeVisibilityForTransition()
@@ -303,7 +320,7 @@ final class RootSearchToolbarController: NSObject {
                universalSearchViewController?.restoresKeyboard == true {
                 _ = searchToolbar.focus()
             }
-            bottomGradientView.alpha = targetPresentation == .empty ? 0 : 1
+            bottomGradientView.alpha = showsBottomGradient(for: targetPresentation) ? 1 : 0
             navigationController.view.layoutIfNeeded()
         } completion: { [weak self, weak navigationController] context in
             if let keyboardAnimationID {
@@ -346,7 +363,7 @@ final class RootSearchToolbarController: NSObject {
         if isShowingRoot, installHomeNftSelectionToolbarIfNeeded(in: navigationController) {
             return
         }
-        let provider = viewController as? any SharedBottomToolbarContentProviding
+        let provider = sideBarEdge == nil ? viewController as? any SharedBottomToolbarContentProviding : nil
         let targetPresentation: UniversalSearchFieldPresentation = viewController is RootSearchViewController
             ? .search
             : sharedBottomToolbarPresentation(isShowingRoot: isShowingRoot, provider: provider)
@@ -365,19 +382,80 @@ final class RootSearchToolbarController: NSObject {
         )
     }
 
+    private func updateToolbarPlacement() {
+        let hostView = searchToolbarHostView
+        let edge: UIRectEdge?
+        if #available(iOS 27.1, *) {
+            let isLTR = hostView.effectiveUserInterfaceLayoutDirection == .leftToRight
+            switch hostView.traitCollection.verticalBarEdge {
+            case .leading: edge = isLTR ? .left : .right
+            case .trailing: edge = isLTR ? .right : .left
+            default: edge = nil
+            }
+        } else {
+            edge = nil
+        }
+        guard edge != sideBarEdge else { return }
+        sideBarEdge = edge
+        updateViewportConstraints()
+        host?.searchRootContentControllers.forEach(applyChromeInsets)
+        sharedMainNavigationController?.viewControllers.forEach(applyChromeInsets)
+        updatePresentation()
+    }
+
+    private func updateViewportConstraints() {
+        guard searchToolbarViewportView.superview != nil else { return }
+        NSLayoutConstraint.deactivate(viewportHorizontalConstraints)
+        let hostView = searchToolbarHostView
+        viewportHorizontalConstraints = sideBarEdge == nil ? [
+            searchToolbarViewportView.leadingAnchor.constraint(equalTo: hostView.safeAreaLayoutGuide.leadingAnchor),
+            searchToolbarViewportView.trailingAnchor.constraint(equalTo: hostView.safeAreaLayoutGuide.trailingAnchor),
+        ] : [
+            searchToolbarViewportView.leadingAnchor.constraint(equalTo: hostView.leadingAnchor),
+            searchToolbarViewportView.trailingAnchor.constraint(equalTo: hostView.trailingAnchor),
+        ]
+        NSLayoutConstraint.activate(viewportHorizontalConstraints)
+    }
+
     private func updateSearchToolbarGeometry(for presentation: UniversalSearchFieldPresentation) {
-        let isSearch = presentation == .search
-        searchToolbarLeadingConstraint?.constant = isSearch ? 8 : 28
-        searchToolbarTrailingConstraint?.constant = isSearch ? -8 : -28
-        searchToolbarWidthConstraint?.constant = isSearch ? -16 : -56
-        bottomBarBottomConstraint?.constant = isSearch ? -10 : homeToolbarBottomInset
+        let isSideToolbar = presentation == .sideToolbar && sideBarEdge != nil
+        searchToolbarSideWidthConstraint?.isActive = isSideToolbar
+        searchToolbarLeadingConstraint?.isActive = !isSideToolbar
+        searchToolbarTrailingConstraint?.isActive = !isSideToolbar
+        searchToolbarWidthConstraint?.isActive = !isSideToolbar
+        searchToolbarHeightConstraint?.constant = isSideToolbar ? 108 : 48
+        if #available(iOS 27.1, *), isSideToolbar {
+            let hostView = searchToolbarHostView
+            guard let buttonFrame = hostView.verticalToolbarBottomButtonFrame else { return }
+            let origin = searchToolbarContainerView.convert(CGPoint(x: buttonFrame.midX, y: buttonFrame.maxY), from: hostView)
+            searchToolbarCenterXConstraint?.constant = origin.x - searchToolbarContainerView.bounds.midX
+            bottomBarBottomConstraint?.constant = origin.y - searchToolbarContainerView.bounds.maxY
+        } else {
+            let isSearch = presentation == .search
+            let hostView = searchToolbarHostView
+            var insets = sideBarEdge == nil ? UIEdgeInsets.zero : hostView.safeAreaInsets
+            if isSearch, sideBarEdge != nil, let window = hostView.window {
+                // Extend into the window's side area, preserving any additional
+                // inset that the split controller reserves for its sidebar.
+                let windowSafeArea = hostView.convert(window.safeAreaLayoutGuide.layoutFrame, from: window)
+                insets.left = max(0, insets.left - max(0, windowSafeArea.minX - hostView.bounds.minX))
+                insets.right = max(0, insets.right - max(0, hostView.bounds.maxX - windowSafeArea.maxX))
+            }
+            searchToolbarCenterXConstraint?.constant = (insets.left - insets.right) / 2
+            searchToolbarLeadingConstraint?.constant = isSearch ? 8 : 28
+            searchToolbarTrailingConstraint?.constant = isSearch ? -8 : -28
+            searchToolbarWidthConstraint?.constant = -(isSearch ? 16 : 56) - insets.left - insets.right
+            bottomBarBottomConstraint?.constant = isSearch ? -10 : homeToolbarBottomInset
+        }
     }
 
     private func sharedBottomToolbarPresentation(
         isShowingRoot: Bool,
         provider: (any SharedBottomToolbarContentProviding)?
     ) -> UniversalSearchFieldPresentation {
-        if isShowingRoot, host?.showsRootSearchToolbar == true {
+        if sideBarEdge != nil {
+            .sideToolbar
+        } else if isShowingRoot, host?.showsRootSearchToolbar == true {
             .homeToolbar
         } else if provider?.isSharedBottomToolbarEnabled == true {
             .compactToolbar
@@ -445,7 +523,7 @@ final class RootSearchToolbarController: NSObject {
             activeSharedBottomToolbarProvider?.setSharedBottomToolbarHosted(false)
             activeSharedBottomToolbarProvider = nil
             searchToolbar.setCompactActions([])
-            if presentation == .homeToolbar {
+            if presentation == .homeToolbar || presentation == .sideToolbar {
                 actionsMenuInteraction?.attach(to: searchToolbar.trailingButtonView)
             } else {
                 actionsMenuInteraction?.detach()
@@ -458,16 +536,20 @@ final class RootSearchToolbarController: NSObject {
     private func prepareBottomChromeVisibilityForTransition() {
         searchToolbar.isHidden = false
         bottomGradientView.isHidden = false
-        bottomGradientView.alpha = searchToolbar.presentation == .empty ? 0 : 1
+        bottomGradientView.alpha = showsBottomGradient(for: searchToolbar.presentation) ? 1 : 0
     }
 
     private func finishBottomChromeVisibility(
         at presentation: UniversalSearchFieldPresentation
     ) {
-        let isVisible = presentation != .empty
+        let isVisible = showsBottomGradient(for: presentation)
         searchToolbar.isHidden = false
         bottomGradientView.alpha = isVisible ? 1 : 0
         bottomGradientView.isHidden = !isVisible
+    }
+
+    private func showsBottomGradient(for presentation: UniversalSearchFieldPresentation) -> Bool {
+        presentation != .empty && presentation != .sideToolbar
     }
 
     func applyChromeInsets(to controller: UIViewController) {
@@ -475,7 +557,7 @@ final class RootSearchToolbarController: NSObject {
         let previous = contentInsets[identifier].flatMap { $0.controller === controller ? $0.bottom : nil } ?? 0
         let isRoot = host?.searchRootContentControllers.contains { $0 === controller } == true
         let usesToolbar = (controller as? any SharedBottomToolbarContentProviding)?.isSharedBottomToolbarEnabled == true
-        let bottom: CGFloat = isRoot || usesToolbar ? rootBottomChromeHeight : 0
+        let bottom: CGFloat = sideBarEdge == nil && (isRoot || usesToolbar) ? rootBottomChromeHeight : 0
         if bottom != previous {
             controller.additionalSafeAreaInsets.bottom += bottom - previous
         }
@@ -622,16 +704,21 @@ final class RootSearchToolbarController: NSObject {
         searchToolbarViewportView.addSubview(container)
         searchToolbar.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(searchToolbar)
-        let leading = searchToolbar.leadingAnchor.constraint(greaterThanOrEqualTo: container.safeAreaLayoutGuide.leadingAnchor, constant: 28)
-        let trailing = searchToolbar.trailingAnchor.constraint(lessThanOrEqualTo: container.safeAreaLayoutGuide.trailingAnchor, constant: -28)
+        // Viewport placement and presentation insets already account for the split
+        // panel. Do not inset Search again for Duo's side toolbar area.
+        let leading = searchToolbar.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 28)
+        let trailing = searchToolbar.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -28)
         let width = searchToolbar.widthAnchor.constraint(equalTo: container.widthAnchor, constant: -56)
         width.priority = .defaultHigh
         let bottom = searchToolbar.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: homeToolbarBottomInset)
+        let center = searchToolbar.centerXAnchor.constraint(equalTo: container.centerXAnchor)
+        let height = searchToolbar.heightAnchor.constraint(equalToConstant: 48)
+        searchToolbarCenterXConstraint = center
+        searchToolbarHeightConstraint = height
+        searchToolbarSideWidthConstraint = searchToolbar.widthAnchor.constraint(equalToConstant: 48)
         NSLayoutConstraint.activate([
-            leading, trailing, width, bottom,
-            searchToolbar.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            leading, trailing, width, bottom, center, height,
             searchToolbar.widthAnchor.constraint(lessThanOrEqualToConstant: 600),
-            searchToolbar.heightAnchor.constraint(equalToConstant: 48),
         ])
         searchToolbarLeadingConstraint = leading
         searchToolbarTrailingConstraint = trailing
@@ -1018,8 +1105,6 @@ final class RootSearchToolbarController: NSObject {
         hostConstraints = [
             // A split secondary can span the window behind the sidebar. Its safe
             // area identifies the actual content panel in both split behaviors.
-            searchToolbarViewportView.leadingAnchor.constraint(equalTo: toolbarHostView.safeAreaLayoutGuide.leadingAnchor),
-            searchToolbarViewportView.trailingAnchor.constraint(equalTo: toolbarHostView.safeAreaLayoutGuide.trailingAnchor),
             searchToolbarViewportView.topAnchor.constraint(equalTo: toolbarHostView.topAnchor),
             searchToolbarViewportView.bottomAnchor.constraint(equalTo: toolbarHostView.bottomAnchor),
             searchToolbarContainerView.leadingAnchor.constraint(equalTo: searchToolbarViewportView.leadingAnchor),
@@ -1033,6 +1118,7 @@ final class RootSearchToolbarController: NSObject {
             bottomGradientView.heightAnchor.constraint(equalToConstant: rootBottomGradientHeight),
         ]
         NSLayoutConstraint.activate(hostConstraints)
+        updateViewportConstraints()
     }
 }
 

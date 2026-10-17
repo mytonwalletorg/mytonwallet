@@ -80,6 +80,7 @@ public class AddViewWalletVC: CreateWalletBaseVC {
         if #available(iOS 18.0, *) {
             addressTextView.writingToolsBehavior = .none
         }
+        addressTextView.accessibilityIdentifier = "view_address_input"
         addressTextView.delegate = self
         addressTextView.setContentCompressionResistancePriority(.required, for: .vertical)
         addressContainer.addSubview(addressTextView)
@@ -109,6 +110,7 @@ public class AddViewWalletVC: CreateWalletBaseVC {
 
         continueButton = addBottomButton(bottomConstraint: false)
         continueButton.setTitle(lang("Continue"), for: .normal)
+        continueButton.accessibilityIdentifier = "view_continue"
         continueButton.addTarget(self, action: #selector(onContinue), for: .touchUpInside)
         continueButton.isEnabled = false
 
@@ -132,6 +134,9 @@ public class AddViewWalletVC: CreateWalletBaseVC {
             addressTextView.leadingAnchor.constraint(equalTo: addressContainer.leadingAnchor, constant: 16),
             addressTextView.trailingAnchor.constraint(lessThanOrEqualTo: pasteButton.leadingAnchor, constant: -12),
             addressTextView.trailingAnchor.constraint(lessThanOrEqualTo: clearButton.leadingAnchor, constant: -8),
+            // An empty text view has no intrinsic width; stretch it to the
+            // buttons so the whole row is tappable and visible to accessibility.
+            addressTextView.trailingAnchor.constraint(equalTo: pasteButton.leadingAnchor, constant: -12).withPriority(.defaultLow),
 
             placeholderLabel.leadingAnchor.constraint(equalTo: addressTextView.leadingAnchor),
             placeholderLabel.centerYAnchor.constraint(equalTo: addressTextView.centerYAnchor),

@@ -39,6 +39,7 @@ class TokenTradeModel(
         private set
     var cardCurrency: MBaseCurrency? = null
         private set
+    private var isDefaultCard = false
     private var cardMaximum: BigInteger? = null
     private var cardMaximumError: String? = null
     private var retainedTokenAmount: BigInteger? = null
@@ -348,10 +349,28 @@ class TokenTradeModel(
         status: SwapViewModel.UiStatus? = this.status
     ) {
         val hadState = swapState != null
+        val accountChanged = state != null && state.wallet.accountId != swapState?.wallet?.accountId
         swapState = state
         this.estimate = estimate
         this.status = status
+        if (accountChanged) state.let(::selectDefaultCardIfEmpty)
         if (!hadState && state != null && hasAmount) updateSwapAmount()
+    }
+
+    private fun selectDefaultCardIfEmpty(state: SwapUiInputState) {
+        if (isDefaultCard) {
+            cardCurrency = null
+            isDefaultCard = false
+        }
+        if (!isBuying || cardCurrency != null) return
+        if (state.wallet.balances.values.any { it > BigInteger.ZERO }) return
+        val available = availableCardCurrencies
+        listOf(WalletCore.baseCurrency, MBaseCurrency.USD)
+            .firstOrNull { available.contains(it) }
+            ?.let {
+                selectCard(it)
+                isDefaultCard = cardCurrency == it
+            }
     }
 
     fun userEditedInput(input: TokenTradeAmountInput) {
@@ -386,6 +405,7 @@ class TokenTradeModel(
 
     fun selectCard(currency: MBaseCurrency) {
         if (!availableCardCurrencies.contains(currency)) return
+        isDefaultCard = false
         val amount = typedTokenAmount
         val changesCurrency = this.currency != currency
         cardCurrency = currency
@@ -395,6 +415,7 @@ class TokenTradeModel(
 
     fun selectToken(asset: IApiToken) {
         if (asset.slug == token.slug) return
+        isDefaultCard = false
         val amount = typedTokenAmount
         val changesCurrency = currency != WalletCore.baseCurrency
         cardCurrency = null

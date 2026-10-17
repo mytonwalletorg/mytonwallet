@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "26.10.4",
+  "version": "26.10.5",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -55,6 +55,7 @@
     "check:fix": "npm run fix:file-names && stylelint \"**/*.{css,scss}\" --fix && eslint . --fix",
     "fix:file-names": "node dev/fixFileNames.mjs",
     "test:file-names": "node --test dev/fileNamingConfigTests.mjs dev/fixFileNamesTests.mjs",
+    "test:layout-animation": "node --test dev/layoutAnimationPluginTests.mjs",
     "test:extension-licenses": "node --test dev/extensionLicensesTests.mjs",
     "test:signing-schedule": "node --test dev/signingExpiryScheduleTests.mjs",
     "test:web-untouched": "node --test dev/web-untouched-tests.mjs",
@@ -66,6 +67,7 @@
     "dev:agent:v2:ios": "bash dev/agentV2/iosLocal.sh",
     "dev:agent:v2:ios:codex": "cross-env AGENT_V2_IOS_PROVIDER=codex_subscription bash dev/agentV2/iosLocal.sh",
     "smoke:agent:v2:local": "npm run contract:agent:v2:check && bash dev/agentV2/smokeLocal.sh",
+    "test:web-funnel-storage": "node dev/testWebFunnelStorage.mjs",
     "test:agent:v2:e2e": "playwright test --config playwright.agent-v2.config.ts",
     "test:record": "playwright codegen localhost:1235",
     "prepare": "husky",

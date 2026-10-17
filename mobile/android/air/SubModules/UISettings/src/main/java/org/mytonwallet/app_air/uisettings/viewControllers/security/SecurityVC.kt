@@ -29,6 +29,7 @@ import org.mytonwallet.app_air.uicomponents.widgets.menu.WMenuPopup.BackgroundSt
 import org.mytonwallet.app_air.uicomponents.widgets.setBackgroundColor
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
 import org.mytonwallet.app_air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState
+import org.mytonwallet.app_air.uisettings.R
 import org.mytonwallet.app_air.uisettings.viewControllers.RecoveryPhraseVC
 import org.mytonwallet.app_air.uisettings.viewControllers.mfa.MfaVC
 import org.mytonwallet.app_air.uisettings.viewControllers.settings.cells.SettingsItemCell
@@ -102,7 +103,8 @@ class SecurityVC(context: Context) : WViewController(context) {
                 icon = org.mytonwallet.app_air.icons.R.drawable.ic_export,
                 title = LocaleController.getString("\$back_up_security"),
                 value = null,
-                hasTintColor = false
+                hasTintColor = false,
+                testViewId = R.id.security_back_up
             ),
             subtitle = null,
             isFirst = true,
@@ -175,6 +177,7 @@ class SecurityVC(context: Context) : WViewController(context) {
                 }
             }
         ).apply {
+            id = R.id.security_biometric_auth
             isGone = !BiometricHelpers.canAuthenticate(context)
         }
     }
@@ -185,7 +188,8 @@ class SecurityVC(context: Context) : WViewController(context) {
             LocaleController.getString("Change Passcode"),
             "",
             KeyValueRowView.Mode.LINK,
-            isLast = true
+            isLast = true,
+            viewId = R.id.security_change_passcode
         ).apply {
             if (biometricAuthRow.isGone) setTopRadius(ViewConstants.BLOCK_RADIUS.dp)
             setOnClickListener {
@@ -261,7 +265,9 @@ class SecurityVC(context: Context) : WViewController(context) {
                     }
                 }
             }
-        )
+        ).apply {
+            id = R.id.security_app_lock
+        }
     }
 
     private val lockTimeView = WEditableItemView(context).apply {
@@ -276,7 +282,8 @@ class SecurityVC(context: Context) : WViewController(context) {
             LocaleController.getString("Auto-Lock"),
             "",
             KeyValueRowView.Mode.PRIMARY,
-            isLast = false
+            isLast = false,
+            viewId = R.id.security_auto_lock
         ).apply {
             isGone = !WGlobalStorage.isAppLockEnabled()
             setValueView(lockTimeView)
@@ -369,7 +376,9 @@ class SecurityVC(context: Context) : WViewController(context) {
                     }
                 }
             }
-        )
+        ).apply {
+            id = R.id.security_remember_passcode
+        }
     }
 
     private val rememberPasscodeFooterLabel: WLabel by lazy {
@@ -395,7 +404,8 @@ class SecurityVC(context: Context) : WViewController(context) {
             LocaleController.getString("Auto-Exit"),
             "",
             KeyValueRowView.Mode.PRIMARY,
-            isLast = true
+            isLast = true,
+            viewId = R.id.security_auto_exit
         ).apply {
             setTopRadius(ViewConstants.BLOCK_RADIUS.dp)
             setValueView(autoExitValueView)
@@ -443,7 +453,9 @@ class SecurityVC(context: Context) : WViewController(context) {
         onChange = { isChecked ->
             WGlobalStorage.setIsScreenRecordWarningDisabled(isChecked)
         }
-    )
+    ).apply {
+        id = R.id.security_disable_screen_record_warning
+    }
 
     private val spacer4 = WBaseView(context)
 
@@ -460,7 +472,9 @@ class SecurityVC(context: Context) : WViewController(context) {
                 WGlobalStorage.setIsAllowSuspiciousActions(it, isChecked)
             }
         }
-    )
+    ).apply {
+        id = R.id.security_allow_suspicious_actions
+    }
 
     private val allowSuspiciousActionsFooterLabel: WLabel by lazy {
         WLabel(context).apply {

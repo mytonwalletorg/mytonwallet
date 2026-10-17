@@ -18,20 +18,28 @@ public struct AccountMenuCell: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(accountContext.account.displayName)
-                        .textStyle(.body)
-                        .foregroundStyle(Color.air.primaryLabel)
-                        .lineLimit(1)
-                        .frame(height: 20)
+                    HStack(spacing: 6) {
+                        Text(accountContext.account.displayName)
+                            .textStyle(.body)
+                            .foregroundStyle(Color.air.primaryLabel)
+                            .lineLimit(1)
+                            .allowsTightening(true)
 
-                    HStack(spacing: 4) {
+                        CardMiniature(accountContext: accountContext)
+                            .fixedSize()
+                            .layoutPriority(1)
+
                         let addressLine = accountContext.addressLine
                         if addressLine.isTestnet || addressLine.leadingIcon != nil {
                             accountTypeIcons
+                                .foregroundStyle(Color.air.secondaryLabel)
                                 .fixedSize()
-                                .layoutPriority(1)
+                                .layoutPriority(2)
                         }
+                    }
+                    .frame(height: 20)
 
+                    HStack(spacing: 4) {
                         if let balance = accountContext.balance {
                             Text(balance.formatted(.baseCurrencyEquivalent, roundHalfUp: true))
                                 .textStyle(.footnote, content: .technical)

@@ -229,6 +229,7 @@ function ExploreSearch({
           autoCapitalize="none"
           spellCheck={false}
           inputMode="url"
+          enterKeyHint="search"
           onKeyDown={handleKeyDown}
           onChange={handleSearchValueChange}
           onFocus={markSearchFocused}

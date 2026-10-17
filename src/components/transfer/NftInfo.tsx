@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, getGlobal } from '../../global';
 
+import type { ApiChain } from '../../api/types';
 import { MediaType, type NftTransfer } from '../../global/types';
 
 import { ANIMATED_STICKER_TINY_SIZE_PX } from '../../config';
@@ -20,32 +21,33 @@ import styles from './NftInfo.module.scss';
 
 interface OwnProps {
   nft?: NftTransfer;
-  withTonExplorer?: boolean;
+  chain?: ApiChain;
+  selectedExplorerId?: string;
+  withExplorer?: boolean;
   // Currently, MediaViewer can only display NFTs that are owned by the user
   withMediaViewer?: boolean;
 }
 
 function NftInfo({
-  nft, withTonExplorer, withMediaViewer,
+  nft, chain, selectedExplorerId, withExplorer, withMediaViewer,
 }: OwnProps) {
   const { openMediaViewer } = getActions();
   const lang = useLang();
 
-  const tonExplorerTitle = useMemo(() => {
+  const explorerTitle = useMemo(() => {
     return (lang('Open on %explorer_name%', {
-      explorer_name: getExplorerName(),
+      explorer_name: getExplorerName(chain, selectedExplorerId),
     }) as string[]
     ).join('');
-  }, [lang]);
+  }, [lang, chain, selectedExplorerId]);
 
   const handleClickInfo = (event: React.MouseEvent) => {
     event.stopPropagation();
-    const global = getGlobal();
     const url = getExplorerNftUrl(
-      undefined,
+      chain,
       nft!.address,
-      global.settings.isTestnet,
-      global.settings.selectedExplorerIds?.ton,
+      getGlobal().settings.isTestnet,
+      selectedExplorerId,
     )!;
 
     void openUrl(url);
@@ -90,12 +92,12 @@ function NftInfo({
           <div className={styles.title}>
             {name}
             {
-              withTonExplorer && (
+              withExplorer && (
                 <i
                   className={buildClassName(styles.icon, 'icon-explorer-small')}
                   onClick={handleClickInfo}
-                  title={tonExplorerTitle}
-                  aria-label={tonExplorerTitle}
+                  title={explorerTitle}
+                  aria-label={explorerTitle}
                   role="button"
                   tabIndex={0}
                 />

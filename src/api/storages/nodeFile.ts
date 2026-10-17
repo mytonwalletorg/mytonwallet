@@ -10,9 +10,8 @@ const BIGINT_STORAGE_TAG = '__mtw_bigint';
 const UINT8_ARRAY_STORAGE_TAG = '__mtw_uint8array';
 
 export function createNodeFileStorage(config: NodeFileStorageConfig): Storage {
-  const filePath = resolveStorageFilePath(config);
   const fileStore = createLockedJsonFileStore<Record<string, any>>({
-    filePath,
+    ...resolveStorageLocation(config),
     replaceValue: replaceStorageValue,
     reviveValue: reviveStorageValue,
   });
@@ -63,16 +62,21 @@ export function createNodeFileStorage(config: NodeFileStorageConfig): Storage {
 }
 
 export function resolveDefaultNodeFileStoragePath(profile = HEADLESS_STORAGE_DIR_NAME) {
+  if (profile === '.' || profile === '..' || /[\\/]/.test(profile)) {
+    throw new Error(`Node file storage profile must be a plain name, got ${JSON.stringify(profile)}`);
+  }
+
   return joinFilePath(homedir(), `.${HEADLESS_STORAGE_DIR_NAME}`, profile, HEADLESS_STORAGE_FILE_NAME);
 }
 
-function resolveStorageFilePath(config: NodeFileStorageConfig) {
+function resolveStorageLocation(config: NodeFileStorageConfig) {
+  // A configured path may sit in a directory the user shares with other files, so only a profile directory is ours.
   if (config.path) {
-    return resolveFilePath(expandNodeFileStoragePath(config.path));
+    return { filePath: resolveFilePath(expandNodeFileStoragePath(config.path)), ownsDirectory: false };
   }
 
   if (config.profile) {
-    return resolveDefaultNodeFileStoragePath(config.profile);
+    return { filePath: resolveDefaultNodeFileStoragePath(config.profile), ownsDirectory: true };
   }
 
   throw new Error('Node file storage requires an explicit `path` or `profile`');

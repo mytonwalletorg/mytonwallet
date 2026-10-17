@@ -1,14 +1,17 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, open, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 
 const LOCK_DIR_SUFFIX = '.lock';
 const LOCK_METADATA_FILE_NAME = 'owner.json';
 const LOCK_STALE_MS = 30_000;
 const LOCK_RETRY_DELAY_MS = 50;
 const LOCK_MAX_ATTEMPTS = 200;
+const PRIVATE_DIR_MODE = 0o700;
+const PRIVATE_FILE_MODE = 0o600;
 
 interface LockedJsonFileStoreOptions {
   filePath: string;
+  ownsDirectory?: boolean;
   replaceValue?(key: string, value: unknown): unknown;
   reviveValue?(key: string, value: unknown): unknown;
 }
@@ -22,13 +25,16 @@ export function createLockedJsonFileStore<T extends Record<string, any>>(
   options: LockedJsonFileStoreOptions,
 ): LockedJsonFileStore<T> {
   let operationPromise = Promise.resolve();
+  let restrictPromise: Promise<void> | undefined;
 
   return {
     async read() {
+      await restrictExistingPermissions();
       return readJsonFile<T>(options.filePath, options.reviveValue);
     },
     mutate<TResult>(callback: (data: T) => TResult | Promise<TResult>) {
       return enqueueOperation(async () => {
+        await restrictExistingPermissions();
         const releaseLock = await acquireFileLock(options.filePath);
 
         try {
@@ -52,6 +58,24 @@ export function createLockedJsonFileStore<T extends Record<string, any>>(
 
     return nextPromise;
   }
+
+  function restrictExistingPermissions() {
+    restrictPromise ??= restrictPermissions(options);
+    return restrictPromise;
+  }
+}
+
+async function restrictPermissions({ filePath, ownsDirectory }: LockedJsonFileStoreOptions) {
+  if (ownsDirectory) {
+    await restrictMode(dirnamePath(filePath), PRIVATE_DIR_MODE);
+  }
+
+  await restrictMode(filePath, PRIVATE_FILE_MODE);
+}
+
+async function restrictMode(path: string, mode: number) {
+  // Best effort: a missing path is created private later, and a foreign or read-only one must stay usable.
+  await chmod(path, mode).catch(() => undefined);
 }
 
 async function acquireFileLock(filePath: string) {
@@ -61,12 +85,15 @@ async function acquireFileLock(filePath: string) {
     createdAt: Date.now(),
   });
 
-  await mkdir(dirnamePath(filePath), { recursive: true });
+  await createStoreDirectory(dirnamePath(filePath));
 
   for (let attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt += 1) {
     try {
-      await mkdir(lockDirPath);
-      await writeFile(joinFilePath(lockDirPath, LOCK_METADATA_FILE_NAME), lockMetadata, 'utf8');
+      await mkdir(lockDirPath, { mode: PRIVATE_DIR_MODE });
+      await writeFile(joinFilePath(lockDirPath, LOCK_METADATA_FILE_NAME), lockMetadata, {
+        encoding: 'utf8',
+        mode: PRIVATE_FILE_MODE,
+      });
 
       return async () => {
         try {
@@ -138,13 +165,61 @@ async function writeJsonFile(
   data: Record<string, any>,
   replaceValue?: (key: string, value: unknown) => unknown,
 ) {
-  await mkdir(dirnamePath(filePath), { recursive: true });
+  const dirPath = dirnamePath(filePath);
+
+  await createStoreDirectory(dirPath);
 
   const tempFilePath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   const content = JSON.stringify(data, replaceValue);
 
-  await writeFile(tempFilePath, content, 'utf8');
-  await rename(tempFilePath, filePath);
+  try {
+    await writeSyncedFile(tempFilePath, content);
+    await rename(tempFilePath, filePath);
+  } catch (err) {
+    await rm(tempFilePath, { force: true }).catch(() => undefined);
+    throw err;
+  }
+
+  // Best effort: the rename has already happened, and some systems refuse to open or sync a directory.
+  await syncDirectory(dirPath).catch(() => undefined);
+}
+
+async function createStoreDirectory(dirPath: string) {
+  const firstCreatedPath = await mkdir(dirPath, { recursive: true, mode: PRIVATE_DIR_MODE });
+
+  if (!firstCreatedPath) {
+    return;
+  }
+
+  // A new directory survives a power loss only once the directory holding its entry is synced.
+  for (let path = dirPath; path !== dirnamePath(path); path = dirnamePath(path)) {
+    await syncDirectory(dirnamePath(path)).catch(() => undefined);
+
+    if (path === firstCreatedPath) {
+      break;
+    }
+  }
+}
+
+async function writeSyncedFile(filePath: string, content: string) {
+  const handle = await open(filePath, 'wx', PRIVATE_FILE_MODE);
+
+  try {
+    await handle.writeFile(content, 'utf8');
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+
+async function syncDirectory(dirPath: string) {
+  const handle = await open(dirPath, 'r');
+
+  try {
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
 }
 
 function joinFilePath(...parts: string[]) {

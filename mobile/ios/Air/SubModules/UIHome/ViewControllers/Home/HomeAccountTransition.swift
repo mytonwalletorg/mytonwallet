@@ -30,7 +30,7 @@ final class HomeAccountTransition<Presentation> {
         }
     }
 
-    isolated deinit {
+    nonisolated deinit {
         task?.cancel()
     }
 }

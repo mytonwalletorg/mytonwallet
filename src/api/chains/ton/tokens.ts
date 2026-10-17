@@ -28,7 +28,7 @@ import {
   toBase64Address, toRawAddress,
 } from './util/tonCore';
 import {
-  buildTokenSlug, getTokenByAddress, updateTokens, waitForTokenSlugResolver,
+  buildTokenSlug, getTokenByAddress, updateTokens, updateTokensFetchedTogether,
 } from '../../common/tokens';
 import { extractMetadata, getProxiedImage } from './toncenter/metadata';
 import { callToncenterV3, fetchMetadata } from './toncenter/other';
@@ -37,7 +37,6 @@ import { updateTokenHashes } from './priceless';
 import { fetchIsAddressInitialized, isAddressInitialized } from './wallet';
 
 export type TokenBalanceParsed = {
-  slug: string;
   balance: bigint;
   token: ApiToken;
   jettonWallet: string;
@@ -127,7 +126,6 @@ async function parseTokenBalance(
     const token = buildTokenByMetadata(tokenAddress, jettonMetadata, getProxiedImage(tokenMetadata));
 
     return {
-      slug: token.slug,
       balance: BigInt(wallet.balance),
       token,
       jettonWallet: toBase64Address(wallet.address, undefined, network),
@@ -488,21 +486,13 @@ export async function loadTokenBalances(
   const parsedBalances = await getTokenBalances(network, address, signal);
   throwIfAborted(signal);
 
-  // The balances are parsed concurrently, so their slugs are assigned here, together, right before the cache gets the
-  // tokens
-  const resolveTokenSlugs = await waitForTokenSlugResolver(signal);
-  const slugs = resolveTokenSlugs(parsedBalances.map(({ token }) => ({ chain: 'ton', address: token.tokenAddress! })));
-  const tokenBalances = parsedBalances.map(({ token, balance }, i) => {
-    const slug = slugs[i];
-    return { slug, balance, token: { ...token, slug } };
-  });
-  const tokens: ApiTokenWithMaybePrice[] = tokenBalances.map(({ token }) => ({
+  // The balances are parsed concurrently, so their slugs are assigned together, right before the cache gets the tokens
+  const tokens = await updateTokensFetchedTogether(parsedBalances.map(({ token }) => ({
     ...token,
     priceUsd: undefined,
     percentChange24h: undefined,
-  }));
-  await updateTokens(tokens, sendUpdateTokens);
+  })), { signal, sendUpdate: sendUpdateTokens });
   await updateTokenHashes(network, tokens.map((token) => token.slug), sendUpdateTokens, signal);
 
-  return Object.fromEntries(tokenBalances.map(({ slug, balance }) => [slug, balance]));
+  return Object.fromEntries(tokens.map(({ slug }, i) => [slug, parsedBalances[i].balance]));
 }

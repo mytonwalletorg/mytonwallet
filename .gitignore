@@ -45,3 +45,4 @@ AGENTS.md
 /worktrees/
 /.local/
 /.derived-data/
+/artifacts/

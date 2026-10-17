@@ -1,6 +1,7 @@
 import type {
   ApiActivity,
   ApiChain,
+  ApiNft,
   ApiTransactionActivity,
 } from '../../../api/types';
 import type { GlobalState } from '../../types';
@@ -11,6 +12,7 @@ import {
   MW_CARDS_COLLECTION,
 } from '../../../config';
 import { getIsHiddenNftActivity } from '../../../util/activities';
+import { sortActivities } from '../../../util/activities/order';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning, updatePoisoningCacheFromActivities } from '../../../util/poisoningHash';
 import { waitFor } from '../../../util/schedulers';
@@ -26,7 +28,6 @@ import { addActionHandler, getActions, getGlobal, setGlobal } from '../../index'
 import {
   addInitialActivities,
   addNewActivities,
-  addNft,
   applyActivitiesPatch,
   applyIncomingNftFromActivity,
   applyOutgoingNftFromActivity,
@@ -40,6 +41,7 @@ import {
   whitelistNft,
 } from '../../reducers';
 import {
+  selectAccountNftByAddress,
   selectAccountSettings,
   selectAccountState,
   selectAccountTokens,
@@ -169,11 +171,15 @@ addActionHandler('apiUpdate', async (global, actions, update) => {
         );
         updatePoisoningCacheFromActivities(newConfirmedActivities);
 
+        const receivedCards: ApiNft[] = [];
+
         // NFT polling is executed at long intervals, so a transaction-event with an NFT can arrive
         // long before the next polling round. Apply the change to local NFT state immediately so the UI
         // reflects new ownership (incl. MW-card auto-install) without waiting for polling.
         // A subsequent `nftReceived`/`nftSent` socket update or polling round is idempotent here.
-        for (const activity of newConfirmedActivities) {
+        // Ownership changes are applied from oldest to newest, so an NFT received and then sent within
+        // one batch ends up not owned.
+        for (const activity of sortActivities(newConfirmedActivities, true)) {
           if (activity.kind !== 'transaction' || !activity.nft) continue;
 
           // For `nftTrade` (marketplace buy/sell) `isIncoming` reflects the `TONCOIN` direction,
@@ -191,8 +197,7 @@ addActionHandler('apiUpdate', async (global, actions, update) => {
               const settings = selectAccountSettings(global, accountId);
 
               if (!settings?.cardBackgroundNft) {
-                getActions().setCardBackgroundNft({ nft: activity.nft, accountId });
-                getActions().installAccentColorFromNft({ nft: activity.nft, accountId });
+                receivedCards.unshift(activity.nft);
               }
             }
           } else {
@@ -201,11 +206,27 @@ addActionHandler('apiUpdate', async (global, actions, update) => {
           }
         }
 
-        // Handles the `isCardMinting` flag reset and refund branch. `addNft`/`setCardBackgroundNft` are
-        // idempotent, so the small overlap with the loop above is harmless.
-        global = processCardMintingActivity(global, accountId, newConfirmedActivities);
+        // Clears `isCardMinting` once the minted card or the refund arrives
+        const cardMinting = processCardMintingActivity(global, accountId, newConfirmedActivities);
+        global = cardMinting.global;
+
+        // The minted card replaces the current card background. Received cards are collected only when
+        // there is no background, and the newest of them wins.
+        //
+        // A card sent later in the same batch is no longer among the account NFTs, so the next candidate
+        // is installed instead.
+        const cardToInstall = [cardMinting.mintedCard, ...receivedCards]
+          .find((card) => card && selectAccountNftByAddress(global, accountId, card.address));
 
         setGlobal(global);
+
+        // This code runs after `await callApi(...)`, when the TeactN action queue is empty, so each action below
+        // runs immediately and writes its own global (see `handleAction` in `teactn.tsx`). If it ran before
+        // `setGlobal(global)`, that call would overwrite its changes with this handler's older copy.
+        if (cardToInstall) {
+          getActions().setCardBackgroundNft({ nft: cardToInstall, accountId });
+          getActions().installAccentColorFromNft({ nft: cardToInstall, accountId });
+        }
       });
 
       break;
@@ -237,11 +258,11 @@ function notifyAboutNewActivities(global: GlobalState, accountId: string, newAct
   }
 }
 
-function processCardMintingActivity(global: GlobalState, accountId: string, activities: ApiActivity[]): GlobalState {
+function processCardMintingActivity(global: GlobalState, accountId: string, activities: ApiActivity[]) {
   const { isCardMinting } = selectAccountState(global, accountId) || {};
 
   if (!isCardMinting || !activities.length) {
-    return global;
+    return { global };
   }
 
   const mintCardActivity = activities.find((activity) => {
@@ -261,14 +282,15 @@ function processCardMintingActivity(global: GlobalState, accountId: string, acti
     const nft = (mintCardActivity as ApiTransactionActivity).nft!;
 
     global = updateAccountState(global, accountId, { isCardMinting: undefined });
-    global = addNft(global, accountId, nft);
-    getActions().setCardBackgroundNft({ nft, accountId });
-    getActions().installAccentColorFromNft({ nft, accountId });
-  } else if (refundActivity) {
+
+    return { global, mintedCard: nft };
+  }
+
+  if (refundActivity) {
     global = updateAccountState(global, accountId, { isCardMinting: undefined });
   }
 
-  return global;
+  return { global };
 }
 
 async function preloadTopTokenHistory(accountId: string, chain: ApiChain) {

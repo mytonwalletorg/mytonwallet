@@ -32,9 +32,14 @@ protocol AgentBackend: AnyObject {
         source: AgentBackendSendSource,
         editContext: AgentBackendEditContext?
     )
-    func clearConversation(completion: @escaping (Bool) -> Void)
+    /// The model empties its timeline right after this call; a backend that fails to clear presents
+    /// its conversation again.
+    func clearConversation()
     /// Reports the conversation, or the message `messageID` names, and returns whether the report was sent
     func reportProblem(messageID: AgentItemID?, comment: String?) async -> Bool
+    /// Sets the rating of the answer `messageID`, or withdraws it with `nil`, showing it at once. Returns `false` when
+    /// saving failed and the rating the server keeps shows again.
+    func rateMessage(messageID: AgentItemID, feedback: ApiAgentV2AnswerFeedback?) async -> Bool
     func loadOlderMessages() async -> Bool
     func performControl(messageID: AgentItemID, controlID: String)
     func refreshPresentation()
@@ -53,6 +58,8 @@ extension AgentBackend {
     var accessibilityStatus: String? { nil }
 
     func reportProblem(messageID: AgentItemID?, comment: String?) async -> Bool { false }
+
+    func rateMessage(messageID: AgentItemID, feedback: ApiAgentV2AnswerFeedback?) async -> Bool { false }
 
     func loadOlderMessages() async -> Bool { false }
 

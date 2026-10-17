@@ -2,6 +2,7 @@ import type { ElementRef } from '../../lib/teact/teact';
 import React, { memo, useRef } from '../../lib/teact/teact';
 
 import type {
+  AgentAnswerFeedbackV2,
   AgentPersistedActionV2,
   AgentPublicFollowUpV2,
   AgentV2LiveAction,
@@ -43,6 +44,7 @@ interface OwnProps {
     action: AgentV2LiveAction | AgentPersistedActionV2,
   ) => void;
   onRetry?: (messageId: number) => void;
+  onRate?: (messageId: number, feedback?: AgentAnswerFeedbackV2) => void;
   onReport?: (messageId: number) => void;
   onTextRevealSessionConsumed?: (messageId: number, key: string) => void;
   onTextRevealSessionSettled?: (messageId: number, key: string) => void;
@@ -81,6 +83,7 @@ function MessageBubble({
   onFollowup,
   onAction,
   onRetry,
+  onRate,
   onReport,
   onTextRevealSessionConsumed,
   onTextRevealSessionSettled,
@@ -198,6 +201,7 @@ function MessageBubble({
           onFollowup={onFollowup}
           onAction={onAction}
           onRetry={onRetry}
+          onRate={onRate}
           onTextRevealSessionConsumed={onTextRevealSessionConsumed}
           onTextRevealSessionSettled={onTextRevealSessionSettled}
           onTextRevealProgress={onTextRevealProgress}

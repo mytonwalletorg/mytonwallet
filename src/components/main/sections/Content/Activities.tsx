@@ -289,9 +289,14 @@ function Activities({
   }, [isActive, isLandscape, resetScroll]);
 
   const handleScroll = useLastCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = (e.target as HTMLDivElement).scrollTop;
+    const scrollContainer = e.target as HTMLDivElement;
+    const list = containerRef.current!;
+    // The scroll container can hold content above the list (the token summary), so the scroll counts from the list top
+    const listScrollTop = scrollContainer === list
+      ? scrollContainer.scrollTop
+      : scrollContainer.getBoundingClientRect().top - list.getBoundingClientRect().top;
 
-    hasUserScrolledRef.current = scrollTop >= SCROLL_THRESHOLD;
+    hasUserScrolledRef.current = listScrollTop >= SCROLL_THRESHOLD;
 
     onScroll?.(e);
   });

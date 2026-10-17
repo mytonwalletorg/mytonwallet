@@ -17,6 +17,7 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
     private var tradeMenuInteraction: ContextMenuInteraction?
     
     private var hostingController: UIHostingController<SwapView>?
+    private var tradeHostingController: UIHostingController<TokenTradeView>?
 
     private let bottomButtonContainer = WTouchPassView()
     private var presentationDisplayLink: CADisplayLink?
@@ -90,6 +91,17 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
         }
         swapModel.refreshBalances()
         prepareBottomButtonForPresentation()
+    }
+
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        if let tradeHostingController, #available(iOS 27.1, *) {
+            let hasTopNavigationBar = traitCollection.verticalBarEdge == .unspecified
+            accountSwitcher.isCompact = !hasTopNavigationBar
+            if tradeHostingController.rootView.hasTopNavigationBar != hasTopNavigationBar {
+                tradeHostingController.rootView.hasTopNavigationBar = hasTopNavigationBar
+            }
+        }
     }
 
     public override func viewDidDisappear(_ animated: Bool) {
@@ -194,7 +206,7 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
             setupTradeViews(tradeModel)
             return
         }
-        navigationItem.title = lang("Swap")
+        navigationItem.title = lang("Trade")
         navigationItem.leftItemsSupplementBackButton = true
         addCloseNavigationItemIfNeeded()
 
@@ -221,6 +233,7 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
         let continueButton = WButton(style: .primary)
         bottomButton = continueButton
         self.continueButton = continueButton
+        continueButton.accessibilityIdentifier = "swap_continue"
         continueButton.translatesAutoresizingMaskIntoConstraints = false
         bottomButtonContainer.addSubview(continueButton)
         let horizontalInset: CGFloat = IOS_26_MODE_ENABLED ? 36 : 16
@@ -326,7 +339,7 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
             showAlert(
                 title: L10n.theExchangeRateIsBelowMarketValue(value: "\(impact.formatted(.number.precision(.fractionLength(0..<1)).locale(.forNumberFormatters)))%"),
                 text: lang("We do not recommend to perform an exchange, try to specify a lower amount."),
-                button: lang("Swap"),
+                button: lang("Trade"),
                 buttonStyle: .destructive,
                 buttonPressed: { self.execute(next) },
                 secondaryButton: lang("Cancel"),
@@ -540,6 +553,9 @@ private extension SwapVC {
     func setupTradeViews(_ model: TokenTradeModel) {
         view.backgroundColor = .air.sheetBackground
         navigationItem.title = nil
+        if #available(iOS 27.1, *) {
+            accountSwitcher.barButtonItem.axisBehavior = .verticalPreferred
+        }
         configureNavigationItemWithTransparentBackground()
         addCloseNavigationItemIfNeeded()
         let settingsButton = UIButton(type: .system)
@@ -553,6 +569,7 @@ private extension SwapVC {
         settingsButton.accessibilityIdentifier = "tokenTrade.settings"
         let settings = UIBarButtonItem(customView: settingsButton)
         if #available(iOS 26, *) { settings.hidesSharedBackground = true }
+        if #available(iOS 27.1, *) { settings.axisBehavior = .verticalPreferred }
         let closeItems = navigationItem.rightBarButtonItems ?? []
         navigationItem.rightBarButtonItems = closeItems + [settings]
         let interaction = ContextMenuInteraction(triggers: [.tap, .longPress], presentationMode: .zoomPopover) { [weak self] _ in
@@ -570,7 +587,7 @@ private extension SwapVC {
                 : UIImage(named: "TokenTradeSettings", in: AirBundle, compatibleWith: nil), for: .normal)
             settingsButton.accessibilityLabel = lang(isCard ? "Info" : "Settings")
         }
-        _ = addHostingController(TokenTradeView(model: model, selectMethod: { [weak self] in
+        tradeHostingController = addHostingController(TokenTradeView(model: model, selectMethod: { [weak self] in
             self?.showTradeMethods()
         }, continueAction: { [weak self] in
             self?.continuePressed()

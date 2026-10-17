@@ -6,7 +6,7 @@ import WalletContext
         try await Api.swapBuildTransfer(accountId: $0, enclaveToken: $1, request: $2)
     }
     var submit: (ApiChain, String, EnclaveToken, [ApiSwapTransfer]?, ApiSwapHistoryItem, Bool?, String?, [ApiEvmSwapCall]?, Bool?) async throws -> ApiSwapSubmitResult = {
-        try await Api.swapSubmit(chain: $0, accountId: $1, enclaveToken: $2, transfers: $3, historyItem: $4, isGasless: $5, transaction: $6, calls: $7, needsApprove: $8)
+        try await Api.swapSubmit(chain: $0, accountId: $1, enclaveToken: $2, transfers: $3, historyItem: $4, isGasless: $5, transaction: $6, calls: $7, needsBatch: $8)
     }
 
     func performSwap(
@@ -59,7 +59,7 @@ import WalletContext
             swapFee: swapEstimate.swapFee,
             ourFee: swapEstimate.ourFee,
             dieselFee: swapEstimate.dieselFee,
-            needsApprove: swapEstimate.needsApprove
+            needsBatch: swapEstimate.needsBatch
         )
         let transferData = try await buildTransfer(account.id, enclaveToken, swapBuildRequest)
         if let error = transferData.error {
@@ -78,7 +78,7 @@ import WalletContext
             shouldTryDiesel,
             transferData.transaction,
             transferData.calls,
-            swapBuildRequest.needsApprove
+            swapBuildRequest.needsBatch
         )
         if let error = result.error {
             throw SdkError.apiReturnedError(error: error, context: result)

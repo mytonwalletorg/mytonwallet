@@ -2,6 +2,7 @@ package org.mytonwallet.app_air.uicomponents.extensions
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent
+import androidx.core.view.doOnNextLayout
 import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
@@ -17,6 +18,17 @@ import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 // view would fight the first per-frame instead of replacing it.
 private val activeSprings = WeakHashMap<RecyclerView, SpringAnimation>()
 
+// ViewPager2 misreads RTL offsets until a re-added pager is measured.
+private fun RecyclerView.completeSpring(completion: () -> Unit) {
+    if (isLayoutDirectionResolved) {
+        completion()
+    } else {
+        doOnNextLayout {
+            post { completeSpring(completion) }
+        }
+    }
+}
+
 private fun horizontalScrollProperty() = object : FloatPropertyCompat<RecyclerView>("scrollX") {
     private var animatedOffset = 0f
 
@@ -26,6 +38,7 @@ private fun horizontalScrollProperty() = object : FloatPropertyCompat<RecyclerVi
     }
 
     override fun setValue(view: RecyclerView, value: Float) {
+        if (!view.isLayoutDirectionResolved) return
         val maxScroll =
             (view.computeHorizontalScrollRange() - view.computeHorizontalScrollExtent())
                 .coerceAtLeast(0)
@@ -81,15 +94,17 @@ private fun springToVisibleItem(
         setStartVelocity(velocityX)
         addUpdateListener { _, value, _ ->
             val dx = (value - animatedOffset).toInt()
-            if (dx != 0) {
+            if (dx != 0 && recyclerView.isLayoutDirectionResolved) {
                 recyclerView.scrollBy(dx, 0)
                 animatedOffset += dx
             }
         }
         addEndListener { _, canceled, _, _ ->
             if (!canceled) {
-                recyclerView.scrollBy(distanceToTarget(), 0)
-                onCompletion()
+                recyclerView.completeSpring {
+                    recyclerView.scrollBy(distanceToTarget(), 0)
+                    onCompletion()
+                }
             }
         }
     }
@@ -160,14 +175,16 @@ fun ViewPager2.setupSpringFling(onScrollingToTarget: (targetIndex: Int) -> Int) 
             springAnim.setStartVelocity(velocityX.toFloat())
             springAnim.addEndListener { _, canceled, _, _ ->
                 if (!canceled) {
-                    recyclerView.scrollBy(
-                        scrollPosition * width - recyclerView.computeHorizontalScrollOffset(),
-                        0
-                    )
-                    // Consuming the fling left the RecyclerView in the dragging scroll state, which
-                    // blocks ViewPager2 from dispatching page selection and the idle state.
-                    // stopScroll() moves it to idle so those callbacks fire.
-                    recyclerView.stopScroll()
+                    recyclerView.completeSpring {
+                        recyclerView.scrollBy(
+                            scrollPosition * width - recyclerView.computeHorizontalScrollOffset(),
+                            0
+                        )
+                        // Consuming the fling left the RecyclerView in the dragging scroll state,
+                        // which blocks ViewPager2 from dispatching page selection and the idle
+                        // state. stopScroll() moves it to idle so those callbacks fire.
+                        recyclerView.stopScroll()
+                    }
                 }
             }
             startSpring(recyclerView, springAnim)
@@ -210,8 +227,10 @@ fun ViewPager2.springToItem(
 
     springAnim.addEndListener { _, canceled, _, _ ->
         if (!canceled) {
-            this.setCurrentItem(clampedPosition, false)
-            onCompletion?.invoke()
+            recyclerView.completeSpring {
+                this.setCurrentItem(clampedPosition, false)
+                onCompletion?.invoke()
+            }
         }
     }
 

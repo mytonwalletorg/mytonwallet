@@ -27,7 +27,7 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
     public enum SectionValue: Equatable, Hashable, Sendable {
         case headerPlaceholder
         case custom(String)
-        case placeholderTransactionsSection
+        case loadingPlaceholder
         case transactions(String, Date)
         case emptyPlaceholder
     }
@@ -35,12 +35,9 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
         case headerPlaceholder
         case custom(String)
         case transaction(String, String)
-        case transactionPlaceholder(Int)
         case loadingMore
         case emptyPlaceholder
     }
-
-    public static let placeholderTransactionRows = (0..<100).map(Row.transactionPlaceholder)
 
     nonisolated public let accountContext: AccountContext
     nonisolated public let accountId: String
@@ -51,6 +48,7 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
     @MainActor public var idsByDate: OrderedDictionary<Date, [String]>?
     @MainActor public var isEndReached: Bool?
     @MainActor public var isEmpty: Bool?
+    @MainActor public private(set) var hasLoadError = false
     @MainActor public var snapshot: NSDiffableDataSourceSnapshot<Section, Row>!
 
     @MainActor public weak var delegate: ActivityListViewModelDelegate?
@@ -234,6 +232,9 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
                 log.error("requestMoreIfNeeded: \(error)")
                 didFail = !Task.isCancelled
             }
+            await MainActor.run {
+                self.hasLoadError = didFail
+            }
             await getState(updatedIds: [], replacedIds: [:])
             self.loadMoreTask = nil
             if didFail {
@@ -306,7 +307,7 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
 public extension NativeIdentifier where Value == ActivityListViewModel.SectionValue {
     static var headerPlaceholder: Self { Self(.headerPlaceholder) }
     static func custom(_ id: String) -> Self { Self(.custom(id)) }
-    static var placeholderTransactionsSection: Self { Self(.placeholderTransactionsSection) }
+    static var loadingPlaceholder: Self { Self(.loadingPlaceholder) }
     static func transactions(_ accountId: String, _ date: Date) -> Self { Self(.transactions(accountId, date)) }
     static var emptyPlaceholder: Self { Self(.emptyPlaceholder) }
 }
@@ -315,7 +316,6 @@ public extension NativeIdentifier where Value == ActivityListViewModel.RowValue 
     static var headerPlaceholder: Self { Self(.headerPlaceholder) }
     static func custom(_ id: String) -> Self { Self(.custom(id)) }
     static func transaction(_ accountId: String, _ id: String) -> Self { Self(.transaction(accountId, id)) }
-    static func transactionPlaceholder(_ index: Int) -> Self { Self(.transactionPlaceholder(index)) }
     static var loadingMore: Self { Self(.loadingMore) }
     static var emptyPlaceholder: Self { Self(.emptyPlaceholder) }
 }

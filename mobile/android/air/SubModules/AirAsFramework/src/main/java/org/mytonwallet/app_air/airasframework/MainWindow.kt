@@ -231,10 +231,13 @@ class MainWindow : WWindow() {
     }
 
     override fun onDestroy() {
-        WalletCore.unregisterObserver(splashVC)
-        super.onDestroy()
-        ShakeDetector.onShake = null
         if (isBridgeUser) {
+            WalletCore.unregisterObserver(splashVC)
+            splashVC.onWindowDestroy()
+        }
+        super.onDestroy()
+        if (isBridgeUser) {
+            ShakeDetector.onShake = null
             isBridgeUser = false
             destroyBridge()
         }

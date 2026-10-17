@@ -13,8 +13,7 @@ import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useForceUpdate from '../../../../hooks/useForceUpdate';
 import useLang from '../../../../hooks/useLang';
-
-import Collapsible from '../../../ui/Collapsible';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
 import styles from './Warnings.module.scss';
 
@@ -38,9 +37,15 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
     return filterExpiringDomains(orderedAddresses ?? [], byAddress, dnsExpiration)
       .filter(({ address }) => !ignoredAddressForRenewal.includes(address));
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  }, [byAddress, ignoredAddressForRenewal, orderedAddresses]);
+  }, [byAddress, dnsExpiration, ignoredAddressForRenewal, orderedAddresses]);
   const isShown = nftForRenewal.length > 0;
   const renderedNftForRenewal = useCurrentOrPrev(isShown ? nftForRenewal : undefined, true);
+
+  const { shouldRender, ref } = useShowTransition({
+    isOpen: isShown,
+    noMountTransition: true,
+    withShouldRender: true,
+  });
 
   const expireInDays = useMemo(() => {
     const date = getDomainsExpirationDate(renderedNftForRenewal ?? [], undefined, dnsExpiration);
@@ -97,11 +102,14 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
   function renderWarningMessage() {
     if (expireInDays === undefined) return undefined;
 
-    if (nftForRenewal.length === 1) {
+    // The closing warning keeps showing the domains it was opened for
+    const domains = renderedNftForRenewal!;
+
+    if (domains.length === 1) {
       return expireInDays < 0
-        ? lang('$domain_was_expired', { domain: nftForRenewal[0].name })
+        ? lang('$domain_was_expired', { domain: domains[0].name })
         : lang('$domain_expire', {
-          domain: nftForRenewal[0].name,
+          domain: domains[0].name,
           days: formatRelativeDays(lang, expireInDays, 'i'),
         });
     }
@@ -109,34 +117,37 @@ function RenewDomainWarning({ orderedAddresses, byAddress, dnsExpiration }: Stat
     return expireInDays < 0
       ? lang('$domains_was_expired', { domain: expiredDomains.length }, undefined, expiredDomains.length)
       : lang('$domains_expire', {
-        domain: nftForRenewal.length,
+        domain: domains.length,
         days: formatRelativeDays(lang, expireInDays, 'i'),
-      }, undefined, nftForRenewal.length);
+      }, undefined, domains.length);
+  }
+
+  if (!shouldRender) {
+    return undefined;
   }
 
   return (
-    <Collapsible isShown={isShown}>
-      <div
-        className={buildClassName(
-          styles.wrapper,
-          styles.wrapperFlex,
-          isLandscape && styles.wrapper_landscape,
-        )}
-        onClick={handleClick}
-      >
-        {renderPreview()}
-        <div>
-          {(renderedNftForRenewal ?? []).length === 1 ? lang('Renew Domain') : lang('Renew Domains')}
-          <i className={buildClassName(styles.icon, 'icon-chevron-right')} aria-hidden />
-          <p className={buildClassName(styles.text, styles.light)}>
-            {renderWarningMessage()}
-          </p>
-        </div>
-        <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>
-          <i className="icon-close" aria-hidden />
-        </button>
+    <div
+      ref={ref}
+      className={buildClassName(
+        styles.wrapper,
+        styles.wrapperFlex,
+        isLandscape && styles.wrapper_landscape,
+      )}
+      onClick={handleClick}
+    >
+      {renderPreview()}
+      <div>
+        {(renderedNftForRenewal ?? []).length === 1 ? lang('Renew Domain') : lang('Renew Domains')}
+        <i className={buildClassName(styles.icon, 'icon-chevron-right')} aria-hidden />
+        <p className={buildClassName(styles.text, styles.light)}>
+          {renderWarningMessage()}
+        </p>
       </div>
-    </Collapsible>
+      <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>
+        <i className="icon-close" aria-hidden />
+      </button>
+    </div>
   );
 }
 

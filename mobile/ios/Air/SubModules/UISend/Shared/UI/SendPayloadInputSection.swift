@@ -9,6 +9,7 @@ struct SendPayloadInputSection: View {
     let isEncryptedMessageAvailable: Bool
     let binaryPayload: String?
     let stateInit: String?
+    var commentIdentifier: String? = nil
 
     @Binding var isMessageEncrypted: Bool
     @Binding var comment: String
@@ -28,7 +29,8 @@ struct SendPayloadInputSection: View {
                 isEncryptedMessageAvailable: isEncryptedMessageAvailable,
                 isMessageEncrypted: $isMessageEncrypted,
                 comment: $comment,
-                isFocused: $isFocused
+                isFocused: $isFocused,
+                commentIdentifier: commentIdentifier
             )
         }
     }
@@ -41,6 +43,7 @@ private struct SendCommentInputSection: View {
     @Binding var isMessageEncrypted: Bool
     @Binding var comment: String
     var isFocused: FocusState<Bool>.Binding
+    var commentIdentifier: String?
 
     var body: some View {
         InsetSection {
@@ -52,6 +55,7 @@ private struct SendCommentInputSection: View {
                 )
                 .writingToolsDisabled()
                 .focused(isFocused)
+                .accessibilityIdentifier(ifPresent: commentIdentifier)
             }
             .contentShape(.rect)
             .onTapGesture {

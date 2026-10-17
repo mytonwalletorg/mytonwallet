@@ -68,6 +68,7 @@ import org.mytonwallet.app_air.walletcore.moshi.MDieselStatus
 import org.mytonwallet.app_air.walletcore.moshi.api.ApiMethod
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
 import org.mytonwallet.app_air.walletcore.stores.ActivityStore
+import org.mytonwallet.app_air.walletcore.stores.AuthStore
 import org.mytonwallet.app_air.walletcore.stores.BalanceStore
 import org.mytonwallet.app_air.walletcore.stores.ConfigStore
 import org.mytonwallet.app_air.walletcore.stores.TokenStore
@@ -1125,7 +1126,8 @@ class SwapViewModel :
                         fee = null,
                         realFee = null,
                         error = it,
-                        hint = cex.hint
+                        hint = cex.hint,
+                        debugSummary = cex.debug?.summary
                     )
                 }
                 // A missing fee on a supported source chain is a failed estimate.
@@ -1137,7 +1139,8 @@ class SwapViewModel :
                     fee = fee,
                     realFee = transactionDraft?.realNativeFee,
                     error = if (needEstFee && fee == null) MBridgeError.Type.UNKNOWN else null,
-                    hint = cex.hint
+                    hint = cex.hint,
+                    debugSummary = cex.debug?.summary
                 )
             } else {
                 val dex = WalletCore.call(
@@ -1157,7 +1160,8 @@ class SwapViewModel :
                     fee = fee,
                     realFee = realFee,
                     error = null,
-                    hint = dex.hint
+                    hint = dex.hint,
+                    debugSummary = dex.debug?.summary
                 )
             }
         } catch (apiError: JSWebViewBridge.ApiError) {
@@ -1174,7 +1178,8 @@ class SwapViewModel :
                 fee = null,
                 realFee = null,
                 error = apiError.parsed,
-                hint = MApiSwapEstimateErrorResponse.hintFrom(apiError.raw)
+                hint = MApiSwapEstimateErrorResponse.hintFrom(apiError.raw),
+                debugSummary = MApiSwapEstimateErrorResponse.debugSummaryFrom(apiError.raw)
             )
         }
     }
@@ -1190,18 +1195,22 @@ class SwapViewModel :
         addressToReceive: String?
     ) {
         val accountId = estimate.request.wallet.accountId
-        val accountTonAddress = estimate.request.wallet.tonAddress ?: run {
-            failUnexpectedSubmission("missing TON history address")
-            return
-        }
         val tokenToSend = estimate.request.tokenToSend
         val tokenToReceive = estimate.request.tokenToReceive
 
-        awaitingActivity = false
-        receivedActivity = null
-        previousPendingActivities =
-            ActivityStore.getLocalAndPendingActivities(accountId, null)?.map { it.id }
+        var isSwapSubmitCalled = false
+        var buildReadKey = false
         try {
+            AuthStore.awaitMultichainUpgrade(accountId)
+            val accountTonAddress = estimate.request.wallet.tonAddress ?: run {
+                failUnexpectedSubmission("missing TON history address")
+                return
+            }
+
+            awaitingActivity = false
+            receivedActivity = null
+            previousPendingActivities =
+                ActivityStore.getLocalAndPendingActivities(accountId, null)?.map { it.id }
             estimate.dex?.let { dex ->
                 val fromAddress = tokenToSend.mBlockchain?.name?.let {
                     estimate.request.wallet.addressByChain[it]
@@ -1228,12 +1237,13 @@ class SwapViewModel :
                             dieselFee = dex.dieselFee,
                             swapVersion = ConfigStore.swapVersion ?: DEFAULT_SWAP_VERSION,
                             routes = dex.routes,
-                            needsApprove = dex.needsApprove
+                            needsBatch = dex.needsBatch
                         )
                     )
                 )
                 val buildId = build.id
                 val buildChain = build.chain
+                buildReadKey = build.needsBatch == true
                 if (build.error != null ||
                     buildId == null ||
                     buildChain == null ||
@@ -1254,6 +1264,7 @@ class SwapViewModel :
                 }
 
                 swappedEstimateConfig = estimate
+                isSwapSubmitCalled = true
                 val submitResult = WalletCore.call(
                     ApiMethod.Swap.SwapSubmit(
                         buildChain,
@@ -1279,7 +1290,7 @@ class SwapViewModel :
                         estimate.explainedFee.isGasless,
                         build.transaction,
                         build.calls,
-                        dex.needsApprove
+                        dex.needsBatch
                     )
                 )
                 submitResult.error?.let { error ->
@@ -1473,6 +1484,11 @@ class SwapViewModel :
             )
             swappedEstimateConfig = null
             _eventsFlow.tryEmit(Event.SwapComplete(success = false))
+        } finally {
+            // The reserved second read stays only when both the build and the submit read the key.
+            if (estimate.reservesBatchKeyRead && !(buildReadKey && isSwapSubmitCalled)) {
+                AuthStore.releaseAuthUsages(enclaveToken, 1)
+            }
         }
     }
 

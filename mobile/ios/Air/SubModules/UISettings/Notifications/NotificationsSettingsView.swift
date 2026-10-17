@@ -151,8 +151,15 @@ struct SelectableAccountRow: View {
                 HStack(spacing: 6) {
                     Text(account.displayName)
                         .textStyle(.calloutEmphasized)
+                        .lineLimit(1)
+                        .allowsTightening(true)
+                    CardMiniature(accountContext: AccountContext(accountId: account.id))
+                        .fixedSize()
+                        .layoutPriority(1)
                     AccountTypeBadge(account.type)
                         .foregroundStyle(Color.air.secondaryLabel)
+                        .fixedSize()
+                        .layoutPriority(2)
                 }
                 let firstAddress = account.firstAddress
                 Text("\(formatStartEndAddress(firstAddress))")

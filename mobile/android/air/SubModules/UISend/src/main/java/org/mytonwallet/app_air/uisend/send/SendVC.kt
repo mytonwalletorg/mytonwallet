@@ -29,6 +29,7 @@ import java.lang.ref.WeakReference
 import kotlinx.coroutines.launch
 import org.mytonwallet.app_air.icons.R
 import org.mytonwallet.app_air.uicomponents.AnimationConstants
+import org.mytonwallet.app_air.uicomponents.R as UIComponentsR
 import org.mytonwallet.app_air.uicomponents.adapter.implementation.holders.ListGapCell
 import org.mytonwallet.app_air.uicomponents.base.WNavigationBar
 import org.mytonwallet.app_air.uicomponents.base.WViewControllerWithModelStore
@@ -202,6 +203,8 @@ class SendVC(
     private val amountInputView by lazy {
         TokenAmountInputView(context, isFirstItem = false).apply {
             id = generateViewId()
+            amountEditText.id = UIComponentsR.id.send_amount_input
+            tokenSelectorView.id = UIComponentsR.id.send_token_selector
         }
     }
     private val addressInputView by lazy {
@@ -222,7 +225,7 @@ class SendVC(
                 suggestionsBoxView.search(keyword, true)
             }
         ).apply {
-            id = generateViewId()
+            id = UIComponentsR.id.send_address_input
             showCloseOnTextEditing = true
             pasteInterceptor = { pastedText ->
                 val address = pastedText.trim()
@@ -329,6 +332,7 @@ class SendVC(
 
     private val commentInputView by lazy {
         WEditText(context, multilinePaste = false).apply {
+            id = UIComponentsR.id.send_comment_input
             hint = LocaleController.getString("Add a message, if needed")
             setStyle(adaptiveFontSize())
             layoutParams =
@@ -490,7 +494,7 @@ class SendVC(
 
     private val continueButton by lazy {
         WButton(context).apply {
-            id = generateViewId()
+            id = UIComponentsR.id.send_continue
         }
     }
 

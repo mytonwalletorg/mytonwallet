@@ -17,6 +17,16 @@
   color: var(--color-gray-2);
 }
 
+.details {
+  display: flex;
+  flex-direction: column;
+  animation: fade-in-opacity var(--slide-transition);
+
+  :global(html.animation-level-0) & {
+    animation: none;
+  }
+}
+
 .description {
   margin: 0.0625rem 0 0;
 

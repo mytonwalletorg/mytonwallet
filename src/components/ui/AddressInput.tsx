@@ -1,4 +1,4 @@
-import type { ClipboardEvent } from 'react';
+import type { ClipboardEvent, HTMLAttributes } from 'react';
 import React, {
   type ElementRef,
   memo,
@@ -71,6 +71,7 @@ interface OwnProps {
   savedAddresses?: SavedAddress[];
   validateAddress?: ({ address }: { address?: string; chain?: ApiChain }) => void;
   error?: string;
+  enterKeyHint?: HTMLAttributes<HTMLInputElement>['enterKeyHint'];
   onInput: (value: string, isValueReplaced?: boolean) => void;
   onPaste?: (value: string) => void;
   onError?: (hasError: boolean) => void;
@@ -112,6 +113,7 @@ function AddressInput({
   orderedAccountIds,
   validateAddress,
   error,
+  enterKeyHint,
   onInput,
   onPaste,
   onError,
@@ -444,6 +446,7 @@ function AddressInput({
         value={value}
         error={localError || error}
         autoCorrect={false}
+        enterKeyHint={enterKeyHint}
         valueOverlay={!localError ? addressOverlay : undefined}
         onInput={hanldeInputChange}
         onPaste={handleAddressPaste}

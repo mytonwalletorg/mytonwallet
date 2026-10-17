@@ -458,11 +458,11 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
         return result.accountId
     }
 
-    public func importNewWalletVersion(accountId: String, version: ApiTonWalletVersion) async throws -> MAccount {
+    public func importNewWalletVersion(accountId: String, version: ApiTonWalletVersion, isTestnetSubwalletId: Bool? = nil) async throws -> MAccount {
 
         let originalAccount = try accountsById[accountId].orThrow("Can't find the original account")
 
-        let result = try await Api.importNewWalletVersion(accountId: accountId, version: version)
+        let result = try await Api.importNewWalletVersion(accountId: accountId, version: version, isTestnetSubwalletId: isTestnetSubwalletId)
         if let error = result.error {
             throw error
         }

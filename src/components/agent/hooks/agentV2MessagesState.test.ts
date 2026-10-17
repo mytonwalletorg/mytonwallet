@@ -418,7 +418,12 @@ describe('Agent V2 messages state', () => {
     expect(terminal.messages[0]).toMatchObject({
       isStreaming: undefined,
       shouldCommitMarkdownTail: true,
+      isComplete: true,
     });
+    expect(started.messages[0].isComplete).toBeUndefined();
+    expect(reduce(contentEnded, {
+      kind: 'messageCompleted', clientRunId: CLIENT_RUN_ID, messageId: 1, finishReason: 'cancelled',
+    }).messages[0].isComplete).toBeUndefined();
 
     const settled = reduce(terminal, { kind: 'runSettled', operationId: 1 });
     expect(settled.run).toEqual({ phase: 'idle' });

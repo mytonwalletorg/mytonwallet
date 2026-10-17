@@ -126,16 +126,22 @@ class SettingsItemCell(
         }
     }
 
+    private val defaultViewId = id
+
     init {
         super.setupViews()
 
         addView(contentView, LayoutParams(MATCH_PARENT, baseContentHeight.dp.roundToInt()))
+        constrainContent()
+
+        updateTheme()
+    }
+
+    private fun constrainContent() {
         setConstraints {
             toTop(contentView)
             toCenterX(contentView)
         }
-
-        updateTheme()
     }
 
     override fun configure(
@@ -174,6 +180,12 @@ class SettingsItemCell(
         isClickable = isEnabled
 
         setOnClickListener { onTap() }
+        // Cells are recycled, and the content is anchored to the current id
+        val viewId = item.testViewId ?: defaultViewId
+        if (id != viewId) {
+            id = viewId
+            constrainContent()
+        }
 
         updateTheme()
     }

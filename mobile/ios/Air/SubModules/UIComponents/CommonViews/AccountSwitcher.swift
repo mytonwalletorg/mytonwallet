@@ -74,6 +74,12 @@ public enum AccountSwitcherAccountSupport: Equatable, Sendable {
 public final class AccountSwitcher {
     public let button = AccountSwitcherButton()
     public let barButtonItem: UIBarButtonItem
+    public var isCompact = false {
+        didSet {
+            guard isCompact != oldValue, let selectedAccountId else { return }
+            update(selectedAccountId: selectedAccountId, isEnabled: isEnabled)
+        }
+    }
 
     private let configuration: AccountSwitcherConfiguration
     private let onSelect: (String) -> Void
@@ -110,9 +116,10 @@ public final class AccountSwitcher {
 
         let account = accountStore.get(accountId: selectedAccountId)
         let hasAlternativeAccounts = hasAlternativeAccounts(selectedAccountId: selectedAccountId)
-        let width: CGFloat = hasAlternativeAccounts ? buttonChevronWidth : buttonAvatarWidth
+        let showsChevron = hasAlternativeAccounts && !isCompact
+        let width: CGFloat = isCompact ? buttonHeight : (showsChevron ? buttonChevronWidth : buttonAvatarWidth)
 
-        button.configure(account: account, showsChevron: hasAlternativeAccounts)
+        button.configure(account: account, showsChevron: showsChevron)
         button.setWidth(width)
         button.isUserInteractionEnabled = isEnabled && hasAlternativeAccounts
         button.alpha = 1
@@ -197,6 +204,7 @@ public final class AccountSwitcherButton: UIControl {
     )
     private var width: CGFloat = buttonChevronWidth
     private var widthConstraint: NSLayoutConstraint?
+    private var iconLeadingConstraint: NSLayoutConstraint?
 
     override public init(frame: CGRect) {
         super.init(frame: frame)
@@ -213,7 +221,8 @@ public final class AccountSwitcherButton: UIControl {
 
     override public func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         let horizontalOutset = max(0, (buttonMinimumHitWidth - bounds.width) / 2)
-        return bounds.insetBy(dx: -horizontalOutset, dy: 0).contains(point)
+        let verticalOutset = max(0, (buttonHeight - bounds.height) / 2)
+        return bounds.insetBy(dx: -horizontalOutset, dy: -verticalOutset).contains(point)
     }
 
     public func configure(account: MAccount?, showsChevron: Bool) {
@@ -228,6 +237,7 @@ public final class AccountSwitcherButton: UIControl {
         self.width = width
         frame.size = CGSize(width: width, height: buttonHeight)
         widthConstraint?.constant = width
+        iconLeadingConstraint?.constant = chevronView.isHidden ? (width - buttonIconSize) / 2 : 0
         invalidateIntrinsicContentSize()
         setNeedsLayout()
     }
@@ -240,7 +250,7 @@ public final class AccountSwitcherButton: UIControl {
         setContentHuggingPriority(.required, for: .horizontal)
         setContentHuggingPriority(.required, for: .vertical)
         setContentCompressionResistancePriority(.required, for: .horizontal)
-        setContentCompressionResistancePriority(.required, for: .vertical)
+        setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
 
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.isUserInteractionEnabled = false
@@ -254,11 +264,16 @@ public final class AccountSwitcherButton: UIControl {
 
         let widthConstraint = widthAnchor.constraint(equalToConstant: buttonChevronWidth)
         self.widthConstraint = widthConstraint
+        let iconLeadingConstraint = iconView.leadingAnchor.constraint(equalTo: leadingAnchor)
+        self.iconLeadingConstraint = iconLeadingConstraint
+        let heightConstraint = heightAnchor.constraint(equalToConstant: buttonHeight)
+        // iOS 27's navigation-button host can supply a 36-point height.
+        heightConstraint.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             widthConstraint,
-            heightAnchor.constraint(equalToConstant: buttonHeight),
-            iconView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            heightConstraint,
+            iconLeadingConstraint,
             iconView.centerYAnchor.constraint(equalTo: centerYAnchor),
             chevronView.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 6),
             chevronView.centerYAnchor.constraint(equalTo: centerYAnchor),

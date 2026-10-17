@@ -2,6 +2,8 @@ import type { OnApiUpdate } from '../types';
 
 import { addHooks } from '../hooks';
 import init, { destroy } from './init';
+import { reportInstallMetadata } from './installMetadata';
+import { startWebFirstLaunchReporting, stopWebFirstLaunchReporting } from './webFunnel';
 import * as methods from '.';
 
 let mockUpdater: OnApiUpdate | undefined;
@@ -15,12 +17,12 @@ jest.mock('../common/helpers', () => ({
   isUpdaterAlive: (updater: OnApiUpdate) => mockUpdater === updater,
   tryMigrateStorage: jest.fn(),
 }));
-jest.mock('../common/other', () => ({ initClientId: jest.fn() }));
+jest.mock('../common/other', () => ({ initClientId: jest.fn(), isWebFunnelClient: () => true }));
 jest.mock('../dappProtocols', () => ({
   initProtocolManager: (...args: unknown[]) => mockInitProtocolManager(...args),
   getProtocolManager: () => ({ closeRemoteConnection: jest.fn(), resetupRemoteConnection: jest.fn() }),
 }));
-jest.mock('../environment', () => ({ setEnvironment: () => ({ isDappSupported: true }) }));
+jest.mock('../environment', () => ({ setEnvironment: () => ({ isDappSupported: true, isAndroidApp: true }) }));
 jest.mock('../hooks', () => ({ addHooks: jest.fn() }));
 jest.mock('../storages', () => ({
   createStorage: () => ({ setItem: (...args: unknown[]) => mockSetItem(...args) }),
@@ -29,6 +31,8 @@ jest.mock('../storages', () => ({
 }));
 jest.mock('./agentV2Lifecycle', () => ({ destroyAgentV2IfEnabled: jest.fn(), initAgentV2IfEnabled: jest.fn() }));
 jest.mock('./attribution', () => ({ claimInstallAttribution: jest.fn() }));
+jest.mock('./webFunnel', () => ({ startWebFirstLaunchReporting: jest.fn(), stopWebFirstLaunchReporting: jest.fn() }));
+jest.mock('./installMetadata', () => ({ reportInstallMetadata: jest.fn() }));
 jest.mock('./extra', () => ({ initMfa: jest.fn(), initStaking: jest.fn(), initSwap: jest.fn() }));
 jest.mock('./polling', () => ({ destroyPolling: jest.fn() }));
 jest.mock('.', () => ({
@@ -71,6 +75,8 @@ it('rejects an old init delayed before migration without replacing the newer pol
   expect(methods.initPolling).toHaveBeenCalledTimes(1);
   expect(methods.initPolling).toHaveBeenCalledWith(currentUpdater);
   expect(mockUpdater).toBe(currentUpdater);
+  expect(startWebFirstLaunchReporting).toHaveBeenCalledTimes(1);
+  expect(stopWebFirstLaunchReporting).toHaveBeenCalledTimes(1);
 });
 
 it('rejects an old protocol init without replacing the newer dApp updater or hooks', async () => {
@@ -92,6 +98,8 @@ it('rejects an old protocol init without replacing the newer dApp updater or hoo
   expect(methods.initDapps).toHaveBeenCalledWith(currentUpdater);
   expect(addHooks).toHaveBeenCalledTimes(1);
   expect(mockUpdater).toBe(currentUpdater);
+  expect(startWebFirstLaunchReporting).toHaveBeenCalledTimes(1);
+  expect(stopWebFirstLaunchReporting).toHaveBeenCalledTimes(1);
 });
 
 it('completes the current init and installs its polling, dApp updater and hooks', async () => {
@@ -100,4 +108,6 @@ it('completes the current init and installs its polling, dApp updater and hooks'
   expect(methods.initPolling).toHaveBeenCalledWith(updater);
   expect(methods.initDapps).toHaveBeenCalledWith(updater);
   expect(addHooks).toHaveBeenCalledTimes(1);
+  expect(reportInstallMetadata).toHaveBeenCalledTimes(1);
+  expect(startWebFirstLaunchReporting).toHaveBeenCalledTimes(1);
 });

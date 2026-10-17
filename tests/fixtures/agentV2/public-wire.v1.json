@@ -484,6 +484,17 @@
           "updatedAt": "2026-07-12T00:00:00.000Z",
           "lastActivityAt": "2026-07-12T00:00:00.000Z",
           "messageCount": 0
+        },
+        {
+          "id": "33333333-3333-4333-8333-333333333333",
+          "revision": 4,
+          "createdAt": "2026-07-12T00:00:00.000Z",
+          "updatedAt": "2026-07-12T00:00:00.000Z",
+          "lastActivityAt": "2026-07-12T00:00:00.000Z",
+          "messageCount": 2,
+          "title": "Taxes 2026",
+          "hasCustomTitle": true,
+          "isPinned": true
         }
       ],
       "invalid": [
@@ -500,6 +511,79 @@
           "updatedAt": "2026-07-12T00:00:00.000Z",
           "lastActivityAt": "2026-07-12T00:00:00.000Z",
           "messageCount": 0
+        }
+      ]
+    },
+    {
+      "schema": "AgentThreadListResponseV2",
+      "valid": [
+        {
+          "protocolVersion": 3,
+          "threads": [
+            {
+              "id": "33333333-3333-4333-8333-333333333333",
+              "revision": 4,
+              "createdAt": "2026-07-12T00:00:00.000Z",
+              "updatedAt": "2026-07-12T00:00:00.000Z",
+              "lastActivityAt": "2026-07-12T00:00:00.000Z",
+              "messageCount": 2,
+              "title": "Taxes 2026",
+              "hasCustomTitle": true,
+              "isPinned": true
+            },
+            {
+              "id": "34343434-3434-4434-8434-343434343434",
+              "revision": 3,
+              "createdAt": "2026-07-12T00:00:00.000Z",
+              "updatedAt": "2026-07-12T00:00:00.000Z",
+              "lastActivityAt": "2026-07-12T00:00:00.000Z",
+              "messageCount": 2,
+              "title": "How do I buy TON?"
+            }
+          ],
+          "nextCursor": "eyJpc1Bpbm5lZCI6ZmFsc2UsImxhc3RBY3Rpdml0eUF0IjoiMjAyNi0wNy0xMlQwMDowMDowMC4wMDAwMDBaIiwiaWQiOiIzNDM0MzQzNC0zNDM0LTQ0MzQtODQzNC0zNDM0MzQzNDM0MzQifQ"
+        },
+        {
+          "protocolVersion": 3,
+          "threads": []
+        }
+      ],
+      "invalid": [
+        {
+          "protocolVersion": 3,
+          "threads": [
+            {
+              "id": "34343434-3434-4434-8434-343434343434",
+              "revision": 3,
+              "createdAt": "2026-07-12T00:00:00.000Z",
+              "updatedAt": "2026-07-12T00:00:00.000Z",
+              "lastActivityAt": "2026-07-12T00:00:00.000Z",
+              "messageCount": 2,
+              "title": "How do I buy TON?",
+              "isPinned": false
+            }
+          ]
+        },
+        {
+          "protocolVersion": 3,
+          "threads": [],
+          "nextCursor": "not a cursor"
+        }
+      ]
+    },
+    {
+      "schema": "AgentThreadDeleteResponseV2",
+      "valid": [
+        {
+          "protocolVersion": 3,
+          "threadId": "33333333-3333-4333-8333-333333333333",
+          "duplicate": false
+        }
+      ],
+      "invalid": [
+        {
+          "protocolVersion": 3,
+          "threadId": "33333333-3333-4333-8333-333333333333"
         }
       ]
     },
@@ -542,6 +626,46 @@
           "protocolVersion": 3,
           "clientOperationId": "44444444-4444-4444-8444-444444444444",
           "transcript": []
+        }
+      ]
+    },
+    {
+      "schema": "AgentAnswerFeedbackRequestV2",
+      "valid": [
+        {
+          "protocolVersion": 3,
+          "feedback": "like"
+        },
+        {
+          "protocolVersion": 3,
+          "feedback": null
+        }
+      ],
+      "invalid": [
+        {
+          "protocolVersion": 3
+        },
+        {
+          "protocolVersion": 3,
+          "feedback": "helpful"
+        }
+      ]
+    },
+    {
+      "schema": "AgentAnswerFeedbackResponseV2",
+      "valid": [
+        {
+          "protocolVersion": 3,
+          "feedback": "dislike"
+        },
+        {
+          "protocolVersion": 3
+        }
+      ],
+      "invalid": [
+        {
+          "protocolVersion": 3,
+          "feedback": null
         }
       ]
     },

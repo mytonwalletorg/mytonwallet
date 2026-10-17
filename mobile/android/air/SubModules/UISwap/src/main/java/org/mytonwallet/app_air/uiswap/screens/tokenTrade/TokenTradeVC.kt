@@ -52,7 +52,6 @@ import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.WalletEvent
 import org.mytonwallet.app_air.walletcore.models.MAccount
-import org.mytonwallet.app_air.walletcore.models.MBridgeError
 import org.mytonwallet.app_air.walletcore.moshi.MApiSwapAsset
 import org.mytonwallet.app_air.walletcore.moshi.api.ApiMethod
 import org.mytonwallet.app_air.walletcore.stores.AccountStore
@@ -281,11 +280,11 @@ class TokenTradeVC(context: Context, token: MApiSwapAsset, direction: TokenTrade
         if (!model.canContinue) return
         if (model.isBuying) {
             val chain = model.token.chain ?: return
-            BuyWithCardLauncher.buyWithCardUrl(chain, currency) { url ->
+            BuyWithCardLauncher.buyWithCardUrl(chain, currency) { url, error ->
                 if (url != null) {
                     CustomTabsBrowser.open(context, url)
                 } else {
-                    showError(MBridgeError.Type.SERVER_ERROR)
+                    showError(error)
                 }
             }
         } else {
@@ -579,6 +578,7 @@ class TokenTradeVC(context: Context, token: MApiSwapAsset, direction: TokenTrade
                 task = { passcode ->
                     swapViewModel.doSend(passcode, request, event.addressToReceive)
                 },
+                extraAuthUsages = if (request.reservesBatchKeyRead) 1 else 0,
                 allowsAutoConfirm = allowsAutoConfirm
             )
         )

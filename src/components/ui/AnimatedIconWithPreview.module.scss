@@ -12,3 +12,7 @@
   width: 100%;
   height: 100%;
 }
+
+.coloredPreview {
+  mask: var(--preview-url) center / contain no-repeat;
+}

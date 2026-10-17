@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from '../../../lib/teact/teact';
+import React, { memo, useEffect, useRef } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiBaseCurrency, ApiCurrencyRates, ApiTokenDetails, ApiTokenLink } from '../../../api/types';
@@ -14,9 +14,11 @@ import {
   formatCompactNumber,
   getShortCurrencySymbol,
 } from '../../../util/formatNumber';
+import { animateHeightReveal } from '../../../util/layoutChangeAnimation';
 import { handleUrlClick } from '../../../util/openUrl';
 import { isValidUrl } from '../../../util/url';
 
+import useHeightChange from '../../../hooks/useHeightChange';
 import useInterval from '../../../hooks/useInterval';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -29,6 +31,7 @@ import styles from './Info.module.scss';
 
 interface OwnProps {
   tokenSlug: string;
+  isActive?: boolean;
   className?: string;
 }
 
@@ -56,19 +59,30 @@ const SKELETON_LINE_COUNT = 3;
 // Matches the retry cadence of the native apps
 const RETRY_INTERVAL = 5 * SECOND;
 
-function Info({ tokenSlug, className, details, baseCurrency, currencyRates }: OwnProps & StateProps) {
+function Info({
+  tokenSlug, isActive, className, details, baseCurrency, currencyRates,
+}: OwnProps & StateProps) {
   const { loadTokenDetails } = getActions();
 
   const lang = useLang();
+  const rootRef = useRef<HTMLElement>();
 
   const refreshDetails = useLastCallback(() => {
     loadTokenDetails({ slug: tokenSlug });
   });
 
   // The description comes localized, so a language change needs a fresh request
-  useEffect(refreshDetails, [refreshDetails, tokenSlug, lang.code]);
+  useEffect(() => {
+    if (isActive) refreshDetails();
+  }, [isActive, refreshDetails, tokenSlug, lang.code]);
 
-  useInterval(refreshDetails, details?.hasError ? RETRY_INTERVAL : undefined, true);
+  useInterval(refreshDetails, isActive && details?.hasError ? RETRY_INTERVAL : undefined, true);
+
+  const handleHeightChange = useLastCallback((prevHeight: number, nextHeight: number) => {
+    if (nextHeight > prevHeight) animateHeightReveal(rootRef.current!, prevHeight, nextHeight);
+  });
+
+  useHeightChange(rootRef, handleHeightChange);
 
   function renderDetails(data: ApiTokenDetails) {
     const { description, marketCap, createdAt, volume24h } = data;
@@ -147,7 +161,7 @@ function Info({ tokenSlug, className, details, baseCurrency, currencyRates }: Ow
   function renderContent() {
     // A failed refresh keeps the shown data while the retries run
     if (details?.data) {
-      return renderDetails(details.data);
+      return <div className={styles.details}>{renderDetails(details.data)}</div>;
     }
 
     // A failed first request is retried on an interval, so its skeleton doubles as the waiting state
@@ -165,7 +179,7 @@ function Info({ tokenSlug, className, details, baseCurrency, currencyRates }: Ow
   }
 
   return (
-    <section className={buildClassName(styles.root, className)}>
+    <section ref={rootRef} className={buildClassName(styles.root, className)}>
       <h3 className={styles.title}>{lang('Info')}</h3>
       {renderContent()}
     </section>

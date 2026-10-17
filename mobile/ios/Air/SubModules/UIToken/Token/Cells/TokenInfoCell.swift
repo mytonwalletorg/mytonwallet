@@ -88,7 +88,12 @@ final class TokenInfoCell: FirstRowCell {
         let hostingView = HostingView { [weak self, weak model] in
             if let model {
                 TokenInfoView(model: model) { [weak self] height, revision in
-                    self?.updateContentMeasurement(height: height, revision: revision)
+                    // SwiftUI can measure during collection-view self-sizing. Invalidating the
+                    // layout re-entrantly leaves contentView at the previous fitted height.
+                    Task { @MainActor [weak self, weak model] in
+                        guard let self, let model, self.model === model else { return }
+                        updateContentMeasurement(height: height, revision: revision)
+                    }
                 }
             }
         }

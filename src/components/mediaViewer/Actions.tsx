@@ -41,6 +41,7 @@ type StateProps = {
   accentColorNft?: ApiNft;
   isViewMode: boolean;
   isTestnet?: boolean;
+  selectedExplorerId?: string;
 };
 
 const SHOULD_CLOSE_VIEWER_HANDLERS: NftMenuHandler[] = [
@@ -62,6 +63,7 @@ function Actions({
   accentColorNft,
   isViewMode,
   isTestnet,
+  selectedExplorerId,
   onClose,
 }: StateProps & OwnProps) {
   const lang = useLang();
@@ -91,6 +93,7 @@ function Actions({
     isNftInstalled,
     isNftAccentColorInstalled,
     isTestnet,
+    selectedExplorerId,
   });
 
   const handleSelect = useLastCallback((value: NftMenuHandler) => {
@@ -159,6 +162,7 @@ export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
     accentColorNft,
     isViewMode,
     isTestnet: global.settings.isTestnet,
+    selectedExplorerId: global.settings.selectedExplorerIds?.[nft.chain],
     linkedAddress,
   };
 })(Actions));
