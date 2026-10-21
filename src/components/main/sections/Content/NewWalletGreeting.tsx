@@ -1,6 +1,6 @@
 import React, { memo } from '../../../../lib/teact/teact';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, ANIMATED_STICKER_SMALL_SIZE_PX } from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, ANIMATED_STICKER_SMALL_SIZE_PX, IS_EXPLORER } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -31,10 +31,12 @@ function NewWalletGreeting({ isActive, mode }: Props) {
 
       <div className={styles.text}>
         <p className={styles.header}>
-          {lang('You have just created a new wallet')}
+          {IS_EXPLORER ? lang('Explorer mode') : lang('You have just created a new wallet')}
         </p>
         <p className={styles.description}>
-          {lang('Send, receive, and trade tokens and collectibles.')}
+          {IS_EXPLORER
+            ? lang('Open a link to a wallet, transfer, token or collectible to see its details here.')
+            : lang('Send, receive, and trade tokens and collectibles.')}
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { getActions, getGlobal } from '../../global';
 
-import type { GlobalState } from '../../global/types';
+import type { Account, GlobalState } from '../../global/types';
 import { ContentTab } from '../../global/types';
 
 import * as config from '../../config';
@@ -297,6 +297,9 @@ describe('processSelfDeeplink', () => {
       switchToMarket: jest.fn(),
       openMintCardModal: jest.fn(),
       addSavedAddress: jest.fn(),
+      switchAccount: jest.fn(),
+      showTokenActivity: jest.fn(),
+      changeNetwork: jest.fn(),
     };
 
     // Setup mock global state
@@ -849,6 +852,94 @@ describe('processSelfDeeplink', () => {
         addressByChain: {
           ton: TEST_TON_ADDRESS,
         },
+      });
+    });
+  });
+
+  describe('Token command', () => {
+    const MAINNET_TOKEN_URL = `https://my.tt/token/${TRC20_USDT_MAINNET.slug}`;
+    const TESTNET_TOKEN_URL = `https://my.tt/token/${TRC20_USDT_TESTNET.slug}?testnet=true`;
+    const TON_WALLET: Account = { type: 'mnemonic', byChain: { ton: { address: TEST_TON_ADDRESS } } };
+    const TRON_WALLET: Account = { type: 'mnemonic', byChain: { tron: { address: TEST_TRON_ADDRESS } } };
+
+    function setAccounts(byId: Record<string, Account>, currentAccountId: string) {
+      mockGlobal.accounts = { byId };
+      mockGlobal.currentAccountId = currentAccountId;
+    }
+
+    beforeEach(() => {
+      mockActions.switchAccount.mockImplementation(({ accountId }: { accountId: string }) => {
+        mockGlobal.currentAccountId = accountId;
+      });
+    });
+
+    it('opens the token in the current wallet that has the token chain', async () => {
+      expect(await processSelfDeeplink(MAINNET_TOKEN_URL)).toBe(true);
+      expect(mockActions.showTokenActivity).toHaveBeenCalledWith({ slug: TRC20_USDT_MAINNET.slug });
+      expect(mockActions.switchAccount).not.toHaveBeenCalled();
+    });
+
+    it('switches to the first wallet of the network that has the token chain', async () => {
+      setAccounts({ '1-mainnet': TON_WALLET, '2-mainnet': TRON_WALLET }, '1-mainnet');
+
+      expect(await processSelfDeeplink(MAINNET_TOKEN_URL)).toBe(true);
+      expect(mockActions.switchAccount).toHaveBeenCalledWith({ accountId: '2-mainnet', newNetwork: 'mainnet' });
+      expect(mockActions.showTokenActivity).toHaveBeenCalledWith({ slug: TRC20_USDT_MAINNET.slug });
+    });
+
+    it('keeps the current wallet when no wallet of the network has the token chain', async () => {
+      setAccounts({ '1-mainnet': TON_WALLET }, '1-mainnet');
+
+      expect(await processSelfDeeplink(MAINNET_TOKEN_URL)).toBe(true);
+      expect(mockActions.showTokenActivity).toHaveBeenCalledWith({ slug: TRC20_USDT_MAINNET.slug });
+      expect(mockActions.switchAccount).not.toHaveBeenCalled();
+      expect(mockActions.openTemporaryViewAccount).not.toHaveBeenCalled();
+    });
+
+    it('switches to a wallet of the link network', async () => {
+      setAccounts({ '1-mainnet': TRON_WALLET, '2-testnet': TRON_WALLET }, '1-mainnet');
+
+      expect(await processSelfDeeplink(TESTNET_TOKEN_URL)).toBe(true);
+      expect(mockActions.switchAccount).toHaveBeenCalledWith({ accountId: '2-testnet', newNetwork: 'testnet' });
+      expect(mockActions.showTokenActivity).toHaveBeenCalledWith({ slug: TRC20_USDT_TESTNET.slug });
+    });
+
+    it('opens an account without addresses when the link network has no wallet with the token chain', async () => {
+      expect(await processSelfDeeplink(TESTNET_TOKEN_URL)).toBe(true);
+      expect(mockActions.changeNetwork).toHaveBeenCalledWith({ network: 'testnet' });
+      expect(mockActions.openTemporaryViewAccount).toHaveBeenCalledWith({
+        addressByChain: {},
+        tokenSlug: TRC20_USDT_TESTNET.slug,
+      });
+      expect(mockActions.showTokenActivity).not.toHaveBeenCalled();
+    });
+
+    describe('in explorer mode', () => {
+      let explorer: jest.ReplaceProperty<boolean>;
+
+      beforeEach(() => {
+        explorer = jest.replaceProperty(config, 'IS_EXPLORER', true);
+      });
+
+      afterEach(() => {
+        explorer.restore();
+      });
+
+      it('opens the token in the current account that has the token chain', async () => {
+        expect(await processSelfDeeplink(MAINNET_TOKEN_URL)).toBe(true);
+        expect(mockActions.showTokenActivity).toHaveBeenCalledWith({ slug: TRC20_USDT_MAINNET.slug });
+        expect(mockActions.openTemporaryViewAccount).not.toHaveBeenCalled();
+      });
+
+      it('opens an account without addresses instead of switching to another account', async () => {
+        setAccounts({ '1-mainnet': TON_WALLET, '2-mainnet': TRON_WALLET }, '1-mainnet');
+
+        expect(await processSelfDeeplink(MAINNET_TOKEN_URL)).toBe(true);
+        expect(mockActions.openTemporaryViewAccount).toHaveBeenCalledWith({
+          addressByChain: {},
+          tokenSlug: TRC20_USDT_MAINNET.slug,
+        });
+        expect(mockActions.switchAccount).not.toHaveBeenCalled();
       });
     });
   });

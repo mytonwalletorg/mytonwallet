@@ -6,6 +6,7 @@ import type { Account, AccountType } from '../../../../global/types';
 import type { LangFn } from '../../../../hooks/useLang';
 import type { AddressMenuItem } from './addressMenu/MenuItem';
 
+import { IS_EXPLORER } from '../../../../config';
 import {
   selectAccount,
   selectCurrentAccountChainDisplay,
@@ -14,6 +15,7 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import { getChainTitle } from '../../../../util/chain';
 import { copyTextToClipboard } from '../../../../util/clipboard';
+import isEmptyObject from '../../../../util/isEmptyObject';
 import { openUrl } from '../../../../util/openUrl';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import getChainNetworkIcon from '../../../../util/swap/getChainNetworkIcon';
@@ -126,7 +128,12 @@ function CardAddress({
 
   return (
     <div ref={ref} className={buildClassName(styles.addressContainer, isMinimized && styles.minimized)}>
-      {isViewAccount && <ViewModeIcon isTemporary={isTemporary} isMinimized={isMinimized} />}
+      {isViewAccount && (
+        <ViewModeIcon
+          canSave={isTemporary && !IS_EXPLORER && !isEmptyObject(byChain)}
+          isMinimized={isMinimized}
+        />
+      )}
       {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
       <AddressMenuButton
         chains={lineChains}

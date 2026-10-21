@@ -21,7 +21,7 @@ import { logDebug, logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import { getChainBySlug } from '../../util/tokens';
 import chains from '../chains';
-import { fetchStoredAccount } from '../common/accounts';
+import { doesAccountHaveChain, fetchStoredAccount } from '../common/accounts';
 import {
   getSwapRowBackendId,
   getSwapRowKeys,
@@ -233,7 +233,7 @@ function uniqueActivitiesById(activities: readonly ApiActivity[]) {
   return Array.from(byId.values());
 }
 
-function fetchTokenActivitySlice(
+async function fetchTokenActivitySlice(
   accountId: string,
   limit: number,
   tokenSlug: string,
@@ -241,6 +241,13 @@ function fetchTokenActivitySlice(
   signal?: AbortSignal,
 ): Promise<ActivitySliceResult> {
   const chain = getChainBySlug(tokenSlug);
+
+  // An account without a wallet in the token's network has no history there, and the network's history loader
+  // throws without a wallet
+  if (!doesAccountHaveChain(await fetchStoredAccount(accountId), chain)) {
+    return { activities: [], hasMore: false };
+  }
+
   return fetchAndCheckActivitySlice(chain, {
     accountId,
     tokenSlug,

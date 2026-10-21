@@ -1,7 +1,12 @@
 import type { ApiNft } from '../../api/types';
 
-import { makeMockTransactionActivity } from '../../../tests/mocks';
-import { getIsHiddenNftActivity, getTransactionAmountDisplayMode, isScamTransaction } from '.';
+import { makeMockSwapActivity, makeMockTransactionActivity } from '../../../tests/mocks';
+import {
+  getActivityTokenSlugs,
+  getIsHiddenNftActivity,
+  getTransactionAmountDisplayMode,
+  isScamTransaction,
+} from '.';
 
 const WHITELISTED_ADDRESS = 'EQNft_Whitelisted_0000000000000000000000000000000000000';
 const BLACKLISTED_ADDRESS = 'EQNft_Blacklisted_0000000000000000000000000000000000000';
@@ -20,6 +25,12 @@ function makeNft(partial: Partial<ApiNft> = {}): ApiNft {
     ...partial,
   };
 }
+
+describe('getActivityTokenSlugs', () => {
+  it('lists a swap token once when both sides are the same token', () => {
+    expect(getActivityTokenSlugs(makeMockSwapActivity({ from: 'base', to: 'base' }))).toEqual(['base']);
+  });
+});
 
 describe('isScamTransaction', () => {
   it('marks a transaction carrying a scam NFT as scam', () => {

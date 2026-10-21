@@ -3,12 +3,13 @@ import type { GlobalState } from '../types';
 import { AppState } from '../types';
 
 import { TEMPORARY_ACCOUNT_NAME } from '../../config';
+import isEmptyObject from '../../util/isEmptyObject';
 import { omit } from '../../util/iteratees';
 import { getTranslation } from '../../util/langProvider';
 import { callApi } from '../../api';
 import { getActions, getGlobal, setGlobal } from '../index';
-import { createAccount, updateAccounts } from '../reducers';
-import { selectNetworkAccounts } from '../selectors';
+import { createAccount, markEmptyAccountLoaded, updateAccounts } from '../reducers';
+import { selectCurrentAccountId, selectNetworkAccounts } from '../selectors';
 import { dropEnclaveSessionHold, holdEnclaveSession } from './enclave';
 
 /**
@@ -113,6 +114,10 @@ export function createAndSetTemporaryAccount(
     },
   });
 
+  if (isEmptyObject(result.byChain)) {
+    global = markEmptyAccountLoaded(global, result.accountId);
+  }
+
   global = {
     ...global,
     currentTemporaryViewAccountId: result.accountId,
@@ -124,18 +129,30 @@ export function createAndSetTemporaryAccount(
 
 export function finalizeAccountCreation(
   actions: ReturnType<typeof getActions>,
+  accountId: string,
   shouldSwitchToWallet: boolean | undefined,
   switchingDuration: number,
+  tokenSlug?: string,
 ): void {
   if (getGlobal().areSettingsOpen) {
     actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
   }
 
-  if (shouldSwitchToWallet) {
-    window.setTimeout(() => {
+  if (!shouldSwitchToWallet && !tokenSlug) return;
+
+  window.setTimeout(() => {
+    // Another account may become current during the delay, and the navigation belongs to the created one
+    if (selectCurrentAccountId(getGlobal()) !== accountId) return;
+
+    if (shouldSwitchToWallet) {
       actions.switchToWallet();
-    }, switchingDuration);
-  }
+    }
+
+    // `switchToWallet` returns the wallet to its home tab and closes a token screen opened before it
+    if (tokenSlug) {
+      actions.showTokenActivity({ slug: tokenSlug });
+    }
+  }, switchingDuration);
 }
 
 export function findExistingAccountByAddresses(
@@ -143,7 +160,8 @@ export function findExistingAccountByAddresses(
   addressByChain: Partial<Record<ApiChain, string>>,
 ): string | undefined {
   const accounts = selectNetworkAccounts(global);
-  if (!accounts) return undefined;
+  // Every account would match an empty address list
+  if (!accounts || isEmptyObject(addressByChain)) return undefined;
 
   return Object.keys(accounts).find((accountId) => {
     const account = accounts[accountId];
@@ -161,6 +179,7 @@ export async function handleExplorerMode(
   network: ApiNetwork,
   addressByChain: Partial<Record<ApiChain, string>>,
   switchingDuration: number,
+  tokenSlug?: string,
 ) {
   if (global.currentTemporaryViewAccountId) {
     await removeTemporaryAccount(global.currentTemporaryViewAccountId);
@@ -178,7 +197,7 @@ export async function handleExplorerMode(
     appState: AppState.Main,
   });
 
-  finalizeAccountCreation(actions, true, switchingDuration);
+  finalizeAccountCreation(actions, result.accountId, true, switchingDuration, tokenSlug);
 }
 
 export async function handleStandardMode(
@@ -188,6 +207,7 @@ export async function handleStandardMode(
   addressByChain: Partial<Record<ApiChain, string>>,
   switchingDuration: number,
   getIsPortrait: () => boolean | undefined,
+  tokenSlug?: string,
 ) {
   const existingAccountId = findExistingAccountByAddresses(global, addressByChain);
 
@@ -209,5 +229,5 @@ export async function handleStandardMode(
 
   createAndSetTemporaryAccount(result);
 
-  finalizeAccountCreation(actions, getIsPortrait(), switchingDuration);
+  finalizeAccountCreation(actions, result.accountId, getIsPortrait(), switchingDuration, tokenSlug);
 }

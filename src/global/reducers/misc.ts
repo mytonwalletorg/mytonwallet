@@ -122,6 +122,19 @@ export function createAccount({
   };
 }
 
+/**
+ * An account without addresses has no network to poll, so no balance, NFT or activity update ever ends its
+ * loading state. Its wallet screen would stay on the skeleton and its lists would keep spinning.
+ */
+export function markEmptyAccountLoaded(global: GlobalState, accountId: string) {
+  return updateAccountState(global, accountId, {
+    isAppReady: true,
+    balances: { bySlug: {} },
+    nfts: { byAddress: {}, orderedAddresses: [] },
+    activities: { byId: {}, idsMain: [], isMainHistoryEndReached: true },
+  });
+}
+
 export function updateAccount(
   global: GlobalState,
   accountId: string,

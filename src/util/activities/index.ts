@@ -104,7 +104,7 @@ export function getActivityTokenSlugs(activity: ApiActivity): string[] {
       return [activity.slug];
     }
     case 'swap': {
-      return [activity.from, activity.to];
+      return unique([activity.from, activity.to]);
     }
   }
 }

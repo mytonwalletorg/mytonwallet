@@ -24,6 +24,7 @@ import {
   selectIsCurrentAccountViewMode,
   selectIsHardwareAccount,
   selectIsOnRampAllowed,
+  selectNetworkAccountIdWithChain,
   selectTokenByMinterAddress,
 } from '../../global/selectors';
 import { callApi } from '../../api';
@@ -86,6 +87,7 @@ const EXPLORER_ALLOWED_COMMANDS = new Set([
   DeeplinkCommand.Transaction,
   DeeplinkCommand.Nft,
   DeeplinkCommand.Portfolio,
+  DeeplinkCommand.Token,
 ]);
 
 const SETTINGS_SECTION_MAP: Record<string, SettingsState> = {
@@ -718,7 +720,7 @@ async function openSelfDeeplink(
 
     logDebug('Processing deeplink', deeplink);
 
-    // In explorer mode, only allow `View`, `Nft`, `Portfolio` and `Transaction` commands
+    // In explorer mode, only allow `View`, `Nft`, `Portfolio`, `Transaction` and `Token` commands
     if (IS_EXPLORER && !EXPLORER_ALLOWED_COMMANDS.has(command as DeeplinkCommand)) {
       actions.showError({ error: 'This action is not supported in explorer mode.' });
       return false;
@@ -1043,9 +1045,32 @@ async function openSelfDeeplink(
           tokenSlug = await callApi('buildTokenSlug', chain as ApiChain, tokenAddress);
         }
 
-        if (!tokenSlug || !global.tokenInfo.bySlug[tokenSlug]) {
+        const token = tokenSlug ? global.tokenInfo.bySlug[tokenSlug] : undefined;
+        if (!tokenSlug || !token) {
           actions.showError({ error: '$unknown_token_address' });
           return false;
+        }
+
+        const network = getLinkNetwork(searchParams);
+        const { chain } = token;
+        const isOtherNetwork = network !== currentNetwork;
+        const canShowInCurrentAccount = !isOtherNetwork && Boolean(selectCurrentAccount(global)?.byChain[chain]);
+        // A wallet without the token chain can't hold the token, so the link looks for the first wallet of its
+        // network with that chain
+        const ownAccountId = !canShowInCurrentAccount && !IS_EXPLORER
+          ? selectNetworkAccountIdWithChain(global, network, chain)
+          : undefined;
+
+        if (ownAccountId) {
+          actions.switchAccount({ accountId: ownAccountId, newNetwork: network });
+          // The token screen belongs to the account state, and `switchAccount` changes the account only after
+          // activating it
+          if (!await waitFor(() => selectCurrentAccountId(getGlobal()) === ownAccountId, 100, 100)) return false;
+        } else if (!canShowInCurrentAccount && (IS_EXPLORER || isOtherNetwork)) {
+          // The link carries no wallet address, so the token opens in a view account without addresses
+          ensureNetwork(searchParams, currentNetwork);
+          actions.openTemporaryViewAccount({ addressByChain: {}, tokenSlug });
+          return true;
         }
 
         actions.showTokenActivity({ slug: tokenSlug });
@@ -1241,7 +1266,7 @@ async function openViewAccount(
 }
 
 function ensureNetwork(searchParams: URLSearchParams, currentNetwork: ApiNetwork) {
-  const newNetwork: ApiNetwork = searchParams.get('testnet') === 'true' ? 'testnet' : 'mainnet';
+  const newNetwork = getLinkNetwork(searchParams);
   if (currentNetwork !== newNetwork) {
     getActions().changeNetwork({ network: newNetwork });
   }
@@ -1250,6 +1275,10 @@ function ensureNetwork(searchParams: URLSearchParams, currentNetwork: ApiNetwork
     isTestnet: newNetwork === 'testnet',
     network: newNetwork,
   };
+}
+
+function getLinkNetwork(searchParams: URLSearchParams): ApiNetwork {
+  return searchParams.get('testnet') === 'true' ? 'testnet' : 'mainnet';
 }
 
 function getOfframpTokenMapping(

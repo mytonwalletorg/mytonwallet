@@ -12,6 +12,7 @@ import {
 import { fetchPastActivities, reconcileActivityUpdate } from './activities';
 
 jest.mock('../common/accounts', () => ({
+  ...jest.requireActual('../common/accounts'),
   fetchStoredAccount: jest.fn(),
 }));
 
@@ -145,6 +146,8 @@ describe('fetchPastActivities', () => {
   });
 
   it('uses the chain-specific activity source for token history', async () => {
+    fetchStoredAccount.mockResolvedValue({ type: 'view', byChain: { ton: { address: 'EQ-test' } } });
+
     await fetchPastActivities('0-mainnet', 50, 'toncoin');
 
     expect(chains.ton.fetchActivitySlice).toHaveBeenCalledWith({
@@ -154,6 +157,13 @@ describe('fetchPastActivities', () => {
       toTimestamp: undefined,
     });
     expect(chains.ton.crosschain.fetchCrossChainActivitySlice).not.toHaveBeenCalled();
+  });
+
+  it('returns empty token history for an account without a wallet in the token network', async () => {
+    fetchStoredAccount.mockResolvedValue({ type: 'view', byChain: {} });
+
+    await expect(fetchPastActivities('0-mainnet', 50, 'toncoin')).resolves.toEqual({ activities: [], hasMore: false });
+    expect(chains.ton.fetchActivitySlice).not.toHaveBeenCalled();
   });
 
   it('suppresses source failures for signalled callers unless requested', async () => {

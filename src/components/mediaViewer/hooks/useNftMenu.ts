@@ -114,7 +114,7 @@ const CHANGE_LINKED_ADDRESS: DropdownItem<NftMenuHandler> = {
 const SHARE_LINK_ITEM: DropdownItem<NftMenuHandler> = {
   name: 'Share Link',
   value: 'shareLink',
-  fontIcon: 'icon-link',
+  fontIcon: 'link',
 };
 
 export default function useNftMenu({

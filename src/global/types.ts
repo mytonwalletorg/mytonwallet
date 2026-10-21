@@ -1370,7 +1370,11 @@ export interface ActionPayloads {
   createSubWallet: { enclaveToken: string };
   upgradeMultichainAccounts: { enclaveToken: string; accountIds: string[] };
   importViewAccount: { addressByChain: ApiImportAddressByChain };
-  openTemporaryViewAccount: { addressByChain: Partial<Record<ApiChain, string>> };
+  openTemporaryViewAccount: {
+    addressByChain: Partial<Record<ApiChain, string>>;
+    /** Opens the token screen in the new account. Allows `addressByChain` to be empty. */
+    tokenSlug?: string;
+  };
   saveTemporaryAccount: undefined;
 
   setEnclaveSession: EnclaveSession;

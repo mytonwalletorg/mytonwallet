@@ -3,6 +3,7 @@ import {
   getExplorerAddressUrl,
   getExplorerTransactionUrl,
   getViewAccountUrl,
+  getViewTokenUrl,
   isInIframeWhitelist,
   isValidUrl,
   normalizeUrl,
@@ -117,6 +118,21 @@ describe('getViewAccountUrl', () => {
       robinhood: TEST_EVM_ADDRESS,
       arc: TEST_EVM_ADDRESS,
     }, true)).toBe(`https://my.tt/view/?evm=${TEST_EVM_ADDRESS}&testnet=true`);
+  });
+});
+
+describe('getViewTokenUrl', () => {
+  it('should address a token by its chain and contract address', () => {
+    expect(getViewTokenUrl({ chain: 'ton', slug: 'ton-eqaisixsrb', tokenAddress: TEST_TON_ADDRESS }))
+      .toBe(`https://my.tt/token/ton/${TEST_TON_ADDRESS}`);
+  });
+
+  it('should address a native coin by its slug', () => {
+    expect(getViewTokenUrl({ chain: 'ton', slug: 'toncoin' })).toBe('https://my.tt/token/toncoin');
+  });
+
+  it('should add the testnet parameter', () => {
+    expect(getViewTokenUrl({ chain: 'ton', slug: 'toncoin' }, true)).toBe('https://my.tt/token/toncoin?testnet=true');
   });
 });
 

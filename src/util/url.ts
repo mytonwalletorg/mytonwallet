@@ -1,4 +1,4 @@
-import type { ApiChain, ApiNft } from '../api/types';
+import type { ApiChain, ApiNft, ApiToken } from '../api/types';
 import type { LangCode } from '../global/types';
 
 import {
@@ -333,6 +333,19 @@ function getCollapsedEvmAddress(addressByChain: Partial<Record<ApiChain, string>
 
 export function getViewNftUrl(nftAddress: string, isTestnet?: boolean): string {
   const url = `${SELF_UNIVERSAL_HOST_URL}/nft/${nftAddress}`;
+
+  return isTestnet ? `${url}?testnet=true` : url;
+}
+
+// The contract address keeps the link valid when the token's slug changes. Native coins have no address,
+// so their links use the slug.
+export function getViewTokenUrl(
+  { chain, slug, tokenAddress }: Pick<ApiToken, 'chain' | 'slug' | 'tokenAddress'>,
+  isTestnet?: boolean,
+): string {
+  const url = tokenAddress
+    ? `${SELF_UNIVERSAL_HOST_URL}/token/${chain}/${tokenAddress}`
+    : `${SELF_UNIVERSAL_HOST_URL}/token/${slug}`;
 
   return isTestnet ? `${url}?testnet=true` : url;
 }

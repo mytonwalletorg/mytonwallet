@@ -14,6 +14,7 @@ import {
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectHasAccountAddresses,
   selectIsCurrentAccountViewMode,
   selectIsMultichainAccount,
   selectIsStakingDisabled,
@@ -75,6 +76,7 @@ interface StateProps {
   isViewMode?: boolean;
   isSwapDisabled?: boolean;
   isMultichainAccount: boolean;
+  hasAddresses: boolean;
   areChainBadgesShown?: boolean;
   isStakingDisabled?: boolean;
   pinnedSlugs?: string[];
@@ -100,6 +102,7 @@ function Assets({
   theme,
   states,
   isMultichainAccount,
+  hasAddresses,
   areChainBadgesShown,
   isViewMode,
   isSwapDisabled,
@@ -363,7 +366,7 @@ function Assets({
         stickerSize={isWidget ? undefined : ANIMATED_STICKER_SMALL_SIZE_PX}
         title={lang('No tokens yet')}
         description={lang('$no_tokens_description')}
-        actionText={lang('Add Tokens')}
+        actionText={hasAddresses ? lang('Add Tokens') : undefined}
         className="content-centered"
         onActionClick={handleOpenTokenSettings}
       />
@@ -447,6 +450,7 @@ export default memo(
         theme: global.settings.theme,
         states,
         isMultichainAccount: selectIsMultichainAccount(global, currentAccountId),
+        hasAddresses: selectHasAccountAddresses(global, currentAccountId),
         areChainBadgesShown,
         isViewMode,
         isSwapDisabled: selectIsSwapDisabled(global),
