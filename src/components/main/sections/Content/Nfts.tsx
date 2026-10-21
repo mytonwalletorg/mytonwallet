@@ -21,6 +21,7 @@ import renderText from '../../../../global/helpers/renderText';
 import {
   selectCurrentAccountId,
   selectCurrentAccountState,
+  selectHasAccountAddresses,
   selectIsCurrentAccountViewMode,
   selectIsMultichainAccount,
 } from '../../../../global/selectors';
@@ -83,6 +84,7 @@ interface StateProps {
   dnsExpiration?: Record<string, number>;
   isViewAccount?: boolean;
   isMultichainAccount?: boolean;
+  hasAddresses: boolean;
   isLoading?: boolean;
   theme: Theme;
   animationDuration: number;
@@ -104,6 +106,7 @@ function Nfts({
   areUnverifiedNftsHidden,
   isViewAccount,
   isMultichainAccount,
+  hasAddresses,
   isLoading,
   theme,
   animationDuration,
@@ -203,7 +206,7 @@ function Nfts({
           ? (!isNftBuyingDisabled ? lang('$nft_explore_offer') : undefined)
           : fullDescription}
         className="content-centered"
-        actionText={!isNftBuyingDisabled
+        actionText={!isNftBuyingDisabled && hasAddresses
           ? lang('Open %nft_marketplace%', { nft_marketplace: nftMarketplace.title })
           : undefined}
         onActionClick={!isNftBuyingDisabled ? handleNftMarketplaceClick : undefined}
@@ -289,6 +292,7 @@ export default memo(
         dnsExpiration,
         isViewAccount: selectIsCurrentAccountViewMode(global),
         isMultichainAccount: accountId ? selectIsMultichainAccount(global, accountId) : undefined,
+        hasAddresses: accountId ? selectHasAccountAddresses(global, accountId) : false,
         isLoading: isFullLoadingByChain ? Object.values(isFullLoadingByChain).some(Boolean) : undefined,
         theme: global.settings.theme,
         animationDuration,

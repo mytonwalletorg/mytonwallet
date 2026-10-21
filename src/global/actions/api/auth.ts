@@ -1325,8 +1325,9 @@ addActionHandler('importViewAccount', async (global, actions, { addressByChain }
   void vibrateOnSuccess();
 });
 
-addActionHandler('openTemporaryViewAccount', async (global, actions, { addressByChain }) => {
-  if (!Object.keys(addressByChain).length) {
+addActionHandler('openTemporaryViewAccount', async (global, actions, { addressByChain, tokenSlug }) => {
+  // A token link carries no wallet address, so an account without addresses is valid only to show a token
+  if (!Object.keys(addressByChain).length && !tokenSlug) {
     actions.showError({ error: '$no_valid_view_addresses' });
     return;
   }
@@ -1334,7 +1335,7 @@ addActionHandler('openTemporaryViewAccount', async (global, actions, { addressBy
   const network = selectCurrentNetwork(global);
 
   if (IS_EXPLORER) {
-    await handleExplorerMode(global, actions, network, addressByChain, SWITHCHING_ACCOUNT_DURATION_MS);
+    await handleExplorerMode(global, actions, network, addressByChain, SWITHCHING_ACCOUNT_DURATION_MS, tokenSlug);
   } else {
     await handleStandardMode(
       global,
@@ -1343,6 +1344,7 @@ addActionHandler('openTemporaryViewAccount', async (global, actions, { addressBy
       addressByChain,
       SWITHCHING_ACCOUNT_DURATION_MS,
       getIsPortrait,
+      tokenSlug,
     );
   }
 });

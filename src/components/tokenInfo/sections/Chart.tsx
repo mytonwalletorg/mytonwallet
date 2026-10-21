@@ -7,7 +7,7 @@ import type { TabWithProperties } from '../../ui/TabList';
 import type { TokenBalanceChange } from '../helpers/resolveBalanceChange';
 
 import { DEFAULT_PRICE_CURRENCY } from '../../../config';
-import { selectCurrentAccountState } from '../../../global/selectors';
+import { selectCurrentAccount, selectCurrentAccountState } from '../../../global/selectors';
 import { isNetWorthChartAvailable } from '../../../util/assets/netWorth';
 import buildClassName from '../../../util/buildClassName';
 import { formatChartDate, formatShortDay, formatTime, SECOND } from '../../../util/dateFormat';
@@ -46,6 +46,7 @@ interface StateProps {
   backendPercentChange24h?: number;
   historyPeriods?: PriceHistoryPeriods;
   netWorthHistoryPeriods?: PriceHistoryPeriods;
+  hasTokenChainWallet: boolean;
 }
 
 const DEFAULT_PERIOD: ApiPriceHistoryPeriod = '1D';
@@ -71,6 +72,7 @@ function Chart({
   backendPercentChange24h,
   historyPeriods,
   netWorthHistoryPeriods,
+  hasTokenChainWallet,
   onChartModeChange,
   onBalanceChangeUpdate,
 }: OwnProps & StateProps) {
@@ -85,8 +87,10 @@ function Chart({
   const chartCurrency = getShortCurrencySymbol(baseCurrency) === symbol ? DEFAULT_PRICE_CURRENCY : baseCurrency;
   const currencySymbol = getShortCurrencySymbol(chartCurrency);
 
-  const isNetWorthMode = chartMode === 'netWorth' && isNetWorthChartAvailable(token);
-  const canSwitchMode = isNetWorthChartAvailable(token);
+  // Net worth history is loaded by the wallet address, so it exists only when the account has a wallet in the
+  // token's network
+  const canSwitchMode = hasTokenChainWallet && isNetWorthChartAvailable(token);
+  const isNetWorthMode = chartMode === 'netWorth' && canSwitchMode;
   const history = isNetWorthMode ? netWorthHistoryPeriods?.[period] : historyPeriods?.[period];
   const isLoading = !history;
 
@@ -279,6 +283,7 @@ export default memo(
       backendPercentChange24h,
       historyPeriods: global.tokenPriceHistory.bySlug[token.slug],
       netWorthHistoryPeriods: accountState?.tokenNetWorthHistory?.[token.slug],
+      hasTokenChainWallet: Boolean(selectCurrentAccount(global)?.byChain[token.chain]),
     };
   })(Chart),
 );

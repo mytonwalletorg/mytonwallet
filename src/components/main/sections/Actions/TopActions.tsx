@@ -14,6 +14,7 @@ import {
   selectCurrentAccountTokenBalance,
   selectDefaultOffRampChain,
   selectDefaultOnRampChain,
+  selectHasAccountAddresses,
   selectIsCurrentAccountViewMode,
   selectIsOffRampAllowed,
   selectIsStakingDisabled,
@@ -60,6 +61,7 @@ interface OwnProps {
 
 interface StateProps {
   isViewMode: boolean;
+  hasAddresses: boolean;
   isSwapDisabled?: boolean;
   isEarnHidden: boolean;
   isOnRampDisabled?: boolean;
@@ -76,6 +78,7 @@ interface StateProps {
 
 function TopActions({
   isViewMode,
+  hasAddresses,
   isSwapDisabled,
   isEarnHidden,
   isOnRampDisabled,
@@ -169,6 +172,8 @@ function TopActions({
   );
 
   if (isViewMode) {
+    if (!hasAddresses) return undefined;
+
     return (
       <div className={buildClassName(styles.root, SWIPE_DISABLED_CLASS_NAME, className)}>{depositButton}</div>
     );
@@ -259,6 +264,7 @@ export default memo(
 
       return {
         isViewMode: selectIsCurrentAccountViewMode(global),
+        hasAddresses: accountId ? selectHasAccountAddresses(global, accountId) : false,
         isSwapDisabled,
         isEarnHidden,
         isOnRampDisabled: !onRampChain,

@@ -213,6 +213,16 @@ export function selectIsMultichainAccount(global: GlobalState, accountId: string
   return Boolean(byChain) && isKeyCountGreater(byChain, 1);
 }
 
+export function selectNetworkAccountIdWithChain(global: GlobalState, network: ApiNetwork, chain: ApiChain) {
+  const accounts = selectNetworkAccountsMemoized(network, global.accounts?.byId);
+  return accounts && Object.keys(accounts).find((accountId) => accounts[accountId].byChain[chain]);
+}
+
+export function selectHasAccountAddresses(global: GlobalState, accountId: string) {
+  const byChain = selectAccount(global, accountId)?.byChain;
+  return Boolean(byChain) && isKeyCountGreater(byChain, 0);
+}
+
 export function selectIsMultisigAccount(global: GlobalState, accountId: string) {
   const account = selectAccount(global, accountId);
   return Object.values(account?.byChain ?? {}).some((wallet) => wallet.isMultisig);

@@ -10,8 +10,9 @@ import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { compact } from '../../util/iteratees';
 import { openUrl } from '../../util/openUrl';
+import { shareUrl } from '../../util/share';
 import { getIsRwaStockToken, getTokenName } from '../../util/tokens';
-import { getExplorerTokenUrl, isValidUrl } from '../../util/url';
+import { getExplorerTokenUrl, getViewTokenUrl, isValidUrl } from '../../util/url';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -38,6 +39,8 @@ interface StateProps {
   areTokenNamesLocalized?: boolean;
 }
 
+const SHARE_ITEM: DropdownItem<string> = { name: 'Share', fontIcon: 'share', value: 'share' };
+
 function Header({
   token,
   isScrolled,
@@ -61,11 +64,16 @@ function Header({
     token.chain, token.cmcSlug, tokenAddress, isTestnet, selectedExplorerIds?.[token.chain],
   );
 
-  // The links open a browser instead of dispatching an action, so they are keyed by their own URL
-  const menuItems = useMemo(() => buildLinkItems(details, explorerUrl), [details, explorerUrl]);
+  // Link items use their URL as the value. `share` is not a URL, so it never collides with a link.
+  const menuItems = useMemo(() => buildMenuItems(details, explorerUrl), [details, explorerUrl]);
 
-  const handleSelect = useLastCallback((url: string) => {
-    void openUrl(url);
+  const handleSelect = useLastCallback((value: string) => {
+    if (value === SHARE_ITEM.value) {
+      void shareUrl(getViewTokenUrl({ chain: token.chain, slug: token.slug, tokenAddress }, isTestnet));
+      return;
+    }
+
+    void openUrl(value);
   });
 
   const openMenu = useLastCallback(() => {
@@ -90,18 +98,16 @@ function Header({
         {token.label && <TokenLabel label={token.label} isRwaStock={getIsRwaStockToken(token)} />}
       </h3>
 
-      {Boolean(menuItems.length) && (
-        <Button
-          ref={menuButtonRef}
-          className={styles.menuButton}
-          isSimple
-          isText
-          ariaLabel={lang('Actions')}
-          onClick={openMenu}
-        >
-          <i className="icon-menu-dots" aria-hidden />
-        </Button>
-      )}
+      <Button
+        ref={menuButtonRef}
+        className={styles.menuButton}
+        isSimple
+        isText
+        ariaLabel={lang('Actions')}
+        onClick={openMenu}
+      >
+        <i className="icon-menu-dots" aria-hidden />
+      </Button>
 
       <DropdownMenu
         isOpen={Boolean(menuAnchor)}
@@ -117,7 +123,7 @@ function Header({
   );
 }
 
-function buildLinkItems(details?: ApiTokenDetails, explorerUrl?: string): DropdownItem<string>[] {
+function buildMenuItems(details?: ApiTokenDetails, explorerUrl?: string): DropdownItem<string>[] {
   const { aggregatorLinks, docsUrl, sourceCodeUrl } = details ?? {};
 
   const groups: DropdownItem<string>[][] = [
@@ -128,7 +134,7 @@ function buildLinkItems(details?: ApiTokenDetails, explorerUrl?: string): Dropdo
       docsUrl && isValidUrl(docsUrl) && { name: 'Documentation', value: docsUrl },
       sourceCodeUrl && isValidUrl(sourceCodeUrl) && { name: 'Source Code', value: sourceCodeUrl },
     ]),
-    compact([explorerUrl && { name: 'Open in Explorer', fontIcon: 'menu-globe', value: explorerUrl }]),
+    compact([explorerUrl && { name: 'Open in Explorer', fontIcon: 'menu-globe', value: explorerUrl }, SHARE_ITEM]),
   ];
 
   // `DropdownMenu` draws the delimiter above an item, so it goes on the first item of every group

@@ -141,7 +141,8 @@ function UnstakeModal({
   const unstakeTime = getUnstakeTime(stakingState);
   const isLongUnstake = stakingState ? getIsLongUnstake(stakingState, unstakeAmount) : undefined;
 
-  const [unstakeDate, setUnstakeDate] = useState<number>(unstakeTime ?? Date.now() + VALIDATION_PERIOD_MS);
+  // A staking state without an unstake request has `end` of 0, which must not look like an expired unstake
+  const [unstakeDate, setUnstakeDate] = useState<number>(unstakeTime || Date.now() + VALIDATION_PERIOD_MS);
   const forceUpdate = useForceUpdate();
   const appTheme = useAppTheme(theme);
 
@@ -175,7 +176,9 @@ function UnstakeModal({
     forceUpdate();
   });
 
-  useInterval(refreshUnstakeDate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
+  // The countdown is visible only in the open modal. The modal stays mounted while closed, and in the explorer it
+  // mounts before any account exists. Opening the modal already loads the history, so the first tick is skipped.
+  useInterval(refreshUnstakeDate, isOpen ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined, true);
   useInterval(() => {
     if (state === StakingState.UnstakeConfirmMfa && mfaRequestHash) {
       updateStakingMfaRequestStatus();
